@@ -744,7 +744,7 @@ export default async function PageDashboard({
                     className="min-h-11 flex-1 rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 focus:border-violet focus:outline-none"
                   />
                   <Bouton variante="secondaire" taille="sm" type="submit">
-                    <Pencil aria-hidden /> Renommer
+                    <Pencil aria-hidden />
                   </Bouton>
                 </div>
               </form>

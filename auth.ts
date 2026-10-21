@@ -28,23 +28,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const valide = await bcrypt.compare(motDePasse, utilisateur.motDePasse);
         if (!valide) return null;
-
         return {
           id: utilisateur.id,
           name: utilisateur.name,
           email: utilisateur.email,
           image: utilisateur.image,
+          role: utilisateur.role,
         };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) (token as any).id = (user as any).id;
+      if (user) {
+        (token as any).id = (user as any).id;
+        // Propage le rôle dans le jeton : Google renvoie l'utilisateur complet de la base,
+        // et le fournisseur Credentials le renvoie désormais (champ « role » dans authorize).
+        (token as any).role = (user as any).role ?? "USER";
+      }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) (session.user as any).id = (token as any).id;
+      if (session.user) {
+        (session.user as any).id = (token as any).id;
+        (session.user as any).role = (token as any).role ?? "USER";
+      }
       return session;
     },
   },
