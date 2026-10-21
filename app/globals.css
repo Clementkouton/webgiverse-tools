@@ -1,0 +1,103 @@
+@import "tailwindcss";
+@theme {
+    /* ── Charte Webgiverse ──────────────────────────────────────── */
+    --color-bleu: #0b1b3f;
+    /* texte principal, titres, footer */
+    --color-encre: #43507a;
+    /* texte secondaire (AA sur blanc) */
+    --color-violet: #6a3bff;
+    /* marque, liens, actifs */
+    --color-violet-clair: #8f6bff;
+    --color-ciel: #00d1ff;
+    /* secondaire, dégradés */
+    --color-ciel-fonce: #0091c2;
+    /* variante AA pour texte en dégradé */
+    --color-turquoise: #00e5c6;
+    /* badges « gratuit » */
+    --color-gris: #f1f5ff;
+    /* fond de page */
+    --color-neon: #00f5a8;
+    /* badges « nouveau » (jamais en texte sur blanc) */
+    --color-magenta: #ff3dff;
+    /* accent rare : 1 seul usage par écran */
+    --color-bordure: #dbe4f7;
+    /* ── Typographie ────────────────────────────────────────────── */
+    --font-titre: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+    --font-texte: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --text-h1: 48px;
+    --text-h1--line-height: 56px;
+    --text-h1--letter-spacing: -0.02em;
+    --text-h2: 32px;
+    --text-h2--line-height: 40px;
+    --text-h2--letter-spacing: -0.01em;
+    --text-h3: 24px;
+    --text-h3--line-height: 32px;
+    --text-legende: 14px;
+    --text-legende--line-height: 20px;
+    /* ── Rayons & ombres ────────────────────────────────────────── */
+    --radius-carte: 16px;
+    --radius-champ: 12px;
+    --shadow-carte: 0 1px 3px rgba(11, 27, 63, 0.06), 0 8px 24px rgba(11, 27, 63, 0.05);
+}
+
+@layer base {
+    body {
+        @apply bg-gris font-texte text-bleu antialiased;
+    }
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-titre;
+    }
+     ::selection {
+        background: rgba(106, 59, 255, 0.18);
+    }
+    /* Focus clavier toujours visible */
+     :focus-visible {
+        outline: 2px solid var(--color-violet);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+    /* Mouvement discret : respect de prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+@layer utilities {
+    /* Dégradé de marque pour titres (variante foncée → contraste AA) */
+    .texte-degrade {
+        background-image: linear-gradient(100deg, var(--color-violet) 15%, var(--color-ciel-fonce) 90%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    /* Variante pour fond bleu profond */
+    .texte-degrade-clair {
+        background-image: linear-gradient(100deg, var(--color-violet-clair) 10%, var(--color-ciel) 90%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    /* Glassmorphism — barre de navigation et hero uniquement */
+    .verre {
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+    .hero-verre {
+        background: linear-gradient(180deg, rgba(241, 245, 255, 0.9), rgba(255, 255, 255, 0.35));
+        backdrop-filter: blur(8px);
+    }
+    /* Longueur de ligne maximale ~75 caractères */
+    .mesure {
+        max-width: 75ch;
+    }
+}
