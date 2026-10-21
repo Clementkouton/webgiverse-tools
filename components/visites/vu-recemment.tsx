@@ -1,3 +1,4 @@
+// components/visites/vu-recemment.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,7 +16,13 @@ type OutilVu = {
 
 const CLE = "webgiverse_vus";
 
-export default function VuRecemment() {
+// variante "page"     → section complète (page d'accueil)
+// variante "compacte" → section compacte (dashboard)
+export default function VuRecemment({
+  variante = "page",
+}: {
+  variante?: "page" | "compacte";
+}) {
   const [vus, setVus] = useState<OutilVu[] | null>(null);
 
   useEffect(() => {
@@ -36,6 +43,54 @@ export default function VuRecemment() {
       // localStorage indisponible
     }
     setVus([]);
+  }
+
+  const compacte = variante === "compacte";
+  const liste = compacte ? vus.slice(0, 4) : vus;
+
+  if (compacte) {
+    return (
+      <section className="mt-8" aria-label="Vu récemment">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-titre text-[17px] leading-6 font-semibold">Vu récemment</h2>
+          <button
+            type="button"
+            onClick={effacer}
+            className="text-[13px] leading-4 text-encre transition hover:text-violet"
+          >
+            Effacer
+          </button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {liste.map((o) => (
+            <Link
+              key={o.slug}
+              href={`/outil/${o.slug}`}
+              className="flex items-center gap-3 rounded-carte border border-bordure bg-white p-3.5 shadow-carte transition hover:border-violet"
+            >
+              {o.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={o.logo}
+                  alt=""
+                  className="size-10 shrink-0 rounded-champ border border-bordure object-contain p-1"
+                />
+              ) : (
+                <div className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris font-titre text-sm font-bold text-encre">
+                  {o.nom.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-[14px] leading-5 font-semibold">{o.nom}</p>
+                <p className="truncate text-[12px] leading-4 text-encre">
+                  {o.gratuit ? "Gratuit" : o.tarif || "Voir la fiche"}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -59,6 +114,7 @@ export default function VuRecemment() {
             className="flex items-center gap-3 rounded-carte border border-bordure bg-white p-4 shadow-carte transition hover:-translate-y-0.5"
           >
             {o.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={o.logo}
                 alt=""
