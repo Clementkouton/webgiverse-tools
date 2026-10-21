@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import CarteOutilView, { type OutilCarte } from "@/components/outil/carte-outil";
+import CarteOutilView from "@/components/outil/carte-outil";
 
 /* ===================================================================== */
 /*  MÉTADONNÉES                                                          */
@@ -20,6 +20,18 @@ export const metadata = {
 type ParametresRecherche = Promise<Record<string, string | string[] | undefined>>;
 
 type CategorieFiltre = { id: string; nom: string; slug: string };
+
+type OutilCarte = {
+  id: string;
+  nom: string;
+  slug: string;
+  logo: string | null;
+  description: string;
+  tarif: string | null;
+  gratuit: boolean;
+  openSource: boolean;
+  type: string;
+};
 
 type ClientCategories = {
   category?: { findMany: (args: { orderBy: { nom: "asc" } }) => Promise<CategorieFiltre[]> };
@@ -263,7 +275,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {outils.map((outil) => (
-            <CarteOutilView key={outil.slug} outil={outil} />
+            <CarteOutilView key={outil.slug} slug={outil.slug} />
           ))}
         </div>
       )}
