@@ -33,3 +33,20 @@ export const schemaOutilAdmin = z.object({
   tarif: z.string().trim().min(2, "Indique le tarif (ex : Freemium — Pro à 20 $/mois)").max(120),
   statut: z.enum(["BROUILLON", "PUBLIE", "ARCHIVE"], { message: "Statut invalide" }),
 });
+
+// ── Espace admin : articles (actualités + blog) ──────────────────────
+export const schemaArticleAdmin = z.object({
+  titre: z.string().trim().min(4, "Titre trop court").max(120, "Titre trop long (120 caractères max)"),
+  slug: z
+    .string()
+    .trim()
+    .min(2, "Slug trop court")
+    .max(120, "Slug trop long (120 caractères max)")
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug invalide : minuscules, chiffres et tirets seulement"),
+  type: z.enum(["ACTUALITE", "BLOG"], { message: "Choisis le type : actualité ou article de blog" }),
+  statut: z.enum(["BROUILLON", "PUBLIE"], { message: "Statut invalide" }),
+  extrait: z.string().trim().min(20, "Écris un résumé d'au moins 20 caractères").max(300, "Résumé trop long (300 caractères max)"),
+  image: z.string().trim().url("URL de l'image invalide").max(400).optional().or(z.literal("")),
+  auteur: z.string().trim().min(2, "Nom d'auteur trop court").max(80).optional().or(z.literal("")),
+  contenu: z.string().trim().min(50, "L'article doit contenir au moins 50 caractères").max(50000, "Article trop long"),
+});

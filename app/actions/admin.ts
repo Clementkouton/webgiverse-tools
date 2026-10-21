@@ -6,7 +6,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { slugifier } from "@/lib/utils";
-import { schemaOutilAdmin } from "@/lib/schemas";
+import { schemaOutilAdmin, schemaArticleAdmin } from "@/lib/schemas";
 
 async function exigerAdmin() {
   const session = await auth();
@@ -217,6 +217,135 @@ export async function basculerMiseEnAvantFormulaire(donnees: FormData) {
   if (!outil) return;
   await prisma.tool.update({ where: { id }, data: { misEnAvant: !outil.misEnAvant } });
   revalidatePath("/admin"); revalidatePath("/admin/outils"); revalidatePath("/");
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  Articles : actualités + blog
+// ─────────────────────────────────────────────────────────────────────
+
+export type EtatArticle = { ok: boolean; message: string; erreurs?: Record<string, string> } | null;
+
+/** Valide les champs texte du formulaire article avec le schéma zod. */
+function validerChampsArticle(donnees: FormData) {
+  const brut = {
+    titre: String(donnees.get("titre") ?? ""),
+    slug: String(donnees.get("slug") ?? ""),
+    type: String(donnees.get("type") ?? ""),
+    statut: String(donnees.get("statut") ?? ""),
+    extrait: String(donnees.get("extrait") ?? ""),
+    image: String(donnees.get("image") ?? ""),
+    auteur: String(donnees.get("auteur") ?? ""),
+    contenu: String(donnees.get("contenu") ?? ""),
+  };
+  const analyse = schemaArticleAdmin.safeParse(brut);
+  if (analyse.success) return { ok: true as const, donnees: analyse.data };
+
+  const erreurs: Record<string, string> = {};
+  for (const probleme of analyse.error.issues) {
+    const champ = String(probleme.path[0] ?? "global");
+    if (!erreurs[champ]) erreurs[champ] = probleme.message;
+  }
+  return { ok: false as const, erreurs };
+}
+
+type ChampsArticle = z.infer<typeof schemaArticleAdmin>;
+
+/** Construit les données Prisma du formulaire article. */
+function construireDonneesArticle(champs: ChampsArticle) {
+  return {
+    titre: champs.titre,
+    slug: champs.slug,
+    type: champs.type as "ACTUALITE" | "BLOG",
+    statut: champs.statut as "BROUILLON" | "PUBLIE",
+    extrait: champs.extrait,
+    image: champs.image && champs.image.length > 0 ? champs.image : null,
+    auteur: champs.auteur && champs.auteur.length > 0 ? champs.auteur : "L'équipe Webgiverse",
+    contenu: champs.contenu,
+  };
+}
+
+/** Création d'un article (formulaire /admin/articles/nouveau). */
+export async function creerArticleAction(_etatPrecedent: EtatArticle, donnees: FormData): Promise<EtatArticle> {
+  await exigerAdmin();
+
+  const validation = validerChampsArticle(donnees);
+  if (!validation.ok) {
+    return { ok: false, message: "Corrige les champs signalés en rouge, puis réessaie.", erreurs: validation.erreurs };
+  }
+
+  const donneesArticle = construireDonneesArticle(validation.donnees);
+  if (await prisma.article.findUnique({ where: { slug: donneesArticle.slug } })) {
+    return { ok: false, message: "Ce slug est déjà utilisé par un autre article.", erreurs: { slug: "Slug déjà pris, change-le." } };
+  }
+
+  await prisma.article.create({
+    data: { ...donneesArticle, publieLe: donneesArticle.statut === "PUBLIE" ? new Date() : null },
+  });
+
+  revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
+  redirect("/admin/articles?cree=1");
+}
+
+/** Modification d'un article (formulaire /admin/articles/[id]). */
+export async function majArticleAction(_etatPrecedent: EtatArticle, donnees: FormData): Promise<EtatArticle> {
+  await exigerAdmin();
+
+  const articleId = String(donnees.get("articleId") ?? "");
+  if (!articleId) return { ok: false, message: "Article introuvable." };
+
+  const validation = validerChampsArticle(donnees);
+  if (!validation.ok) {
+    return { ok: false, message: "Corrige les champs signalés en rouge, puis réessaie.", erreurs: validation.erreurs };
+  }
+
+  const existant = await prisma.article.findUnique({ where: { id: articleId } });
+  if (!existant) return { ok: false, message: "Article introuvable." };
+
+  const donneesArticle = construireDonneesArticle(validation.donnees);
+  const collision = await prisma.article.findUnique({ where: { slug: donneesArticle.slug } });
+  if (collision && collision.id !== articleId) {
+    return { ok: false, message: "Ce slug est déjà utilisé par un autre article.", erreurs: { slug: "Slug déjà pris, change-le." } };
+  }
+
+  // Ne réinitialise pas la date de publication si l'article était déjà publié.
+  await prisma.article.update({
+    where: { id: articleId },
+    data: {
+      ...donneesArticle,
+      publieLe:
+        donneesArticle.statut === "PUBLIE" ? (existant.publieLe ?? new Date()) : null,
+    },
+  });
+
+  revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
+  revalidatePath(`/articles/${donneesArticle.slug}`);
+  redirect("/admin/articles?maj=1");
+}
+
+/** Suppression d'un article. */
+export async function supprimerArticleFormulaire(donnees: FormData) {
+  await exigerAdmin();
+  const id = z.string().min(1).parse(donnees.get("articleId"));
+  await prisma.article.delete({ where: { id } });
+  revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
+}
+
+/** Publier / remettre en brouillon un article depuis la liste. */
+export async function basculerPublicationArticleFormulaire(donnees: FormData) {
+  await exigerAdmin();
+  const id = z.string().min(1).parse(donnees.get("articleId"));
+  const article = await prisma.article.findUnique({ where: { id } });
+  if (!article) return;
+
+  const nouveauStatut = article.statut === "PUBLIE" ? "BROUILLON" : "PUBLIE";
+  await prisma.article.update({
+    where: { id },
+    data: {
+      statut: nouveauStatut,
+      publieLe: nouveauStatut === "PUBLIE" ? (article.publieLe ?? new Date()) : null,
+    },
+  });
+  revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
 }
 
 // ─────────────────────────────────────────────────────────────────────

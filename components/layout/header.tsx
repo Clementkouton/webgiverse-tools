@@ -1,6 +1,4 @@
 //components/layouts/header.tsx
-
-
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -23,11 +21,18 @@ export function Header() {
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [rechercheActive, setRechercheActive] = useState(false);
   const [connecte, setConnecte] = useState(false);
+  const [estAdmin, setEstAdmin] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/session").then((r) => r.json())
-      .then((s) => setConnecte(Boolean(s?.user))).catch(() => {});
+      .then((s) => {
+        setConnecte(Boolean(s?.user));
+        setEstAdmin(s?.user?.role === "ADMIN");
+      }).catch(() => {});
   }, []);
+
+  const hrefEspace = estAdmin ? "/admin" : connecte ? "/dashboard" : "/connexion";
+  const libelleEspace = estAdmin ? "Espace admin" : connecte ? "Mon espace" : "Connexion";
 
   return (
     <header className="verre sticky top-0 z-50 border-b border-bordure">
@@ -86,7 +91,7 @@ export function Header() {
             <Link href="/proposer">Proposer un outil</Link>
           </Bouton>
           <Bouton taille="sm" asChild>
-            <Link href={connecte ? "/dashboard" : "/connexion"}>{connecte ? "Mon espace" : "Connexion"}</Link>
+            <Link href={hrefEspace}>{libelleEspace}</Link>
           </Bouton>
           <button className="grid size-11 place-items-center rounded-full text-bleu hover:bg-white/70 lg:hidden"
             aria-expanded={menuOuvert} aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}

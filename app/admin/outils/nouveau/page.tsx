@@ -2,16 +2,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { prisma } from "@/lib/prisma";
-import { FormulaireOutil } from "@/components/admin/formulaire-outil";
+import { FormulaireArticle as FormulaireOutil } from "@/components/admin/formulaire-outil";
 import { creerOutilAction } from "@/app/actions/admin";
 
 export const metadata: Metadata = { title: "Nouvel outil — Administration" };
 export const dynamic = "force-dynamic";
 
 export default async function PageNouvelOutil() {
-  const categories = await prisma.category.findMany({ orderBy: { ordre: "asc" }, select: { id: true, nom: true } });
-
   return (
     <div className="mx-auto max-w-3xl">
       <Link href="/admin/outils" className="inline-flex items-center gap-1 text-[14px] font-semibold text-violet hover:underline">
@@ -23,7 +20,7 @@ export default async function PageNouvelOutil() {
         Si tu ne connais pas le logo, on utilise automatiquement le favicon du site officiel.
       </p>
       <div className="mt-6">
-        <FormulaireOutil action={creerOutilAction} categories={categories} />
+        <FormulaireOutil action={creerOutilAction} />
       </div>
     </div>
   );

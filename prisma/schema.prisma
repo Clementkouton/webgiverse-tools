@@ -79,6 +79,34 @@ model Account {
   @@id([provider, providerAccountId])
 }
 
+// ── Articles : actualités et blog ─────────────────────────────────────
+enum ArticleType {
+  ACTUALITE
+  BLOG
+}
+
+enum ArticleStatut {
+  BROUILLON
+  PUBLIE
+}
+
+model Article {
+  id       String        @id @default(cuid())
+  type     ArticleType   @default(BLOG)
+  titre    String
+  slug     String        @unique
+  extrait  String
+  contenu  String
+  image    String?
+  auteur   String        @default("L'équipe Webgiverse")
+  statut   ArticleStatut @default(BROUILLON)
+  publieLe DateTime?
+  creeLe   DateTime      @default(now())
+  majLe    DateTime      @updatedAt
+
+  @@index([type, statut, publieLe])
+}
+
 model Session {
   sessionToken String   @unique
   userId       String

@@ -12,8 +12,10 @@ export const metadata: Metadata = { title: "Administration" };
 export const dynamic = "force-dynamic";
 
 const RACCOURCIS = [
+  { href: "/admin/articles/nouveau", libelle: "Rédiger un article", detail: "Actualité ou blog", emoji: "✍️" },
   { href: "/admin/outils/nouveau", libelle: "Ajouter un outil", detail: "Créer une fiche complète", emoji: "➕" },
   { href: "/admin/outils", libelle: "Gérer les outils", detail: "Modifier, publier, supprimer", emoji: "🧰" },
+  { href: "/admin/articles", libelle: "Gérer les articles", detail: "Brouillons et publications", emoji: "📰" },
   { href: "/admin/avis", libelle: "Modérer les avis", detail: "Retirer un avis hors-sujet", emoji: "💬" },
   { href: "/admin/utilisateurs", libelle: "Utilisateurs", detail: "Rôles et inscriptions", emoji: "👥" },
 ];
@@ -42,17 +44,20 @@ export default async function PageAdmin() {
     }),
   ]);
 
+  // Protégé si la table Article n'existe pas encore (prisma db push pas encore lancé).
+  const nbArticlesPublies = await (prisma as any).article?.count?.({ where: { statut: "PUBLIE" } }).catch?.(() => 0) ?? 0;
+
   const enAttente = propositions.filter((p) => p.statut === "EN_ATTENTE");
 
   const STATS = [
     ["Utilisateurs", nbUtilisateurs],
     ["Outils publiés", `${nbOutilsPublies}/${nbOutilsTotal}`],
+    ["Articles publiés", nbArticlesPublies],
     ["Propositions en attente", nbPropositions],
     ["Avis publiés", nbAvis],
     ["Votes", nbVotes],
     ["Favoris enregistrés", nbFavoris],
     ["Abonnés newsletter", nbAbonnes],
-    ["Conversations IA", await prisma.conversation.count().catch(() => 0)],
   ];
 
   return (
@@ -72,7 +77,7 @@ export default async function PageAdmin() {
       {/* ── Raccourcis ───────────────────────────────────────────────── */}
       <section className="mt-10">
         <h2 className="text-h3 font-semibold">Raccourcis</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {RACCOURCIS.map((r) => (
             <Link key={r.href} href={r.href} className="group">
               <Carte className="h-full p-5 transition group-hover:border-violet group-hover:shadow-[0_4px_18px_rgba(106,59,255,0.15)]">
