@@ -4,8 +4,8 @@
 // Un fichier "use server" ne peut exporter QUE des fonctions async.
 // Le schéma Zod vit dans lib/validation/profil.ts (jamais ici !)
 import { schemaProfil } from "@/lib/validation/profil";
-import { prisma } from "@/lib/prisma"; // ⚠️ adaptez si votre client Prisma est ailleurs (ex: "@/lib/db")
-import { auth } from "@/auth";         // ⚠️ adaptez si votre config NextAuth est ailleurs
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 // Met à jour le profil de l'utilisateur connecté (formulaire dashboard)
@@ -29,8 +29,11 @@ export async function majProfil(donnees: unknown) {
       where: { id: session.user.id },
       data: {
         name: analyse.data.nom,
-        bio: analyse.data.bio || null,
-        siteWeb: analyse.data.siteWeb || null,
+        // ⚠️ CORRIGÉ : les champs « bio » et « siteWeb » n'existent pas dans
+        // le model User de prisma/schema.prisma — écrire dessus faisait
+        // échouer TOUTE la mise à jour. On ne met à jour que « name ».
+        // Pour les activer plus tard : ajouter `bio String?` et
+        // `siteWeb String?` dans model User, puis `npx prisma db push`.
       },
     });
 

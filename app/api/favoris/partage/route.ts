@@ -1,3 +1,4 @@
+// app/api/favoris/partage/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -24,17 +25,19 @@ export async function POST() {
     return NextResponse.json({ erreur: "Non autorisé." }, { status: 401 });
   }
 
+  // ⚠️ CORRIGÉ : le model List utilise `userId` (et non `utilisateurId`)
   let liste = await prisma.list.findFirst({
-    where: { utilisateurId: session.user.id, nom: NOM_LISTE },
+    where: { userId: session.user.id, nom: NOM_LISTE },
   });
 
   // Si la liste existe déjà et est publique → on arrête le partage
-  if (liste && (liste as typeof liste & { estPublique: boolean }).estPublique) {
+  const listeExistante = liste as (typeof liste & { publique?: boolean }) | null;
+  if (listeExistante?.publique) {
     await prisma.list.update({
-      where: { id: liste.id },
-      data: { estPublique: false } as never,
+      where: { id: listeExistante.id },
+      data: { publique: false } as any,
     });
-    return NextResponse.json({ ok: true, publique: false });
+    return NextResponse.json({ ok: true, publique: false, slug: null });
   }
 
   // Récupérer les favoris actuels
@@ -56,32 +59,35 @@ export async function POST() {
       data: {
         userId: session.user.id,
         nom: NOM_LISTE,
-        estPublique: true,
+        publique: true,
         slug: genererSlug(NOM_LISTE),
       },
     });
   }
 
+  // Référence non-nulle pour TypeScript dans les fermetures ci-dessous
+  const listeFinale = liste;
+
   // Synchroniser le contenu de la liste avec les favoris actuels
-  await prisma.listItem.deleteMany({ where: { listId: liste.id } });
+  await prisma.listItem.deleteMany({ where: { listId: listeFinale.id } });
   await prisma.listItem.createMany({
-    data: favoris.map((f) => ({ listId: liste.id, toolId: f.tool.id })),
+    data: favoris.map((f) => ({ listId: listeFinale.id, toolId: f.tool.id })),
   });
 
   await prisma.list.update({
-    where: { id: liste.id },
-    data: { estPublique: true } as never,
+    where: { id: listeFinale.id },
+    data: { publique: true } as any,
   });
 
   await journaliser(
     session.user.id,
     "partage_favoris",
-    JSON.stringify({ liste: liste.id })
+    JSON.stringify({ liste: listeFinale.id })
   );
 
   return NextResponse.json({
     ok: true,
     publique: true,
-    slug: (liste as typeof liste & { slug: string }).slug,
+    slug: (listeFinale as typeof listeFinale & { slug: string }).slug,
   });
 }

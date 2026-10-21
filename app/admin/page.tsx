@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
 import { approuverPropositionFormulaire, basculerMiseEnAvantFormulaire,
   basculerPublicationFormulaire, refuserPropositionFormulaire } from "@/app/actions/admin";
-import { CoeurFavori } from "@/components/outil/coeur-favori";
 
 export const metadata: Metadata = { title: "Administration" };
 export const dynamic = "force-dynamic";
