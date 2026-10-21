@@ -144,7 +144,7 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
         <section className="mt-12">
           <h2 className="text-h3 font-semibold">Alternatives à {outil.nom}</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {alternatives.map((a) => <CarteOutilView key={a.id} slug={a.slug} />)}
+            {alternatives.map((a) => <CarteOutilView key={a.id} outil={a} />)}
           </div>
           <Bouton variante="secondaire" className="mt-6" asChild>
             <Link href={`/comparer?outils=${outil.slug}`}>Comparer avec un autre outil <ArrowRight aria-hidden /></Link>
