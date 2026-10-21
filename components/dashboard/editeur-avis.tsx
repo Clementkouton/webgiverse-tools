@@ -1,149 +1,103 @@
-// components/dashboard/editeur-avis.tsx
+// components/dashboard/editeur-note.tsx
 "use client";
 
-// Carte « Mon avis » : affichage + modification inline + suppression.
-// - Vue : étoiles, texte de l'avis, boutons Modifier / Supprimer
-// - Édition : sélecteur d'étoiles + zone de texte + message de statut
-import { useActionState, useEffect, useState } from "react";
-import { Pencil, Star, Trash2 } from "lucide-react";
-import { Bouton } from "@/components/ui/bouton";
+// ─────────────────────────────────────────────────────────────────
+// Bloc « Ma note personnelle » de chaque favori (dashboard).
+// Version améliorée :
+// - Cadre avec titre + icône, la zone réagit au focus (bordure violette)
+// - Bouton « Enregistrer la note » avec 3 états visuels :
+//     1. repos      → bouton principal "Enregistrer la note"
+//     2. enCours    → spinner "Enregistrement…" (bouton désactivé)
+//     3. ok         → coche verte "Enregistrée" pendant 2,5 s
+// - Le bouton est désactivé tant que la note n'a pas été modifiée
+//   (impossible de cliquer "pour rien")
+// - Raccourci clavier : Ctrl + Entrée (ou Cmd + Entrée sur Mac)
+//   enregistre la note sans quitter le clavier
+// ─────────────────────────────────────────────────────────────────
+import { useEffect, useState } from "react";
+import { Check, Loader2, NotebookPen, Save } from "lucide-react";
 import { ZoneTexte } from "@/components/ui/champ";
-import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
-import { majAvisAction, supprimerAvisFormulaire } from "@/app/actions/avis";
+import { Bouton } from "@/components/ui/bouton";
+import { majNote } from "@/app/actions/favoris";
 
-function Etoiles({ note, taille }: { note: number; taille: "sm" | "md" }) {
-  return (
-    <div className="flex gap-0.5" role="img" aria-label={`Note : ${note} sur 5`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star
-          key={n}
-          aria-hidden
-          className={`${taille === "sm" ? "size-4" : "size-5"} ${
-            n <= note ? "fill-amber-400 text-amber-400" : "text-bordure"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
+export function EditeurNote({ favoriId, note }: { favoriId: string; note: string | null }) {
+  const [texte, setTexte] = useState(note ?? "");
+  const [etat, setEtat] = useState<"repos" | "enCours" | "ok">("repos");
 
-export function EditeurAvis({
-  avisId,
-  noteInitiale,
-  contenuInitial,
-}: {
-  avisId: string;
-  noteInitiale: number;
-  contenuInitial: string;
-}) {
-  const [edition, setEdition] = useState(false);
-  const [note, setNote] = useState(noteInitiale);
-  const [etat, action, enAttente] = useActionState<{ succes: boolean; message: string }, FormData>(
-    majAvisAction,
-    { succes: false, message: "" },
-  );
+  // La note a-t-elle vraiment changé depuis la dernière sauvegarde ?
+  const modifie = texte !== (note ?? "");
 
-  // Après un enregistrement réussi, on referme le mode édition.
+  // Après un enregistrement réussi, on repasse en « repos » après 2,5 s.
   useEffect(() => {
-    if (etat.succes) setEdition(false);
+    if (etat !== "ok") return;
+    const minuteur = setTimeout(() => setEtat("repos"), 2500);
+    return () => clearTimeout(minuteur);
   }, [etat]);
 
-  if (edition) {
-    return (
-      <form action={action} className="grid gap-3">
-        <input type="hidden" name="avisId" value={avisId} />
-        <input type="hidden" name="note" value={note} />
-
-        <div role="radiogroup" aria-label="Ta note" className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              type="button"
-              role="radio"
-              aria-checked={note === n}
-              aria-label={`${n} sur 5`}
-              onClick={() => setNote(n)}
-              className="rounded-full p-1 transition hover:bg-gris"
-            >
-              <Star
-                aria-hidden
-                className={`size-5 ${n <= note ? "fill-amber-400 text-amber-400" : "text-bordure"}`}
-              />
-            </button>
-          ))}
-        </div>
-
-        <ZoneTexte
-          name="contenu"
-          rows={4}
-          defaultValue={contenuInitial}
-          required
-          minLength={10}
-          maxLength={2000}
-          aria-label="Ton avis"
-        />
-
-        {etat.message && (
-          <p
-            aria-live="polite"
-            className={
-              etat.succes
-                ? "text-[13px] leading-5 font-medium text-green-700"
-                : "text-[13px] leading-5 font-medium text-red-600"
-            }
-          >
-            {etat.message}
-          </p>
-        )}
-
-        <div className="flex flex-wrap gap-2">
-          <Bouton type="submit" taille="sm" disabled={enAttente}>
-            {enAttente ? "Enregistrement…" : "Enregistrer"}
-          </Bouton>
-          <Bouton
-            type="button"
-            variante="fantome"
-            taille="sm"
-            onClick={() => {
-              setEdition(false);
-              setNote(noteInitiale);
-            }}
-          >
-            Annuler
-          </Bouton>
-        </div>
-      </form>
-    );
+  async function enregistrer() {
+    if (etat === "enCours" || !modifie) return;
+    setEtat("enCours");
+    try {
+      const reponse = await majNote(favoriId, texte);
+      setEtat(reponse?.ok ? "ok" : "repos");
+    } catch {
+      setEtat("repos");
+    }
   }
 
   return (
-    <div>
-      <Etoiles note={noteInitiale} taille="sm" />
-      <p className="mesure mt-2 text-[15px] leading-6 whitespace-pre-wrap text-encre">
-        {contenuInitial}
+    <div className="rounded-champ border border-bordure bg-gris/40 p-3 transition focus-within:border-violet">
+      <p className="mb-2 flex items-center gap-1.5 text-[12px] leading-4 font-semibold uppercase tracking-wide text-encre">
+        <NotebookPen className="size-3.5 text-violet" aria-hidden />
+        Ma note personnelle
       </p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+
+      <ZoneTexte
+        rows={3}
+        value={texte}
+        onChange={(e) => setTexte(e.target.value)}
+        onKeyDown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            void enregistrer();
+          }
+        }}
+        placeholder="Ce que je teste, ce que j'en pense, pour quel usage…"
+        aria-label="Note personnelle sur l'outil"
+        className="border-white bg-white focus:border-violet"
+      />
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <p aria-live="polite" className="min-h-4 text-[12px] leading-4 text-encre">
+          {etat === "ok" && (
+            <span className="inline-flex items-center gap-1 font-medium text-green-700">
+              <Check className="size-3.5" aria-hidden /> Note enregistrée
+            </span>
+          )}
+          {etat === "enCours" && (
+            <span className="inline-flex items-center gap-1">
+              <Loader2 className="size-3.5 animate-spin" aria-hidden /> Enregistrement…
+            </span>
+          )}
+          {etat === "repos" && modifie && "Pense à enregistrer tes changements"}
+        </p>
+
         <Bouton
-          variante="fantome"
+          variante={etat === "ok" ? "secondaire" : "primaire"}
           taille="sm"
-          onClick={() => {
-            setNote(noteInitiale);
-            setEdition(true);
-          }}
+          disabled={!modifie || etat === "enCours"}
+          onClick={enregistrer}
+          className="min-h-9 px-3 text-[13px]"
         >
-          <Pencil aria-hidden /> Modifier
+          {etat === "enCours" ? (
+            <Loader2 className="animate-spin" aria-hidden />
+          ) : etat === "ok" ? (
+            <Check aria-hidden />
+          ) : (
+            <Save aria-hidden />
+          )}
+          {etat === "enCours" ? "Enregistrement…" : etat === "ok" ? "Enregistrée" : "Enregistrer la note"}
         </Bouton>
-        <form action={supprimerAvisFormulaire}>
-          <input type="hidden" name="avisId" value={avisId} />
-          <BoutonConfirmer
-            type="submit"
-            message="Supprimer cet avis définitivement ?"
-            aria-label="Supprimer mon avis"
-            className="inline-flex min-h-11 items-center gap-2 px-4 text-[14px] leading-5 font-semibold text-red-600 transition hover:bg-red-50"
-          >
-            <Trash2 aria-hidden /> Supprimer
-          </BoutonConfirmer>
-        </form>
       </div>
     </div>
   );

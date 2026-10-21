@@ -18,6 +18,7 @@ import {
   Loader,
   Lock,
   MessageSquareQuote,
+  Pencil,
   Plus,
   Search,
   Share2,
@@ -52,6 +53,7 @@ import { BoutonDeconnexion } from "@/components/auth/bouton-deconnexion";
 import { PortailConnexion } from "@/components/auth/portail-connexion";
 import BoutonPartageListe from "@/components/partage/bouton-partage-liste";
 import VuRecemment from "@/components/visites/vu-recemment";
+import BoutonExportPdf from "@/components/pdf/bouton-export-pdf";
 
 export const metadata: Metadata = { title: "Mon espace" };
 
@@ -72,6 +74,7 @@ const ICONES_ACTIVITE: Record<string, { icone: LucideIcon; libelle: string }> = 
   favori: { icone: Star, libelle: "Favoris" },
   assistant: { icone: Sparkles, libelle: "Assistant IA" },
   avis: { icone: MessageSquareQuote, libelle: "Avis" },
+  avis_publie: { icone: MessageSquareQuote, libelle: "Avis publié" },
   vote: { icone: ThumbsUp, libelle: "Recommandation (vote)" },
   partage_liste: { icone: Share2, libelle: "Partage de liste" },
   recherche: { icone: Search, libelle: "Recherche" },
@@ -83,6 +86,34 @@ const formateurDate = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "medium",
   timeStyle: "short",
 });
+
+// ── Rend les détails du journal lisibles ───────────────────────
+// Certaines API enregistrent du JSON brut (ex. {"outil":"canva","note":4}).
+// Cette fonction le transforme en phrase française propre ; si le détail
+// est déjà un texte simple (ex. « Ajouté : canva »), il est affiché tel quel.
+function formaterDetails(type: string, details: string | null): string | null {
+  if (!details) return null;
+  try {
+    const d = JSON.parse(details);
+    if (d && typeof d === "object" && !Array.isArray(d)) {
+      if (type === "avis_publie" && d.outil) {
+        return `Outil : ${d.outil}${d.note ? ` · Note : ${d.note}/5` : ""}`;
+      }
+      if (type === "vote" && d.outil) {
+        return `Outil : ${d.outil}${d.vote === false ? " · Recommandation retirée" : " · Recommandé 👍"}`;
+      }
+      if (type === "partage_liste" || type === "partage_favoris") {
+        return d.publique === false ? "Liste rendue privée" : "Liste partagée en public";
+      }
+      return Object.entries(d)
+        .map(([cle, valeur]) => `${cle} : ${String(valeur)}`)
+        .join(" · ");
+    }
+  } catch {
+    /* détail texte simple : affiché tel quel */
+  }
+  return details;
+}
 
 const PALIERS = [
   { min: 30, nom: "Maître IA" },
@@ -111,12 +142,20 @@ export default async function PageDashboard({
   const prenom = (utilisateur?.name ?? "").trim().split(/\s+/)[0] ?? "";
 
   // ── Compteurs (toujours chargés : en-tête + badges) ────────────
+  // « avis » et « vote » sont protégés : si le client Prisma n'est pas
+  // encore régénéré (ou si la requête échoue), on affiche 0 sans crash.
+  const prismaAvis = (prisma as any).avis;
+  const prismaVote = (prisma as any).vote;
   const [nbFavoris, nbEnCours, nbAdoptes, nbAvis, nbVotes, nbListes] = await Promise.all([
     prisma.favorite.count({ where: { userId } }),
     prisma.favorite.count({ where: { userId, statut: "EN_COURS" } }),
     prisma.favorite.count({ where: { userId, statut: "ADOPTE" } }),
-    Promise.resolve(0),
-    Promise.resolve(0),
+    prismaAvis?.count
+      ? prismaAvis.count({ where: { utilisateurId: userId } }).catch(() => 0)
+      : Promise.resolve(0),
+    prismaVote?.count
+      ? prismaVote.count({ where: { utilisateurId: userId } }).catch(() => 0)
+      : Promise.resolve(0),
     prisma.list.count({ where: { userId } }),
   ]);
 
@@ -490,12 +529,22 @@ export default async function PageDashboard({
       <section className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-h3 font-semibold">Mes favoris ({favoris.length})</h2>
-          <Link
-            href="/favoris"
-            className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline"
-          >
-            Exporter en PDF <ChevronRight className="size-4" aria-hidden />
-          </Link>
+          {/* Export PDF RÉEL : télécharge un PDF de la sélection (avec notes + statuts) */}
+          <BoutonExportPdf
+            titre="Mes favoris Webgiverse"
+            sousTitre={`Sélection de ${prenom || "membre"} — espace personnel Webgiverse`}
+            fichier="mes-favoris-webgiverse"
+            libelle="Exporter en PDF"
+            outils={favoris.map((f) => ({
+              nom: f.tool.nom,
+              description: f.tool.description,
+              tarif: f.tool.tarif,
+              slug: f.tool.slug,
+              gratuit: f.tool.gratuit,
+              note: f.note,
+              statut: f.statut,
+            }))}
+          />
         </div>
 
         {/* Filtres par statut */}
@@ -679,24 +728,38 @@ export default async function PageDashboard({
                   </li>
                 )}
               </ul>
-              <form action={renommerListeFormulaire} className="mt-4 flex gap-2 border-t border-bordure pt-4">
+              <form action={renommerListeFormulaire} className="mt-4 border-t border-bordure pt-4">
                 <input type="hidden" name="listeId" value={liste.id} />
-                <input
-                  name="nom"
-                  defaultValue={liste.nom}
-                  aria-label={`Renommer ${liste.nom}`}
-                  className="min-h-11 flex-1 rounded-champ border border-bordure px-3 text-[14px] leading-5 focus:border-violet focus:outline-none"
-                />
-                <Bouton variante="fantome" taille="sm" type="submit">
-                  Renommer
-                </Bouton>
+                <p className="flex items-center gap-1.5 text-[12px] leading-4 font-semibold uppercase tracking-wide text-encre">
+                  <Pencil className="size-3.5 text-violet" aria-hidden /> Renommer la liste
+                </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    name="nom"
+                    defaultValue={liste.nom}
+                    required
+                    minLength={2}
+                    maxLength={60}
+                    aria-label={`Nouveau nom pour la liste ${liste.nom}`}
+                    className="min-h-11 flex-1 rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 focus:border-violet focus:outline-none"
+                  />
+                  <Bouton variante="secondaire" taille="sm" type="submit">
+                    <Pencil aria-hidden /> Renommer
+                  </Bouton>
+                </div>
               </form>
               <div className="mt-4 flex items-center justify-between gap-2 border-t border-bordure pt-4">
                 <BoutonPartageListe listeId={liste.id} />
                 <form action={supprimerListeFormulaire}>
-                  <Bouton variante="fantome" taille="sm" type="submit">
-                    Supprimer
-                  </Bouton>
+                  <input type="hidden" name="listeId" value={liste.id} />
+                  <BoutonConfirmer
+                    type="submit"
+                    message={`Supprimer la liste « ${liste.nom} » définitivement ?`}
+                    aria-label={`Supprimer la liste ${liste.nom}`}
+                    className="inline-flex min-h-11 items-center gap-2 px-4 text-[14px] leading-5 font-semibold text-red-600 transition hover:bg-red-50"
+                  >
+                    <Trash2 aria-hidden /> Supprimer
+                  </BoutonConfirmer>
                 </form>
               </div>
             </Carte>
@@ -715,13 +778,31 @@ export default async function PageDashboard({
 
   /* ══════════════ ONGLET MES AVIS ══════════════ */
   if (ongletActif === "avis") {
-    const mesAvis: {
+    // Récupération RÉELLE des avis de l'utilisateur depuis la base.
+    let mesAvis: {
       id: string;
       note: number;
-      contenu: string | null;
+      contenu: string;
       majLe: Date;
       outil: { nom: string; slug: string; logo: string | null };
     }[] = [];
+
+    try {
+      const delegueAvis = (prisma as any).avis;
+      if (!delegueAvis?.findMany) {
+        console.error(
+          "[dashboard] Le client Prisma ne contient pas le modèle Avis. Arrête le serveur (Ctrl+C) puis lance : npx prisma generate."
+        );
+      } else {
+        mesAvis = await delegueAvis.findMany({
+          where: { utilisateurId: userId },
+          include: { outil: { select: { nom: true, slug: true, logo: true } } },
+          orderBy: { majLe: "desc" },
+        });
+      }
+    } catch (error) {
+      console.error("[dashboard] Impossible de charger tes avis :", error);
+    }
 
     const moyenne = mesAvis.length
       ? (mesAvis.reduce((somme, a) => somme + a.note, 0) / mesAvis.length).toFixed(1)
@@ -829,7 +910,9 @@ export default async function PageDashboard({
                   <div className="min-w-0 flex-1">
                     <p className="text-[15px] leading-5 font-semibold">{meta.libelle}</p>
                     {a.details && (
-                      <p className="truncate text-[13px] leading-4 text-encre">{a.details}</p>
+                      <p className="truncate text-[13px] leading-4 text-encre">
+                        {formaterDetails(a.type, a.details)}
+                      </p>
                     )}
                   </div>
                   <p className="shrink-0 text-[12px] leading-4 text-encre">

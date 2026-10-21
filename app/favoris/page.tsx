@@ -1,8 +1,12 @@
 // app/favoris/page.tsx
 "use client";
 
+// Page publique /favoris : grille des favoris + VRAI export PDF.
+// Le bouton « Télécharger en PDF » génère un PDF local (jsPDF) qui
+// se télécharge automatiquement dans le dossier Téléchargements.
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import BoutonExportPdf, { type OutilExport } from "@/components/pdf/bouton-export-pdf";
 
 const LIBELLES: Record<string, string> = {
   A_TESTER: "À tester",
@@ -42,12 +46,38 @@ export default function PageFavoris() {
     }).catch(() => null);
   }
 
+  // Données prêtes pour le PDF (nom, description, tarif, note, statut…)
+  const outilsPourPdf: OutilExport[] = favoris
+    .filter((f) => f.tool?.slug)
+    .map((f) => ({
+      nom: f.tool.nom ?? "Outil",
+      description: f.tool.description ?? "",
+      tarif: f.tool.tarif ?? "",
+      slug: f.tool.slug,
+      gratuit: Boolean(f.tool.gratuit),
+      note: f.note ?? null,
+      statut: f.statut ?? undefined,
+    }));
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-4 py-10">
-      <h1 className="mb-2 text-3xl font-bold">Mes favoris ⭐</h1>
-      <p className="mb-8 text-gray-500">
-        Les outils IA que tu suis, en un seul endroit.
-      </p>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold">Mes favoris ⭐</h1>
+          <p className="text-gray-500">
+            Les outils IA que tu suivis, en un seul endroit.
+          </p>
+        </div>
+        {outilsPourPdf.length > 0 && (
+          <BoutonExportPdf
+            titre="Mes favoris Webgiverse"
+            sousTitre="Ma sélection personnelle d'outils IA"
+            fichier="mes-favoris-webgiverse"
+            libelle="Télécharger en PDF"
+            outils={outilsPourPdf}
+          />
+        )}
+      </div>
 
       {chargement ? (
         <p className="text-gray-400">Chargement…</p>
