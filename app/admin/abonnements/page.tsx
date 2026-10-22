@@ -1,6 +1,6 @@
 // app/admin/abonnements/page.tsx
 // Gestion admin des abonnements premium : revenus, abonnés actifs,
-// derniers paiements (simulation et Paystack réel confondus).
+// derniers paiements (simulation et Moneroo réel confondus).
 
 import type { Metadata } from "next";
 import { Crown, ReceiptText, TrendingUp, Users } from "lucide-react";
@@ -166,7 +166,7 @@ export default async function PageAdminAbonnements() {
                     </td>
                     <td className="px-4 py-3 font-semibold text-bleu">{formatePrix(paiement.montant)}</td>
                     <td className="px-4 py-3 text-encre">
-                        {paiement.simulation ? "Simulation" : paiement.canal ?? "Moneroo"}
+                      {paiement.simulation ? "Simulation" : paiement.canal ?? "Moneroo"}
                     </td>
                     <td className="px-4 py-3">
                       {paiement.statut === "PAYE" ? (

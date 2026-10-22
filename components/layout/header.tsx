@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronDown, Menu, Search, X } from "lucide-react";
+import { ChevronDown, Menu, Search, X, Sparkles } from "lucide-react";
 import { LienLogo } from "@/components/commun/logo";
 import { Bouton } from "@/components/ui/bouton";
 
@@ -86,6 +86,10 @@ export function Header() {
           </details>
           <Link href="/actualites" className="rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium text-bleu hover:bg-white/70">Actualités</Link>
           <Link href="/blog" className="rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium text-bleu hover:bg-white/70">Blog</Link>
+          <Link href="/tarifs"
+            className="inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-violet transition hover:bg-violet hover:text-white">
+            <Sparkles className="size-4" aria-hidden /> Premium
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
@@ -119,6 +123,12 @@ export function Header() {
             ))}
             <li><Link href="/actualites" onClick={() => setMenuOuvert(false)} className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris">Actualités</Link></li>
             <li><Link href="/blog" onClick={() => setMenuOuvert(false)} className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris">Blog</Link></li>
+            <li>
+              <Link href="/tarifs" onClick={() => setMenuOuvert(false)}
+                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris">
+                <Sparkles className="size-4" aria-hidden /> Passer Premium
+              </Link>
+            </li>
             <li><Link href="/proposer" onClick={() => setMenuOuvert(false)} className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-violet hover:bg-gris">Proposer un outil</Link></li>
           </ul>
         </nav>

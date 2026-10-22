@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 const ONGLETS = [
   { href: "/admin", libelle: "Tableau de bord", exacte: true },
   { href: "/admin/outils", libelle: "Outils" },
+  { href: "/admin/articles", libelle: "Articles" },
+  { href: "/admin/abonnements", libelle: "Abonnements" },
   { href: "/admin/avis", libelle: "Avis" },
   { href: "/admin/utilisateurs", libelle: "Utilisateurs" },
 ];
@@ -34,10 +36,6 @@ export function NavAdmin() {
           </Link>
         );
       })}
-
-      
     </nav>
-    
   );
-
 }
