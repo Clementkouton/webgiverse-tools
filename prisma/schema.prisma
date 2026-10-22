@@ -35,10 +35,6 @@ enum SubmissionStatus {
   REFUSE
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Premium / abonnements (Paystack)
-// ─────────────────────────────────────────────────────────────
-
 enum PlanPremium {
   PRO
   ENTREPRISE
@@ -81,7 +77,7 @@ model Paiement {
   devise        String         @default("USD")
   statut        StatutPaiement @default(EN_ATTENTE)
   reference     String         @unique
-  paystackId    String?
+  monerooId     String?        @unique // identifiant du paiement chez Moneroo
   canal         String?
   simulation    Boolean        @default(false)
   creeLe        DateTime       @default(now())
