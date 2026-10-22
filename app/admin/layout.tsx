@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { NavAdmin } from "@/components/admin/nav-admin";
+import { BoutonDeconnexion } from "@/components/auth/bouton-deconnexion";
 import { ShieldCheck } from "lucide-react";
 
 export default async function LayoutAdmin({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
             Salut {moi.name || moi.email} 👋
           </h1>
         </div>
+        <BoutonDeconnexion />
       </div>
 
       <NavAdmin />

@@ -35,6 +35,63 @@ enum SubmissionStatus {
   REFUSE
 }
 
+// ─────────────────────────────────────────────────────────────
+//  Premium / abonnements (Paystack)
+// ─────────────────────────────────────────────────────────────
+
+enum PlanPremium {
+  PRO
+  ENTREPRISE
+}
+
+enum StatutAbonnement {
+  ACTIF
+  ANNULE
+  EXPIRE
+}
+
+enum StatutPaiement {
+  EN_ATTENTE
+  PAYE
+  ECHOUE
+}
+
+model Abonnement {
+  id            String           @id @default(cuid())
+  utilisateurId String           @unique
+  plan          PlanPremium
+  statut        StatutAbonnement @default(ACTIF)
+  debutLe       DateTime         @default(now())
+  expireLe      DateTime
+  annuleLe      DateTime?
+  creeLe        DateTime         @default(now())
+  majLe         DateTime         @updatedAt
+  utilisateur   User             @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  paiements     Paiement[]
+
+  @@index([statut, expireLe])
+}
+
+model Paiement {
+  id            String         @id @default(cuid())
+  utilisateurId String
+  abonnementId  String?
+  plan          PlanPremium
+  montant       Int // en centimes de dollar (299 = 2,99 USD)
+  devise        String         @default("USD")
+  statut        StatutPaiement @default(EN_ATTENTE)
+  reference     String         @unique
+  paystackId    String?
+  canal         String?
+  simulation    Boolean        @default(false)
+  creeLe        DateTime       @default(now())
+  majLe         DateTime       @updatedAt
+  utilisateur   User           @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  abonnement    Abonnement?    @relation(fields: [abonnementId], references: [id], onDelete: SetNull)
+
+  @@index([utilisateurId, creeLe])
+}
+
 model User {
   id              String           @id @default(cuid())
   name            String?
@@ -58,6 +115,8 @@ model User {
   activites     ActiviteUtilisateur[]
   avis          Avis[]
   votes         Vote[]
+  abonnement    Abonnement?
+  paiements     Paiement[]
 }
 
 model Account {
