@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Compass,
+  Crown,
   History,
   LayoutDashboard,
   ListChecks,
@@ -31,6 +32,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { PLANS } from "@/lib/plans";
 import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
@@ -286,6 +288,20 @@ export default async function PageDashboard({
         : Promise.resolve([]),
     ]);
 
+    // ── Abonnement Premium (lecture défensive : si la table Abonnement
+    // n'existe pas encore — npx prisma db push non lancé — on affiche
+    // simplement le plan gratuit, sans crash) ──────────────────────
+    const prismaAbonnement = (prisma as any).abonnement;
+    const abonnement = prismaAbonnement?.findUnique
+      ? await prismaAbonnement
+          .findUnique({ where: { utilisateurId: userId } })
+          .catch(() => null)
+      : null;
+    const abonnementActif =
+      abonnement && abonnement.statut === "ACTIF" && abonnement.expireLe > new Date()
+        ? abonnement
+        : null;
+
     contenu = (
       <>
         {/* Statistiques cliquables */}
@@ -313,6 +329,57 @@ export default async function PageDashboard({
             </Link>
           ))}
         </section>
+
+        {/* Mon abonnement Premium */}
+        <Carte className="mt-8 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-violet/10 text-violet">
+                <Crown className="size-5" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-h3 font-semibold">Mon abonnement</h2>
+                {abonnementActif ? (
+                  <p className="mt-1 text-legende text-encre">
+                    Plan{" "}
+                    {PLANS[abonnementActif.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Pro"} actif
+                    jusqu&apos;au{" "}
+                    {new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(
+                      abonnementActif.expireLe,
+                    )}
+                    {abonnementActif.annuleLe
+                      ? " — renouvellement arrêté, tu gardes tes jours payés"
+                      : " — se renouvelle automatiquement à la fin de la période"}
+                  </p>
+                ) : abonnement ? (
+                  <p className="mt-1 text-legende text-encre">
+                    Ton abonnement Premium n&apos;est plus actif. Renouvelle-le en un clic pour
+                    retrouver tes avantages.
+                  </p>
+                ) : (
+                  <p className="mt-1 text-legende text-encre">
+                    Tu es sur le plan Découverte (gratuit). Passe Premium pour débloquer favoris et
+                    listes illimités, l&apos;export PDF enrichi et plus encore.
+                  </p>
+                )}
+              </div>
+            </div>
+            {abonnementActif ? (
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge variante="magenta">
+                  <Crown className="size-3.5" aria-hidden /> Premium
+                </Badge>
+                <Bouton variante="secondaire" taille="sm" asChild>
+                  <Link href="/dashboard/abonnement">Gérer mon abonnement</Link>
+                </Bouton>
+              </div>
+            ) : (
+              <Bouton taille="sm" asChild className="shrink-0">
+                <Link href="/tarifs">{abonnement ? "Renouveler Premium" : "Découvrir Premium"}</Link>
+              </Bouton>
+            )}
+          </div>
+        </Carte>
 
         {/* Badges / gamification */}
         <Carte className="mt-8 p-6">
@@ -832,6 +899,17 @@ export default async function PageDashboard({
                     Dernière mise à jour : {formateurDate.format(a.majLe)}
                   </p>
                 </div>
+                <form action={supprimerAvisFormulaire}>
+                  <input type="hidden" name="avisId" value={a.id} />
+                  <BoutonConfirmer
+                    type="submit"
+                    message={`Supprimer ton avis sur ${a.outil.nom} ?`}
+                    aria-label={`Supprimer ton avis sur ${a.outil.nom}`}
+                    className="grid size-9 place-items-center rounded-full text-encre hover:bg-gris hover:text-red-600"
+                  >
+                    <Trash2 className="size-4" aria-hidden />
+                  </BoutonConfirmer>
+                </form>
               </div>
               <div className="mt-4">
                 <EditeurAvis avisId={a.id} noteInitiale={a.note} contenuInitial={a.contenu} />

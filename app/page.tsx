@@ -8,6 +8,7 @@ import CarteOutilView from "@/components/outil/carte-outil";
 import { BoutonCopier } from "@/components/commun/bouton-copier";
 import { FormulaireNewsletter } from "@/components/commun/formulaire-newsletter";
 import { IconeCategorie } from "@/components/commun/icone-categorie";
+import { SectionPlans } from "@/components/tarifs/section-plans";
 import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
 import { compterStats, listerCategories, outilsMisEnAvant, listerOutils } from "@/lib/queries";
 import VuRecemment from "@/components/visites/vu-recemment";
@@ -60,7 +61,7 @@ export default async function Accueil() {
           </dl>
         </div>
       </section>
-      
+
       <VuRecemment />
       {/* ── À la une (usage unique du magenta) ───────────────── */}
       <section className="bg-white py-14 lg:py-18">
@@ -93,7 +94,7 @@ export default async function Accueil() {
       {/* ── Prompts et compétences d'agents ──────────────────── */}
       <section className="bg-white py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
-          <TitreSection>Des prompts prêts à l'emploi</TitreSection          >
+          <TitreSection>Des prompts prêts à l'emploi</TitreSection>
           <p className="mesure mt-2 mb-8 text-encre">Nos prompt packs Webgiverse, à copier dans ton assistant préféré.</p>
           <div className="grid gap-4 md:grid-cols-2">
             {PROMPTS.map((p) => (
@@ -124,6 +125,9 @@ export default async function Accueil() {
           </div>
         </div>
       </section>
+
+      {/* ── Plans d'abonnement Premium ───────────────────────── */}
+      <SectionPlans />
 
       {/* ── L'actu IA du jour ────────────────────────────────── */}
       <section className="bg-white py-14 lg:py-18">
