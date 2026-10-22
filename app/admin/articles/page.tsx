@@ -1,5 +1,6 @@
 // app/admin/articles/page.tsx
 import type { Metadata } from "next";
+import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -30,7 +31,7 @@ export default async function PageArticlesAdmin({
 }) {
   const { type = "", cree, maj } = await searchParams;
 
-  const where = type === "BLOG" || type === "ACTUALITE" ? { type } : {};
+  const where: Prisma.ArticleWhereInput = type === "BLOG" || type === "ACTUALITE" ? { type } : {};
   const [articles, nbTotal] = await Promise.all([
     prisma.article.findMany({
       where,

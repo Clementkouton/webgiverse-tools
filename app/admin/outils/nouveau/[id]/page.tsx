@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { FormulaireArticle as FormulaireOutil } from "@/components/admin/formulaire-outil";
+import { FormulaireOutil } from "@/components/admin/formulaire-outil";
 import { majOutilAction } from "@/app/actions/admin";
 
 export const metadata: Metadata = { title: "Modifier l'outil — Administration" };
@@ -13,10 +13,13 @@ export const dynamic = "force-dynamic";
 export default async function PageModifierOutil({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const outil = await prisma.tool.findUnique({
-    where: { id },
-    include: { categories: { select: { categorieId: true } } },
-  });
+  const [outil, categories] = await Promise.all([
+    prisma.tool.findUnique({
+      where: { id },
+      include: { categories: { select: { categorieId: true } } },
+    }),
+    prisma.category.findMany({ orderBy: { ordre: "asc" }, select: { id: true, nom: true } }),
+  ]);
 
   if (!outil) notFound();
 
@@ -42,7 +45,8 @@ export default async function PageModifierOutil({ params }: { params: Promise<{ 
       <div className="mt-6">
         <FormulaireOutil
           action={majOutilAction}
-          article={{
+          categories={categories}
+          outil={{
             id: outil.id,
             nom: outil.nom,
             slug: outil.slug,
