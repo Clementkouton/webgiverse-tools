@@ -25,17 +25,16 @@ export async function POST() {
     return NextResponse.json({ erreur: "Non autorisé." }, { status: 401 });
   }
 
-  // ⚠️ CORRIGÉ : le model List utilise `userId` (et non `utilisateurId`)
+  // Le model List utilise `userId` et le champ de visibilité s'appelle `estPublique`.
   let liste = await prisma.list.findFirst({
     where: { userId: session.user.id, nom: NOM_LISTE },
   });
 
   // Si la liste existe déjà et est publique → on arrête le partage
-  const listeExistante = liste as (typeof liste & { publique?: boolean }) | null;
-  if (listeExistante?.publique) {
+  if (liste?.estPublique) {
     await prisma.list.update({
-      where: { id: listeExistante.id },
-      data: { publique: false } as any,
+      where: { id: liste.id },
+      data: { estPublique: false },
     });
     return NextResponse.json({ ok: true, publique: false, slug: null });
   }
@@ -59,7 +58,7 @@ export async function POST() {
       data: {
         userId: session.user.id,
         nom: NOM_LISTE,
-        publique: true,
+        estPublique: true,
         slug: genererSlug(NOM_LISTE),
       },
     });
@@ -76,7 +75,7 @@ export async function POST() {
 
   await prisma.list.update({
     where: { id: listeFinale.id },
-    data: { publique: true } as any,
+    data: { estPublique: true },
   });
 
   await journaliser(
@@ -88,6 +87,6 @@ export async function POST() {
   return NextResponse.json({
     ok: true,
     publique: true,
-    slug: (listeFinale as typeof listeFinale & { slug: string }).slug,
+    slug: listeFinale.slug,
   });
 }

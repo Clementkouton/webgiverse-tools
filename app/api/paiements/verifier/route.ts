@@ -36,6 +36,10 @@ export async function GET(requete: Request) {
   }
 
   // Mode réel : on demande confirmation à Moneroo (via l'identifiant Moneroo).
+  if (!paiement.reference) {
+    return NextResponse.json({ statut: paiement.statut, plan: paiement.plan });
+  }
+
   const verification = await verifierPaiementMoneroo(paiement.reference);
   if (!verification.ok || !verification.donnees) {
     return NextResponse.json({ statut: paiement.statut, plan: paiement.plan });

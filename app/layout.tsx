@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { inter, spaceGrotesk } from "@/lib/fonts";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-// Next.js processes this global stylesheet; TypeScript may not resolve CSS side-effect imports.
-// @ts-expect-error TS2882: global CSS is handled by Next.js, not TypeScript.
+// @ts-expect-error CSS side-effect imports are handled by Next.js.
 import "./globals.css";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
