@@ -1,4 +1,4 @@
-//components/layouts/header.tsx
+// components/layout/header.tsx
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -31,8 +31,10 @@ export function Header() {
       }).catch(() => {});
   }, []);
 
+  // Le bouton s'adapte au rôle : « Espace Admin » → /admin pour les administrateurs,
+  // « Mon espace » → /dashboard pour les utilisateurs connectés, « Connexion » sinon.
   const hrefEspace = estAdmin ? "/admin" : connecte ? "/dashboard" : "/connexion";
-  const libelleEspace = estAdmin ? "Espace admin" : connecte ? "Mon espace" : "Connexion";
+  const libelleEspace = estAdmin ? "Espace Admin" : connecte ? "Mon espace" : "Connexion";
 
   return (
     <header className="verre sticky top-0 z-50 border-b border-bordure">
