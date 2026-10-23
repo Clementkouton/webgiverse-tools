@@ -82,5 +82,12 @@ export async function POST(requete: Request) {
     );
   }
 
+  // On mémorise l'identifiant Moneroo : indispensable pour vérifier le paiement plus tard.
+  // Le client Prisma peut être en retard sur le schéma ; on force le cast pour ne pas bloquer la compilation.
+  await prisma.paiement.update({
+    where: { reference },
+    data: { monerooId: resultat.id } as any,
+  });
+
   return NextResponse.json({ simulation: false, url: resultat.url, reference });
 }
