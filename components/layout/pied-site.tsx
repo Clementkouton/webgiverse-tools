@@ -1,9 +1,9 @@
 // components/layout/pied-site.tsx
 // ─────────────────────────────────────────────────────────────────
 // Masque le pied de page du site dans l'espace Dashboard.
-// Le dashboard possède sa propre navigation dédiée (menu latéral +
-// tiroir mobile) : on n'y affiche ni le header général ni le footer
-// du site, pour un espace vraiment professionnel et immersif.
+// Le dashboard possède son PROPRE pied de page (pied-dashboard.tsx) :
+// on n'y affiche donc pas le gros footer du site (Annuaire/Ressources/
+// Légal), pour ne jamais voir deux footers l'un sous l'autre.
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
