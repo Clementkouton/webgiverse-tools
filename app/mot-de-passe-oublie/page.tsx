@@ -70,8 +70,7 @@ export default function PageMotDePasseOublie() {
         {envoye ? (
           <div className="space-y-4">
             <p className="rounded-champ bg-green-50 px-4 py-3 text-sm text-green-700">
-              Si un compte existe avec cet email, un lien de réinitialisation a
-              été généré. Il est valable 1 heure.
+              Si un compte existe avec cet email, un email contenant un lien de réinitialisation vient d'être envoyé. Il est valable 1 heure. Pensez à vérifier vos spams.
             </p>
 
             {lien && (

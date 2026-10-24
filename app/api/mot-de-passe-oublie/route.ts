@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { envoyerEmail, emailMotDePasseOublie } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -27,13 +28,27 @@ export async function POST(req: Request) {
       data: { identifier: courriel, token, expires },
     });
 
-    const lien = `/reinitialiser?token=${token}&email=${encodeURIComponent(
+    // Lien ABSOLU : fonctionne en local comme en production
+    const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const lien = `${base}/reinitialiser?token=${token}&email=${encodeURIComponent(
       courriel
     )}`;
 
-    // En développement : on renvoie le lien directement (pas encore de service email).
-    // En production, ce lien serait envoyé par email.
-    return NextResponse.json({ ok: true, lien, dev: true });
+    // Envoi du véritable email de réinitialisation
+    const envoye = await envoyerEmail({
+      a: courriel,
+      sujet: "Réinitialisation de votre mot de passe – Webgiverse",
+      html: emailMotDePasseOublie(lien),
+    });
+
+    // Filet de sécurité : UNIQUEMENT en développement local, si l'email
+    // n'a pas pu partir (Gmail non configuré), on affiche le lien à l'écran
+    // pour pouvoir tester quand même. En production : jamais.
+    if (!envoye && process.env.NODE_ENV !== "production") {
+      return NextResponse.json({ ok: true, lien, dev: true });
+    }
+
+    return NextResponse.json({ ok: true });
   } catch (erreur) {
     console.error("MOT DE PASSE OUBLIÉ :", erreur);
     return NextResponse.json(
