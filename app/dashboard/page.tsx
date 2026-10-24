@@ -33,6 +33,7 @@ import type { LucideIcon } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PLANS } from "@/lib/plans";
+import { LIMITES_DECOUVERTE } from "@/lib/premium";
 import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
@@ -51,7 +52,6 @@ import {
 } from "@/app/actions/listes";
 import { supprimerFavoriFormulaire } from "@/app/actions/favoris";
 import { supprimerAvisFormulaire } from "@/app/actions/avis";
-import { BoutonDeconnexion } from "@/components/auth/bouton-deconnexion";
 import { PortailConnexion } from "@/components/auth/portail-connexion";
 import BoutonPartageListe from "@/components/partage/bouton-partage-liste";
 import VuRecemment from "@/components/visites/vu-recemment";
@@ -126,12 +126,12 @@ const PALIERS = [
 export default async function PageDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ onglet?: string; statut?: string }>;
+  searchParams: Promise<{ onglet?: string; statut?: string; message?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) return <PortailConnexion />;
 
-  const { onglet, statut } = await searchParams;
+  const { onglet, statut, message } = await searchParams;
   const ongletActif: CleOnglet = ONGLETS.some((o) => o.cle === onglet)
     ? (onglet as CleOnglet)
     : "apercu";
@@ -168,6 +168,22 @@ export default async function PageDashboard({
     ? Math.min(100, Math.round((score / seuilSuivant) * 100))
     : 100;
 
+  // ── Abonnement (chargé une seule fois pour l'en-tête ET l'onglet Aperçu) ──
+  const prismaAbonnement = (prisma as any).abonnement;
+  const abonnementEnTete = prismaAbonnement?.findUnique
+    ? await prismaAbonnement
+        .findUnique({ where: { utilisateurId: userId } })
+        .catch(() => null)
+    : null;
+  const abonnementEnTeteActif =
+    abonnementEnTete &&
+    abonnementEnTete.statut === "ACTIF" &&
+    abonnementEnTete.expireLe > new Date();
+  const planNomEnTete = abonnementEnTeteActif
+    ? (PLANS[abonnementEnTete.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Pro")
+    : "Découverte";
+  const premium = Boolean(abonnementEnTeteActif);
+
   const badges: { titre: string; description: string; obtenu: boolean; icone: LucideIcon }[] = [
     { titre: "Premier favori", description: "1 outil en favori", obtenu: nbFavoris >= 1, icone: Star },
     { titre: "Collectionneur", description: "5 favoris", obtenu: nbFavoris >= 5, icone: Star },
@@ -179,24 +195,22 @@ export default async function PageDashboard({
     { titre: "Voix qui compte", description: "5 votes donnés", obtenu: nbVotes >= 5, icone: ThumbsUp },
   ];
 
-  // ── En-tête commun (greeting + niveau + onglets) ───────────────
+  // ── En-tête commun (greeting + niveau) ───────────────
   const enTete = (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-legende text-encre capitalize">
-            {new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}
-          </p>
-          <h1 className="mt-1 text-h2 font-semibold">
-            {prenom ? `Bonjour ${prenom} 👋` : "Bonjour 👋"}
-          </h1>
-        </div>
-        <BoutonDeconnexion />
+      <div className="animate-apparition-haut">
+        <p className="text-legende text-encre capitalize">
+          {new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" }).format(new Date())}
+        </p>
+        <h1 className="mt-1 text-h2 font-semibold">
+          {prenom ? `Bonjour ${prenom} 👋` : "Bonjour 👋"}
+        </h1>
       </div>
 
-      {/* Carte de bienvenue avec progression */}
-      <div className="relative mt-6 overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-8">
-        <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-ciel/20 blur-3xl" />
+      {/* Carte de bienvenue avec progression (animée) */}
+      <div className="animate-apparition-haut delai-1 relative mt-6 overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-8">
+        <div aria-hidden className="animate-flottant pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-ciel/20 blur-3xl" />
+        <div aria-hidden className="animate-flottant-lent pointer-events-none absolute -bottom-20 -left-10 size-44 rounded-full bg-violet-clair/25 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-6">
           <div className="min-w-0">
             <p className="text-legende text-white/70">Ton espace personnel Webgiverse</p>
@@ -205,11 +219,20 @@ export default async function PageDashboard({
               <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[12px] leading-4 font-medium">
                 {score} pts
               </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[12px] leading-4 font-semibold">
+                {abonnementEnTeteActif ? (
+                  <>
+                    <Crown className="size-3.5 text-ciel" aria-hidden /> Plan {planNomEnTete}
+                  </>
+                ) : (
+                  "Plan Découverte"
+                )}
+              </span>
             </p>
             <div className="mt-3 w-full max-w-xs">
               <div className="h-2 overflow-hidden rounded-full bg-white/20">
                 <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
+                  className="barre-progression h-full rounded-full bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
                   style={{ width: `${progression}%` }}
                 />
               </div>
@@ -225,7 +248,7 @@ export default async function PageDashboard({
             <img
               src={session.user.image}
               alt=""
-              className="size-16 shrink-0 rounded-full border-2 border-white/30 object-cover"
+              className="size-16 shrink-0 rounded-full border-2 border-white/30 object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
             <div className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-white/30 bg-white/15 font-titre text-[22px] font-bold">
@@ -234,28 +257,6 @@ export default async function PageDashboard({
           )}
         </div>
       </div>
-
-      {/* Navigation par onglets */}
-      <nav
-        aria-label="Sections du tableau de bord"
-        className="mt-6 flex gap-1.5 overflow-x-auto rounded-full border border-bordure bg-white p-1.5 shadow-carte"
-      >
-        {ONGLETS.map((o) => {
-          const actif = o.cle === ongletActif;
-          return (
-            <Link
-              key={o.cle}
-              href={`/dashboard?onglet=${o.cle}`}
-              aria-current={actif ? "page" : undefined}
-              className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[14px] leading-5 font-semibold transition ${
-                actif ? "bg-violet text-white" : "text-bleu hover:bg-gris"
-              }`}
-            >
-              <o.icone className="size-4" aria-hidden /> {o.libelle}
-            </Link>
-          );
-        })}
-      </nav>
     </>
   );
 
@@ -288,18 +289,12 @@ export default async function PageDashboard({
         : Promise.resolve([]),
     ]);
 
-    // ── Abonnement Premium (lecture défensive : si la table Abonnement
-    // n'existe pas encore — npx prisma db push non lancé — on affiche
-    // simplement le plan gratuit, sans crash) ──────────────────────
-    const prismaAbonnement = (prisma as any).abonnement;
-    const abonnement = prismaAbonnement?.findUnique
-      ? await prismaAbonnement
-          .findUnique({ where: { utilisateurId: userId } })
-          .catch(() => null)
-      : null;
+    // ── Abonnement déjà chargé dans l'en-tête commun (lecture défensive) ──
     const abonnementActif =
-      abonnement && abonnement.statut === "ACTIF" && abonnement.expireLe > new Date()
-        ? abonnement
+      abonnementEnTete &&
+      abonnementEnTete.statut === "ACTIF" &&
+      abonnementEnTete.expireLe > new Date()
+        ? abonnementEnTete
         : null;
 
     contenu = (
@@ -313,13 +308,14 @@ export default async function PageDashboard({
             { libelle: "Avis publiés", valeur: nbAvis, icone: MessageSquareQuote, href: "/dashboard?onglet=avis" },
             { libelle: "Votes donnés", valeur: nbVotes, icone: ThumbsUp, href: "/populaires" },
             { libelle: "Listes", valeur: nbListes, icone: ListChecks, href: "/dashboard?onglet=listes" },
-          ].map((s) => (
+          ].map((s, index) => (
             <Link
               key={s.libelle}
               href={s.href}
-              className="group flex items-center gap-3 rounded-carte border border-bordure bg-white p-4 shadow-carte transition hover:border-violet"
+              style={{ animationDelay: `${index * 70}ms` }}
+              className="animate-apparition-haut survol-carte group flex items-center gap-3 rounded-carte border border-bordure bg-white p-4 shadow-carte"
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-violet">
+              <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-[linear-gradient(120deg,rgba(106,59,255,0.12),rgba(0,209,255,0.14))] text-violet transition-transform duration-300 group-hover:scale-110">
                 <s.icone className="size-5" aria-hidden />
               </span>
               <span className="min-w-0">
@@ -331,7 +327,7 @@ export default async function PageDashboard({
         </section>
 
         {/* Mon abonnement Premium */}
-        <Carte className="mt-8 p-6">
+        <Carte className="animate-apparition-haut delai-2 mt-8 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 items-start gap-3">
               <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-violet/10 text-violet">
@@ -351,7 +347,7 @@ export default async function PageDashboard({
                       ? " — renouvellement arrêté, tu gardes tes jours payés"
                       : " — se renouvelle automatiquement à la fin de la période"}
                   </p>
-                ) : abonnement ? (
+                ) : abonnementEnTete ? (
                   <p className="mt-1 text-legende text-encre">
                     Ton abonnement Premium n&apos;est plus actif. Renouvelle-le en un clic pour
                     retrouver tes avantages.
@@ -375,14 +371,16 @@ export default async function PageDashboard({
               </div>
             ) : (
               <Bouton taille="sm" asChild className="shrink-0">
-                <Link href="/tarifs">{abonnement ? "Renouveler Premium" : "Découvrir Premium"}</Link>
+                <Link href="/dashboard/abonnement#plans">
+                  {abonnementEnTete ? "Renouveler Premium" : "Voir les plans"}
+                </Link>
               </Bouton>
             )}
           </div>
         </Carte>
 
         {/* Badges / gamification */}
-        <Carte className="mt-8 p-6">
+        <Carte className="animate-apparition-haut delai-3 mt-8 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-h3 font-semibold">Tes badges</h2>
             <Badge variante="source">Niveau : {palier.nom}</Badge>
@@ -411,7 +409,7 @@ export default async function PageDashboard({
         </Carte>
 
         {/* Mon profil */}
-        <Carte className="mt-8 p-6">
+        <Carte className="animate-apparition-haut delai-4 mt-8 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-h3 font-semibold">Mon profil</h2>
             <Bouton variante="secondaire" taille="sm" asChild>
@@ -439,8 +437,12 @@ export default async function PageDashboard({
               </Link>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-3">
-              {suggestions.map((o) => (
-                <Carte key={o.id} className="p-5 transition hover:-translate-y-0.5">
+              {suggestions.map((o, index) => (
+                <Carte
+                  key={o.id}
+                  className="animate-apparition-haut survol-carte p-5"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
                   <div className="flex items-start gap-3">
                     <LogoOutil nom={o.nom} logo={o.logo} />
                     <div className="min-w-0">
@@ -554,9 +556,9 @@ export default async function PageDashboard({
               <Link
                 key={r.href}
                 href={r.href}
-                className="group flex items-start gap-3 rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:-translate-y-0.5 hover:border-violet"
+                className="survol-carte group flex items-start gap-3 rounded-carte border border-bordure bg-white p-5 shadow-carte"
               >
-                <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-violet">
+                <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-[linear-gradient(120deg,rgba(106,59,255,0.12),rgba(0,209,255,0.14))] text-violet transition-transform duration-300 group-hover:scale-110">
                   <r.icone className="size-5" aria-hidden />
                 </span>
                 <span className="min-w-0">
@@ -595,7 +597,14 @@ export default async function PageDashboard({
     contenu = (
       <section className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-h3 font-semibold">Mes favoris ({favoris.length})</h2>
+          <h2 className="text-h3 font-semibold">
+            Mes favoris ({favoris.length})
+            {!premium && (
+              <span className="ml-3 inline-flex items-center rounded-full border border-bordure bg-white px-3 py-1 align-middle text-[12px] leading-4 font-semibold text-encre">
+                {nbFavoris} / {LIMITES_DECOUVERTE.favoris} · plan Découverte
+              </span>
+            )}
+          </h2>
           {/* Export PDF RÉEL : télécharge un PDF de la sélection (avec notes + statuts) */}
           <BoutonExportPdf
             titre="Mes favoris Webgiverse"
@@ -637,6 +646,24 @@ export default async function PageDashboard({
             );
           })}
         </div>
+
+        {/* Bandeau limite du plan Découverte : 20 favoris maximum */}
+        {!premium && nbFavoris >= LIMITES_DECOUVERTE.favoris && (
+          <div className="animate-apparition-haut mt-4 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4">
+            <p className="min-w-0 text-[14px] leading-5 text-bleu">
+              Tu as atteint la limite de{" "}
+              <strong>{LIMITES_DECOUVERTE.favoris} favoris</strong> du plan
+              Découverte. Retire un favori ou passe Premium pour en ajouter
+              sans limite.
+            </p>
+            <Link
+              href="/dashboard/abonnement#plans"
+              className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-violet px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-violet-clair"
+            >
+              Passer Premium <Crown className="ml-1.5 size-4" aria-hidden />
+            </Link>
+          </div>
+        )}
 
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
           {favoris.map((f) => (
@@ -726,10 +753,36 @@ export default async function PageDashboard({
 
     contenu = (
       <section className="mt-8">
-        <h2 className="text-h3 font-semibold">Mes listes ({listes.length})</h2>
+        <h2 className="text-h3 font-semibold">
+          Mes listes ({listes.length})
+          {!premium && (
+            <span className="ml-3 inline-flex items-center rounded-full border border-bordure bg-white px-3 py-1 align-middle text-[12px] leading-4 font-semibold text-encre">
+              {nbListes} / {LIMITES_DECOUVERTE.listes} · plan Découverte
+            </span>
+          )}
+        </h2>
         <p className="mt-1 text-legende text-encre">
           Regroupe tes outils par projet, par client ou par objectif — et partage une liste en public si tu veux.
         </p>
+
+        {/* Bandeau limite du plan Découverte : 10 listes maximum
+            (affiché aussi quand l'action renvoie ?message=limite-listes) */}
+        {!premium && (message === "limite-listes" || nbListes >= LIMITES_DECOUVERTE.listes) && (
+          <div className="animate-apparition-haut mt-4 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4">
+            <p className="min-w-0 text-[14px] leading-5 text-bleu">
+              Limite du plan Découverte atteinte :{" "}
+              <strong>{LIMITES_DECOUVERTE.listes} listes maximum</strong>. Passe
+              Premium pour créer des listes sans limite.
+            </p>
+            <Link
+              href="/dashboard/abonnement#plans"
+              className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-violet px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-violet-clair"
+            >
+              Passer Premium <Crown className="ml-1.5 size-4" aria-hidden />
+            </Link>
+          </div>
+        )}
+
         <form action={creerListeFormulaire} className="mt-4 flex flex-wrap gap-2">
           <input
             name="nom"
