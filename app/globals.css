@@ -1,3 +1,302 @@
+@import "tailwindcss";
+@theme {
+    /* ── Charte Webgiverse ──────────────────────────────────────── */
+    --color-bleu: #0b1b3f;
+    /* texte principal, titres, footer */
+    --color-encre: #43507a;
+    /* texte secondaire (AA sur blanc) */
+    --color-violet: #6a3bff;
+    /* marque, liens, actifs */
+    --color-violet-clair: #8f6bff;
+    --color-ciel: #00d1ff;
+    /* secondaire, dégradés */
+    --color-ciel-fonce: #0091c2;
+    /* variante AA pour texte en dégradé */
+    --color-turquoise: #00e5c6;
+    /* badges « gratuit » */
+    --color-gris: #f1f5ff;
+    /* fond de page */
+    --color-neon: #00f5a8;
+    /* badges « nouveau » (jamais en texte sur blanc) */
+    --color-magenta: #ff3dff;
+    /* accent rare : 1 seul usage par écran */
+    --color-bordure: #dbe4f7;
+    /* ── Typographie ────────────────────────────────────────────── */
+    --font-titre: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+    --font-texte: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    --text-h1: 48px;
+    --text-h1--line-height: 56px;
+    --text-h1--letter-spacing: -0.02em;
+    --text-h2: 32px;
+    --text-h2--line-height: 40px;
+    --text-h2--letter-spacing: -0.01em;
+    --text-h3: 24px;
+    --text-h3--line-height: 32px;
+    --text-legende: 14px;
+    --text-legende--line-height: 20px;
+    /* ── Rayons & ombres ────────────────────────────────────────── */
+    --radius-carte: 16px;
+    --radius-champ: 12px;
+    --shadow-carte: 0 1px 3px rgba(11, 27, 63, 0.06), 0 8px 24px rgba(11, 27, 63, 0.05);
+}
+
+@layer base {
+    body {
+        @apply bg-gris font-texte text-bleu antialiased;
+    }
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-titre;
+    }
+     ::selection {
+        background: rgba(106, 59, 255, 0.18);
+    }
+    /* Focus clavier toujours visible */
+     :focus-visible {
+        outline: 2px solid var(--color-violet);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+    /* Mouvement discret : respect de prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+@layer utilities {
+    /* Dégradé de marque pour titres (variante foncée → contraste AA) */
+    .texte-degrade {
+        background-image: linear-gradient(100deg, var(--color-violet) 15%, var(--color-ciel-fonce) 90%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    /* Variante pour fond bleu profond */
+    .texte-degrade-clair {
+        background-image: linear-gradient(100deg, var(--color-violet-clair) 10%, var(--color-ciel) 90%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    /* Glassmorphism — barre de navigation et hero uniquement */
+    .verre {
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+    .hero-verre {
+        background: linear-gradient(180deg, rgba(241, 245, 255, 0.9), rgba(255, 255, 255, 0.35));
+        backdrop-filter: blur(8px);
+    }
+    /* Longueur de ligne maximale ~75 caractères */
+    .mesure {
+        max-width: 75ch;
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   ANIMATIONS DU DASHBOARD — modernes, discrètes, professionnelles.
+   Elles respectent automatiquement prefers-reduced-motion (voir
+   @layer base ci-dessus : durée forcée à 0.01ms pour ces personnes).
+   ══════════════════════════════════════════════════════════════════ */
+
+@keyframes apparaitre {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes monter-apparaitre {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes glisser-droite {
+    from {
+        opacity: 0;
+        transform: translateX(-18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes flotter {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-9px);
+    }
+}
+
+@keyframes pulsation-douce {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(106, 59, 255, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 0 9px rgba(106, 59, 255, 0);
+    }
+}
+
+@keyframes briller {
+    from {
+        transform: translateX(-130%) skewX(-12deg);
+    }
+    to {
+        transform: translateX(230%) skewX(-12deg);
+    }
+}
+
+@keyframes progression-remplir {
+    from {
+        width: 0;
+    }
+}
+
+
+/* ── Classes utilitaires d'animation ───────────────────────────── */
+
+.animer-apparaitre {
+    animation: apparaitre 0.45s ease-out both;
+}
+
+.animer-monter {
+    animation: monter-apparaitre 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animer-glisser {
+    animation: glisser-droite 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animer-flotter {
+    animation: flotter 5.5s ease-in-out infinite;
+}
+
+.animer-pulsation {
+    animation: pulsation-douce 2.4s ease-out infinite;
+}
+
+.progression-animee {
+    animation: progression-remplir 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ── Décalages « cascade » : delai-1 → delai-8 ─────────────────── */
+
+.delai-1 {
+    animation-delay: 0.05s;
+}
+
+.delai-2 {
+    animation-delay: 0.1s;
+}
+
+.delai-3 {
+    animation-delay: 0.15s;
+}
+
+.delai-4 {
+    animation-delay: 0.2s;
+}
+
+.delai-5 {
+    animation-delay: 0.25s;
+}
+
+.delai-6 {
+    animation-delay: 0.3s;
+}
+
+.delai-7 {
+    animation-delay: 0.35s;
+}
+
+.delai-8 {
+    animation-delay: 0.4s;
+}
+
+
+/* ── Élévation au survol (cartes cliquables) ───────────────────── */
+
+.survol-eleve {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.survol-eleve:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgba(11, 27, 63, 0.12);
+    border-color: var(--color-violet);
+}
+
+
+/* ── Reflet lumineux qui traverse la carte au survol ───────────── */
+
+.carte-brillante {
+    position: relative;
+    overflow: hidden;
+}
+
+.carte-brillante::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%);
+    transform: translateX(-130%) skewX(-12deg);
+}
+
+.carte-brillante:hover::after {
+    animation: briller 0.9s ease;
+}
+
+
+/* ── Menu latéral : indicateur du lien actif ───────────────────── */
+
+.lien-menu {
+    position: relative;
+}
+
+.lien-menu::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 0;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--color-violet);
+    transform: translateY(-50%);
+    transition: height 0.25s ease;
+}
+
+.lien-menu-actif::before {
+    height: 60%;
+}
+
+
 /* ══════════════════════════════════════════════════════════════════
    NOMS D'UTILITAIRES UTILISÉS PAR LE DASHBOARD ET LA CONSOLE ADMIN.
    (Le code utilise animate-apparition-haut, animate-flottant,
