@@ -4,7 +4,7 @@ import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
-import { signIn, signOut } from "@/auth";
+import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 export type EtatFormulaire = { erreur?: string; succes?: string; lien?: string } | null;
@@ -68,13 +68,6 @@ export async function inscriptionAction(_prec: EtatFormulaire, formData: FormDat
     throw erreur;
   }
   return null;
-}
-
-// ── Déconnexion (Dashboard + Console Admin) ───────────────────
-// Action serveur nommée : supprime le cookie de session et ramène
-// à l'accueil. Plus fiable qu'une action en ligne dans le composant.
-export async function deconnexionAction() {
-  await signOut({ redirectTo: "/" });
 }
 
 // ── Mot de passe oublié ───────────────────────────────────────

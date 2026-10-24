@@ -17,7 +17,6 @@ import {
   CreditCard,
   Gauge,
   LayoutDashboard,
-  LogOut,
   Menu,
   MessageSquareQuote,
   Newspaper,
@@ -28,7 +27,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { deconnexionAction } from "@/app/actions/authentification";
+import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
 
 type Props = {
   prenom: string;
@@ -291,16 +290,8 @@ export default function MenuAdmin({
                 Administration
               </p>
             </div>
-            {/* Déconnexion en un tap, directement depuis la barre mobile */}
-            <form action={deconnexionAction}>
-              <button
-                type="submit"
-                aria-label="Se déconnecter"
-                className="grid size-11 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 hover:text-magenta active:scale-95"
-              >
-                <LogOut className="size-5" aria-hidden />
-              </button>
-            </form>
+            {/* Déconnexion en un tap — vraie suppression du cookie de session */}
+            <BoutonDeconnexionBarre sombre />
             {avatar}
           </div>
         </header>
