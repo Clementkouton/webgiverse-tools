@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { inter, spaceGrotesk } from "@/lib/fonts";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { PiedSite } from "@/components/layout/pied-site";
 import "./globals.css";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -31,7 +32,11 @@ export default function LayoutRacine({ children }: { children: React.ReactNode }
         </a>
         <Header />
         <main id="contenu" className="flex-1">{children}</main>
-        <Footer />
+        {/* Footer du site masqué automatiquement dans l'espace Dashboard
+            (le dashboard affiche son propre footer : pied-dashboard.tsx) */}
+        <PiedSite>
+          <Footer />
+        </PiedSite>
       </body>
     </html>
   );

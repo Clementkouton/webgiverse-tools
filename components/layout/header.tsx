@@ -33,14 +33,14 @@ export function Header() {
       }).catch(() => {});
   }, []);
 
-  // ── Navigation unique dans le Dashboard ─────────────────────────────
-  // L'espace Dashboard possède sa propre navigation professionnelle
+  // ── Navigation unique dans le Dashboard ET la Console Admin ──────────
+  // Ces deux espaces possèdent leur propre navigation professionnelle
   // (menu latéral fixe sur ordinateur, barre supérieure + tiroir sur mobile).
   // On masque donc ce header général du site sur toutes les pages
-  // commençant par /dashboard, pour ne jamais afficher deux barres.
+  // commençant par /dashboard ou /admin, pour ne jamais afficher deux barres.
   // (Le hook usePathname est appelé AVANT ce retour anticipé : les règles
   // des hooks React sont respectées.)
-  if (chemin.startsWith("/dashboard")) return null;
+  if (chemin.startsWith("/dashboard") || chemin.startsWith("/admin")) return null;
 
   // Le bouton s'adapte au rôle : « Espace Admin » → /admin pour les administrateurs,
   // « Mon espace » → /dashboard pour les utilisateurs connectés, « Connexion » sinon.
