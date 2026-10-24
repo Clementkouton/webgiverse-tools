@@ -29,7 +29,9 @@ export async function POST(req: Request) {
     });
 
     // Lien ABSOLU : fonctionne en local comme en production
-    const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const base = (
+      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    ).replace(/\/+$/, ""); // supprime le(s) / final(aux) s'il(s) existe(nt)
     const lien = `${base}/reinitialiser?token=${token}&email=${encodeURIComponent(
       courriel
     )}`;
