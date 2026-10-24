@@ -1,8 +1,11 @@
 // components/dashboard/menu-dashboard.tsx
 // ─────────────────────────────────────────────────────────────────
-// Menu professionnel du dashboard : barre latérale fixe sur desktop,
-// tiroir coulissant animé sur mobile. L'état actif suit l'URL
-// (/dashboard?onglet=…) et la route (/dashboard/abonnement).
+// Menu professionnel du dashboard — LA SEULE navigation de l'espace :
+//   • Ordinateur : barre latérale fixe pleine hauteur (le header
+//     général du site est masqué sur /dashboard).
+//   • Mobile : barre supérieure collante + tiroir coulissant animé.
+// L'état actif suit l'URL (/dashboard?onglet=…) et la route
+// (/dashboard/abonnement).
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
@@ -24,6 +27,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LienLogo } from "@/components/commun/logo";
 
 type Props = {
   prenom: string;
@@ -223,8 +227,13 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
 
   return (
     <>
-      {/* ═══ Barre latérale fixe — desktop ═══ */}
-      <aside className="fixed bottom-0 left-0 top-16 z-40 hidden w-[268px] flex-col border-r border-bordure bg-white lg:top-[72px] lg:flex">
+      {/* ═══ Barre latérale fixe pleine hauteur — desktop ═══ */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[268px] flex-col border-r border-bordure bg-white lg:flex">
+        {/* Marque : retour à l'accueil du site (le header général est masqué ici) */}
+        <div className="border-b border-bordure px-5 py-4">
+          <LienLogo />
+        </div>
+
         {/* Identité de l'utilisateur */}
         <div className="flex items-center gap-3 border-b border-bordure px-5 py-4">
           {avatar}
@@ -260,10 +269,19 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
 
       {/* ═══ Contenu principal ═══ */}
       <main className="lg:pl-[268px]">
-        {/* Barre mobile avec bouton menu */}
-        <div className="mx-auto max-w-7xl px-4 pt-5 lg:hidden">
-          <div className="flex items-center justify-between gap-3 rounded-carte border border-bordure bg-white p-3 shadow-carte">
-            <div className="flex min-w-0 items-center gap-2.5">
+        {/* Barre supérieure mobile collante — le seul « navbar » du dashboard sur téléphone */}
+        <header className="verre sticky top-0 z-40 border-b border-bordure lg:hidden">
+          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
+            <button
+              type="button"
+              onClick={() => setMenuOuvert(true)}
+              aria-label="Ouvrir le menu de l'espace"
+              aria-expanded={menuOuvert}
+              className="grid size-11 shrink-0 place-items-center rounded-full border border-bordure bg-white/70 text-bleu transition hover:bg-white active:scale-95"
+            >
+              <Menu className="size-5" aria-hidden />
+            </button>
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
               {avatar}
               <div className="min-w-0">
                 <p className="truncate text-[14px] leading-5 font-semibold">
@@ -279,17 +297,8 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setMenuOuvert(true)}
-              aria-label="Ouvrir le menu de l'espace"
-              aria-expanded={menuOuvert}
-              className="grid size-11 shrink-0 place-items-center rounded-champ border border-bordure text-bleu transition hover:bg-gris active:scale-95"
-            >
-              <Menu className="size-5" aria-hidden />
-            </button>
           </div>
-        </div>
+        </header>
 
         {children}
       </main>

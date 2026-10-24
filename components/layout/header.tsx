@@ -2,6 +2,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, Search, X, Sparkles } from "lucide-react";
 import { LienLogo } from "@/components/commun/logo";
 import { Bouton } from "@/components/ui/bouton";
@@ -22,6 +23,7 @@ export function Header() {
   const [rechercheActive, setRechercheActive] = useState(false);
   const [connecte, setConnecte] = useState(false);
   const [estAdmin, setEstAdmin] = useState(false);
+  const chemin = usePathname();
 
   useEffect(() => {
     fetch("/api/auth/session").then((r) => r.json())
@@ -30,6 +32,15 @@ export function Header() {
         setEstAdmin(s?.user?.role === "ADMIN");
       }).catch(() => {});
   }, []);
+
+  // ── Navigation unique dans le Dashboard ─────────────────────────────
+  // L'espace Dashboard possède sa propre navigation professionnelle
+  // (menu latéral fixe sur ordinateur, barre supérieure + tiroir sur mobile).
+  // On masque donc ce header général du site sur toutes les pages
+  // commençant par /dashboard, pour ne jamais afficher deux barres.
+  // (Le hook usePathname est appelé AVANT ce retour anticipé : les règles
+  // des hooks React sont respectées.)
+  if (chemin.startsWith("/dashboard")) return null;
 
   // Le bouton s'adapte au rôle : « Espace Admin » → /admin pour les administrateurs,
   // « Mon espace » → /dashboard pour les utilisateurs connectés, « Connexion » sinon.
