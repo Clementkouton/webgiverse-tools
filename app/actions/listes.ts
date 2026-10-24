@@ -1,9 +1,11 @@
 // app/actions/listes.ts
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { LIMITES_DECOUVERTE, premiumActif } from "@/lib/premium";
 
 async function userIdConnecte() {
   const session = await auth();
@@ -15,6 +17,15 @@ export async function creerListeFormulaire(donnees: FormData) {
   if (!userId) return;
   const nom = z.string().trim().min(2).max(60).safeParse(donnees.get("nom"));
   if (!nom.success) return;
+
+  // Application du plan : Découverte = 10 listes max, Premium = illimité
+  if (!(await premiumActif(userId))) {
+    const nbListes = await prisma.list.count({ where: { userId } });
+    if (nbListes >= LIMITES_DECOUVERTE.listes) {
+      redirect("/dashboard?onglet=listes&message=limite-listes");
+    }
+  }
+
   await prisma.list.create({ data: { userId, nom: nom.data } });
   revalidatePath("/dashboard");
 }

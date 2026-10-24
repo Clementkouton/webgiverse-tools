@@ -81,6 +81,14 @@ function BoutonFavori({ outilId, slug }: { outilId: string; slug: string }) {
         return;
       }
 
+      // Plan Découverte : 20 favoris maximum (limite appliquée côté serveur)
+      if (data?.raison === "limite") {
+        setErreur(
+          "Favoris — limite du plan Découverte atteinte (20 favoris). Passe Premium pour des favoris illimités."
+        );
+        return;
+      }
+
       if (typeof data?.favori === "boolean") {
         setFavori(data.favori);
       } else if (data?.ok !== false) {

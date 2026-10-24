@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
+import { LIMITES_DECOUVERTE, premiumActif } from "@/lib/premium";
 
 // ── GET /api/favoris?outil=slug ───────────────────────────────────
 export async function GET(requete: NextRequest) {
@@ -65,6 +66,22 @@ export async function POST(requete: NextRequest) {
     await prisma.favorite.delete({ where: { id: existant.id } });
     await journaliser(session.user.id, "favori", `Retiré : ${slug}`);
     return NextResponse.json({ favori: false });
+  }
+
+  // Application du plan : Découverte = 20 favoris max, Premium = illimité
+  if (!(await premiumActif(session.user.id))) {
+    const nbFavoris = await prisma.favorite.count({
+      where: { userId: session.user.id },
+    });
+    if (nbFavoris >= LIMITES_DECOUVERTE.favoris) {
+      return NextResponse.json(
+        {
+          erreur: `Limite du plan Découverte atteinte (${LIMITES_DECOUVERTE.favoris} favoris). Passe Premium pour des favoris illimités.`,
+          limite: true,
+        },
+        { status: 403 }
+      );
+    }
   }
 
   await prisma.favorite.create({

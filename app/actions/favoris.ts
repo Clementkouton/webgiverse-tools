@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { LIMITES_DECOUVERTE, premiumActif } from "@/lib/premium";
 
 async function userIdConnecte() {
   const session = await auth();
@@ -26,6 +27,15 @@ export async function basculerFavori(outilId: string): Promise<{
     revalidatePath("/dashboard");
     return { ok: true, favori: false };
   }
+
+  // Application du plan : Découverte = 20 favoris max, Premium = illimité
+  if (!(await premiumActif(userId))) {
+    const nbFavoris = await prisma.favorite.count({ where: { userId } });
+    if (nbFavoris >= LIMITES_DECOUVERTE.favoris) {
+      return { ok: false, raison: "limite" };
+    }
+  }
+
   await prisma.favorite.create({ data: { userId, toolId: outilId } });
   revalidatePath("/dashboard");
   return { ok: true, favori: true };
@@ -53,7 +63,6 @@ export async function majNote(favoriId: string, note: string) {
   if (!analyse.success) return { ok: false };
   await prisma.favorite.updateMany({ where: { id: favoriId, userId }, data: { note: analyse.data.note } });
   revalidatePath("/dashboard");
-  return { ok: true };
 }
 
 export async function supprimerFavoriFormulaire(donnees: FormData) {
