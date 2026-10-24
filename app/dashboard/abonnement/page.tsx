@@ -66,7 +66,7 @@ export default async function PageMonAbonnement() {
   const planActifCle = actif ? (abonnement!.plan as "PRO" | "ENTREPRISE") : null;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
+        <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:py-10">
       <h1 className="flex items-center gap-2 text-h2 font-semibold">
         <Crown className="size-7 text-violet" aria-hidden /> Mon abonnement
       </h1>

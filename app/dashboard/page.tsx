@@ -1065,7 +1065,7 @@ export default async function PageDashboard({
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 lg:py-12">
+        <div className="mx-auto w-full max-w-7xl px-4 py-10 lg:py-12">
       {enTete}
       {contenu}
     </div>

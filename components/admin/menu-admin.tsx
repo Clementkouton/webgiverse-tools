@@ -17,6 +17,7 @@ import {
   CreditCard,
   Gauge,
   LayoutDashboard,
+  LogOut,
   Menu,
   MessageSquareQuote,
   Newspaper,
@@ -27,6 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { deconnexionAction } from "@/app/actions/authentification";
 
 type Props = {
   prenom: string;
@@ -262,7 +264,9 @@ export default function MenuAdmin({
       </aside>
 
       {/* ═══ Contenu principal ═══ */}
-      <div className="flex min-h-dvh flex-col lg:pl-[268px]">
+      {/* w-full + overflow-x-clip : aucun enfant ne peut élargir la page
+          au-delà de l'écran (même correctif que le Dashboard) */}
+      <div className="flex min-h-dvh w-full flex-col overflow-x-clip lg:pl-[268px]">
         {/* Barre supérieure mobile collante (sombre, identité admin) */}
         <header className="sticky top-0 z-40 border-b border-white/10 bg-bleu lg:hidden">
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
@@ -287,6 +291,16 @@ export default function MenuAdmin({
                 Administration
               </p>
             </div>
+            {/* Déconnexion en un tap, directement depuis la barre mobile */}
+            <form action={deconnexionAction}>
+              <button
+                type="submit"
+                aria-label="Se déconnecter"
+                className="grid size-11 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 hover:text-magenta active:scale-95"
+              >
+                <LogOut className="size-5" aria-hidden />
+              </button>
+            </form>
             {avatar}
           </div>
         </header>
