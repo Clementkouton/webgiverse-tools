@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LienLogo } from "@/components/commun/logo";
+import PiedDashboard from "@/components/dashboard/pied-dashboard";
 
 type Props = {
   prenom: string;
@@ -268,7 +269,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       </aside>
 
       {/* ═══ Contenu principal ═══ */}
-      <main className="lg:pl-[268px]">
+      <div className="flex min-h-dvh flex-col lg:pl-[268px]">
         {/* Barre supérieure mobile collante — le seul « navbar » du dashboard sur téléphone */}
         <header className="verre sticky top-0 z-40 border-b border-bordure lg:hidden">
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
@@ -301,7 +302,10 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
         </header>
 
         {children}
-      </main>
+
+        {/* Pied de page DÉDIÉ au dashboard (différent du footer du site) */}
+        <PiedDashboard premium={premium} />
+      </div>
 
       {/* ═══ Tiroir mobile animé ═══ */}
       {/* Fond assombri */}
