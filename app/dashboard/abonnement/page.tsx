@@ -44,8 +44,8 @@ export const dynamic = "force-dynamic";
 
 // URLs de paiement Chariow (à définir dans Netlify → Environment variables,
 // et dans .env.local en local). Vide = repli sur le flux Moneroo existant.
-const URL_CHARIOW_PRO = process.env.CHALIOW_URL_PRO?.trim() || null;
-const URL_CHARIOW_ENTREPRISE = process.env.CHALIOW_URL_ENTREPRISE?.trim() || null;
+const URL_CHARIOW_PRO = process.env.CHARIOW_URL_PRO?.trim() || null;
+const URL_CHARIOW_ENTREPRISE = process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
 
 const formatteurDate = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 const formatteurDateHeure = new Intl.DateTimeFormat("fr-FR", {

@@ -65,8 +65,8 @@ export function SectionPlans() {
             // Si la variable manque, le bouton ramène à la page /tarifs.
             const urlChariow =
               plan.cle === "PRO"
-                ? process.env.CHALIOW_URL_PRO?.trim() || null
-                : process.env.CHALIOW_URL_ENTREPRISE?.trim() || null;
+                ? process.env.CHARIOW_URL_PRO?.trim() || null
+                : process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
             return (
               <Carte
                 key={plan.cle}

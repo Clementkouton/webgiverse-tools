@@ -23,8 +23,8 @@ export const dynamic = "force-dynamic";
 // URLs de paiement Chariow (Netlify → Environment variables, et .env.local
 // en local). Si une URL manque, le bouton affiche « Paiement bientôt
 // disponible » au lieu de mener vers une page inexistante.
-const URL_CHARIOW_PRO = process.env.CHALIOW_URL_PRO?.trim() || null;
-const URL_CHARIOW_ENTREPRISE = process.env.CHALIOW_URL_ENTREPRISE?.trim() || null;
+const URL_CHARIOW_PRO = process.env.CHARIOW_URL_PRO?.trim() || null;
+const URL_CHARIOW_ENTREPRISE = process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
 
 export default async function PageTarifs() {
   const session = await auth();

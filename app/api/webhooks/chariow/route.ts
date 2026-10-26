@@ -156,7 +156,7 @@ function signatureValide(corpsBrut: string, entetes: Headers, secret: string): b
 // ── La route ─────────────────────────────────────────────────────────
 
 export async function POST(requete: Request) {
-  const secret = (process.env.CHALIOW_WEBHOOK_SECRET ?? "").trim();
+  const secret = (process.env.CHARIOW_WEBHOOK_SECRET ?? "").trim();
   if (!secret) {
     return NextResponse.json(
       { message: "Webhook Chariow inactif (CHARIOW_WEBHOOK_SECRET manquant)." },
@@ -167,7 +167,7 @@ export async function POST(requete: Request) {
   // Le corps BRUT est indispensable : la signature porte dessus.
   const corpsBrut = await requete.text();
 
-  const tolerant = (process.env.CHALIOW_WEBHOOK_TOLERANT ?? "").trim() === "1";
+  const tolerant = (process.env.CHARIOW_WEBHOOK_TOLERANT ?? "").trim() === "1";
   const entetePresent = ENTETES_SIGNATURE.some((nom) => requete.headers.get(nom));
 
   if (!signatureValide(corpsBrut, requete.headers, secret)) {
