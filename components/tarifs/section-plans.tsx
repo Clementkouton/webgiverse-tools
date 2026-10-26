@@ -1,16 +1,18 @@
 // components/tarifs/section-plans.tsx
 // ─────────────────────────────────────────────────────────────────
 // Section « Webgiverse Premium » affichée sur la page d'accueil.
-// Composant serveur : il lit lib/plans.ts et les URLs de checkout
-// Chariow (variables d'environnement) — aucune requête à la base de
-// données, donc il ne peut JAMAIS faire planter la landing page.
+// Composant serveur : il lit lib/plans.ts, la session (pour pré-remplir
+// l'e-mail du compte) et les URLs de checkout Chariow (variables
+// d'environnement) — aucune requête à la base de données.
 // ─────────────────────────────────────────────────────────────────
 import Link from "next/link";
 import { ArrowRight, Check, Crown, Leaf, ShieldCheck } from "lucide-react";
+import { auth } from "@/auth";
 import { Carte } from "@/components/ui/carte";
 import { PLANS, PLAN_DECOUVERTE } from "@/lib/plans";
 
-export function SectionPlans() {
+export async function SectionPlans() {
+  const session = await auth().catch(() => null);
   return (
     <section className="bg-white py-14 lg:py-18" aria-labelledby="titre-premium-accueil">
       <div className="mx-auto max-w-7xl px-4">
@@ -63,10 +65,16 @@ export function SectionPlans() {
           {Object.values(PLANS).map((plan) => {
             // URL de checkout Chariow (Netlify → Environment variables).
             // Si la variable manque, le bouton ramène à la page /tarifs.
-            const urlChariow =
+            // On pré-remplit l'e-mail du compte connecté (?email=…) : le
+            // webhook reconnaît ainsi le client à coup sûr.
+            const urlBase =
               plan.cle === "PRO"
                 ? process.env.CHARIOW_URL_PRO?.trim() || null
                 : process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
+            const urlChariow =
+              urlBase && session?.user?.email
+                ? `${urlBase}${urlBase.includes("?") ? "&" : "?"}email=${encodeURIComponent(session.user.email)}`
+                : urlBase;
             return (
               <Carte
                 key={plan.cle}

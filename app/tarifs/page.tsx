@@ -100,6 +100,13 @@ export default async function PageTarifs() {
         {/* Plans payants */}
         {Object.values(PLANS).map((plan) => {
           const urlChariow = plan.cle === "PRO" ? URL_CHARIOW_PRO : URL_CHARIOW_ENTREPRISE;
+          // On pré-remplit l'e-mail du compte connecté dans le checkout Chariow
+          // (?email=…) : le webhook reconnaît ainsi le client à coup sûr, même
+          // si le client ne tape rien dans le formulaire de paiement.
+          const urlCheckout =
+            urlChariow && session?.user?.email
+              ? `${urlChariow}${urlChariow.includes("?") ? "&" : "?"}email=${encodeURIComponent(session.user.email)}`
+              : urlChariow;
           return (
             <Carte
               key={plan.cle}
@@ -108,7 +115,7 @@ export default async function PageTarifs() {
               }`}
             >
               {plan.recommande && (
-                <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                <span className="absolute -top-3 left-6 rounded-champ rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
                   Le plus populaire
                 </span>
               )}
@@ -135,9 +142,9 @@ export default async function PageTarifs() {
                 <Bouton asChild variante="secondaire" className="mt-6">
                   <Link href="/dashboard/abonnement">Ton plan actuel — gérer</Link>
                 </Bouton>
-              ) : urlChariow ? (
+              ) : urlCheckout ? (
                 <Bouton asChild className="mt-6">
-                  <a href={urlChariow} target="_blank" rel="noopener noreferrer">
+                  <a href={urlCheckout} target="_blank" rel="noopener noreferrer">
                     {abonnementActif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`}
                     <ExternalLink className="ml-1.5 inline size-4" aria-hidden />
                   </a>

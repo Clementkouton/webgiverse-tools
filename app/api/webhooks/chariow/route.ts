@@ -1,16 +1,22 @@
 // app/api/webhooks/chariow/route.ts
-// Webhook Chariow (« Pulses ») — Approche A : Chariow est la caisse,
-// la table Prisma Abonnement reste la source de vérité.
+// Webhook Chariow (« Pulses ») — VERSION 2, alignée sur la documentation
+// officielle : https://chariow.dev/en/guides/pulses
 //
-// À configurer côté Chariow :
-//   URL du webhook : https://ton-site.netlify.app/api/webhooks/chariow
-//   Secret         : le MÊME que CHARIOW_WEBHOOK_SECRET dans Netlify
+// Ce que Chariow envoie réellement :
+//   En-têtes : x-chariow-signature = "sha256=<hex>" (HMAC-SHA256 du corps BRUT)
+//              x-pulse-event = nom de l'événement (successful.sale, license.issued…)
+//   Payload  : { event, sale: { id, amount: { value, currency }, status, … },
+//                product: { id, name, … }, customer: { email, … }, store, checkout }
+//            (pour les licences : license: { id, key, status, … } à la place de sale)
 //
-// Événements gérés (les noms exacts varient selon le compte Chariow ;
-// on regarde le texte, et tout est loggué dans Netlify avec [chariow]) :
-//   succès     : payment.success / order.completed / subscription.renewed…
-//   échec      : payment.failed / payment.declined…
-//   annulation : subscription.cancelled / unsubscribed…
+// Événements gérés :
+//   successful.sale, license.issued → activation / prolongation de l'abonnement
+//   failed.sale                     → paiement marqué ÉCHOUÉ
+//   license.revoked, *cancel*       → renouvellement arrêté (accès jusqu'à l'échéance)
+//   abandoned.sale, license.activated, license.expired, license.nearing_expiry,
+//   affiliate.joined                → simplement accusés de réception (HTTP 200)
+//
+// Tout est loggué dans Netlify (Fonctions) avec le préfixe [chariow].
 
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
@@ -21,7 +27,12 @@ import type { ClePlan } from "@/lib/plans";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// ── Outils de lecture des payloads (le format varie selon Chariow) ──
+// Prix catalogue en centimes de dollar (lib/plans.ts) : utilisés quand la
+// vente n'est pas en USD (ex. 1800 FCFA) — on enregistre alors le prix
+// officiel du plan plutôt qu'un montant dans une devise non convertie.
+const PRIX_CATALOGUE: Record<ClePlan, number> = { PRO: 299, ENTREPRISE: 799 };
+
+// ── Outils de lecture des payloads ───────────────────────────────────
 
 type Inconnu = Record<string, unknown>;
 
@@ -29,13 +40,16 @@ function estObjet(valeur: unknown): valeur is Inconnu {
   return typeof valeur === "object" && valeur !== null && !Array.isArray(valeur);
 }
 
-/** Cherche en profondeur (max 4 niveaux) la première chaîne ressemblant à un e-mail. */
+/** Le « cœur » de l'événement : sale (vente) ou license (licence). */
+function coeurEvenement(evenement: Inconnu): Inconnu {
+  if (estObjet(evenement.sale)) return evenement.sale;
+  if (estObjet(evenement.license)) return evenement.license;
+  return evenement;
+}
+
+/** E-mail du client : customer.email d'abord, puis recherche en profondeur. */
 function chercherEmail(valeur: unknown, profondeur = 0): string | null {
-  if (profondeur > 4 || valeur == null) return null;
-  if (typeof valeur === "string") {
-    const propre = valeur.trim().toLowerCase();
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(propre) ? propre : null;
-  }
+  if (profondeur > 4) return null;
   if (Array.isArray(valeur)) {
     for (const item of valeur) {
       const trouve = chercherEmail(item, profondeur + 1);
@@ -43,20 +57,27 @@ function chercherEmail(valeur: unknown, profondeur = 0): string | null {
     }
     return null;
   }
-  if (estObjet(valeur)) {
-    for (const cle of ["email", "customer_email", "client_email", "payer_email"]) {
-      const v = valeur[cle];
-      if (typeof v === "string" && v.includes("@")) return v.trim().toLowerCase();
+  if (!estObjet(valeur)) {
+    if (typeof valeur === "string") {
+      const propre = valeur.trim().toLowerCase();
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(propre)) return propre;
     }
-    for (const v of Object.values(valeur)) {
-      const trouve = chercherEmail(v, profondeur + 1);
-      if (trouve) return trouve;
-    }
+    return null;
+  }
+  if (estObjet(valeur.customer) && typeof valeur.customer.email === "string") {
+    return valeur.customer.email.trim().toLowerCase();
+  }
+  if (typeof valeur.email === "string" && valeur.email.includes("@")) {
+    return valeur.email.trim().toLowerCase();
+  }
+  for (const v of Object.values(valeur)) {
+    const trouve = chercherEmail(v, profondeur + 1);
+    if (trouve) return trouve;
   }
   return null;
 }
 
-/** Cherche l'identifiant utilisateur Webgiverse transmis au checkout (metadata…). */
+/** Identifiant utilisateur Webgiverse transmis via sale.custom_metadata (si présent). */
 function chercherIdUtilisateur(valeur: unknown, profondeur = 0): string | null {
   if (profondeur > 4 || !estObjet(valeur)) return null;
   for (const cle of ["userId", "utilisateurId", "user_id", "client_reference_id"]) {
@@ -70,42 +91,42 @@ function chercherIdUtilisateur(valeur: unknown, profondeur = 0): string | null {
   return null;
 }
 
-/** Montant en centimes (299 = 2,99 USD). Tolère 2,99 comme 299. */
-function centimesDe(donnees: Inconnu): number | null {
-  const brut = donnees.amount ?? donnees.total ?? donnees.total_amount ?? donnees.price ?? donnees.montant;
-  if (typeof brut !== "number" || Number.isNaN(brut) || brut <= 0) return null;
-  return brut < 100 ? Math.round(brut * 100) : Math.round(brut);
+/** Montant en centimes USD — uniquement si la devise est USD (2,99 → 299).
+ * FCFA / XOF / EUR : renvoie null (pas de conversion au vol). */
+function centimesUSD(evenement: Inconnu): number | null {
+  const sale = estObjet(evenement.sale) ? evenement.sale : null;
+  const amount = sale && estObjet(sale.amount) ? sale.amount : null;
+  if (!amount || typeof amount.value !== "number" || Number.isNaN(amount.value) || amount.value <= 0) {
+    return null;
+  }
+  const devise = typeof amount.currency === "string" ? amount.currency.toUpperCase() : "USD";
+  if (devise !== "USD") return null;
+  return Math.round(amount.value * 100);
 }
 
-/** PRO (≈ $2,99) ou ENTREPRISE (≈ $7,99) : par le montant, sinon par le nom du produit. */
-function detecterPlan(donnees: Inconnu): ClePlan {
-  const centimes = centimesDe(donnees);
+/** PRO ou ENTREPRISE : par le nom du produit, sinon par le montant USD. */
+function detecterPlan(evenement: Inconnu): ClePlan {
+  const produit = evenement.product;
+  if (estObjet(produit) && typeof produit.name === "string") {
+    const nom = produit.name.toLowerCase();
+    if (nom.includes("entreprise")) return "ENTREPRISE";
+    if (nom.includes("pro")) return "PRO";
+  }
+  const centimes = centimesUSD(evenement);
   if (centimes !== null) {
     if (centimes >= 700 && centimes <= 900) return "ENTREPRISE";
-    if (centimes > 0 && centimes < 500) return "PRO";
+    if (centimes < 500) return "PRO";
   }
-  const libelles: string[] = [];
-  for (const cle of ["product", "variant", "item", "plan", "offer"]) {
-    const v = donnees[cle];
-    if (estObjet(v) && typeof v.name === "string") libelles.push(v.name);
-    if (typeof v === "string") libelles.push(v);
-  }
-  for (const cle of ["product_name", "variant_name", "item_name", "name", "title", "description"]) {
-    const v = donnees[cle];
-    if (typeof v === "string") libelles.push(v);
-  }
-  return libelles.some((t) => t.toLowerCase().includes("entreprise"))
-    ? "ENTREPRISE"
-    : "PRO";
+  return "PRO";
 }
 
-/** Référence unique de la transaction (sert d'idempotence dans Paiement.reference). */
-function referenceTransaction(donnees: Inconnu, evenement: Inconnu): string {
-  const brut =
-    donnees.id ?? donnees.transaction_id ?? donnees.transactionId ??
-    donnees.reference ?? donnees.order_id ?? evenement.id;
-  const suffixe =
-    typeof brut === "string" || typeof brut === "number" ? String(brut) : Date.now().toString(36);
+/** Référence unique de la transaction : sale.id (ex. sal_…) ou license.id.
+ * C'est la clé d'idempotence : un « Replay » Chariow renvoie le MÊME id,
+ * donc la même vente n'est jamais comptée deux fois. */
+function referenceTransaction(evenement: Inconnu): string {
+  const coeur = coeurEvenement(evenement);
+  const brut = coeur.id ?? evenement.id;
+  const suffixe = typeof brut === "string" || typeof brut === "number" ? String(brut) : Date.now().toString(36);
   return `CHW-${suffixe}`.slice(0, 190);
 }
 
@@ -132,10 +153,10 @@ const ENTETES_SIGNATURE = [
 ];
 
 function signatureValide(corpsBrut: string, entetes: Headers, secret: string): boolean {
-  for (const nom of ENTETES_SIGNATURE) {
-    const brute = entetes.get(nom);
+  for (const nom de ENTETES_SIGNATURE) {
+    const brute: string | null = entetes.get(nom);
     if (!brute) continue;
-    // Formats tolérés : "<hex>", "sha256=<hex>", "t=…,v1=<hex>"
+    // Format officiel : "sha256=<hex>" — on tolère aussi "<hex>" et "t=…,v1=<hex>".
     const hex =
       brute
         .split(",")
@@ -158,6 +179,9 @@ function signatureValide(corpsBrut: string, entetes: Headers, secret: string): b
 export async function POST(requete: Request) {
   const secret = (process.env.CHARIOW_WEBHOOK_SECRET ?? "").trim();
   if (!secret) {
+    console.error(
+      "[chariow] CHARIOW_WEBHOOK_SECRET est ABSENT des variables Netlify → webhook inactif (503).",
+    );
     return NextResponse.json(
       { message: "Webhook Chariow inactif (CHARIOW_WEBHOOK_SECRET manquant)." },
       { status: 503 },
@@ -172,13 +196,14 @@ export async function POST(requete: Request) {
 
   if (!signatureValide(corpsBrut, requete.headers, secret)) {
     if (entetePresent) {
-      console.error("[chariow] signature INVALIDE — vérifie CHARIOW_WEBHOOK_SECRET.");
+      console.error(
+        "[chariow] signature INVALIDE — le secret Netlify ne correspond pas au secret du Pulse Chariow.",
+      );
       return NextResponse.json({ message: "Signature invalide." }, { status: 403 });
     }
     if (!tolerant) {
       console.error(
-        "[chariow] signature ABSENTE — en-tête inconnu ? Envoie-moi les en-têtes," +
-          " ou mets CHARIOW_WEBHOOK_TOLERANT=1 temporairement pour déboguer.",
+        "[chariow] signature ABSENTE — en-tête x-chariow-signature introuvable dans la requête.",
       );
       return NextResponse.json({ message: "Signature absente." }, { status: 401 });
     }
@@ -191,25 +216,17 @@ export async function POST(requete: Request) {
   } catch {
     return NextResponse.json({ message: "Corps invalide." }, { status: 400 });
   }
+  if (!estObjet(evenement)) {
+    return NextResponse.json({ message: "Corps inattendu." }, { status: 400 });
+  }
 
-  const nomEvenement = String(
-    evenement.event ?? evenement.type ?? evenement.event_type ?? evenement.action ?? "",
-  ).toLowerCase();
-  const donnees = (estObjet(evenement.data)
-    ? evenement.data
-    : estObjet(evenement.payload)
-      ? evenement.payload
-      : evenement) as Inconnu;
-  const statutBrut = String(donnees.status ?? donnees.payment_status ?? donnees.state ?? "")
-    .toLowerCase();
-  const texte = `${nomEvenement} ${statutBrut}`;
-
-  console.log(`[chariow] événement reçu : « ${nomEvenement || "(non nommé)"} » statut=« ${statutBrut} »`);
+  const nomEvenement = String(evenement.event ?? "").toLowerCase();
+  console.log(`[chariow] événement reçu : « ${nomEvenement || "(non nommé)"} »`);
   console.log(`[chariow] payload : ${corpsBrut.slice(0, 1200)}`);
 
-  // ── 1. ÉCHEC de paiement : on note juste l'échec, sans toucher à l'accès.
-  if (/(fail|declin|refus|echec)/.test(texte)) {
-    const reference = referenceTransaction(donnees, evenement);
+  // ── 1. ÉCHEC de paiement (failed.sale) : on note l'échec, sans toucher à l'accès.
+  if (/(fail|declin|refus|echec)/.test(nomEvenement)) {
+    const reference = referenceTransaction(evenement);
     const existant = await prisma.paiement.findUnique({ where: { reference } }).catch(() => null);
     if (existant) {
       await prisma.paiement.update({ where: { id: existant.id }, data: { statut: "ECHOUE" } });
@@ -218,12 +235,12 @@ export async function POST(requete: Request) {
     return NextResponse.json({ recu: true });
   }
 
-  // ── 2. ANNULATION : l'accès reste actif jusqu'à l'échéance déjà payée.
-  if (/(cancel|unsubscrib|annul|arret)/.test(texte)) {
-    const utilisateur = await trouverUtilisateur(
-      chercherIdUtilisateur(donnees),
-      chercherEmail(donnees),
-    );
+  // ── 2. ARRÊT / RÉVOCATION (license.revoked, subscription.cancelled…) :
+  //       l'accès reste actif jusqu'à l'échéance déjà payée, mais sans renouvellement.
+  if (/(cancel|unsubscrib|annul|arret|revok)/.test(nomEvenement)) {
+    const email = chercherEmail(evenement);
+    const idUtilisateur = chercherIdUtilisateur(evenement);
+    const utilisateur = await trouverUtilisateur(idUtilisateur, email);
     if (utilisateur) {
       const abonnement = await prisma.abonnement.findUnique({
         where: { utilisateurId: utilisateur.id },
@@ -237,50 +254,75 @@ export async function POST(requete: Request) {
           `[chariow] ${utilisateur.email} : renouvellement arrêté (accès jusqu'à l'échéance).`,
         );
       }
+    } else {
+      console.log(
+        `[chariow] « ${nomEvenement} » : aucun compte Webgiverse pour email=${email ?? "-"} — rien à faire.`,
+      );
     }
     return NextResponse.json({ recu: true });
   }
 
-  // ── 3. SUCCÈS : paiement réussi, renouvellement, nouvelle souscription.
-  if (
-    /(success|succeed|complet|paid|paye|renew|activat)/.test(texte) ||
-    /(subscription.*creat|creat.*subscription)/.test(texte)
-  ) {
-    const idUtilisateur = chercherIdUtilisateur(donnees);
-    const email = chercherEmail(donnees);
+  // ── 3. SUCCÈS : successful.sale, license.issued (ou statut completed/paid).
+  const statutVente =
+    estObjet(evenement.sale) && typeof evenement.sale.status === "string"
+      ? evenement.sale.status.toLowerCase()
+      : "";
+  const estSucces =
+    /(success|complet|paid|paye|renew|issued)/.test(nomEvenement) ||
+    /(complet|paid|success)/.test(statutVente);
+
+  if (estSucces) {
+    const email = chercherEmail(evenement);
+    const idUtilisateur = chercherIdUtilisateur(evenement);
     const utilisateur = await trouverUtilisateur(idUtilisateur, email);
 
     if (!utilisateur) {
       console.error(
         `[chariow] ⚠️ PAIEMENT SANS COMPTE CORRESPONDANT — id=${idUtilisateur ?? "-"} ` +
-          `email=${email ?? "-"}. Le client doit payer avec l'e-mail de son compte Webgiverse.`,
+          `email=${email ?? "-"}. Le client doit payer avec l'e-mail de son compte ` +
+          "Webgiverse (le bouton Premium le pré-remplit désormais).",
       );
       return NextResponse.json({ recu: true, message: "Aucun compte correspondant." });
     }
 
-    const plan = detecterPlan(donnees);
-    const centimes = centimesDe(donnees) ?? (plan === "PRO" ? 299 : 799);
-    const reference = referenceTransaction(donnees, evenement);
-    const canal =
-      typeof donnees.channel === "string"
-        ? donnees.channel
-        : typeof donnees.method === "string"
-          ? donnees.method
-          : typeof donnees.payment_method === "string"
-            ? donnees.payment_method
-            : "Chariow";
+    const plan = detecterPlan(evenement);
+    const centimes = centimesUSD(evenement) ?? PRIX_CATALOGUE[plan];
+    const reference = referenceTransaction(evenement);
 
-    // Idempotence : la même transaction ne doit jamais être traitée deux fois.
+    // Idempotence 1 : la même vente (même sale.id) n'est jamais comptée deux fois,
+    // même si Chariow rejoue la livraison.
     const paiementExistant = await prisma.paiement.findUnique({ where: { reference } });
     if (paiementExistant?.statut === "PAYE") {
       console.log(`[chariow] transaction ${reference} déjà traitée — ignorée.`);
       return NextResponse.json({ recu: true });
     }
 
+    // Idempotence 2 : un même achat déclenche DEUX événements (successful.sale
+    // puis license.issued) avec des identifiants différents. On refuse donc de
+    // compter deux paiements Chariow du même plan pour le même compte à moins
+    // de 5 minutes d'écart (un vrai renouvellement arrive 30 jours plus tard).
+    const ilYa5Minutes = new Date(Date.now() - 5 * 60 * 1000);
+    const doublon = await prisma.paiement.findFirst({
+      where: {
+        utilisateurId: utilisateur.id,
+        plan,
+        statut: "PAYE",
+        simulation: false,
+        canal: "Chariow",
+        creeLe: { gte: ilYa5Minutes },
+      },
+    });
+    if (doublon) {
+      console.log(
+        `[chariow] double événement « ${nomEvenement} » déjà compté via ${doublon.reference} — ignoré.`,
+      );
+      return NextResponse.json({ recu: true });
+    }
+
     const paiement = paiementExistant
       ? await prisma.paiement.update({
           where: { id: paiementExistant.id },
-          data: { statut: "PAYE", canal },
+          data: { statut: "PAYE" },
         })
       : await prisma.paiement.create({
           data: {
@@ -290,7 +332,7 @@ export async function POST(requete: Request) {
             devise: "USD",
             statut: "PAYE",
             reference,
-            canal,
+            canal: "Chariow",
             simulation: false,
           },
         });
@@ -300,12 +342,13 @@ export async function POST(requete: Request) {
 
     console.log(
       `[chariow] ✔ ${utilisateur.email} → plan ${plan} activé ` +
-        `(${reference}, ${(centimes / 100).toFixed(2)} USD, via ${canal}).`,
+        `(${reference}, ${(centimes / 100).toFixed(2)} USD).`,
     );
     return NextResponse.json({ recu: true });
   }
 
-  // ── Autre événement : simple accusé de réception (Chariow ne relance pas).
+  // ── 4. Tout le reste (abandoned.sale, license.activated, license.expired,
+  //       license.nearing_expiry, affiliate.joined) : simple accusé de réception.
   console.log(`[chariow] événement ignoré : « ${nomEvenement} »`);
   return NextResponse.json({ recu: true });
 }
