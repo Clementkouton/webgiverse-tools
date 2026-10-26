@@ -1,9 +1,9 @@
 // components/tarifs/section-plans.tsx
 // ─────────────────────────────────────────────────────────────────
 // Section « Webgiverse Premium » affichée sur la page d'accueil.
-// Composant serveur 100 % statique : il lit uniquement lib/plans.ts
-// (aucune requête à la base de données), donc il ne peut JAMAIS
-// faire planter la landing page, même sans connexion.
+// Composant serveur : il lit lib/plans.ts et les URLs de checkout
+// Chariow (variables d'environnement) — aucune requête à la base de
+// données, donc il ne peut JAMAIS faire planter la landing page.
 // ─────────────────────────────────────────────────────────────────
 import Link from "next/link";
 import { ArrowRight, Check, Crown, Leaf, ShieldCheck } from "lucide-react";
@@ -24,7 +24,7 @@ export function SectionPlans() {
           </h2>
           <p className="mesure mx-auto mt-3 text-encre">
             Débloque tes favoris, tes listes et des avantages exclusifs. Paiement sécurisé via
-            Moneroo : Mobile Money (MTN, Moov, Orange, Wave…) et cartes Visa / Mastercard.
+            Chariow : Mobile Money (MTN, Moov, Orange, Wave…) et cartes Visa / Mastercard.
           </p>
         </div>
 
@@ -60,45 +60,55 @@ export function SectionPlans() {
           </Carte>
 
           {/* Plans payants (Pro et Entreprise) */}
-          {Object.values(PLANS).map((plan) => (
-            <Carte
-              key={plan.cle}
-              className={`relative flex flex-col p-6 ${
-                plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
-              }`}
-            >
-              {plan.recommande && (
-                <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
-                  Le plus populaire
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
-                  <Crown className="size-5" aria-hidden />
-                </span>
-                <h3 className="text-h3 font-semibold">{plan.nom}</h3>
-              </div>
-              <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
-                {plan.prix}
-                <span className="text-[14px] font-medium text-encre"> / mois</span>
-              </p>
-              <p className="mt-1 text-[14px] leading-5 text-encre">{plan.accroche}</p>
-              <ul className="mt-5 grid flex-1 gap-2.5">
-                {plan.avantages.map((avantage) => (
-                  <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
-                    <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
-                    <span className="text-bleu">{avantage}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={`/tarifs/paiement?plan=${plan.cle}`}
-                className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+          {Object.values(PLANS).map((plan) => {
+            // URL de checkout Chariow (Netlify → Environment variables).
+            // Si la variable manque, le bouton ramène à la page /tarifs.
+            const urlChariow =
+              plan.cle === "PRO"
+                ? process.env.CHALIOW_URL_PRO?.trim() || null
+                : process.env.CHALIOW_URL_ENTREPRISE?.trim() || null;
+            return (
+              <Carte
+                key={plan.cle}
+                className={`relative flex flex-col p-6 ${
+                  plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
+                }`}
               >
-                Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
-              </Link>
-            </Carte>
-          ))}
+                {plan.recommande && (
+                  <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                    Le plus populaire
+                  </span>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+                    <Crown className="size-5" aria-hidden />
+                  </span>
+                  <h3 className="text-h3 font-semibold">{plan.nom}</h3>
+                </div>
+                <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
+                  {plan.prix}
+                  <span className="text-[14px] font-medium text-encre"> / mois</span>
+                </p>
+                <p className="mt-1 text-[14px] leading-5 text-encre">{plan.accroche}</p>
+                <ul className="mt-5 grid flex-1 gap-2.5">
+                  {plan.avantages.map((avantage) => (
+                    <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
+                      <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                      <span className="text-bleu">{avantage}</span>
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href={urlChariow ?? "/tarifs"}
+                  target={urlChariow ? "_blank" : undefined}
+                  rel={urlChariow ? "noopener noreferrer" : undefined}
+                  className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                >
+                  Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
+                </a>
+              </Carte>
+            );
+          })}
         </div>
 
         {/* Lien vers la page tarifs complète */}

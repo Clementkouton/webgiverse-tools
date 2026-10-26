@@ -277,14 +277,10 @@ export default async function PageMonAbonnement() {
                         <ExternalLink className="ml-1.5 inline size-4" aria-hidden />
                       </a>
                     </Bouton>
-                  ) : (
-                    <Bouton asChild className="w-full">
-                      <Link href={`/tarifs/paiement?plan=${plan.cle}`}>
-                        {actif
-                          ? `Passer au plan ${plan.nom}`
-                          : `Choisir ${plan.nom}`}
-                      </Link>
-                    </Bouton>
+                                    ) : (
+                    <span className="block w-full rounded-full border border-bordure bg-gris px-4 py-2.5 text-center text-[14px] leading-5 font-semibold text-encre">
+                      Paiement bientôt disponible
+                    </span>
                   )}
                 </div>
               </Carte>

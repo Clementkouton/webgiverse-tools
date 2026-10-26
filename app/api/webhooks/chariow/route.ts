@@ -15,7 +15,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { activerAbonnement } from "@/lib/moneroo";
+import { activerAbonnement } from "@/lib/abonnements";
 import type { ClePlan } from "@/lib/plans";
 
 export const runtime = "nodejs";
