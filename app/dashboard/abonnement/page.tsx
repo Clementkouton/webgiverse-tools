@@ -2,7 +2,9 @@
 // Page « Mon abonnement » : statut premium, choix du plan (Découverte /
 // Pro / Entreprise), historique de paiements, arrêt / reprise du
 // renouvellement. Les plans sont la source lib/plans.ts (même contenu
-// que /tarifs) et le paiement part vers le flux Moneroo existant.
+// que /tarifs) et le paiement part vers le checkout Chariow
+// (URLs définies par CHARIOW_URL_PRO / CHARIOW_URL_ENTREPRISE ;
+// si une URL manque, repli sur l'ancien flux Moneroo).
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,8 +14,10 @@ import {
   CheckCircle2,
   ChevronLeft,
   Crown,
+  ExternalLink,
   Gift,
   Leaf,
+  Mail,
   PauseCircle,
   PlayCircle,
   ReceiptText,
@@ -37,6 +41,11 @@ export const metadata: Metadata = {
   title: "Mon abonnement — Webgiverse Outils IA",
 };
 export const dynamic = "force-dynamic";
+
+// URLs de paiement Chariow (à définir dans Netlify → Environment variables,
+// et dans .env.local en local). Vide = repli sur le flux Moneroo existant.
+const URL_CHARIOW_PRO = process.env.CHALIOW_URL_PRO?.trim() || null;
+const URL_CHARIOW_ENTREPRISE = process.env.CHALIOW_URL_ENTREPRISE?.trim() || null;
 
 const formatteurDate = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 const formatteurDateHeure = new Intl.DateTimeFormat("fr-FR", {
@@ -66,7 +75,7 @@ export default async function PageMonAbonnement() {
   const planActifCle = actif ? (abonnement!.plan as "PRO" | "ENTREPRISE") : null;
 
   return (
-        <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
       <h1 className="flex items-center gap-2 text-h2 font-semibold">
         <Crown className="size-7 text-violet" aria-hidden /> Mon abonnement
       </h1>
@@ -91,7 +100,7 @@ export default async function PageMonAbonnement() {
                 <strong>{formatteurDate.format(abonnement.expireLe)}</strong>
                 {arreteRenouvellement
                   ? " · non renouvelé (tu repasseras au plan Découverte à cette date)"
-                  : " · tu peux prolonger à tout moment depuis cette page"}
+                  : " · chaque nouveau paiement prolonge automatiquement de 30 jours"}
               </p>
               <p className="mt-1 text-[13px] leading-4 text-encre">
                 Souscrit le {formatteurDate.format(abonnement.debutLe)}
@@ -133,9 +142,14 @@ export default async function PageMonAbonnement() {
             Commence gratuitement, évolue quand tu veux
           </h2>
           <p className="mx-auto mt-2 mesure text-[14px] leading-5 text-encre">
-            Paiement sécurisé via Moneroo : Mobile Money (MTN, Moov, Orange,
-            Wave…) et cartes Visa / Mastercard. Abonnement prépayé 30 jours,
-            sans engagement.
+            Paiement sécurisé via Chariow : Mobile Money (MTN, Moov, Orange,
+            Wave…), cartes Visa / Mastercard et plus. Abonnement prépayé 30
+            jours, sans engagement.
+          </p>
+          <p className="mx-auto mt-2 flex max-w-2xl items-center justify-center gap-2 text-[13px] leading-5 font-medium text-violet">
+            <Mail className="size-4 shrink-0" aria-hidden />
+            Paie avec la même adresse e-mail que ton compte Webgiverse : ton
+            Premium s&apos;active alors tout seul, en quelques secondes.
           </p>
         </div>
 
@@ -188,6 +202,8 @@ export default async function PageMonAbonnement() {
           {/* ── Plans payants (Pro + Entreprise) ── */}
           {Object.values(PLANS).map((plan, index) => {
             const estPlanActuel = planActifCle === plan.cle;
+            const urlChariow =
+              plan.cle === "PRO" ? URL_CHARIOW_PRO : URL_CHARIOW_ENTREPRISE;
             return (
               <Carte
                 key={plan.cle}
@@ -248,6 +264,19 @@ export default async function PageMonAbonnement() {
                     <Bouton asChild variante="secondaire" className="w-full">
                       <Link href="#statut">Ton plan actuel — gérer</Link>
                     </Bouton>
+                  ) : urlChariow ? (
+                    <Bouton asChild className="w-full">
+                      <a
+                        href={urlChariow}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {actif
+                          ? `Passer au plan ${plan.nom}`
+                          : `Choisir ${plan.nom}`}
+                        <ExternalLink className="ml-1.5 inline size-4" aria-hidden />
+                      </a>
+                    </Bouton>
                   ) : (
                     <Bouton asChild className="w-full">
                       <Link href={`/tarifs/paiement?plan=${plan.cle}`}>
@@ -265,7 +294,7 @@ export default async function PageMonAbonnement() {
 
         <p className="mx-auto mt-6 flex max-w-2xl items-center justify-center gap-2 text-center text-[13px] leading-5 text-encre">
           <ShieldCheck className="size-4 shrink-0 text-violet" aria-hidden />
-          Transactions traitées par <strong>Moneroo</strong>. Webgiverse ne voit
+          Transactions traitées par <strong>Chariow</strong>. Webgiverse ne voit
           jamais tes codes ni numéros de carte.
         </p>
       </section>
