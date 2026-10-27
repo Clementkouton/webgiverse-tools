@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight, ChevronRight, ExternalLink, Sparkles, Star } from "lucide-react";
-import { auth } from "@/auth";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { Carte } from "@/components/ui/carte";
@@ -14,8 +13,9 @@ import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
 import { compterStats, listerCategories, outilsMisEnAvant, listerOutils } from "@/lib/queries";
 import VuRecemment from "@/components/visites/vu-recemment";
 
-// La landing affiche maintenant des boutons personnalisés (connecté ou non)
-// → rendu dynamique (la session est lue dans le cookie, sans base de données).
+// La section Premium lit la session elle-même (dans SectionPlans) pour
+// afficher « connexion d'abord » aux visiteurs non connectés → rendu
+// dynamique (lecture du cookie, sans base de données).
 export const dynamic = "force-dynamic";
 
 function TitreSection({ children }: { children: React.ReactNode }) {
@@ -23,10 +23,6 @@ function TitreSection({ children }: { children: React.ReactNode }) {
 }
 
 export default async function Accueil() {
-  // Lecture de la session (JWT → aucun appel base de données, jamais de plantage ici).
-  const session = await auth();
-  const connecte = Boolean(session?.user?.id);
-
   const [stats, enAvant, nouveautes, categories] = await Promise.all([
     compterStats(), outilsMisEnAvant(),
     listerOutils({ tri: "recente", page: 1 }),
@@ -101,7 +97,7 @@ export default async function Accueil() {
       {/* ── Prompts et compétences d'agents ──────────────────── */}
       <section className="bg-white py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
-          <TitreSection>Des prompts prêts à l'emploi</TitreSection>
+          <TitreSection>Des prompts prêts à l&apos;emploi</TitreSection>
           <p className="mesure mt-2 mb-8 text-encre">Nos prompt packs Webgiverse, à copier dans ton assistant préféré.</p>
           <div className="grid gap-4 md:grid-cols-2">
             {PROMPTS.map((p) => (
@@ -134,8 +130,9 @@ export default async function Accueil() {
       </section>
 
       {/* ── Plans d'abonnement Premium ───────────────────────── */}
-      {/* connecté = false → les boutons Pro/Entreprise envoient vers /connexion */}
-      <SectionPlans connecte={connecte} />
+      {/* Visiteur non connecté → les boutons Pro/Entreprise envoient
+          d'abord vers /connexion?suite=/tarifs (géré dans SectionPlans) */}
+      <SectionPlans />
 
       {/* ── L'actu IA du jour ────────────────────────────────── */}
       <section className="bg-white py-14 lg:py-18">

@@ -7,9 +7,8 @@ const nextConfig: NextConfig = {
     ],
   },
   // ── Server Actions : origines autorisées ────────────────────────
-  // Corrige l'erreur « Invalid Server Actions request » / «
-  // x-forwarded-host does not match origin » quand on navigue tantôt
-  // sur le tunnel VS Code, tantôt sur localhost (cookies + formulaires).
+  // Corrige l'erreur « Invalid Server Actions request » quand on navigue
+  // tantôt sur le tunnel VS Code, tantôt sur localhost.
   // ⚠️ On écrit les origines SANS https:// (format host[:port]).
   experimental: {
     serverActions: {

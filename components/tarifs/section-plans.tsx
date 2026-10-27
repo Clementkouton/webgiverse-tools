@@ -1,25 +1,33 @@
 // components/tarifs/section-plans.tsx
 // ─────────────────────────────────────────────────────────────────
 // Section « Webgiverse Premium » affichée sur la page d'accueil.
+// Composant serveur : il lit lib/plans.ts et les URLs de checkout
+// Chariow (variables d'environnement) — aucune requête à la base de
+// données, donc il ne peut JAMAIS faire planter la landing page.
 //
-// NOUVEAU — connexion obligatoire AVANT de choisir un plan :
-//   • visiteur NON connecté → le bouton envoie vers /connexion
-//     (avec suite=%2Ftarifs) : après la connexion, il revient sur la
-//     page des tarifs pour choisir son plan tranquillement ;
-//   • visiteur connecté → bouton BoutonPayer (parcours Chariow
-//     normal, inchangé).
-// Aucune requête à la base de données ici → la landing page ne peut
-// jamais planter à cause de cette section (le connecte vient de la
-// session JWT, sans base de données).
+// NOUVEAU : si le visiteur n'est PAS connecté, les boutons Pro /
+// Entreprise l'envoient d'abord sur /connexion?suite=/tarifs.
+// Après la connexion, il revient automatiquement sur /tarifs pour
+// choisir son plan — le paiement ne démarre que connecté, car le
+// webhook a besoin de l'e-mail du compte.
 // ─────────────────────────────────────────────────────────────────
 import Link from "next/link";
 import { ArrowRight, Check, Crown, Leaf, ShieldCheck } from "lucide-react";
+import { auth } from "@/auth";
 import { Carte } from "@/components/ui/carte";
-import { Bouton } from "@/components/ui/bouton";
-import { BoutonPayer } from "@/components/paiement/bouton-payer";
+import { BoutonPaiement } from "@/components/tarifs/bouton-paiement";
 import { PLANS, PLAN_DECOUVERTE } from "@/lib/plans";
 
-export function SectionPlans({ connecte = false }: { connecte?: boolean }) {
+export async function SectionPlans() {
+  const session = await auth().catch(() => null);
+  const connecte = Boolean(session?.user?.id);
+  // Paiement INTÉGRÉ (fenêtre dans le site, via l'API Chariow) : si la clé
+  // API ou les produits manquent, on garde l'ancien lien de secours.
+  const paiementIntegrePret = Boolean(
+    process.env.CHARIOW_API_KEY?.trim() &&
+      process.env.CHARIOW_PRODUCT_PRO?.trim() &&
+      process.env.CHARIOW_PRODUCT_ENTREPRISE?.trim(),
+  );
   return (
     <section className="bg-white py-14 lg:py-18" aria-labelledby="titre-premium-accueil">
       <div className="mx-auto max-w-7xl px-4">
@@ -61,58 +69,89 @@ export function SectionPlans({ connecte = false }: { connecte?: boolean }) {
               ))}
             </ul>
             <Link
-              href={connecte ? "/dashboard" : "/connexion?suite=%2Ftarifs"}
+              href="/outils"
               className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-violet bg-white px-6 text-[16px] leading-5 font-semibold text-bleu transition hover:border-violet-clair hover:bg-gris"
             >
-              {connecte ? "Ton espace" : "Commencer gratuitement"}{" "}
-              <ArrowRight className="size-4" aria-hidden />
+              Explorer l&apos;annuaire <ArrowRight className="size-4" aria-hidden />
             </Link>
           </Carte>
 
           {/* Plans payants (Pro et Entreprise) */}
-          {Object.values(PLANS).map((plan) => (
-            <Carte
-              key={plan.cle}
-              className={`relative flex flex-col p-6 ${
-                plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
-              }`}
-            >
-              {plan.recommande && (
-                <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
-                  Le plus populaire
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
-                  <Crown className="size-5" aria-hidden />
-                </span>
-                <h3 className="text-h3 font-semibold">{plan.nom}</h3>
-              </div>
-              <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
-                {plan.prix}
-                <span className="text-[14px] font-medium text-encre"> / mois</span>
-              </p>
-              <p className="mt-1 text-[14px] leading-5 text-encre">{plan.accroche}</p>
-              <ul className="mt-5 grid flex-1 gap-2.5">
-                {plan.avantages.map((avantage) => (
-                  <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
-                    <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
-                    <span className="text-bleu">{avantage}</span>
-                  </li>
-                ))}
-              </ul>
-              {connecte ? (
-                /* Connecté → parcours de paiement normal (Chariow). */
-                <BoutonPayer plan={plan.cle} nomPlan={plan.nom} className="mt-6 w-full" />
-              ) : (
-                /* PAS connecté → connexion d'abord, retour sur /tarifs
-                   après la connexion pour choisir le plan. */
-                <Bouton asChild className="mt-6 w-full">
-                  <Link href="/connexion?suite=%2Ftarifs">Choisir {plan.nom}</Link>
-                </Bouton>
-              )}
-            </Carte>
-          ))}
+          {Object.values(PLANS).map((plan) => {
+            // URL de checkout Chariow (Netlify → Environment variables).
+            // Si la variable manque, le bouton ramène à la page /tarifs.
+            // On pré-remplit l'e-mail du compte connecté (?email=…) : le
+            // webhook reconnaît ainsi le client à coup sûr.
+            const urlBase =
+              plan.cle === "PRO"
+                ? process.env.CHARIOW_URL_PRO?.trim() || null
+                : process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
+            const urlChariow =
+              urlBase && session?.user?.email
+                ? `${urlBase}${urlBase.includes("?") ? "&" : "?"}email=${encodeURIComponent(session.user.email)}`
+                : urlBase;
+            return (
+              <Carte
+                key={plan.cle}
+                className={`relative flex flex-col p-6 ${
+                  plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
+                }`}
+              >
+                {plan.recommande && (
+                  <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                    Le plus populaire
+                  </span>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+                    <Crown className="size-5" aria-hidden />
+                  </span>
+                  <h3 className="text-h3 font-semibold">{plan.nom}</h3>
+                </div>
+                <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
+                  {plan.prix}
+                  <span className="text-[14px] font-medium text-encre"> / mois</span>
+                </p>
+                <p className="mt-1 text-[14px] leading-5 text-encre">{plan.accroche}</p>
+                <ul className="mt-5 grid flex-1 gap-2.5">
+                  {plan.avantages.map((avantage) => (
+                    <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
+                      <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                      <span className="text-bleu">{avantage}</span>
+                    </li>
+                  ))}
+                </ul>
+                {/* ── 3 cas possibles pour le bouton ── */}
+                {/* 1) Visiteur NON connecté → page de connexion d'abord,
+                      puis retour automatique ici grâce à ?suite=%2Ftarifs */}
+                {!connecte ? (
+                  <Link
+                    href="/connexion?suite=%2Ftarifs"
+                    className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                  >
+                    Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
+                  </Link>
+                ) : /* 2) Connecté + paiement intégré prêt → fenêtre Chariow dans le site */
+                paiementIntegrePret ? (
+                  <BoutonPaiement
+                    clePlan={plan.cle}
+                    libelle={`Choisir ${plan.nom}`}
+                    className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                  />
+                ) : (
+                  /* 3) Connecté mais paiement intégré pas configuré → lien de secours */
+                  <a
+                    href={urlChariow ?? "/tarifs"}
+                    target={urlChariow ? "_blank" : undefined}
+                    rel={urlChariow ? "noopener noreferrer" : undefined}
+                    className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                  >
+                    Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
+                  </a>
+                )}
+              </Carte>
+            );
+          })}
         </div>
 
         {/* Lien vers la page tarifs complète */}
