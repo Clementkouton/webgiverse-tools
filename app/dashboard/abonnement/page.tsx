@@ -155,7 +155,7 @@ export default async function PageMonAbonnement() {
               <span className="grid size-10 place-items-center rounded-champ bg-gris text-violet">
                 <Leaf className="size-5" aria-hidden />
               </span>
-              <h3 className="text-h3 font-semibold">{PLAN_DECOVERTE.nom}</h3>
+              <h3 className="text-h3 font-semibold">{PLAN_DECOUVERTE.nom}</h3>
             </div>
             <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
               {PLAN_DECOUVERTE.prix}
