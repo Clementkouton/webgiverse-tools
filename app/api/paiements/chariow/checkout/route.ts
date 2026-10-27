@@ -186,9 +186,15 @@ export async function POST(requete: Request) {
       phone: { number: numero, country_code: codePays },
       custom_metadata: { userId: utilisateur.id ?? "", plan, plateforme: "webgiverse" },
     };
-    if (ip) corpsChariow.customer_ip = ip;
+        if (ip) corpsChariow.customer_ip = ip;
     if (origines.length > 0) corpsChariow.embed_origins = origines;
-    if (origineRequete) corpsChariow.redirect_url = `${origineRequete}/paiement/retour`;
+    if (origineRequete) {
+      // Après paiement : Chariow renvoie la fenêtre vers NOTRE page de
+      // retour ?embed=1 — la version compacte conçue pour l'iframe du
+      // modal. BoutonPaiement détecte /tarifs/retour et referme la
+      // fenêtre tout seul, puis emmène le client au tableau de bord.
+      corpsChariow.redirect_url = `${origineRequete}/tarifs/retour?embed=1`;
+    }
 
     console.log(
       `${PREFIXE} plan=${plan} produit=${idProduit} origines_autorisees=${JSON.stringify(origines)} encadrable=${encadrable}`

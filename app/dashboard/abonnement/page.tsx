@@ -2,9 +2,9 @@
 // Page « Mon abonnement » : statut premium, choix du plan (Découverte /
 // Pro / Entreprise), historique de paiements, arrêt / reprise du
 // renouvellement. Les plans sont la source lib/plans.ts (même contenu
-// que /tarifs) et le paiement part vers le checkout Chariow
-// (URLs définies par CHARIOW_URL_PRO / CHARIOW_URL_ENTREPRISE ;
-// si une URL manque, repli sur l'ancien flux Moneroo).
+// que /tarifs) et le paiement se fait dans la FENÊTRE INTÉGRÉE
+// (composant BoutonPaiement → API Chariow) : le client ne quitte
+// JAMAIS Webgiverse, ni depuis la landing, ni depuis cette page.
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   Crown,
-  ExternalLink,
   Gift,
   Leaf,
   Mail,
@@ -31,6 +30,7 @@ import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
+import { BoutonPaiement } from "@/components/tarifs/bouton-paiement";
 import { PLANS, PLAN_DECOUVERTE, formatePrix } from "@/lib/plans";
 import {
   annulerAbonnementFormulaire,
@@ -41,11 +41,6 @@ export const metadata: Metadata = {
   title: "Mon abonnement — Webgiverse Outils IA",
 };
 export const dynamic = "force-dynamic";
-
-// URLs de paiement Chariow (à définir dans Netlify → Environment variables,
-// et dans .env.local en local). Vide = repli sur le flux Moneroo existant.
-const URL_CHARIOW_PRO = process.env.CHARIOW_URL_PRO?.trim() || null;
-const URL_CHARIOW_ENTREPRISE = process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
 
 const formatteurDate = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 const formatteurDateHeure = new Intl.DateTimeFormat("fr-FR", {
@@ -160,7 +155,7 @@ export default async function PageMonAbonnement() {
               <span className="grid size-10 place-items-center rounded-champ bg-gris text-violet">
                 <Leaf className="size-5" aria-hidden />
               </span>
-              <h3 className="text-h3 font-semibold">{PLAN_DECOUVERTE.nom}</h3>
+              <h3 className="text-h3 font-semibold">{PLAN_DECOVERTE.nom}</h3>
             </div>
             <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
               {PLAN_DECOUVERTE.prix}
@@ -202,8 +197,6 @@ export default async function PageMonAbonnement() {
           {/* ── Plans payants (Pro + Entreprise) ── */}
           {Object.values(PLANS).map((plan, index) => {
             const estPlanActuel = planActifCle === plan.cle;
-            const urlChariow =
-              plan.cle === "PRO" ? URL_CHARIOW_PRO : URL_CHARIOW_ENTREPRISE;
             return (
               <Carte
                 key={plan.cle}
@@ -259,28 +252,21 @@ export default async function PageMonAbonnement() {
                     </li>
                   ))}
                 </ul>
+                {/* Paiement INTÉGRÉ : fenêtre dans le site, comme sur la
+                    landing. Le plan actuel est le seul cas sans bouton. */}
                 <div className="mt-6">
                   {estPlanActuel ? (
                     <Bouton asChild variante="secondaire" className="w-full">
                       <Link href="#statut">Ton plan actuel — gérer</Link>
                     </Bouton>
-                  ) : urlChariow ? (
-                    <Bouton asChild className="w-full">
-                      <a
-                        href={urlChariow}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {actif
-                          ? `Passer au plan ${plan.nom}`
-                          : `Choisir ${plan.nom}`}
-                        <ExternalLink className="ml-1.5 inline size-4" aria-hidden />
-                      </a>
-                    </Bouton>
-                                    ) : (
-                    <span className="block w-full rounded-full border border-bordure bg-gris px-4 py-2.5 text-center text-[14px] leading-5 font-semibold text-encre">
-                      Paiement bientôt disponible
-                    </span>
+                  ) : (
+                    <BoutonPaiement
+                      clePlan={plan.cle}
+                      libelle={
+                        actif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`
+                      }
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-violet px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+                    />
                   )}
                 </div>
               </Carte>

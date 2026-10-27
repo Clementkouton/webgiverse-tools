@@ -6,12 +6,18 @@
 //   1. Le clic ouvre une petite fenêtre : numéro de téléphone
 //      (requis par Chariow pour Mobile Money) + pays.
 //   2. Appel de NOTRE route serveur /api/paiements/chariow/checkout
-//      → renvoie l'URL de paiement Chariow.
-//   3. L'URL s'affiche dans une IFRAME de notre site (embed_origins) :
-//      le client ne quitte JAMAIS Webgiverse.
-//   4. Après paiement, Chariow redirige l'iframe vers notre page
-//      /tarifs/retour → on ferme la fenêtre et on emmène le client
-//      au tableau de bord (le webhook a déjà activé le Premium).
+//      → renvoie l'URL de paiement Chariow + le mode :
+//        · mode "embed"    → l'URL s'affiche DANS UNE IFRAME de notre
+//          site (le client ne quitte JAMAIS Webgiverse). Fonctionne sur
+//          les origines HTTPS (tunnel de dev, Netlify).
+//        · mode "redirect" → l'adresse actuelle n'est pas encadrable
+//          (ex. http://localhost — Chariow refuse le http) : on
+//          propose l'ouverture dans un onglet + le bouton « J'ai payé »
+//          au lieu d'afficher une iframe vide.
+//   3. Après paiement, Chariow renvoie la fenêtre vers notre page
+//      /tarifs/retour (ou /paiement/retour) → on referme la fenêtre et
+//      on emmène le client au tableau de bord (le webhook a déjà
+//      activé le Premium).
 // ─────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
@@ -39,7 +45,7 @@ const PAYS = [
   { code: "GB", nom: "Royaume-Uni (+44)" },
 ];
 
-type Etape = "ferme" | "telephone" | "paiement" | "fini";
+type Etape = "ferme" | "telephone" | "paiement" | "exterieur" | "fini";
 
 export function BoutonPaiement({
   clePlan,
@@ -57,18 +63,23 @@ export function BoutonPaiement({
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [occupe, setOccupe] = useState(false);
+  const [ongletOuvert, setOngletOuvert] = useState(false);
   const refIframe = useRef<HTMLIFrameElement | null>(null);
 
   // Détection du retour : toutes les 0,8 s on tente de lire l'URL de
   // l'iframe. Chez Chariow (autre origine) la lecture est interdite →
   // exception silencieuse. Dès que Chariow redirige vers NOTRE page
-  // /tarifs/retour (même origine), la lecture réussit → paiement fini.
+  // /tarifs/retour ou /paiement/retour (même origine), la lecture
+  // réussit → paiement fini.
   useEffect(() => {
     if (etape !== "paiement") return;
     const minuteur = setInterval(() => {
       try {
         const href = refIframe.current?.contentWindow?.location.href;
-        if (href && href.includes("/tarifs/retour")) {
+        if (
+          href &&
+          (href.includes("/tarifs/retour") || href.includes("/paiement/retour"))
+        ) {
           setEtape("fini");
         }
       } catch {
@@ -102,13 +113,15 @@ export function BoutonPaiement({
         }),
       });
       const donnees = (await reponse.json().catch(() => null)) as
-        | { checkoutUrl?: string; message?: string }
+        | { checkoutUrl?: string; message?: string; mode?: string }
         | null;
       if (!reponse.ok || !donnees?.checkoutUrl) {
         throw new Error(donnees?.message ?? "Impossible de démarrer le paiement.");
       }
       setCheckoutUrl(donnees.checkoutUrl);
-      setEtape("paiement");
+      // mode "embed" → iframe intégrée. Sinon (origine http, ex. localhost)
+      // → panier dans un onglet + bouton « J'ai payé » (pas d'iframe vide).
+      setEtape(donnees.mode === "embed" ? "paiement" : "exterieur");
     } catch (e) {
       setErreur(e instanceof Error ? e.message : "Erreur inconnue.");
     } finally {
@@ -116,11 +129,22 @@ export function BoutonPaiement({
     }
   }
 
+  function ouvrirOngletPaiement() {
+    if (!checkoutUrl) return;
+    window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+    setOngletOuvert(true);
+  }
+
+  function verifierAbonnement() {
+    routeur.push("/dashboard/abonnement?paiement=1");
+  }
+
   function fermer() {
     setEtape("ferme");
     setCheckoutUrl(null);
     setErreur(null);
     setOccupe(false);
+    setOngletOuvert(false);
   }
 
   return (
@@ -234,6 +258,49 @@ export function BoutonPaiement({
                 <p className="mt-2 text-center text-[12px] leading-4 text-encre">
                   Ne ferme pas cette fenêtre : elle se refermera toute seule après le paiement.
                 </p>
+              </div>
+            )}
+
+            {/* Origine non encadrable (ex. http://localhost) : Chariow
+                refuse de s'afficher en iframe → onglet + vérification. */}
+            {etape === "exterieur" && checkoutUrl && (
+              <div>
+                <p className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
+                  <ShieldCheck className="size-3.5" aria-hidden /> Paiement sécurisé — Chariow
+                </p>
+                <h2 className="mt-3 text-h3 font-semibold">
+                  Le paiement s&apos;ouvre dans un onglet séparé
+                </h2>
+                <p className="mt-1.5 text-[14px] leading-5 text-encre">
+                  L&apos;affichage directement dans la page n&apos;est pas disponible pour cette
+                  adresse : le paiement se passe dans un onglet sécurisé de Chariow. Une fois
+                  payé, reviens ici — ton Premium s&apos;active tout seul.
+                </p>
+
+                {!ongletOuvert ? (
+                  <button
+                    type="button"
+                    onClick={ouvrirOngletPaiement}
+                    className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                  >
+                    Ouvrir le paiement <ExternalLink className="size-4" aria-hidden />
+                  </button>
+                ) : (
+                  <>
+                    <p className="mt-4 rounded-carte border border-bordure bg-gris/60 px-4 py-3 text-[13px] leading-5 text-encre">
+                      Paye dans l&apos;onglet qui vient de s&apos;ouvrir (Mobile Money ou carte),
+                      puis reviens sur cet onglet et appuie sur le bouton ci-dessous.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={verifierAbonnement}
+                      className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-violet px-6 text-[16px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+                    >
+                      <CheckCircle2 className="size-5" aria-hidden /> J&apos;ai payé — activer mon
+                      Premium
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
