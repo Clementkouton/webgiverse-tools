@@ -1,6 +1,13 @@
 // app/api/webhooks/chariow/route.ts
-// Webhook Chariow (« Pulses ») — VERSION 2, alignée sur la documentation
-// officielle : https://chariow.dev/en/guides/pulses
+// Webhook Chariow (« Pulses ») — VERSION 3 : diagnostic complet + mode tolérant.
+// Alignée sur la documentation officielle : https://chariow.dev/en/guides/pulses
+//
+// Nouveautés V3 :
+//   - GET  : répond un petit JSON (test de connectivité dans le navigateur).
+//   - En cas d'échec de signature : on affiche TOUS les en-têtes reçus dans les
+//     logs [chariow], pour voir exactement ce que Chariow envoie.
+//   - CHARIOW_WEBHOOK_TOLERANT=1 : accepte les pulsations SANS signature
+//     valide (débogage LOCAL uniquement — ne JAMAIS l'ajouter sur Netlify).
 //
 // Ce que Chariow envoie réellement :
 //   En-têtes : x-chariow-signature = "sha256=<hex>" (HMAC-SHA256 du corps BRUT)
@@ -153,8 +160,8 @@ const ENTETES_SIGNATURE = [
 ];
 
 function signatureValide(corpsBrut: string, entetes: Headers, secret: string): boolean {
-  for (const nom de ENTETES_SIGNATURE) {
-    const brute: string | null = entetes.get(nom);
+  for (const nom of ENTETES_SIGNATURE) {
+    const brute = entetes.get(nom);
     if (!brute) continue;
     // Format officiel : "sha256=<hex>" — on tolère aussi "<hex>" et "t=…,v1=<hex>".
     const hex =
@@ -176,11 +183,21 @@ function signatureValide(corpsBrut: string, entetes: Headers, secret: string): b
 
 // ── La route ─────────────────────────────────────────────────────────
 
+// GET : test de connectivité. Ouvre l'URL du webhook dans un navigateur :
+// si tu vois ce JSON, le tunnel et l'application sont bien accessibles.
+export async function GET() {
+  return NextResponse.json({
+    message: "Webhook Chariow opérationnel — en attente de pulsations.",
+  });
+}
+
 export async function POST(requete: Request) {
   const secret = (process.env.CHARIOW_WEBHOOK_SECRET ?? "").trim();
-  if (!secret) {
+  const tolerant = (process.env.CHARIOW_WEBHOOK_TOLERANT ?? "").trim() === "1";
+
+  if (!secret && !tolerant) {
     console.error(
-      "[chariow] CHARIOW_WEBHOOK_SECRET est ABSENT des variables Netlify → webhook inactif (503).",
+      "[chariow] CHARIOW_WEBHOOK_SECRET est ABSENT des variables → webhook inactif (503).",
     );
     return NextResponse.json(
       { message: "Webhook Chariow inactif (CHARIOW_WEBHOOK_SECRET manquant)." },
@@ -191,23 +208,36 @@ export async function POST(requete: Request) {
   // Le corps BRUT est indispensable : la signature porte dessus.
   const corpsBrut = await requete.text();
 
-  const tolerant = (process.env.CHARIOW_WEBHOOK_TOLERANT ?? "").trim() === "1";
   const entetePresent = ENTETES_SIGNATURE.some((nom) => requete.headers.get(nom));
 
-  if (!signatureValide(corpsBrut, requete.headers, secret)) {
-    if (entetePresent) {
-      console.error(
-        "[chariow] signature INVALIDE — le secret Netlify ne correspond pas au secret du Pulse Chariow.",
-      );
-      return NextResponse.json({ message: "Signature invalide." }, { status: 403 });
-    }
+  if (!secret && tolerant) {
+    console.warn("[chariow] MODE TOLÉRANT sans secret : aucune vérification de signature.");
+  }
+
+  if (secret && !signatureValide(corpsBrut, requete.headers, secret)) {
+    // Diagnostic : on affiche TOUS les en-têtes reçus pour voir ce que
+    // Chariow (ou le tunnel VS Code) envoie vraiment.
+    const entetesRecus = [...requete.headers.entries()]
+      .map(([nom, valeur]) => `${nom}: ${valeur.slice(0, 100)}`)
+      .join(" | ");
+    console.warn(`[chariow] signature KO — en-têtes reçus : ${entetesRecus}`);
+    console.warn(`[chariow] corps brut : ${corpsBrut.slice(0, 500)}`);
+
     if (!tolerant) {
+      if (entetePresent) {
+        console.error(
+          "[chariow] signature INVALIDE — secret différent ou format non reconnu (403).",
+        );
+        return NextResponse.json({ message: "Signature invalide." }, { status: 403 });
+      }
       console.error(
-        "[chariow] signature ABSENTE — en-tête x-chariow-signature introuvable dans la requête.",
+        "[chariow] signature ABSENTE — en-tête x-chariow-signature introuvable (401).",
       );
       return NextResponse.json({ message: "Signature absente." }, { status: 401 });
     }
-    console.warn("[chariow] MODE TOLÉRANT : requête acceptée SANS signature (débogage).");
+    console.warn(
+      "[chariow] MODE TOLÉRANT : pulsation acceptée SANS signature valide (débogage local).",
+    );
   }
 
   let evenement: Inconnu;

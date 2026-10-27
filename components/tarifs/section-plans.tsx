@@ -1,18 +1,26 @@
 // components/tarifs/section-plans.tsx
 // ─────────────────────────────────────────────────────────────────
 // Section « Webgiverse Premium » affichée sur la page d'accueil.
-// Composant serveur : il lit lib/plans.ts, la session (pour pré-remplir
-// l'e-mail du compte) et les URLs de checkout Chariow (variables
-// d'environnement) — aucune requête à la base de données.
+// Composant serveur : il lit lib/plans.ts et les URLs de checkout
+// Chariow (variables d'environnement) — aucune requête à la base de
+// données, donc il ne peut JAMAIS faire planter la landing page.
 // ─────────────────────────────────────────────────────────────────
 import Link from "next/link";
 import { ArrowRight, Check, Crown, Leaf, ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { Carte } from "@/components/ui/carte";
+import { BoutonPaiement } from "@/components/tarifs/bouton-paiement";
 import { PLANS, PLAN_DECOUVERTE } from "@/lib/plans";
 
 export async function SectionPlans() {
   const session = await auth().catch(() => null);
+  // Paiement INTÉGRÉ (fenêtre dans le site, via l'API Chariow) : si la clé
+  // API ou les produits manquent, on garde l'ancien lien de secours.
+  const paiementIntegrePret = Boolean(
+    process.env.CHARIOW_API_KEY?.trim() &&
+      process.env.CHARIOW_PRODUCT_PRO?.trim() &&
+      process.env.CHARIOW_PRODUCT_ENTREPRISE?.trim(),
+  );
   return (
     <section className="bg-white py-14 lg:py-18" aria-labelledby="titre-premium-accueil">
       <div className="mx-auto max-w-7xl px-4">
@@ -106,14 +114,22 @@ export async function SectionPlans() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href={urlChariow ?? "/tarifs"}
-                  target={urlChariow ? "_blank" : undefined}
-                  rel={urlChariow ? "noopener noreferrer" : undefined}
-                  className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
-                >
-                  Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
-                </a>
+                {paiementIntegrePret ? (
+                  <BoutonPaiement
+                    clePlan={plan.cle}
+                    libelle={`Choisir ${plan.nom}`}
+                    className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                  />
+                ) : (
+                  <a
+                    href={urlChariow ?? "/tarifs"}
+                    target={urlChariow ? "_blank" : undefined}
+                    rel={urlChariow ? "noopener noreferrer" : undefined}
+                    className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                  >
+                    Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
+                  </a>
+                )}
               </Carte>
             );
           })}

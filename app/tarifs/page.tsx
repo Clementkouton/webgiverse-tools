@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
+import { BoutonPaiement } from "@/components/tarifs/bouton-paiement";
 import { PLANS, PLAN_DECOUVERTE } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Premium — Tarifs — Webgiverse Outils IA" };
@@ -25,6 +26,15 @@ export const dynamic = "force-dynamic";
 // disponible » au lieu de mener vers une page inexistante.
 const URL_CHARIOW_PRO = process.env.CHARIOW_URL_PRO?.trim() || null;
 const URL_CHARIOW_ENTREPRISE = process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
+
+// Paiement INTÉGRÉ (fenêtre dans le site, via l'API Chariow) : disponible
+// dès que la clé API et les deux identifiants produits sont configurés.
+// Sinon on retombe sur l'ancien lien Chariow (ou « bientôt disponible »).
+const paiementIntegrePret = Boolean(
+  process.env.CHARIOW_API_KEY?.trim() &&
+    process.env.CHARIOW_PRODUCT_PRO?.trim() &&
+    process.env.CHARIOW_PRODUCT_ENTREPRISE?.trim(),
+);
 
 export default async function PageTarifs() {
   const session = await auth();
@@ -115,7 +125,7 @@ export default async function PageTarifs() {
               }`}
             >
               {plan.recommande && (
-                <span className="absolute -top-3 left-6 rounded-champ rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
                   Le plus populaire
                 </span>
               )}
@@ -142,6 +152,12 @@ export default async function PageTarifs() {
                 <Bouton asChild variante="secondaire" className="mt-6">
                   <Link href="/dashboard/abonnement">Ton plan actuel — gérer</Link>
                 </Bouton>
+              ) : paiementIntegrePret ? (
+                <BoutonPaiement
+                  clePlan={plan.cle}
+                  libelle={abonnementActif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`}
+                  className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-violet px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+                />
               ) : urlCheckout ? (
                 <Bouton asChild className="mt-6">
                   <a href={urlCheckout} target="_blank" rel="noopener noreferrer">
