@@ -6,6 +6,19 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "www.google.com", pathname: "/s2/favicons*" },
     ],
   },
+  // ── Server Actions : origines autorisées ────────────────────────
+  // Corrige l'erreur « Invalid Server Actions request » / «
+  // x-forwarded-host does not match origin » quand on navigue tantôt
+  // sur le tunnel VS Code, tantôt sur localhost (cookies + formulaires).
+  // ⚠️ On écrit les origines SANS https:// (format host[:port]).
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        "localhost:3000",
+        "m51645tr-3000.euw.devtunnels.ms",
+      ],
+    },
+  },
 };
 
 export default nextConfig;
