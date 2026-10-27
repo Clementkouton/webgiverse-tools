@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   Check,
   Crown,
-  ExternalLink,
   Leaf,
   Mail,
   ShieldCheck,
@@ -15,31 +14,18 @@ import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
-import { BoutonPaiement } from "@/components/tarifs/bouton-paiement";
 import { PLANS, PLAN_DECOUVERTE } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Premium — Tarifs — Webgiverse Outils IA" };
 export const dynamic = "force-dynamic";
 
-// URLs de paiement Chariow (Netlify → Environment variables, et .env.local
-// en local). Si une URL manque, le bouton affiche « Paiement bientôt
-// disponible » au lieu de mener vers une page inexistante.
-const URL_CHARIOW_PRO = process.env.CHARIOW_URL_PRO?.trim() || null;
-const URL_CHARIOW_ENTREPRISE = process.env.CHARIOW_URL_ENTREPRISE?.trim() || null;
-
-// Paiement INTÉGRÉ (fenêtre dans le site, via l'API Chariow) : disponible
-// dès que la clé API et les deux identifiants produits sont configurés.
-// Sinon on retombe sur l'ancien lien Chariow (ou « bientôt disponible »).
-const paiementIntegrePret = Boolean(
-  process.env.CHARIOW_API_KEY?.trim() &&
-    process.env.CHARIOW_PRODUCT_PRO?.trim() &&
-    process.env.CHARIOW_PRODUCT_ENTREPRISE?.trim(),
-);
-
 export default async function PageTarifs() {
   const session = await auth();
-  const abonnement = session?.user?.id
-    ? await prisma.abonnement.findUnique({ where: { utilisateurId: session.user.id } }).catch(() => null)
+  const connecte = Boolean(session?.user?.id);
+  const abonnement = connecte
+    ? await prisma.abonnement
+        .findUnique({ where: { utilisateurId: session!.user!.id } })
+        .catch(() => null)
     : null;
 
   const abonnementActif =
@@ -61,8 +47,8 @@ export default async function PageTarifs() {
         </p>
         <p className="mt-3 flex items-center justify-center gap-2 text-[13px] leading-5 font-medium text-violet">
           <Mail className="size-4 shrink-0" aria-hidden />
-          Paie avec la même adresse e-mail que ton compte Webgiverse : ton Premium
-          s&apos;active tout seul, en quelques secondes.
+          Ton e-mail et ton nom sont déjà remplis sur la page de paiement : tu reviens ici
+          automatiquement après.
         </p>
       </header>
 
@@ -103,76 +89,65 @@ export default async function PageTarifs() {
             ))}
           </ul>
           <Bouton asChild variante="secondaire" className="mt-6">
-            <Link href={session ? "/dashboard" : "/connexion"}>{session ? "Ton plan actuel" : "Commencer gratuitement"}</Link>
+            <Link href={connecte ? "/dashboard" : "/connexion?suite=%2Ftarifs"}>
+              {connecte ? "Ton plan actuel" : "Commencer gratuitement"}
+            </Link>
           </Bouton>
         </Carte>
 
         {/* Plans payants */}
-        {Object.values(PLANS).map((plan) => {
-          const urlChariow = plan.cle === "PRO" ? URL_CHARIOW_PRO : URL_CHARIOW_ENTREPRISE;
-          // On pré-remplit l'e-mail du compte connecté dans le checkout Chariow
-          // (?email=…) : le webhook reconnaît ainsi le client à coup sûr, même
-          // si le client ne tape rien dans le formulaire de paiement.
-          const urlCheckout =
-            urlChariow && session?.user?.email
-              ? `${urlChariow}${urlChariow.includes("?") ? "&" : "?"}email=${encodeURIComponent(session.user.email)}`
-              : urlChariow;
-          return (
-            <Carte
-              key={plan.cle}
-              className={`relative flex flex-col p-6 ${
-                plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
-              }`}
-            >
-              {plan.recommande && (
-                <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
-                  Le plus populaire
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
-                  <Crown className="size-5" aria-hidden />
-                </span>
-                <h2 className="text-h3 font-semibold">{plan.nom}</h2>
-              </div>
-              <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
-                {plan.prix}
-                <span className="text-[14px] font-medium text-encre"> / mois</span>
-              </p>
-              <p className="mt-1 text-[14px] leading-5 text-encre">{plan.accroche}</p>
-              <ul className="mt-5 grid flex-1 gap-2.5">
-                {plan.avantages.map((avantage) => (
-                  <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
-                    <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
-                    <span className="text-bleu">{avantage}</span>
-                  </li>
-                ))}
-              </ul>
-              {abonnementActif?.plan === plan.cle ? (
-                <Bouton asChild variante="secondaire" className="mt-6">
-                  <Link href="/dashboard/abonnement">Ton plan actuel — gérer</Link>
-                </Bouton>
-              ) : paiementIntegrePret ? (
-                <BoutonPaiement
-                  clePlan={plan.cle}
-                  libelle={abonnementActif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`}
-                  className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-violet px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
-                />
-              ) : urlCheckout ? (
-                <Bouton asChild className="mt-6">
-                  <a href={urlCheckout} target="_blank" rel="noopener noreferrer">
-                    {abonnementActif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`}
-                    <ExternalLink className="ml-1.5 inline size-4" aria-hidden />
-                  </a>
-                </Bouton>
-              ) : (
-                <span className="mt-6 block rounded-full border border-bordure bg-gris px-6 py-2.5 text-center text-[14px] leading-5 font-semibold text-encre">
-                  Paiement bientôt disponible
-                </span>
-              )}
-            </Carte>
-          );
-        })}
+        {Object.values(PLANS).map((plan) => (
+          <Carte
+            key={plan.cle}
+            className={`relative flex flex-col p-6 ${
+              plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
+            }`}
+          >
+            {plan.recommande && (
+              <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                Le plus populaire
+              </span>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+                <Crown className="size-5" aria-hidden />
+              </span>
+              <h2 className="text-h3 font-semibold">{plan.nom}</h2>
+            </div>
+            <p className="mt-4 font-titre text-[34px] leading-10 font-bold">
+              {plan.prix}
+              <span className="text-[14px] font-medium text-encre"> / mois</span>
+            </p>
+            <p className="mt-1 text-[14px] leading-5 text-encre">{plan.accroche}</p>
+            <ul className="mt-5 grid flex-1 gap-2.5">
+              {plan.avantages.map((avantage) => (
+                <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
+                  <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                  <span className="text-bleu">{avantage}</span>
+                </li>
+              ))}
+            </ul>
+            {abonnementActif?.plan === plan.cle ? (
+              /* Déjà abonné à CE plan → gestion de l'abonnement. */
+              <Bouton asChild variante="secondaire" className="mt-6">
+                <Link href="/dashboard/abonnement">Ton plan actuel — gérer</Link>
+              </Bouton>
+            ) : !connecte ? (
+              /* PAS connecté → connexion OBLIGATOIRE avant de choisir,
+                 puis retour automatique sur /tarifs après la connexion. */
+              <Bouton asChild className="mt-6 w-full">
+                <Link href="/connexion?suite=%2Ftarifs">Choisir {plan.nom}</Link>
+              </Bouton>
+            ) : (
+              /* Connecté → parcours de paiement normal (Chariow). */
+              <Bouton asChild className="mt-6 w-full">
+                <Link href={`/dashboard/abonnement?plan=${encodeURIComponent(plan.cle)}`}>
+                  {abonnementActif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`}
+                </Link>
+              </Bouton>
+            )}
+          </Carte>
+        ))}
       </div>
 
       <div className="mx-auto mt-10 max-w-2xl">

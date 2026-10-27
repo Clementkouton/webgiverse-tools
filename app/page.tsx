@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ChevronRight, ExternalLink, Sparkles, Star } from "lucide-react";
+import { auth } from "@/auth";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { Carte } from "@/components/ui/carte";
@@ -13,13 +14,19 @@ import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
 import { compterStats, listerCategories, outilsMisEnAvant, listerOutils } from "@/lib/queries";
 import VuRecemment from "@/components/visites/vu-recemment";
 
-export const revalidate = 3600;
+// La landing affiche maintenant des boutons personnalisés (connecté ou non)
+// → rendu dynamique (la session est lue dans le cookie, sans base de données).
+export const dynamic = "force-dynamic";
 
 function TitreSection({ children }: { children: React.ReactNode }) {
   return <h2 className="text-[26px] leading-8 font-semibold sm:text-h2">{children}</h2>;
 }
 
 export default async function Accueil() {
+  // Lecture de la session (JWT → aucun appel base de données, jamais de plantage ici).
+  const session = await auth();
+  const connecte = Boolean(session?.user?.id);
+
   const [stats, enAvant, nouveautes, categories] = await Promise.all([
     compterStats(), outilsMisEnAvant(),
     listerOutils({ tri: "recente", page: 1 }),
@@ -127,7 +134,8 @@ export default async function Accueil() {
       </section>
 
       {/* ── Plans d'abonnement Premium ───────────────────────── */}
-      <SectionPlans />
+      {/* connecté = false → les boutons Pro/Entreprise envoient vers /connexion */}
+      <SectionPlans connecte={connecte} />
 
       {/* ── L'actu IA du jour ────────────────────────────────── */}
       <section className="bg-white py-14 lg:py-18">
