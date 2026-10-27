@@ -252,8 +252,6 @@ export default async function PageMonAbonnement() {
                     </li>
                   ))}
                 </ul>
-                {/* Paiement INTÉGRÉ : fenêtre dans le site, comme sur la
-                    landing. Le plan actuel est le seul cas sans bouton. */}
                 <div className="mt-6">
                   {estPlanActuel ? (
                     <Bouton asChild variante="secondaire" className="w-full">
