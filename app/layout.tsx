@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     title: "Webgiverse Outils IA — l'annuaire francophone des outils IA",
     description: "Trouve le bon outil IA pour ton projet. Apprendre · Créer · Réussir.",
   },
+  icons: {
+    icon: "/logo.png", // Chemin vers ton logo dans le dossier public
+  },
 };
 
 export default function LayoutRacine({ children }: { children: React.ReactNode }) {
