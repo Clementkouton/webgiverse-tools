@@ -162,6 +162,18 @@ model Article {
   @@index([type, statut, publieLe])
 }
 
+model MessageContact {
+  id      String   @id @default(cuid())
+  nom     String
+  email   String
+  sujet   String
+  message String
+  traite  Boolean  @default(false) // marqué "lu" quand tu auras répondu
+  creeLe  DateTime @default(now())
+
+  @@index([traite, creeLe])
+}
+
 model Session {
   sessionToken String   @unique
   userId       String

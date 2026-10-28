@@ -40,12 +40,18 @@ export async function Footer() {
   const colonneEntreprise = {
     titre: "Entreprise",
     liens: connecte
-      ? [["Mon espace", "/dashboard"]]
+      ? [
+          ["Mon espace", "/dashboard"],
+          ["À propos", "/a-propos"],
+          ["Contact", "/contact"],
+          ["Tarifs", "/tarifs"],
+        ]
       : [
+          ["À propos", "/a-propos"],
+          ["Contact", "/contact"],
+          ["Tarifs", "/tarifs"],
           ["Connexion", "/connexion"],
           ["Inscription", "/inscription"],
-          ["Mon espace", "/dashboard"],
-          ["Populaires", "/populaires"],
         ],
   };
 
