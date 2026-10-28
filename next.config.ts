@@ -1,15 +1,18 @@
 import type { NextConfig } from "next";
 
+// ─────────────────────────────────────────────────────────────────
+// Origines autorisées pour les Server Actions (formulaires, etc.).
+// ⚠️ FORMAT OBLIGATOIRE : SANS https:// (host[:port] uniquement).
+// L'ancien fichier contenait « https://webgiverse-tools.vercel.app »
+// AVEC le préfixe → cette origine n'était JAMAIS reconnue.
+// ─────────────────────────────────────────────────────────────────
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "www.google.com", pathname: "/s2/favicons*" },
     ],
   },
-  // ── Server Actions : origines autorisées ────────────────────────
-  // Corrige l'erreur « Invalid Server Actions request » quand on navigue
-  // tantôt sur le tunnel VS Code, tantôt sur localhost.
-  // ⚠️ On écrit les origines SANS https:// (format host[:port]).
   experimental: {
     serverActions: {
       allowedOrigins: [
