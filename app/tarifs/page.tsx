@@ -1,4 +1,14 @@
 // app/tarifs/page.tsx
+// Lot 7 — corrections des anomalies repérées sur la page Tarifs :
+//   1) Bouton Découverte : « Ton plan actuel » ne s'affiche plus pour un
+//      abonné Premium (deux plans ne peuvent pas être « actuels » à la fois).
+//   2) Un abonné ne voit plus « Passer au plan … » (poussée vers un plan
+//      inférieur) : formulation neutre « Basculer vers … », note honnête
+//      sur l'effet immédiat, badge « Le plus populaire » réservé aux prospects.
+//   3) Bannière finale adaptée au profil : visiteur → compte gratuit,
+//      connecté sans Premium → tester / contact, Premium → gérer l'abonnement.
+//      Un client Premium ne doit JAMAIS voir « Crée ton compte gratuit ».
+//   4) Dates affichées en UTC : plus de décalage d'un jour selon le serveur.
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -50,6 +60,14 @@ const paiementIntegrePret = Boolean(
     process.env.CHARIOW_PRODUCT_ENTREPRISE?.trim(),
 );
 
+// Dates longues rendues en UTC : quel que soit le serveur qui affiche la
+// page, « 24 janvier 2027 » reste « 24 janvier 2027 » (avant, un serveur
+// dans un autre fuseau pouvait glisser d'un jour à minuit).
+const formatDateLongue = new Intl.DateTimeFormat("fr-FR", {
+  dateStyle: "long",
+  timeZone: "UTC",
+});
+
 // Données structurées FAQPage (questions tarifs) : Google peut afficher
 // ces réponses directement dans les résultats de recherche. Les questions
 // sont différentes de celles de la page /faq → pas de doublon.
@@ -97,6 +115,12 @@ export default async function PageTarifs() {
       ? abonnement
       : null;
 
+  // Nom lisible du plan actif (Pro / Entreprise) pour les textes de la page.
+  const nomPlanActif =
+    abonnementActif
+      ? PLANS[abonnementActif.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Premium"
+      : null;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 lg:py-14">
       <script
@@ -125,9 +149,8 @@ export default async function PageTarifs() {
         <Carte className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-between gap-3 border-violet/40 bg-violet/5 p-5">
           <p className="flex items-center gap-2 text-[15px] leading-5 font-semibold text-violet">
             <Crown className="size-5" aria-hidden />
-            Tu es Premium ({PLANS[abonnementActif.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Pro"})
-            jusqu&apos;au{" "}
-            {new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(abonnementActif.expireLe)}
+            Tu es Premium ({nomPlanActif}) jusqu&apos;au{" "}
+            {formatDateLongue.format(abonnementActif.expireLe)}
           </p>
           <Bouton asChild variante="secondaire" taille="sm">
             <Link href="/dashboard/abonnement">Gérer mon abonnement</Link>
@@ -157,8 +180,25 @@ export default async function PageTarifs() {
               </li>
             ))}
           </ul>
+          {/* Lot 7 : un abonné Premium ne voit plus « Ton plan actuel » ici.
+              Visiteur → inscription · Gratuit connecté → ton plan ·
+              Premium → le plan sur lequel il retombera à l'échéance. */}
           <Bouton asChild variante="secondaire" className="mt-6">
-            <Link href={session ? "/dashboard" : "/inscription"}>{session ? "Ton plan actuel" : "Commencer gratuitement"}</Link>
+            <Link
+              href={
+                abonnementActif
+                  ? "/dashboard/abonnement"
+                  : session
+                    ? "/dashboard"
+                    : "/inscription"
+              }
+            >
+              {abonnementActif
+                ? "Ton plan après l'échéance"
+                : session
+                  ? "Ton plan actuel"
+                  : "Commencer gratuitement"}
+            </Link>
           </Bouton>
         </Carte>
 
@@ -172,6 +212,10 @@ export default async function PageTarifs() {
             urlChariow && session?.user?.email
               ? `${urlChariow}${urlChariow.includes("?") ? "&" : "?"}email=${encodeURIComponent(session.user.email)}`
               : urlChariow;
+          // Bascule = un abonné actif regarde l'AUTRE plan payant
+          // (ex. un abonné Entreprise qui regarde Pro). On ne le pousse plus
+          // avec « Passer au plan Pro » : formulation neutre + note honnête.
+          const bascule = Boolean(abonnementActif && abonnementActif.plan !== plan.cle);
           return (
             <Carte
               key={plan.cle}
@@ -179,7 +223,9 @@ export default async function PageTarifs() {
                 plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
               }`}
             >
-              {plan.recommande && (
+              {/* Lot 7 : le badge marketing ne s'affiche que pour les prospects —
+                  un client déjà Premium n'a plus besoin d'être « converti ». */}
+              {plan.recommande && !abonnementActif && (
                 <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
                   Le plus populaire
                 </span>
@@ -219,14 +265,14 @@ export default async function PageTarifs() {
                 /* 3) Connecté + paiement intégré prêt → fenêtre Chariow dans le site */
                 <BoutonPaiement
                   clePlan={plan.cle}
-                  libelle={abonnementActif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`}
+                  libelle={bascule ? `Basculer vers ${plan.nom}` : `Choisir ${plan.nom}`}
                   className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-violet px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
                 />
               ) : urlCheckout ? (
                 /* 4a) Connecté, intégré pas prêt → ancien lien Chariow (secours) */
                 <Bouton asChild className="mt-6">
                   <a href={urlCheckout} target="_blank" rel="noopener noreferrer">
-                    {abonnementActif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`}
+                    {bascule ? `Basculer vers ${plan.nom}` : `Choisir ${plan.nom}`}
                     <ExternalLink className="ml-1.5 inline size-4" aria-hidden />
                   </a>
                 </Bouton>
@@ -235,6 +281,11 @@ export default async function PageTarifs() {
                 <span className="mt-6 block rounded-full border border-bordure bg-gris px-6 py-2.5 text-center text-[14px] leading-5 font-semibold text-encre">
                   Paiement bientôt disponible
                 </span>
+              )}
+              {bascule && (
+                <p className="mt-2 text-center text-[12px] leading-4 text-encre">
+                  La bascule est immédiate — tes jours déjà payés sont conservés.
+                </p>
               )}
             </Carte>
           );
@@ -360,27 +411,78 @@ export default async function PageTarifs() {
         </Carte>
       </div>
 
-      {/* ── Bannière finale : le gratuit d'abord ─────────────────── */}
+      {/* ── Bannière finale : adaptée au profil du visiteur ──────── */}
+      {/* Lot 7 : un client Premium ne doit JAMAIS voir « Crée ton compte ».
+          Trois versions : visiteur → compte gratuit, connecté sans Premium →
+          tester l'assistant / écrire à l'équipe, Premium → gérer l'abonnement. */}
       <section className="mt-12 rounded-carte bg-bleu px-6 py-10 text-center text-white">
-        <h2 className="text-h3 font-titre font-semibold">
-          Pas prêt à payer ? Commence gratuit.
-        </h2>
-        <p className="mesure mx-auto mt-2 text-white/85">
-          Crée ton compte, teste l&apos;assistant et enregistre tes premiers favoris. Le plan
-          Découverte est déjà très complet — tu passeras Premium le jour où tu en auras
-          vraiment besoin.
-        </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-          <Bouton asChild>
-            <Link href="/inscription">Créer mon compte gratuit</Link>
-          </Bouton>
-          <Link
-            href="/assistant"
-            className="text-[15px] leading-5 font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
-          >
-            Essayer l&apos;assistant →
-          </Link>
-        </div>
+        {abonnementActif ? (
+          <>
+            <h2 className="text-h3 font-titre font-semibold">
+              Ton Premium est actif — merci pour ta confiance.
+            </h2>
+            <p className="mesure mx-auto mt-2 text-white/85">
+              Ton abonnement {nomPlanActif} est actif jusqu&apos;au{" "}
+              {formatDateLongue.format(abonnementActif.expireLe)} : favoris illimités, assistant
+              sans quota et tous tes avantages sont déjà débloqués. Tu gères tout, quand tu veux.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+              <Bouton asChild>
+                <Link href="/dashboard/abonnement">Gérer mon abonnement</Link>
+              </Bouton>
+              <Link
+                href="/assistant"
+                className="text-[15px] leading-5 font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
+              >
+                Essayer l&apos;assistant →
+              </Link>
+            </div>
+          </>
+        ) : session ? (
+          <>
+            <h2 className="text-h3 font-titre font-semibold">
+              Des questions avant de passer Premium ?
+            </h2>
+            <p className="mesure mx-auto mt-2 text-white/85">
+              Ton compte est prêt : teste l&apos;assistant, enregistre tes premiers favoris, et
+              passe Premium le jour où tu en auras vraiment besoin — prépayé 30 jours, sans
+              engagement, tu arrêtes quand tu veux.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+              <Bouton asChild>
+                <Link href="/assistant">Essayer l&apos;assistant</Link>
+              </Bouton>
+              <Link
+                href="/contact"
+                className="text-[15px] leading-5 font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
+              >
+                Écris-nous →
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-h3 font-titre font-semibold">
+              Pas prêt à payer ? Commence gratuit.
+            </h2>
+            <p className="mesure mx-auto mt-2 text-white/85">
+              Crée ton compte, teste l&apos;assistant et enregistre tes premiers favoris. Le plan
+              Découverte est déjà très complet — tu passeras Premium le jour où tu en auras
+              vraiment besoin.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+              <Bouton asChild>
+                <Link href="/inscription">Créer mon compte gratuit</Link>
+              </Bouton>
+              <Link
+                href="/assistant"
+                className="text-[15px] leading-5 font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
+              >
+                Essayer l&apos;assistant →
+              </Link>
+            </div>
+          </>
+        )}
       </section>
     </div>
   );
