@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, ChevronRight, ExternalLink } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, ExternalLink, Star } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { obtenirOutil, outilsAlternatifs } from "@/lib/queries";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,18 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
   const alternatives = await outilsAlternatifs(
     outil.id, outil.categories.map((c) => c.categorie.slug)
   );
+
+  // Note moyenne et nombre d'avis, calculés côté serveur :
+  // 1) affichés sous le titre (règle Google : la note doit être visible) ;
+  // 2) injectés dans les données structurées (étoiles dans les résultats Google).
+  const statsAvis = await prisma.avis.aggregate({
+    where: { outilId: outil.id },
+    _avg: { note: true },
+    _count: { _all: true },
+  });
+  const moyenne = statsAvis._avg.note ? Number(statsAvis._avg.note.toFixed(1)) : null;
+  const nombreAvis = statsAvis._count._all;
+
   const verifie = outil.verifieLe
     ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(outil.verifieLe) : null;
 
@@ -49,6 +61,17 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
     name: outil.nom, description: outil.description, url: outil.url,
     applicationCategory: "BusinessApplication", inLanguage: outil.langues,
     offers: { "@type": "Offer", price: outil.tarifMin ?? 0, priceCurrency: "EUR" },
+    // Étoiles Google : uniquement s'il existe de vrais avis utilisateurs
+    // (sans avis, Google ignore ou pénalise une note inventée).
+    ...(moyenne && nombreAvis > 0 ? {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: moyenne,
+        ratingCount: nombreAvis,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    } : {}),
   };
 
   return (
@@ -83,6 +106,17 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
               ))}
               {verifie && <span>Vérifié le {verifie}</span>}
             </p>
+            {moyenne && nombreAvis > 0 && (
+              <p className="mt-2 flex items-center gap-2 text-[14px] leading-5 text-encre" aria-label={`Note moyenne ${moyenne} sur 5, d'après ${nombreAvis} avis`}>
+                <span className="flex items-center gap-0.5" aria-hidden>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={i < Math.round(moyenne) ? "size-4 fill-amber-400 text-amber-400" : "size-4 text-encre/30"} />
+                  ))}
+                </span>
+                <span className="font-semibold text-encre">{moyenne.toLocaleString("fr-FR")}/5</span>
+                <span>basée sur {nombreAvis} avis</span>
+              </p>
+            )}
           </div>
         </div>
         <p className="mesure mt-6 text-[17px] leading-7 text-encre">{outil.description}</p>

@@ -85,18 +85,15 @@ export default async function PageAPropos() {
         <p className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
           Apprendre · Créer · Réussir
         </p>
-        <h1 className="mt-4 font-titre text-h2 text-encre">
+        <h1 className="mt-4 text-encre text-h2 font-titre font-semibold">
           Notre mission : t&apos;aider à trouver le{" "}
           <span className="texte-degrade">bon outil IA</span>, sans perdre de
           temps.
         </h1>
         <p className="mt-4 text-[16px] leading-7 text-encre">
-          Chaque semaine, de nouveaux outils IA apparaissent. Entre les
-          promesses marketing, les tutoriels en anglais et les fiches jamais
-          mises à jour, difficile de savoir par où commencer. Webgiverse est
-          né de ce constat : un annuaire francophone où chaque outil est
-          testé, expliqué simplement et noté par la communauté — pour que tu
-          passes moins de temps à chercher et plus de temps à créer.
+          Chaque semaine, de nouveaux outils IA apparaissent. Entre les promesses marketing, les tutoriels en anglais et les fiches jamais
+          mises à jour, difficile de savoir par où commencer. Webgiverse est né de ce constat : un annuaire francophone où chaque outil est
+          testé, expliqué simplement et noté par la communauté — pour que tu passes moins de temps à chercher et plus de temps à créer.
         </p>
       </header>
 

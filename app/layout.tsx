@@ -21,6 +21,8 @@ export const metadata: Metadata = {
     title: "Webgiverse Outils IA — l'annuaire francophone des outils IA",
     description: "Trouve le bon outil IA pour ton projet. Apprendre · Créer · Réussir.",
   },
+  // Grande image quand un lien est partagé sur WhatsApp, X/Twitter, LinkedIn…
+  twitter: { card: "summary_large_image" },
   icons: {
     icon: "/logo.png", // Chemin vers ton logo dans le dossier public
   },

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clock, LifeBuoy, ShieldCheck } from "lucide-react";
+import { Clock, LifeBuoy, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { FormulaireContact } from "@/components/commun/formulaire-contact";
 
 export const metadata: Metadata = {
@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 export default function PageContact() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12">
-      <header className="mb-10">
-        <h1 className="font-titre text-h2 text-encre">Contact</h1>
-        <p className="mt-2 max-w-2xl text-encre/70">
-          Une question, une suggestion, un souci ? L&apos;équipe Webgiverse te
+      <header className="mx-auto max-w-2xl text-center">
+              <h1 className="mt-4 text-h2 font-titre font-semibold">Contacte-nous</h1>
+              <p className="mt-3 mb-5 text-[15px] leading-6 text-encre">
+                Une question, une suggestion, un souci ? L&apos;équipe Webgiverse te
           lit vraiment. Nous répondons sous 24 à 48 h ouvrées.
-        </p>
-      </header>
+              </p>
+            </header>
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Formulaire (2/3 de la largeur sur grand écran) */}
