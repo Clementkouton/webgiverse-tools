@@ -2,23 +2,37 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  CalendarX,
   Check,
   Crown,
   ExternalLink,
   Leaf,
+  LifeBuoy,
   Mail,
+  Minus,
   ShieldCheck,
   Sparkles,
+  Zap,
 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
+import { Accordeon, ItemAccordeon } from "@/components/ui/accordeon";
 import { BoutonPaiement } from "@/components/tarifs/bouton-paiement";
 import { PLANS, PLAN_DECOUVERTE } from "@/lib/plans";
+import {
+  LIGNES_COMPARATIF,
+  type CelluleComparatif,
+} from "@/content/comparatif-plans";
+import { FAQ_TARIFS } from "@/content/faq-tarifs";
 
-export const metadata: Metadata = { title: "Premium — Tarifs — Webgiverse Outils IA" };
+export const metadata: Metadata = {
+  title: "Premium — Tarifs — Webgiverse Outils IA",
+  description:
+    "Plan Découverte gratuit, Pro à $2,99/mois, Entreprise à $7,99/mois : comparez les plans en détail, payez par Mobile Money ou carte bancaire, activation automatique, sans engagement.",
+};
 export const dynamic = "force-dynamic";
 
 // URLs de paiement Chariow (Netlify → Environment variables, et .env.local
@@ -36,6 +50,42 @@ const paiementIntegrePret = Boolean(
     process.env.CHARIOW_PRODUCT_ENTREPRISE?.trim(),
 );
 
+// Données structurées FAQPage (questions tarifs) : Google peut afficher
+// ces réponses directement dans les résultats de recherche. Les questions
+// sont différentes de celles de la page /faq → pas de doublon.
+const donneesFaqTarifs = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_TARIFS.map((f) => ({
+    "@type": "Question",
+    name: f.question,
+    acceptedAnswer: { "@type": "Answer", text: f.reponse },
+  })),
+};
+
+/* ── Une cellule du tableau comparatif ────────────────────────────── */
+function CelluleComparatifVue({
+  valeur,
+  miseEnAvant,
+}: {
+  valeur: CelluleComparatif;
+  miseEnAvant?: boolean;
+}) {
+  return (
+    <td className={`px-4 py-3 text-center ${miseEnAvant ? "bg-violet/5" : ""}`}>
+      {typeof valeur === "boolean" ? (
+        valeur ? (
+          <Check className="mx-auto size-4 text-violet" aria-label="Inclus" />
+        ) : (
+          <Minus className="mx-auto size-4 text-bleu/40" aria-label="Non inclus" />
+        )
+      ) : (
+        <span className="font-medium text-bleu">{valeur}</span>
+      )}
+    </td>
+  );
+}
+
 export default async function PageTarifs() {
   const session = await auth();
   const abonnement = session?.user?.id
@@ -49,6 +99,11 @@ export default async function PageTarifs() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 lg:py-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(donneesFaqTarifs) }}
+      />
+
       <header className="mx-auto max-w-2xl text-center">
         <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
           <Sparkles className="size-4" aria-hidden /> Webgiverse Premium
@@ -103,7 +158,7 @@ export default async function PageTarifs() {
             ))}
           </ul>
           <Bouton asChild variante="secondaire" className="mt-6">
-            <Link href={session ? "/dashboard" : "/connexion"}>{session ? "Ton plan actuel" : "Commencer gratuitement"}</Link>
+            <Link href={session ? "/dashboard" : "/inscription"}>{session ? "Ton plan actuel" : "Commencer gratuitement"}</Link>
           </Bouton>
         </Carte>
 
@@ -186,7 +241,113 @@ export default async function PageTarifs() {
         })}
       </div>
 
-      <div className="mx-auto mt-10 max-w-2xl">
+      {/* ── Tableau comparatif des 3 plans ───────────────────────── */}
+      <section className="mt-14" aria-labelledby="titre-comparatif">
+        <h2 id="titre-comparatif" className="text-h3 font-titre font-semibold text-center">
+          Compare les plans <span className="texte-degrade">en détail</span>
+        </h2>
+        <p className="mesure mx-auto mt-2 text-center text-encre">
+          Tout ce que chaque plan contient, ligne par ligne. Aucun frais caché : ce tableau
+          reprend exactement les limites appliquées dans l&apos;application.
+        </p>
+
+        <div className="mt-6 overflow-x-auto rounded-carte border border-bordure bg-white shadow-carte">
+          <table className="w-full min-w-[640px] border-collapse text-left text-[14px]">
+            <caption className="sr-only">
+              Comparaison des plans Découverte, Pro et Entreprise
+            </caption>
+            <thead>
+              <tr className="border-b border-bordure bg-gris/60">
+                <th scope="col" className="px-4 py-3 font-titre font-semibold">
+                  Ce que tu obtiens
+                </th>
+                <th scope="col" className="px-4 py-3 text-center font-titre font-semibold">
+                  Découverte
+                </th>
+                <th scope="col" className="bg-violet/5 px-4 py-3 text-center font-titre font-semibold text-violet">
+                  Pro
+                </th>
+                <th scope="col" className="px-4 py-3 text-center font-titre font-semibold">
+                  Entreprise
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {LIGNES_COMPARATIF.map((ligne) => (
+                <tr key={ligne.label} className="border-b border-bordure/60 last:border-0">
+                  <th scope="row" className="px-4 py-3 font-normal text-bleu">
+                    {ligne.label}
+                  </th>
+                  <CelluleComparatifVue valeur={ligne.decouverte} />
+                  <CelluleComparatifVue valeur={ligne.pro} miseEnAvant />
+                  <CelluleComparatifVue valeur={ligne.entreprise} />
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ── 3 cartes de réassurance ──────────────────────────────── */}
+      <section className="mt-14" aria-labelledby="titre-reassurance">
+        <h2 id="titre-reassurance" className="text-h3 font-titre font-semibold text-center">
+          Souscris <span className="texte-degrade">l&apos;esprit tranquille</span>
+        </h2>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <Carte className="p-5">
+            <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+              <CalendarX className="size-5" aria-hidden />
+            </span>
+            <h3 className="mt-3 font-titre text-[16px] leading-6 font-semibold">Sans engagement</h3>
+            <p className="mt-1.5 text-[14px] leading-5 text-encre">
+              Prépayé 30 jours, aucune reconduction automatique. À l&apos;échéance, tu repasses
+              sur le plan gratuit — tes favoris sont conservés.
+            </p>
+          </Carte>
+          <Carte className="p-5">
+            <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+              <Zap className="size-5" aria-hidden />
+            </span>
+            <h3 className="mt-3 font-titre text-[16px] leading-6 font-semibold">Activation automatique</h3>
+            <p className="mt-1.5 text-[14px] leading-5 text-encre">
+              Paie avec l&apos;adresse e-mail de ton compte Webgiverse et ton Premium s&apos;active
+              en quelques secondes, tout seul. Pas de code à saisir, pas d&apos;attente.
+            </p>
+          </Carte>
+          <Carte className="p-5">
+            <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+              <LifeBuoy className="size-5" aria-hidden />
+            </span>
+            <h3 className="mt-3 font-titre text-[16px] leading-6 font-semibold">Un humain derrière</h3>
+            <p className="mt-1.5 text-[14px] leading-5 text-encre">
+              Une question, un souci de paiement, un changement de plan ? Écris-nous :
+              l&apos;équipe répond sous 48 h ouvrées, en français.
+            </p>
+          </Carte>
+        </div>
+      </section>
+
+      {/* ── FAQ tarifs (avec extraits enrichis Google) ───────────── */}
+      <section className="mx-auto mt-14 max-w-3xl" aria-labelledby="titre-faq-tarifs">
+        <h2 id="titre-faq-tarifs" className="text-h3 font-titre font-semibold text-center">
+          Questions sur <span className="texte-degrade">les tarifs</span>
+        </h2>
+        <p className="mesure mx-auto mt-2 text-center text-encre">
+          Les réponses courtes. Une autre question ?{" "}
+          <Link href="/contact" className="font-semibold text-violet hover:underline">
+            Écris-nous
+          </Link>
+          .
+        </p>
+        <Accordeon type="single" collapsible className="mt-6 grid gap-3">
+          {FAQ_TARIFS.map((f) => (
+            <ItemAccordeon key={f.question} question={f.question} reponse={f.reponse} />
+          ))}
+        </Accordeon>
+      </section>
+
+      {/* ── Sécurité du paiement (déjà présent, conservé) ────────── */}
+      <div className="mx-auto mt-12 max-w-2xl">
         <Carte className="flex flex-wrap items-center justify-center gap-3 p-5 text-center">
           <Badge variante="source" className="gap-1.5">
             <ShieldCheck className="size-4" aria-hidden /> Paiement sécurisé
@@ -198,6 +359,29 @@ export default async function PageTarifs() {
           </p>
         </Carte>
       </div>
+
+      {/* ── Bannière finale : le gratuit d'abord ─────────────────── */}
+      <section className="mt-12 rounded-carte bg-bleu px-6 py-10 text-center text-white">
+        <h2 className="text-h3 font-titre font-semibold">
+          Pas prêt à payer ? Commence gratuit.
+        </h2>
+        <p className="mesure mx-auto mt-2 text-white/85">
+          Crée ton compte, teste l&apos;assistant et enregistre tes premiers favoris. Le plan
+          Découverte est déjà très complet — tu passeras Premium le jour où tu en auras
+          vraiment besoin.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+          <Bouton asChild>
+            <Link href="/inscription">Créer mon compte gratuit</Link>
+          </Bouton>
+          <Link
+            href="/assistant"
+            className="text-[15px] leading-5 font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
+          >
+            Essayer l&apos;assistant →
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
