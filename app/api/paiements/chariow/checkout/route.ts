@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 const PREFIXE = "[chariow-checkout]";
@@ -15,9 +15,9 @@ const INDICATIFS_VERS_PAYS: Record<string, string> = {
 };
 
 /**
- * Valide une origine selon la règle Chariow : https:// + hôte en minuscules,
- * port non-par-défaut autorisé, pas de chemin / requête / fragment / identifiants.
- * Renvoie l'origine nettoyée, ou null si elle doit être écartée.
+ * Valide une origine selon la rÃ¨gle Chariow : https:// + hÃ´te en minuscules,
+ * port non-par-dÃ©faut autorisÃ©, pas de chemin / requÃªte / fragment / identifiants.
+ * Renvoie l'origine nettoyÃ©e, ou null si elle doit Ãªtre Ã©cartÃ©e.
  */
 function origineSecurisee(brute: string | null | undefined): string | null {
   if (!brute) return null;
@@ -40,7 +40,7 @@ function origineSecurisee(brute: string | null | undefined): string | null {
     if (!/^\d{1,5}$/.test(port)) return null;
     const numeroPort = Number(port);
     if (numeroPort < 1 || numeroPort > 65535) return null;
-    // Le port par défaut (443) est interdit par Chariow -> on le retire
+    // Le port par dÃ©faut (443) est interdit par Chariow -> on le retire
     if (numeroPort === 443) return `https://${hote}`;
   }
 
@@ -49,11 +49,11 @@ function origineSecurisee(brute: string | null | undefined): string | null {
 
 export async function POST(requete: Request) {
   try {
-    // 1) L'utilisateur doit être connecté
+    // 1) L'utilisateur doit Ãªtre connectÃ©
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json(
-        { ok: false, error: "Tu dois être connecté pour t'abonner." },
+        { ok: false, error: "Tu dois Ãªtre connectÃ© pour t'abonner." },
         { status: 401 }
       );
     }
@@ -70,7 +70,7 @@ export async function POST(requete: Request) {
       );
     }
 
-    // 2) Lecture du corps de la requête (avec plusieurs noms de champs acceptés)
+    // 2) Lecture du corps de la requÃªte (avec plusieurs noms de champs acceptÃ©s)
     const corps = (await requete.json().catch(() => ({}))) as Record<string, unknown>;
     const texte = (cles: string[]): string | undefined => {
       for (const cle of cles) {
@@ -89,28 +89,28 @@ export async function POST(requete: Request) {
       );
     }
 
-    // 3) Vérification de la configuration
+    // 3) VÃ©rification de la configuration
     const cleApi = process.env.CHARIOW_API_KEY;
     if (!cleApi) {
       return NextResponse.json(
-        { ok: false, error: "Configuration incomplète : ajoute CHARIOW_API_KEY dans les variables d'environnement." },
+        { ok: false, error: "Configuration incomplÃ¨te : ajoute CHARIOW_API_KEY dans les variables d'environnement." },
         { status: 500 }
       );
     }
     const idProduit = plan === "PRO" ? process.env.CHARIOW_PRODUCT_PRO : process.env.CHARIOW_PRODUCT_ENTREPRISE;
     if (!idProduit) {
       return NextResponse.json(
-        { ok: false, error: `Configuration incomplète : ajoute CHARIOW_PRODUCT_${plan} dans les variables d'environnement.` },
+        { ok: false, error: `Configuration incomplÃ¨te : ajoute CHARIOW_PRODUCT_${plan} dans les variables d'environnement.` },
         { status: 500 }
       );
     }
 
-    // 4) Construction de la liste des origines autorisées (embed_origins)
-    //    -> seules les origines HTTPS canoniques sont gardées, les autres sont écartées
+    // 4) Construction de la liste des origines autorisÃ©es (embed_origins)
+    //    -> seules les origines HTTPS canoniques sont gardÃ©es, les autres sont Ã©cartÃ©es
     const origineBrute = requete.headers.get("origin");
     const origineRequete = origineSecurisee(origineBrute);
     if (origineBrute && !origineRequete) {
-      console.log(`${PREFIXE} origine écartée (pas HTTPS canonique) : ${origineBrute}`);
+      console.log(`${PREFIXE} origine Ã©cartÃ©e (pas HTTPS canonique) : ${origineBrute}`);
     }
 
     let origineReferer: string | null = null;
@@ -137,13 +137,13 @@ export async function POST(requete: Request) {
     }
     const encadrable = Boolean(origineRequete) && origines.includes(origineRequete as string);
 
-    // 5) Téléphone et pays
+    // 5) TÃ©lÃ©phone et pays
     const numeroBrut = texte(["telephone", "numeroTelephone", "numero", "phone", "phoneNumber"]) ?? "";
     let numero = numeroBrut.replace(/\D/g, "");
 
     let codePays = (texte(["pays", "paysCode", "codePays", "country_code", "countryCode"]) ?? "").toUpperCase();
     if (!/^[A-Z]{2}$/.test(codePays)) {
-      // Secours : on a peut-être reçu un indicatif (+229, 229...) au lieu du code ISO
+      // Secours : on a peut-Ãªtre reÃ§u un indicatif (+229, 229...) au lieu du code ISO
       const indicatifBrut = texte(["indicatif"]) ?? codePays;
       const normalise = indicatifBrut.startsWith("+")
         ? indicatifBrut
@@ -154,19 +154,19 @@ export async function POST(requete: Request) {
     }
     if (!numero || !/^[A-Z]{2}$/.test(codePays)) {
       return NextResponse.json(
-        { ok: false, error: "Numéro de téléphone ou pays invalide. Vérifie le pays du numéro et le numéro saisi." },
+        { ok: false, error: "NumÃ©ro de tÃ©lÃ©phone ou pays invalide. VÃ©rifie le pays du numÃ©ro et le numÃ©ro saisi." },
         { status: 400 }
       );
     }
 
-    // Si le numéro a été envoyé avec l'indicatif collé devant (ex : 2290169405198), on le retire
+    // Si le numÃ©ro a Ã©tÃ© envoyÃ© avec l'indicatif collÃ© devant (ex : 2290169405198), on le retire
     const indicatifPays =
       Object.entries(INDICATIFS_VERS_PAYS).find(([, code]) => code === codePays)?.[0]?.replace("+", "") ?? "";
     if (indicatifPays && !numero.startsWith("0") && numero.startsWith(indicatifPays) && numero.length >= indicatifPays.length + 8) {
       numero = numero.slice(indicatifPays.length);
     }
 
-    // 6) Prénom / nom depuis la session, IP du client pour de meilleurs moyens de paiement
+    // 6) PrÃ©nom / nom depuis la session, IP du client pour de meilleurs moyens de paiement
     const morceauxNom = (utilisateur.name ?? "").trim().split(/\s+/).filter(Boolean);
     const prenom = (morceauxNom[0] || email.split("@")[0] || "Client").slice(0, 50);
     const nomFamille = (morceauxNom.slice(1).join(" ") || "-").slice(0, 50);
@@ -177,7 +177,7 @@ export async function POST(requete: Request) {
       "";
     const ip = ipBrute.trim();
 
-    // 7) Préparation de la requête vers l'API Chariow
+    // 7) PrÃ©paration de la requÃªte vers l'API Chariow
     const corpsChariow: Record<string, unknown> = {
       product_id: idProduit,
       email,
@@ -189,18 +189,18 @@ export async function POST(requete: Request) {
         if (ip) corpsChariow.customer_ip = ip;
     if (origines.length > 0) corpsChariow.embed_origins = origines;
     if (origineRequete) {
-      // Après paiement : Chariow renvoie la fenêtre vers NOTRE page de
-      // retour ?embed=1 — la version compacte conçue pour l'iframe du
-      // modal. BoutonPaiement détecte /tarifs/retour et referme la
-      // fenêtre tout seul, puis emmène le client au tableau de bord.
-      corpsChariow.redirect_url = `${origineRequete}/tarifs/retour?embed=1`;
+      // AprÃ¨s paiement : Chariow renvoie la fenÃªtre vers NOTRE page de
+      // retour ?embed=1 â€” la version compacte conÃ§ue pour l'iframe du
+      // modal. BoutonPaiement dÃ©tecte /tarifs/retour et referme la
+      // fenÃªtre tout seul, puis emmÃ¨ne le client au tableau de bord.
+      corpsChariow.redirect_url = `${origineRequete}/tarifs/retour`;
     }
 
     console.log(
       `${PREFIXE} plan=${plan} produit=${idProduit} origines_autorisees=${JSON.stringify(origines)} encadrable=${encadrable}`
     );
 
-    // 8) Appel à l'API Chariow
+    // 8) Appel Ã  l'API Chariow
     const reponseChariow = await fetch("https://api.chariow.com/v1/checkout", {
       method: "POST",
       headers: {
@@ -224,7 +224,7 @@ export async function POST(requete: Request) {
       } | null;
     } | null;
 
-    // 9) Gestion des erreurs Chariow avec des messages clairs en français
+    // 9) Gestion des erreurs Chariow avec des messages clairs en franÃ§ais
     if (!reponseChariow.ok) {
       let message = donnees?.message ?? `Erreur Chariow ${reponseChariow.status}`;
       if (donnees?.errors) {
@@ -233,16 +233,16 @@ export async function POST(requete: Request) {
           .join(" | ");
         if (details) message += ` (${details})`;
       }
-      if (reponseChariow.status === 401) message = "Clé API Chariow invalide (vérifie CHARIOW_API_KEY).";
+      if (reponseChariow.status === 401) message = "ClÃ© API Chariow invalide (vÃ©rifie CHARIOW_API_KEY).";
       if (reponseChariow.status === 403) {
         message =
-          "Ta clé API Chariow n'a pas la permission checkout.write. Régénère la clé dans app.chariow.com/settings/api en cochant la portée Checkout (checkout.write).";
+          "Ta clÃ© API Chariow n'a pas la permission checkout.write. RÃ©gÃ©nÃ¨re la clÃ© dans app.chariow.com/settings/api en cochant la portÃ©e Checkout (checkout.write).";
       }
       if (reponseChariow.status === 404) {
-        message = "Produit Chariow introuvable ou non publié (vérifie CHARIOW_PRODUCT_PRO / CHARIOW_PRODUCT_ENTREPRISE).";
+        message = "Produit Chariow introuvable ou non publiÃ© (vÃ©rifie CHARIOW_PRODUCT_PRO / CHARIOW_PRODUCT_ENTREPRISE).";
       }
-      if (reponseChariow.status === 429) message = "Trop de tentatives de paiement à la minute. Réessaie dans un instant.";
-      console.error(`${PREFIXE} échec : ${message}`);
+      if (reponseChariow.status === 429) message = "Trop de tentatives de paiement Ã  la minute. RÃ©essaie dans un instant.";
+      console.error(`${PREFIXE} Ã©chec : ${message}`);
       return NextResponse.json(
         {
           ok: false,
@@ -254,19 +254,19 @@ export async function POST(requete: Request) {
       );
     }
 
-    // 10) Analyse de la réponse
+    // 10) Analyse de la rÃ©ponse
     const etape = donnees?.data?.step;
 
     if (etape === "already_purchased") {
       const message =
-        "Cet e-mail possède déjà ce produit chez Chariow. Gère ton abonnement depuis ton espace client Chariow.";
-      console.log(`${PREFIXE} déjà acheté pour ${email}`);
+        "Cet e-mail possÃ¨de dÃ©jÃ  ce produit chez Chariow. GÃ¨re ton abonnement depuis ton espace client Chariow.";
+      console.log(`${PREFIXE} dÃ©jÃ  achetÃ© pour ${email}`);
       return NextResponse.json({ ok: false, error: message, message }, { status: 409 });
     }
 
     if (etape !== "payment" || !donnees?.data?.payment?.checkout_url) {
-      // Cas théorique : produit terminé immédiatement (prix zéro)
-      console.log(`${PREFIXE} étape inattendue : ${etape}`);
+      // Cas thÃ©orique : produit terminÃ© immÃ©diatement (prix zÃ©ro)
+      console.log(`${PREFIXE} Ã©tape inattendue : ${etape}`);
       const destination = "/dashboard/abonnement?paiement=reussi";
       return NextResponse.json({
         ok: true,
@@ -279,9 +279,9 @@ export async function POST(requete: Request) {
       });
     }
 
-    // 11) Succès : on renvoie le lien de paiement (plusieurs clés pour compatibilité)
+    // 11) SuccÃ¨s : on renvoie le lien de paiement (plusieurs clÃ©s pour compatibilitÃ©)
     const lienPaiement = donnees.data.payment.checkout_url as string;
-    console.log(`${PREFIXE} succès : vente=${donnees?.data?.purchase?.id ?? "?"} mode=${encadrable ? "embed" : "redirect"}`);
+    console.log(`${PREFIXE} succÃ¨s : vente=${donnees?.data?.purchase?.id ?? "?"} mode=${encadrable ? "embed" : "redirect"}`);
     return NextResponse.json({
       ok: true,
       url: lienPaiement,
