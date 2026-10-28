@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       allowedOrigins: [
         "localhost:3000",
-        "https://webgiverse-tools.vercel.app",
+        "webgiverse-tools.vercel.app",
         "m51645tr-3000.euw.devtunnels.ms",
       ],
     },
