@@ -1,7 +1,7 @@
 //components/outil/carte-outil.tsx
 
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BadgeCheck } from "lucide-react";
 import CoeurFavori from "@/components/outil/coeur-favori";
 import BoutonVote from "@/components/vote/bouton-vote";
 import BadgeNote from "@/components/avis/badge-note";
@@ -21,6 +21,7 @@ export type OutilCarte = {
   openSource: boolean;
   type: string;
   nouveau?: boolean;
+  verifieLe?: Date | string | null;
 };
 
 /* ===================================================================== */
@@ -31,6 +32,12 @@ function CarteOutilView({ outil }: { outil: OutilCarte }) {
   // Sécurité : si la page n'a pas passé le bon objet, on n'affiche rien
   // (au lieu de faire planter toute la page)
   if (!outil || !outil.slug) return null;
+
+  // Date du dernier contrôle éditorial (tarif + lien), formatée en français.
+  // « short » → 12/10/2026 ; la date complète reste dans l'infobulle.
+  const verifie = outil.verifieLe
+    ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "short" }).format(new Date(outil.verifieLe))
+    : null;
 
   return (
     <div className="group relative flex h-full flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:-translate-y-0.5 hover:shadow-lg">
@@ -73,6 +80,15 @@ function CarteOutilView({ outil }: { outil: OutilCarte }) {
               {outil.nouveau && (
                 <span className="rounded-full bg-violet px-2 py-0.5 text-xs font-semibold text-white">
                   Nouveau
+                </span>
+              )}
+              {verifie && (
+                <span
+                  title={`Fiche vérifiée le ${verifie}`}
+                  className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-xs font-medium text-violet"
+                >
+                  <BadgeCheck className="size-3" aria-hidden />
+                  Vérifié le {verifie}
                 </span>
               )}
             </div>

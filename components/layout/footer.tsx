@@ -20,6 +20,7 @@ const COLONNES = [
       ["Assistant", "/assistant"],
       ["Blog", "/blog"],
       ["Actualités", "/actualites"],
+      ["FAQ", "/faq"],
       ["Proposer un outil", "/proposer"],
     ],
   },

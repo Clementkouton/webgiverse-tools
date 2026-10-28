@@ -31,6 +31,7 @@ type OutilCarte = {
   gratuit: boolean;
   openSource: boolean;
   type: string;
+  verifieLe?: Date | string | null;
 };
 
 type ClientCategories = {
@@ -89,6 +90,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
     gratuit: boolean;
     openSource: boolean;
     type: string;
+    verifieLe: Date | null;
   };
 
   let outilsBruts: OutilBrut[] = [];
@@ -132,6 +134,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
     gratuit: outil.gratuit,
     openSource: outil.openSource,
     type: outil.type,
+    verifieLe: outil.verifieLe ?? null,
   }));
 
   const filtreActif = Boolean(q || type || categorie || gratuit || openSource);

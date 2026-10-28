@@ -10,6 +10,7 @@ import { FormulaireNewsletter } from "@/components/commun/formulaire-newsletter"
 import { IconeCategorie } from "@/components/commun/icone-categorie";
 import { SectionPlans } from "@/components/tarifs/section-plans";
 import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
+import { TEMOIGNAGES } from "@/content/temoignages";
 import { compterStats, listerCategories, outilsMisEnAvant, listerOutils } from "@/lib/queries";
 import VuRecemment from "@/components/visites/vu-recemment";
 
@@ -129,6 +130,49 @@ export default async function Accueil() {
         </div>
       </section>
 
+      {/* ── Témoignages ──────────────────────────────────────── */}
+      <section className="bg-white py-14 lg:py-18">
+        <div className="mx-auto max-w-7xl px-4">
+          <TitreSection>Ils ont trouvé leur outil sur Webgiverse</TitreSection>
+          <p className="mesure mt-2 mb-8 text-encre">
+            Freelances, étudiants et entrepreneurs francophones gagnent du temps chaque semaine.
+          </p>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {TEMOIGNAGES.map((t) => {
+              const initiales = t.nom
+                .split(" ")
+                .map((m) => m.charAt(0))
+                .join("")
+                .slice(0, 2)
+                .toUpperCase();
+              return (
+                <Carte key={t.nom} className="flex flex-col p-5">
+                  <div className="flex items-center gap-0.5" aria-label={`Note : ${t.note} sur 5`}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        aria-hidden
+                        className={i < t.note ? "size-4 fill-amber-400 text-amber-400" : "size-4 text-bordure"}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-3 flex-1 text-[15px] leading-6 text-encre">« {t.texte} »</p>
+                  <div className="mt-4 flex items-center gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-violet/10 font-titre text-[14px] font-bold text-violet">
+                      {initiales}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-titre text-[14px] leading-5 font-semibold">{t.nom}</p>
+                      <p className="text-[13px] leading-5 text-encre">{t.role}</p>
+                    </div>
+                  </div>
+                </Carte>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ── Plans d'abonnement Premium ───────────────────────── */}
       {/* Visiteur non connecté → les boutons Pro/Entreprise envoient
           d'abord vers /connexion?suite=/tarifs (géré dans SectionPlans) */}
@@ -177,6 +221,11 @@ export default async function Accueil() {
           <Accordeon type="single" collapsible className="mt-8 grid gap-3">
             {FAQ.map((f) => <ItemAccordeon key={f.question} question={f.question} reponse={f.reponse} />)}
           </Accordeon>
+          <div className="mt-6 text-center">
+            <Link href="/faq" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              Voir toutes les questions <ChevronRight className="size-4" aria-hidden />
+            </Link>
+          </div>
         </div>
       </section>
 
