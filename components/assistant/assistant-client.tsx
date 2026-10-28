@@ -1,7 +1,8 @@
+// components/assistant/assistant-client.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Send, User, Sparkles, Mail, Image as ImageIcon, Presentation, Mic, AlertTriangle } from "lucide-react";
+import { Bot, Send, User, Sparkles, Mail, Image as ImageIcon, Presentation, Mic, AlertTriangle, Crown } from "lucide-react";
 import { ModeGuide } from "@/components/assistant/mode-guide";
 import { HistoriqueConversations } from "@/components/assistant/historique-conversations";
 
@@ -12,6 +13,13 @@ interface MessageChat {
 
 type Onglet = "guide" | "libre";
 
+/** Quota calculé côté serveur (page /assistant) et passé en prop. */
+type QuotaProp = {
+  premium: boolean;
+  utilisees: number;
+  restantes: number | null; // null = illimité (Premium)
+} | null;
+
 const SUGGESTIONS = [
   { icone: Mail, texte: "Le meilleur assistant IA pour rédiger des e-mails" },
   { icone: ImageIcon, texte: "Un outil IA pour générer des images à partir de texte" },
@@ -19,14 +27,18 @@ const SUGGESTIONS = [
   { icone: Mic, texte: "Un outil pour transcrire des réunions en texte" },
 ];
 
-export function AssistantOnglets() {
+export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
   const [onglet, setOnglet] = useState<Onglet>("guide");
   const [messages, setMessages] = useState<MessageChat[]>([]);
   const [saisie, setSaisie] = useState("");
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [raisonErreur, setRaisonErreur] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [signal, setSignal] = useState(0);
+  // Quota du plan (le serveur fait autorité, l'affichage est juste informatif)
+  const [premium] = useState<boolean>(quota?.premium ?? false);
+  const [restantes, setRestantes] = useState<number | null>(quota?.restantes ?? null);
   const finRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,11 +48,20 @@ export function AssistantOnglets() {
   async function envoyer() {
     const texte = saisie.trim();
     if (!texte || envoi) return;
+    // Si le quota est déjà à 0, inutile d'appeler le serveur
+    if (!premium && restantes !== null && restantes <= 0) {
+      setErreur(
+        "Vous avez utilisé vos 10 questions de ce mois-ci avec le plan Découverte. Passez au plan Pro pour des questions illimitées."
+      );
+      setRaisonErreur("limite");
+      return;
+    }
 
     const nouveaux: MessageChat[] = [...messages, { role: "user", contenu: texte }];
     setMessages(nouveaux);
     setSaisie("");
     setErreur(null);
+    setRaisonErreur(null);
     setEnvoi(true);
 
     try {
@@ -51,15 +72,25 @@ export function AssistantOnglets() {
       });
       const donnees = await reponse.json();
 
-      if (!reponse.ok || donnees.erreur) {
+      if (donnees?.raison === "limite") {
+        // Quota atteint (réponse 429 du serveur)
+        setErreur(donnees.erreur ?? "Votre quota mensuel est atteint.");
+        setRaisonErreur("limite");
+        setRestantes(0);
+      } else if (!reponse.ok || donnees.erreur) {
         setErreur(donnees.erreur ?? "Une erreur est survenue.");
+        setRaisonErreur(donnees?.raison ?? null);
       } else {
         setMessages([...nouveaux, { role: "assistant", contenu: donnees.reponse }]);
         if (donnees.conversationId) setConversationId(donnees.conversationId);
+        if (typeof donnees.restantes === "number") setRestantes(donnees.restantes);
+        setErreur(null);
+        setRaisonErreur(null);
         setSignal((s) => s + 1);
       }
     } catch {
       setErreur("Impossible de contacter l'assistant. Vérifiez votre connexion.");
+      setRaisonErreur(null);
     } finally {
       setEnvoi(false);
     }
@@ -67,6 +98,7 @@ export function AssistantOnglets() {
 
   async function chargerConversation(id: string) {
     setErreur(null);
+    setRaisonErreur(null);
     try {
       const reponse = await fetch(`/api/conversations/${id}`);
       const donnees = await reponse.json();
@@ -93,6 +125,7 @@ export function AssistantOnglets() {
     setMessages([]);
     setConversationId(null);
     setErreur(null);
+    setRaisonErreur(null);
     setSignal((s) => s + 1);
   }
 
@@ -102,6 +135,8 @@ export function AssistantOnglets() {
       envoyer();
     }
   }
+
+  const quotaEpuise = !premium && restantes !== null && restantes <= 0;
 
   return (
     <div className="mt-8">
@@ -162,6 +197,29 @@ export function AssistantOnglets() {
                 <Sparkles className="h-5 w-5 text-white/60" />
               </div>
 
+              {/* ── Bandeau quota (plan Découverte) ou Premium ──── */}
+              {(premium || restantes !== null) && (
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-white px-5 py-2 text-xs">
+                  {premium ? (
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-violet">
+                      <Crown className="h-3.5 w-3.5" aria-hidden />
+                      Questions illimitées · merci pour votre abonnement
+                    </span>
+                  ) : (
+                    <>
+                      <span className={restantes !== null && restantes <= 3 ? "font-semibold text-amber-600" : "text-gray-500"}>
+                        {quotaEpuise
+                          ? "Quota mensuel atteint · plan Découverte"
+                          : `${restantes} question${restantes !== 1 ? "s" : ""} restante${restantes !== 1 ? "s" : ""} ce mois-ci · plan Découverte`}
+                      </span>
+                      <a href="/tarifs" className="font-semibold text-violet hover:underline">
+                        Passer Premium
+                      </a>
+                    </>
+                  )}
+                </div>
+              )}
+
               {/* ── Zone des messages ───────────────────────────── */}
               <div className="flex-1 space-y-5 overflow-y-auto bg-gray-50 p-5">
                 {messages.length === 0 && (
@@ -174,7 +232,7 @@ export function AssistantOnglets() {
                         Décrivez votre besoin, je vous propose les outils IA adaptés
                       </p>
                       <p className="mt-1 text-sm text-gray-500">
-                        Gratuit, sans inscription requise pour essayer.
+                        Connectez-vous pour discuter — 10 questions offertes chaque mois.
                       </p>
                     </div>
                     <div className="grid w-full max-w-md gap-2 sm:grid-cols-2">
@@ -242,10 +300,35 @@ export function AssistantOnglets() {
                   </div>
                 )}
 
-                {erreur && (
+                {/* Erreur classique (rouge) — avec lien connexion si besoin */}
+                {erreur && raisonErreur !== "limite" && (
                   <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                    {erreur}
+                    <div className="min-w-0 flex-1">
+                      <p>{erreur}</p>
+                      {raisonErreur === "non-connecte" && (
+                        <a
+                          href="/connexion?suite=/assistant"
+                          className="mt-2 inline-flex items-center rounded-champ bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
+                        >
+                          Se connecter
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quota atteint (ambre) — ce n'est pas une erreur, c'est un upsell */}
+                {erreur && raisonErreur === "limite" && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-sm text-amber-800">
+                    <p className="font-semibold">Quota mensuel atteint</p>
+                    <p className="mt-1 leading-5">{erreur}</p>
+                    <a
+                      href="/tarifs"
+                      className="mt-2.5 inline-flex items-center rounded-champ bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
+                    >
+                      Découvrir les plans Premium
+                    </a>
                   </div>
                 )}
 
@@ -266,7 +349,7 @@ export function AssistantOnglets() {
                   <button
                     type="button"
                     onClick={envoyer}
-                    disabled={envoi || !saisie.trim()}
+                    disabled={envoi || !saisie.trim() || quotaEpuise}
                     aria-label="Envoyer"
                     className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
                   >

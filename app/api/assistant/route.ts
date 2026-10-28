@@ -4,6 +4,7 @@ import { tokeniser } from "@/lib/assistant/contexte";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
+import { LIMITES_DECOUVERTE, quotaAssistant } from "@/lib/premium";
 
 const MODELE = "openrouter/free";
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
@@ -24,8 +25,6 @@ export async function POST(requete: NextRequest) {
     const corpsBrut = await requete.text();
     console.log("ASSISTANT : corps brut reçu =", corpsBrut || "(CORPS VIDE)");
     const corps = JSON.parse(corpsBrut || "{}");
-  
-  
 
     // ── 2. EXTRACTION TOLÉRANTE DU MESSAGE ──────────────────────────
     const brut =
@@ -49,17 +48,38 @@ export async function POST(requete: NextRequest) {
       return NextResponse.json({ erreur: "Message vide." }, { status: 400 });
     }
 
-    // ── 3. SESSION (sauvegarde uniquement si connecté) ──────────────
-      const session = await auth();
-        if (!session?.user?.id) {
-          return Response.json(
-            { erreur: "Connectez-vous pour discuter avec l'assistant." },
-            { status: 401 }
-          );
-        }
-    const utilisateurId = session?.user?.id ?? null;
+    // ── 3. SESSION (obligatoire pour discuter) ──────────────────────
+    const session = await auth();
+    if (!session?.user?.id) {
+      return Response.json(
+        {
+          erreur: "Connectez-vous pour discuter avec l'assistant.",
+          raison: "non-connecte",
+        },
+        { status: 401 }
+      );
+    }
+    const utilisateurId: string = session.user.id;
     let conversationId: string | null =
       typeof corps?.conversationId === "string" ? corps.conversationId : null;
+
+    // ── 3.5 QUOTA (plan Découverte : 10 questions/mois) ─────────────
+    // On bloque AVANT d'appeler OpenRouter : chaque question coûte de l'argent.
+    const quota = await quotaAssistant(utilisateurId);
+    if (quota.restantes !== null && quota.restantes <= 0) {
+      await journaliser(
+        utilisateurId,
+        "assistant",
+        "Quota mensuel atteint (plan Découverte)"
+      );
+      return NextResponse.json(
+        {
+          erreur: `Vous avez utilisé vos ${LIMITES_DECOUVERTE.assistantMois} questions de ce mois-ci avec le plan Découverte. Passez au plan Pro pour des questions illimitées.`,
+          raison: "limite",
+        },
+        { status: 429 }
+      );
+    }
 
     // ── 4. CLÉ API ──────────────────────────────────────────────────
     const cleApi = process.env.OPENROUTER_API_KEY;
@@ -171,8 +191,17 @@ export async function POST(requete: NextRequest) {
       }
     }
 
-    // ── 9. RÉPONSE (avec l'id de conversation pour la suite) ────────
-    return NextResponse.json({ reponse: texte, conversationId });
+    // ── 9. RÉPONSE (avec l'id de conversation + quota restant) ──────
+    // La question qu'on vient de traiter sera comptée au prochain appel :
+    // on affiche donc restantes - 1 (sans jamais descendre sous 0).
+    const restantesAffichees =
+      quota.restantes === null ? null : Math.max(0, quota.restantes - 1);
+
+    return NextResponse.json({
+      reponse: texte,
+      conversationId,
+      restantes: restantesAffichees,
+    });
   } catch (error) {
     console.error("=== ERREUR ASSISTANT ===", error);
     const messageErreur =

@@ -81,6 +81,7 @@ export function ModeGuide() {
                       if (!outil.id) return;
                       const r = await basculerFavori(outil.id);
                       if (!r.ok && r.raison === "non-connecte") router.push("/connexion?suite=/assistant");
+                      else if (!r.ok && r.raison === "limite") router.push("/tarifs");
                     }}>
                     <Star aria-hidden /> Ajouter aux favoris
                   </Bouton>

@@ -53,11 +53,63 @@ function BulleErreur({
   );
 }
 
+/* ── Bulle « limite du plan » (ambre + bouton vers /tarifs) ─────────── */
+/* Ce n'est pas une erreur : c'est une invitation à passer Premium.     */
+function BulleLimite({ onFermer }: { onFermer: () => void }) {
+  useEffect(() => {
+    const delai = setTimeout(onFermer, 15000);
+    return () => clearTimeout(delai);
+  }, [onFermer]);
+
+  return createPortal(
+    <div className="fixed bottom-4 right-4 z-[9999] w-80 rounded-carte border border-amber-200 bg-amber-50 p-4 shadow-carte">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-amber-800">
+            Limite du plan Découverte atteinte
+          </p>
+          <p className="mt-1 text-sm leading-5 text-amber-800/80">
+            Vous avez enregistré vos 20 favoris. Passez Premium pour des favoris
+            et des listes illimités.
+          </p>
+          <a
+            href="/tarifs"
+            className="mt-2.5 inline-flex items-center rounded-champ bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
+          >
+            Découvrir les plans
+          </a>
+        </div>
+        <button
+          type="button"
+          onClick={onFermer}
+          aria-label="Fermer"
+          className="shrink-0 text-amber-500 transition hover:text-amber-700"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function BoutonFavori({ outilId, slug }: { outilId: string; slug: string }) {
   const [favori, setFavori] = useState(false);
   const [charge, setCharge] = useState(false);
   const [popupOuvert, setPopupOuvert] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [limite, setLimite] = useState(false);
 
   useEffect(() => {
     fetch(`/api/favoris?outil=${encodeURIComponent(slug)}`)
@@ -72,6 +124,7 @@ function BoutonFavori({ outilId, slug }: { outilId: string; slug: string }) {
     if (charge) return;
     setCharge(true);
     setErreur(null);
+    setLimite(false);
 
     try {
       const data: any = await basculerFavori(outilId);
@@ -83,9 +136,7 @@ function BoutonFavori({ outilId, slug }: { outilId: string; slug: string }) {
 
       // Plan Découverte : 20 favoris maximum (limite appliquée côté serveur)
       if (data?.raison === "limite") {
-        setErreur(
-          "Favoris — limite du plan Découverte atteinte (20 favoris). Passe Premium pour des favoris illimités."
-        );
+        setLimite(true);
         return;
       }
 
@@ -132,6 +183,7 @@ function BoutonFavori({ outilId, slug }: { outilId: string; slug: string }) {
       </button>
 
       {erreur && <BulleErreur message={erreur} onFermer={() => setErreur(null)} />}
+      {limite && <BulleLimite onFermer={() => setLimite(false)} />}
 
       <PopupConnexion
         ouvert={popupOuvert}
