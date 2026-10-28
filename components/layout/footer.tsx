@@ -46,11 +46,13 @@ export async function Footer() {
           ["À propos", "/a-propos"],
           ["Contact", "/contact"],
           ["Tarifs", "/tarifs"],
+          ["Annonceurs", "/annonceurs"],
         ]
       : [
           ["À propos", "/a-propos"],
           ["Contact", "/contact"],
           ["Tarifs", "/tarifs"],
+          ["Annonceurs", "/annonceurs"],
           ["Connexion", "/connexion"],
           ["Inscription", "/inscription"],
         ],

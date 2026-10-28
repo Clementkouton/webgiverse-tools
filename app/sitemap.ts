@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     prisma.tool.findMany({ where: { statut: "PUBLIE" }, select: { slug: true, updatedAt: true } }),
     prisma.category.findMany({ select: { slug: true } }),
   ]);
-  const statiques = ["", "/outils", "/agents", "/gratuits", "/open-source", "/categories", "/comparer", "/assistant", "/proposer", "/connexion", "/inscription", "/blog", "/actualites", "/tarifs", "/a-propos", "/contact", "/faq"]
+  const statiques = ["", "/outils", "/agents", "/gratuits", "/open-source", "/categories", "/comparer", "/assistant", "/proposer", "/connexion", "/inscription", "/blog", "/actualites", "/tarifs", "/a-propos", "/contact", "/faq", "/annonceurs"]
     .map((p) => ({ url: `${base}${p}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: p === "" ? 1 : 0.7 }));
   return [
     ...statiques,
