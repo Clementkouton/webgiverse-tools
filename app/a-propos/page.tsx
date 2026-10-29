@@ -1,8 +1,10 @@
 // app/a-propos/page.tsx
-// Lot 8 — refonte « style Aixploria » : hero + chiffres réels, points
-// numérotés 01/02/03, richesses du site, méthode, parcours, contacts, CTA.
-// Nouvelle charte : bleu #0b1b3f + ciel #00d1ff sur blanc —
-// AUCUN violet, AUCUN dégradé sur cette page.
+// Lot 9 — même design UI que le Lot 8 (hero + chiffres réels, points
+// numérotés 01/02/03, richesses du site, méthode, parcours, contacts, CTA),
+// mais les couleurs de la charte d'origine sont rétablies : accents
+// violets (tuiles, pastilles, numéros), boutons avec le dégradé de marque
+// et mot-clé en .texte-degrade dans le titre. Polices inchangées
+// (Space Grotesk pour les titres, Inter pour le texte).
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -153,9 +155,9 @@ export default async function PageAPropos() {
       {/* ── Hero ────────────────────────────────────────────────── */}
       <header className="mx-auto max-w-3xl text-center">
         <h1 className="text-h2 font-titre font-semibold text-bleu">
-          À propos de Webgiverse
+          À propos de <span className="texte-degrade">Webgiverse</span>
         </h1>
-        <p className="mt-3 text-[20px] leading-7 font-semibold text-ciel-fonce">
+        <p className="mt-3 text-[20px] leading-7 font-semibold text-violet">
           Donner une vision claire, fiable et utile de l&apos;écosystème IA — en français.
         </p>
       </header>
@@ -171,8 +173,8 @@ export default async function PageAPropos() {
               key={c.legende}
               className="rounded-carte border border-bordure bg-white p-5 text-center shadow-carte"
             >
-              <span className="mx-auto grid size-11 place-items-center rounded-carte bg-ciel/10">
-                <c.icone className="size-5 text-ciel-fonce" aria-hidden />
+              <span className="mx-auto grid size-11 place-items-center rounded-carte bg-violet/10">
+                <c.icone className="size-5 text-violet" aria-hidden />
               </span>
               <p className="mt-3 font-titre text-[30px] leading-9 font-bold text-bleu">
                 {c.valeur.toLocaleString("fr-FR")}
@@ -209,10 +211,10 @@ export default async function PageAPropos() {
         </h2>
         <div className="mt-8 grid gap-8 md:grid-cols-3">
           {raisons.map((r) => (
-            <div key={r.numero} className="border-t-2 border-bleu pt-5">
+            <div key={r.numero} className="border-t-2 border-violet pt-5">
               <span
                 aria-hidden
-                className="font-titre text-[40px] leading-10 font-bold text-ciel-fonce"
+                className="font-titre text-[40px] leading-10 font-bold text-violet"
               >
                 {r.numero}
               </span>
@@ -239,8 +241,8 @@ export default async function PageAPropos() {
               key={r.titre}
               className="rounded-carte border border-bordure bg-white p-6 shadow-carte"
             >
-              <span className="grid size-11 place-items-center rounded-carte bg-ciel/10">
-                <r.icone className="size-5 text-ciel-fonce" aria-hidden />
+              <span className="grid size-11 place-items-center rounded-carte bg-violet/10">
+                <r.icone className="size-5 text-violet" aria-hidden />
               </span>
               <h3 className="mt-4 font-titre text-[17px] leading-6 font-semibold text-bleu">
                 {r.titre}
@@ -265,7 +267,7 @@ export default async function PageAPropos() {
               key={e.numero}
               className="rounded-carte border border-bordure bg-white p-6 shadow-carte"
             >
-              <span className="grid size-9 place-items-center rounded-full bg-bleu font-titre text-[15px] font-bold text-white">
+              <span className="grid size-9 place-items-center rounded-full bg-violet font-titre text-[15px] font-bold text-white">
                 {e.numero}
               </span>
               <h3 className="mt-4 font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -290,9 +292,9 @@ export default async function PageAPropos() {
             <li key={p.periode} className="relative pb-9 pl-8 last:pb-0">
               <span
                 aria-hidden
-                className="absolute top-1 -left-[9px] size-4 rounded-full border-2 border-bleu bg-ciel"
+                className="absolute top-1 -left-[9px] size-4 rounded-full border-2 border-violet bg-violet"
               />
-              <p className="text-[13px] leading-4 font-bold tracking-wide uppercase text-ciel-fonce">
+              <p className="text-[13px] leading-4 font-bold tracking-wide uppercase text-violet">
                 {p.periode}
               </p>
               <h3 className="mt-1 font-titre text-[18px] leading-6 font-semibold text-bleu">
@@ -311,8 +313,8 @@ export default async function PageAPropos() {
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-ciel/10">
-              <Mail className="size-5 text-ciel-fonce" aria-hidden />
+            <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-violet/10">
+              <Mail className="size-5 text-violet" aria-hidden />
             </span>
             <div>
               <h2 id="titre-contacts" className="font-titre text-[18px] leading-6 font-semibold text-bleu">
@@ -327,13 +329,13 @@ export default async function PageAPropos() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-bleu px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-[#12295c]"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
             >
               Nous écrire
             </Link>
             <Link
               href="/annonceurs"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-bleu bg-white px-6 text-[15px] leading-5 font-semibold text-bleu transition hover:bg-gris"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-violet bg-white px-6 text-[15px] leading-5 font-semibold text-bleu transition hover:border-violet-clair hover:bg-gris"
             >
               Espace annonceurs
             </Link>
@@ -353,7 +355,7 @@ export default async function PageAPropos() {
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/outils"
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-ciel px-8 text-[16px] leading-5 font-semibold text-bleu transition hover:brightness-95"
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-8 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
           >
             Explorer les outils
           </Link>

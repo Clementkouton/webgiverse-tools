@@ -5,11 +5,14 @@
 // L'envoi passe par la server action envoyerMessageAction
 // (app/actions/contact.ts) via useActionState — le pattern de
 // FormulaireNewsletter.
-// Lot 8 : bouton d'envoi bleu plein (plus de bouton dégradé violet)
-// et champs à focus bleu-ciel — zéro violet sur la page Contact.
+// Lot 9 — couleurs de la charte d'origine rétablies : champs à focus
+// violet (focus:border-violet, comme partout sur le site) et bouton
+// d'envoi avec le dégradé de marque via le composant Bouton (primaire).
+// Design UI inchangé, polices inchangées.
 
 import { useActionState } from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { Bouton } from "@/components/ui/bouton";
 import { envoyerMessageAction, type EtatContact } from "@/app/actions/contact";
 
 const SUJETS = [
@@ -46,7 +49,7 @@ export function FormulaireContact() {
               maxLength={80}
               autoComplete="name"
               placeholder="ex. Awa Koffi"
-              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-ciel-fonce"
+              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
             />
           </label>
 
@@ -58,7 +61,7 @@ export function FormulaireContact() {
               required
               autoComplete="email"
               placeholder="ex. awa@email.com"
-              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-ciel-fonce"
+              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
             />
           </label>
         </div>
@@ -69,7 +72,7 @@ export function FormulaireContact() {
             name="sujet"
             required
             defaultValue={SUJETS[0]}
-            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-ciel-fonce"
+            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
           >
             {SUJETS.map((s) => (
               <option key={s} value={s}>
@@ -88,7 +91,7 @@ export function FormulaireContact() {
             maxLength={3000}
             rows={6}
             placeholder="Décris ta demande le plus précisément possible (outil concerné, ce qui s'est passé…)."
-            className="mt-1.5 w-full resize-y rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-ciel-fonce"
+            className="mt-1.5 w-full resize-y rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
           />
         </label>
 
@@ -108,12 +111,8 @@ export function FormulaireContact() {
           </p>
         )}
 
-        {/* Lot 8 : bouton bleu plein — plus de dégradé violet */}
-        <button
-          type="submit"
-          disabled={enCours}
-          className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-bleu px-8 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(11,27,63,0.25)] transition duration-200 hover:bg-[#12295c] active:bg-[#081c40] disabled:pointer-events-none disabled:opacity-50"
-        >
+        {/* Bouton de marque : dégradé signature via le composant Bouton */}
+        <Bouton type="submit" taille="lg" disabled={enCours} className="mt-5 w-full">
           {enCours ? (
             <>
               <Loader2 className="animate-spin" aria-hidden /> Envoi en cours…
@@ -123,7 +122,7 @@ export function FormulaireContact() {
               <Send aria-hidden /> Envoyer mon message
             </>
           )}
-        </button>
+        </Bouton>
       </form>
     </div>
   );
