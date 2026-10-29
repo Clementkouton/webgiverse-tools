@@ -13,6 +13,10 @@ import { Bouton } from "@/components/ui/bouton";
 import { listerTutos, compterTutoStats, outilsDesTutos } from "@/lib/queries";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { SelectAuto } from "@/components/tutoriels/select-auto";
+import { auth } from "@/auth";
+import { premiumActif } from "@/lib/premium";
+import { BarreOutils } from "@/components/tutoriels/barre-outils";
+
 
 export const metadata: Metadata = {
   title: "Tutoriels vidéo IA — formations gratuites | Webgiverse",
@@ -40,20 +44,10 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
     outilsDesTutos(),
   ]);
 
-  // Construit un lien en conservant les autres filtres (pastilles de niveau et d'outils).
-  const lien = (remplacement: Record<string, string>) => {
-    const usp = new URLSearchParams();
-    if (q) usp.set("q", q);
-    if (niveau) usp.set("niveau", niveau);
-    if (outil) usp.set("outil", outil);
-    if (tri) usp.set("tri", tri);
-    for (const [c, v] of Object.entries(remplacement)) {
-      if (v) usp.set(c, v);
-      else usp.delete(c);
-    }
-    const s = usp.toString();
-    return `/tutoriels${s ? `?${s}` : ""}`;
-  };
+  // État Premium du visiteur : le bandeau d'accès s'adapte (un abonné
+  // Pro / Entreprise ne doit pas voir une pub pour s'abonner).
+  const session = await auth();
+  const premium = session?.user?.id ? await premiumActif(session.user.id) : false;
 
   const niveaux = [
     { valeur: "", libelle: "Tous les niveaux" },
@@ -105,19 +99,32 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
         <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4 sm:px-6">
           <div className="flex items-start gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-violet/10">
-              <Lock className="size-4.5 text-violet" aria-hidden />
+              {premium ? (
+                <Sparkles className="size-4.5 text-violet" aria-hidden />
+              ) : (
+                  <Lock className="size-4.5 text-violet" aria-hidden />
+              )}
             </span>
-            <p className="max-w-2xl text-[14px] leading-6 text-encre">
-              Parcours toute la collection librement. La <strong className="font-semibold text-bleu">lecture
-              des tutoriels est réservée aux abonnés Premium</strong> (Pro ou Entreprise) : la vidéo se
-              lance ici même, sans quitter Webgiverse.
-            </p>
+            {premium ? (
+              <p className="max-w-2xl text-[14px] leading-6 text-encre">
+                <strong className="font-semibold text-bleu">Ton accès Premium est actif</strong> : toutes
+                les vidéos se regardent ici même, sans quitter Webgiverse. Bonne lecture&nbsp;!
+              </p>
+            ) : (
+                <p className="max-w-2xl text-[14px] leading-6 text-encre">
+                  Parcours toute la collection librement. La <strong className="font-semibold text-bleu">lecture
+                    des tutoriels est réservée aux abonnés Premium</strong> (Pro ou Entreprise) : la vidéo se
+                  lance ici même, sans quitter Webgiverse.
+                </p>
+            )}
           </div>
-          <Bouton asChild taille="sm">
-            <Link href="/tarifs">
-              <Sparkles aria-hidden /> Débloquer l&apos;accès
-            </Link>
-          </Bouton>
+          {!premium && (
+            <Bouton asChild taille="sm">
+              <Link href="/tarifs">
+                <Sparkles aria-hidden /> Débloquer l&apos;accès
+              </Link>
+            </Bouton>
+          )}
         </div>
 
         {/* ── Barre de filtres ───────────────────────────────────── */}
@@ -146,31 +153,8 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
         </form>
 
         {/* ── Pastilles d'outils (filtre par outil) ───────────────── */}
-        <div className="mb-8 flex flex-wrap items-center gap-2">
-          <Link
-            href={lien({ outil: "" })}
-            className={`rounded-full border px-3.5 py-1.5 text-[13px] leading-4 font-medium transition ${
-              outil
-                ? "border-bordure bg-white text-bleu hover:border-violet hover:text-violet"
-                : "border-violet bg-violet text-white"
-            }`}
-          >
-            Tous
-          </Link>
-          {tousOutils.map((o) => (
-            <Link
-              key={o}
-              href={lien({ outil: outil === o ? "" : o })}
-              className={`rounded-full border px-3.5 py-1.5 text-[13px] leading-4 font-medium transition ${
-                outil === o
-                  ? "border-violet bg-violet text-white"
-                  : "border-bordure bg-white text-bleu hover:border-violet hover:text-violet"
-              }`}
-            >
-              {o}
-            </Link>
-          ))}
-        </div>
+        {/* ── Pastilles d'outils : 14 premiers outils + bouton dépliant ── */}
+        <BarreOutils outils={tousOutils} actif={outil} q={q} niveau={niveau} tri={tri} />
 
         {/* ── Résultats ───────────────────────────────────────────── */}
         {tutos.length === 0 ? (

@@ -115,6 +115,9 @@ export async function outilsAlternatifs(outilId: string, categorieSlugs: string[
    TUTORIELS VIDÉO IA (/tutoriels)
    ============================================================ */
 
+// Le client Prisma actuellement généré ne déclare pas encore le modèle Tuto.
+const tutoDb = (prisma as any).tuto;
+
 export type FiltresTutos = {
   q?: string; // recherche plein texte dans le titre et les tags
   niveau?: string; // "debutant" | "intermediaire" | "avance"
@@ -141,7 +144,7 @@ function triTutos(tri?: string) {
 }
 
 export async function listerTutos(f: FiltresTutos = {}) {
-  const conditions: Prisma.TutoWhereInput[] = [];
+  const conditions: Record<string, any>[] = [];
 
   const q = f.q?.trim();
   if (q) {
@@ -155,7 +158,7 @@ export async function listerTutos(f: FiltresTutos = {}) {
   const outil = f.outil?.trim();
   if (outil) conditions.push({ outils: { has: outil } });
 
-  return prisma.tuto.findMany({
+  return tutoDb.findMany({
     where: conditions.length ? { AND: conditions } : undefined,
     orderBy: triTutos(f.tri),
   });
@@ -163,28 +166,34 @@ export async function listerTutos(f: FiltresTutos = {}) {
 
 export async function compterTutoStats() {
   const [total, duree] = await Promise.all([
-    prisma.tuto.count(),
-    prisma.tuto.aggregate({ _sum: { dureeMin: true } }),
+    tutoDb.count(),
+    tutoDb.aggregate({ _sum: { dureeMin: true } }),
   ]);
   return { total, minutes: duree._sum.dureeMin ?? 0 };
 }
 
-export async function outilsDesTutos() {
-  // Liste distincte et triée de tous les outils présents dans la collection,
-  // pour les pastilles de filtrage (comme les tags d'Aixploria).
-  const lignes = await prisma.tuto.findMany({ select: { outils: true } });
-  const ensemble = new Set<string>();
-  for (const l of lignes) for (const o of l.outils) ensemble.add(o);
-  return [...ensemble].sort((a, b) => a.localeCompare(b, "fr"));
+export type OutilTutos = { nom: string; total: number };
+
+export async function outilsDesTutos(): Promise<OutilTutos[]> {
+  // Liste des outils présents dans la collection avec leur nombre de tutos,
+  // triés par fréquence décroissante : la page /tutoriels n'affiche que les
+  // plus utilisés en premier (la barre déplie le reste sur demande),
+  // sinon des dizaines de pastilles noient les filtres utiles.
+  const lignes = await tutoDb.findMany({ select: { outils: true } });
+  const compteurs = new Map<string, number>();
+  for (const l of lignes) for (const o of l.outils) compteurs.set(o, (compteurs.get(o) ?? 0) + 1);
+  return [...compteurs.entries()]
+    .map(([nom, total]) => ({ nom, total }))
+    .sort((a, b) => b.total - a.total || a.nom.localeCompare(b.nom, "fr"));
 }
 
 export async function obtenirTuto(slug: string) {
-  return prisma.tuto.findUnique({ where: { slug } });
+  return tutoDb.findUnique({ where: { slug } });
 }
 
 /** Autres tutoriels autour du même outil, pour la colonne « À suivre ensuite ». */
 export async function tutosSuivants(tutoId: string, outils: string[]) {
-  return prisma.tuto.findMany({
+  return tutoDb.findMany({
     where: { id: { not: tutoId }, ...(outils.length ? { outils: { hasSome: outils } } : {}) },
     orderBy: [{ vues: "desc" }],
     take: 3,
