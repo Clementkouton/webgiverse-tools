@@ -16,8 +16,10 @@ import { obtenirTuto, tutosSuivants } from "@/lib/queries";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
-import { formaterDuree, NIVEAUX } from "@/lib/tutos-utils";
 import { PLANS } from "@/lib/plans";
+import { LecteurYoutube } from "@/components/tutoriels/lecteur-youtube";
+import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
+
 
 type Params = Promise<{ slug: string }>;
 
@@ -42,7 +44,6 @@ export default async function PageTuto({ params }: { params: Params }) {
   const utilisateurId = session?.user?.id ?? null;
   const connecte = Boolean(utilisateurId);
   const premium = utilisateurId ? await premiumActif(utilisateurId) : false;
-  const peutRegarder = premium && Boolean(tuto.youtubeId);
 
   const suivants = await tutosSuivants(tuto.id, tuto.outils);
   const niveau = NIVEAUX[tuto.niveau];
@@ -65,14 +66,14 @@ export default async function PageTuto({ params }: { params: Params }) {
         {/* ── Colonne principale : lecteur + titre ────────────────── */}
         <div>
           <div className="relative aspect-video w-full overflow-hidden rounded-carte border border-bordure bg-bleu shadow-carte">
-            {peutRegarder ? (
-              // Lecture intégrée : l'utilisateur ne quitte jamais le site.
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${tuto.youtubeId}?rel=0`}
-                title={tuto.titre}
-                className="absolute inset-0 size-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
+            {premium && tuto.youtubeId ? (
+              // Lecture intégrée (Lot 13) : lecteur officiel YouTube avec
+              // détection d'erreurs + écran de secours « Voir sur YouTube ».
+              // L'utilisateur ne quitte jamais le site quand la vidéo est lisible.
+              <LecteurYoutube
+                youtubeId={tuto.youtubeId}
+                titre={tuto.titre}
+                miniature={urlMiniature(tuto)}
               />
             ) : premium ? (
               // Premium connecté mais vidéo pas encore complétée par l'équipe.
@@ -137,7 +138,7 @@ export default async function PageTuto({ params }: { params: Params }) {
             <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
               <Eye className="size-3.5" aria-hidden /> {tuto.vues.toLocaleString("fr-FR")} vues
             </span>
-            {tuto.outils.slice(0, 4).map((o) => (
+            {tuto.outils.slice(0, 4).map((o: string) => (
               <Link
                 key={o}
                 href={`/tutoriels?outil=${encodeURIComponent(o)}`}
@@ -201,7 +202,7 @@ export default async function PageTuto({ params }: { params: Params }) {
             D&apos;autres tutoriels autour du même outil, choisis par popularité.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {suivants.map((t) => (
+            {suivants.map((t: (typeof suivants)[number]) => (
               <CarteTuto key={t.id} tuto={t} />
             ))}
           </div>

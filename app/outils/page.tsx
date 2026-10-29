@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import CarteOutilView from "@/components/outil/carte-outil";
+import { Pagination } from "@/components/commun/pagination";
+
 
 /* ===================================================================== */
 /*  MÉTADONNÉES                                                          */
@@ -43,6 +45,9 @@ function texte(valeur: string | string[] | undefined): string {
   return typeof valeur === "string" ? valeur.trim() : "";
 }
 
+/** Lot 13 — taille de page de la grille /outils (4 lignes de 4 au bureau). */
+const PAR_PAGE = 16;
+
 /* ===================================================================== */
 /*  PAGE                                                                 */
 /* ===================================================================== */
@@ -78,6 +83,18 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
     whereComplet.categories = { some: { categorie: { slug: categorie } } };
   }
 
+  /* ---------- Pagination (Lot 13) : total, pages bornées ---------- */
+
+  let total = 0;
+  try {
+    total = await prisma.tool.count({ where: whereComplet });
+  } catch {
+    total = await prisma.tool.count({ where: whereScalaires });
+  }
+  const pages = Math.max(1, Math.ceil(total / PAR_PAGE));
+  const pageBrute = Math.trunc(Number(texte(params.page)) || 1);
+  const page = Math.min(pages, Math.max(1, pageBrute));
+
   /* ---------- Requête principale ---------- */
 
   type OutilBrut = {
@@ -97,14 +114,18 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
 
   try {
     outilsBruts = (await prisma.tool.findMany({
-      where: whereComplet,
+      where: whereComplet,          // ← whereScalaires dans le bloc repli
       orderBy: { nom: "asc" },
+      skip: (page - 1) * PAR_PAGE,
+      take: PAR_PAGE,
     })) as unknown as OutilBrut[];
   } catch {
     // Repli : si la relation « categories » porte un autre nom dans ton schéma
     outilsBruts = (await prisma.tool.findMany({
       where: whereScalaires,
       orderBy: { nom: "asc" },
+      skip: (page - 1) * PAR_PAGE,
+      take: PAR_PAGE,
     })) as unknown as OutilBrut[];
   }
 
@@ -254,10 +275,15 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
         </div>
       </form>
 
-      {/* ---------- Compteur ---------- */}
-      <p className="mt-8 text-sm text-encre/70">
-        {outils.length} {outils.length > 1 ? "outils trouvés" : "outil trouvé"}
-      </p>
+       {/* ---------- Pagination (Lot 13) ---------- */}
+      {outils.length > 0 && (
+        <Pagination
+          page={page}
+          pages={pages}
+          base="/outils"
+          params={{ q, type, categorie, gratuit: gratuit ? "1" : undefined, openSource: openSource ? "1" : undefined }}
+        />
+      )}
 
       {/* ---------- Grille ---------- */}
       {outils.length === 0 ? (

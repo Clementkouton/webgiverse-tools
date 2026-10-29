@@ -123,7 +123,12 @@ export type FiltresTutos = {
   niveau?: string; // "debutant" | "intermediaire" | "avance"
   outil?: string; // nom d'outil exact du tableau outils[] (ex: "ChatGPT")
   tri?: string; // "pertinence" (défaut) | "nouveautes" | "vues" | "az" | "za"
+  page?: number; // Lot 13 — pagination : numéro de page (1 par défaut)
+  parPage?: number; // Lot 13 — pagination : taille de page (16 par défaut)
 };
+
+/** Taille de page par défaut de la grille /tutoriels (4 lignes de 4 au bureau). */
+export const TUTOS_PAR_PAGE = 16;
 
 /** Renvoie le filtre Prisma correspondant au tri demandé. */
 function triTutos(tri?: string) {
@@ -143,6 +148,10 @@ function triTutos(tri?: string) {
   }
 }
 
+// Lot 13 — listerTutos renvoie désormais { tutos, total, page, pages } :
+// la page /tutoriels est paginée (16 tutos par page) au lieu de charger
+// les 84 tutoriels d'un coup. Le numéro de page demandé est borné au
+// nombre réel de pages : une URL « ?page=999 » retombe sur la dernière.
 export async function listerTutos(f: FiltresTutos = {}) {
   const conditions: Record<string, any>[] = [];
 
@@ -158,10 +167,20 @@ export async function listerTutos(f: FiltresTutos = {}) {
   const outil = f.outil?.trim();
   if (outil) conditions.push({ outils: { has: outil } });
 
-  return tutoDb.findMany({
-    where: conditions.length ? { AND: conditions } : undefined,
+  const where = conditions.length ? { AND: conditions } : undefined;
+  const parPage = Math.min(48, Math.max(4, f.parPage ?? TUTOS_PAR_PAGE));
+  const total = await tutoDb.count({ where });
+  const pages = Math.max(1, Math.ceil(total / parPage));
+  const page = Math.min(pages, Math.max(1, Math.trunc(f.page ?? 1) || 1));
+
+  const tutos = await tutoDb.findMany({
+    where,
     orderBy: triTutos(f.tri),
+    skip: (page - 1) * parPage,
+    take: parPage,
   });
+
+  return { tutos, total, page, pages };
 }
 
 export async function compterTutoStats() {
