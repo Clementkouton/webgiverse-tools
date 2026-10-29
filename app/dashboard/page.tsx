@@ -182,7 +182,12 @@ export default async function PageDashboard({
   const planNomEnTete = abonnementEnTeteActif
     ? (PLANS[abonnementEnTete.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Pro")
     : "Découverte";
-  const premium = Boolean(abonnementEnTeteActif);
+    const premium = Boolean(abonnementEnTeteActif);
+  // Plan Entreprise = promesses spécifiques : accès anticipé aux nouveautés
+  // et historique d'activité étendu (voir /tarifs et lib/plans.ts).
+  const planEntreprise = Boolean(
+    abonnementEnTeteActif && abonnementEnTete.plan === "ENTREPRISE"
+  );
 
   const badges: { titre: string; description: string; obtenu: boolean; icone: LucideIcon }[] = [
     { titre: "Premier favori", description: "1 outil en favori", obtenu: nbFavoris >= 1, icone: Star },
@@ -275,7 +280,7 @@ export default async function PageDashboard({
         ? prisma.tool.findMany({
             where: { statut: "PUBLIE", objectifs: { has: utilisateur.objectif } },
             orderBy: [{ misEnAvant: "desc" }, { createdAt: "desc" }],
-            take: 3,
+            take: premium ? 6 : 3,
             select: {
               id: true,
               nom: true,
@@ -289,8 +294,27 @@ export default async function PageDashboard({
         : Promise.resolve([]),
     ]);
 
-    // ── Abonnement déjà chargé dans l'en-tête commun (lecture défensive) ──
-    const abonnementActif =
+    // ── Accès anticipé aux nouveautés (plan Entreprise) : les derniers
+    // outils publiés qui ne sont pas encore mis en avant, visibles ici
+    // avant leur passage à la une — promesse affichée sur /tarifs. ──
+    const nouveauxEntreprise = planEntreprise
+      ? await prisma.tool.findMany({
+          where: { statut: "PUBLIE", misEnAvant: false },
+          orderBy: { createdAt: "desc" },
+          take: 4,
+          select: {
+            id: true,
+            nom: true,
+            slug: true,
+            logo: true,
+            description: true,
+            tarif: true,
+            gratuit: true,
+          },
+        })
+      : [];
+
+    // ── Abonnement déjà chargé dans l'en-tête commun (lecture défensive) ──    const abonnementActif =
       abonnementEnTete &&
       abonnementEnTete.statut === "ACTIF" &&
       abonnementEnTete.expireLe > new Date()
@@ -428,7 +452,14 @@ export default async function PageDashboard({
         {utilisateur?.objectif && suggestions.length > 0 ? (
           <section className="mt-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-h3 font-semibold">Pour ton objectif « {utilisateur.objectif} »</h2>
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-h3 font-semibold">Pour ton objectif « {utilisateur.objectif} »</h2>
+                {premium && (
+                  <Badge variante="magenta">
+                    <Crown className="size-3.5" aria-hidden /> Priorité Premium · le double
+                  </Badge>
+                )}
+              </div>
               <Link
                 href="/outils"
                 className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline"

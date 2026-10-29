@@ -34,7 +34,7 @@ export const FAQ_COMPLETE: QuestionFaq[] = [
   {
     question: "Webgiverse est-il gratuit ?",
     reponse:
-      "Oui. L'annuaire, l'assistant, les comparatifs et la lecture des fiches sont 100 % gratuits. Le plan Découverte suffit pour commencer (20 favoris, 10 listes, 10 questions d'assistant par mois). L'abonnement Premium — Pro à $2,99/mois, Entreprise à $7,99/mois — débloque les favoris illimités, l'export PDF enrichi et les alertes hebdomadaires. Tu peux utiliser le site au quotidien sans jamais payer.",
+            "Oui. L'annuaire, l'assistant, les comparatifs et la lecture des fiches sont 100 % gratuits. Le plan Découverte suffit pour commencer (20 favoris, 10 listes, 10 questions d'assistant par mois). L'abonnement Premium — Pro à $2,99/mois, Entreprise à $7,99/mois — débloque les favoris et l'assistant illimités, les suggestions prioritaires et les alertes hebdomadaires. Tu peux utiliser le site au quotidien sans jamais payer.",
   },
   {
     question: "Comment Webgiverse gagne-t-il de l'argent ?",

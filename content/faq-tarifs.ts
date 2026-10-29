@@ -28,7 +28,7 @@ export const FAQ_TARIFS: QuestionFaq[] = [
   {
     question: "Pro ou Entreprise : lequel choisir ?",
     reponse:
-      "Pro ($2,99/mois) couvre un usage personnel : favoris et listes illimités, export PDF enrichi, suggestions d'outils prioritaires. Entreprise ($7,99/mois) ajoute les alertes hebdomadaires des nouveaux outils, l'accès anticipé aux nouveautés, l'historique d'activité étendu et le support prioritaire — pensé pour les équipes et les gros consommateurs d'IA.",
+            "Pro ($2,99/mois) couvre un usage personnel : favoris et listes illimités, assistant IA illimité et suggestions d'outils prioritaires (le double). Entreprise ($7,99/mois) ajoute les alertes hebdomadaires des nouveaux outils, l'accès anticipé aux nouveautés, l'historique d'activité étendu et le support prioritaire — pensé pour les équipes et les gros consommateurs d'IA.",
   },
   {
     question: "Puis-je changer de plan plus tard ?",

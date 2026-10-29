@@ -31,10 +31,10 @@ export const PLANS: Record<ClePlan, Plan> = {
     recommande: true,
     avantages: [
       "Favoris et listes illimités",
+      "Assistant IA illimité",
       "Badge Premium sur ton profil",
-      "Export PDF de tes favoris enrichi",
-      "Suggestions d'outils prioritaires",
-      "Marque-pages de progression avancés",
+      "Suggestions d'outils prioritaires (le double)",
+      "Export PDF de tes favoris",
     ],
   },
   ENTREPRISE: {
@@ -48,8 +48,8 @@ export const PLANS: Record<ClePlan, Plan> = {
       "Tous les avantages du plan Pro",
       "Alertes hebdomadaires des nouveaux outils",
       "Accès anticipé aux nouveautés",
+      "Historique d'activité étendu (200 entrées)",
       "Support prioritaire par email",
-      "Historique d'activité étendu",
     ],
   },
 };
@@ -60,11 +60,12 @@ export const PLAN_DECOUVERTE = {
   nom: "Découverte",
   prix: "$0",
   accroche: "Tout le nécessaire pour commencer",
-  avantages: [
+    avantages: [
     "Accès complet à l'annuaire",
     "20 favoris et 10 listes",
     "Assistant IA (10 questions/mois)",
-    "Avis et recommandations",
+    "Avis, votes et suivi de progression",
+    "Export PDF de tes favoris",
   ],
 };
 

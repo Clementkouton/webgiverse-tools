@@ -52,15 +52,15 @@ export const LIGNES_COMPARATIF: LigneComparatif[] = [
   },
   {
     label: "Export PDF de tes favoris",
-    decouverte: "Basique",
-    pro: "Enrichi",
-    entreprise: "Enrichi",
-  },
-  {
-    label: "Suggestions d'outils prioritaires",
-    decouverte: false,
+    decouverte: true,
     pro: true,
     entreprise: true,
+  },
+  {
+    label: "Suggestions d'outils par objectif",
+    decouverte: "3",
+    pro: "6 (prioritaires)",
+    entreprise: "6 (prioritaires)",
   },
   {
     label: "Marque-pages de progression",
@@ -69,9 +69,15 @@ export const LIGNES_COMPARATIF: LigneComparatif[] = [
     entreprise: "Avancés",
   },
   {
-    label: "Historique d'activité étendu",
-    decouverte: false,
-    pro: false,
+    label: "Historique d'activité",
+    decouverte: "25 dernières",
+    pro: "25 dernières",
+    entreprise: "Étendu : 200",
+  },
+  {
+    label: "Suivi de progression (À tester → En cours → Adopté)",
+    decouverte: true,
+    pro: true,
     entreprise: true,
   },
   {
