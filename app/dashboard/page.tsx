@@ -314,7 +314,8 @@ export default async function PageDashboard({
         })
       : [];
 
-    // ── Abonnement déjà chargé dans l'en-tête commun (lecture défensive) ──    const abonnementActif =
+    // ── Abonnement déjà chargé dans l'en-tête commun (lecture défensive) ──
+    const abonnementActif =
       abonnementEnTete &&
       abonnementEnTete.statut === "ACTIF" &&
       abonnementEnTete.expireLe > new Date()
@@ -378,8 +379,8 @@ export default async function PageDashboard({
                   </p>
                 ) : (
                   <p className="mt-1 text-legende text-encre">
-                    Tu es sur le plan Découverte (gratuit). Passe Premium pour débloquer favoris et
-                    listes illimités, l&apos;export PDF enrichi et plus encore.
+                        Tu es sur le plan Découverte (gratuit). Passe Premium pour débloquer favoris,
+                        listes et assistant illimités, et plus encore.
                   </p>
                 )}
               </div>
@@ -513,6 +514,53 @@ export default async function PageDashboard({
               </Link>
             </Bouton>
           </Carte>
+        )}
+
+        {/* Accès anticipé aux nouveautés (plan Entreprise) */}
+        {planEntreprise && nouveauxEntreprise.length > 0 && (
+          <section className="mt-10">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-h3 font-semibold">Accès anticipé aux nouveautés</h2>
+              <Badge variante="magenta">
+                <Crown className="size-3.5" aria-hidden /> Entreprise
+              </Badge>
+            </div>
+            <p className="mesure mt-1 text-legende text-encre">
+              Les outils tout juste ajoutés à l&apos;annuaire : tu les vois ici en premier,
+              avant leur passage à la une.
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              {nouveauxEntreprise.map((o, index) => (
+                <Carte
+                  key={o.id}
+                  className="animate-apparition-haut survol-carte p-5"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
+                  <div className="flex items-start gap-3">
+                    <LogoOutil nom={o.nom} logo={o.logo} />
+                    <div className="min-w-0">
+                      <Link
+                        href={`/outil/${o.slug}`}
+                        className="font-titre text-[17px] leading-6 font-semibold hover:text-violet"
+                      >
+                        {o.nom}
+                      </Link>
+                      <p className="text-legende text-encre">
+                        {o.gratuit ? "Version gratuite disponible" : o.tarif}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="mesure mt-3 line-clamp-2 text-[14px] leading-5 text-encre">{o.description}</p>
+                  <Link
+                    href={`/outil/${o.slug}`}
+                    className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] leading-5 font-semibold text-violet hover:underline"
+                  >
+                    Découvrir <ChevronRight className="size-4" aria-hidden />
+                  </Link>
+                </Carte>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Vu récemment (version compacte) */}
@@ -1024,7 +1072,9 @@ export default async function PageDashboard({
       activites = await prisma.activiteUtilisateur.findMany({
         where: { utilisateurId: userId },
         orderBy: { creeLe: "desc" },
-        take: 25,
+        // Historique d'activité étendu (plan Entreprise) : 200 entrées au
+        // lieu de 25 — promesse affichée sur /tarifs et dans lib/plans.ts.
+        take: planEntreprise ? 200 : 25,
       });
     } catch (error) {
       console.error("[dashboard] Journal d'activité indisponible :", error);
@@ -1060,7 +1110,16 @@ export default async function PageDashboard({
 
         {/* Journal d'activité */}
         <div className="lg:col-span-2">
-          <h2 className="text-h3 font-semibold">Journal d'activité</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-h3 font-semibold">Journal d&apos;activité</h2>
+            {planEntreprise ? (
+              <Badge variante="magenta">
+                <Crown className="size-3.5" aria-hidden /> Étendu · 200 entrées
+              </Badge>
+            ) : (
+              <Badge variante="source">Les 25 dernières</Badge>
+            )}
+          </div>
           <div className="mt-4 grid gap-2.5">
             {activites.map((a) => {
               const meta = ICONES_ACTIVITE[a.type] ?? { icone: History, libelle: "Activité" };
