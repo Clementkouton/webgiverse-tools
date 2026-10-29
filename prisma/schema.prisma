@@ -382,3 +382,33 @@ model ActiviteUtilisateur {
 
   @@index([utilisateurId, creeLe])
 }
+
+// ── Tutoriels vidéo IA (page /tutoriels) ────────────────────────────
+// Collection de tutoriels YouTube ; la LECTURE d'un tuto est réservée
+// aux abonnés Premium (Pro / Entreprise) connectés. La liste reste
+// publique, comme le catalogue d'outils.
+enum NiveauTuto {
+  DEBUTANT
+  INTERMEDIAIRE
+  AVANCE
+}
+
+model Tuto {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  titre     String
+  youtubeId String? // identifiant vidéo YouTube (ex: aBcD123xYz) — null tant que non complété
+  miniature String? // URL d'une miniature personnalisée (sinon i.ytimg.com/vi/{youtubeId}/hqdefault.jpg, sinon placeholder)
+  dureeMin  Int // durée en minutes (94 = « 1h34 »)
+  niveau    NiveauTuto @default(DEBUTANT)
+  outils    String[]   @default([]) // outils/catégories concernés (ex: ["ChatGPT", "Prompt", "OpenAI"])
+  vues      Int        @default(0) // popularité (tri « Plus vus »)
+  ordre     Int        @default(0) // rang de pertinence (tri par défaut, du plus pertinent au moins pertinent)
+  nouveau   Boolean    @default(false) // récent ajout (tri « Nouveautés »)
+  verifieLe DateTime?
+  creeLe    DateTime   @default(now())
+  majLe     DateTime   @updatedAt
+
+  @@index([niveau])
+  @@index([vues])
+}

@@ -110,3 +110,83 @@ export async function outilsAlternatifs(outilId: string, categorieSlugs: string[
   });
   return proches.map(versCarte);
 }
+
+/* ============================================================
+   TUTORIELS VIDÉO IA (/tutoriels)
+   ============================================================ */
+
+export type FiltresTutos = {
+  q?: string; // recherche plein texte dans le titre et les tags
+  niveau?: string; // "debutant" | "intermediaire" | "avance"
+  outil?: string; // nom d'outil exact du tableau outils[] (ex: "ChatGPT")
+  tri?: string; // "pertinence" (défaut) | "nouveautes" | "vues" | "az" | "za"
+};
+
+/** Renvoie le filtre Prisma correspondant au tri demandé. */
+function triTutos(tri?: string) {
+  switch (tri) {
+    case "nouveautes":
+      // Les ajouts récents d'abord, puis par pertinence décroissante.
+      return [{ nouveau: "desc" }, { ordre: "desc" }] as const;
+    case "vues":
+      return [{ vues: "desc" }] as const;
+    case "az":
+      return [{ titre: "asc" }] as const;
+    case "za":
+      return [{ titre: "desc" }] as const;
+    default:
+      // Pertinence : l'ordre Aixploria conservé lors de l'import (1 = meilleur).
+      return [{ ordre: "asc" }] as const;
+  }
+}
+
+export async function listerTutos(f: FiltresTutos = {}) {
+  const conditions: Prisma.TutoWhereInput[] = [];
+
+  const q = f.q?.trim();
+  if (q) {
+    conditions.push({
+      OR: [{ titre: { contains: q, mode: "insensitive" } }, { outils: { has: q } }],
+    });
+  }
+  if (f.niveau === "debutant" || f.niveau === "intermediaire" || f.niveau === "avance") {
+    conditions.push({ niveau: f.niveau.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE" });
+  }
+  const outil = f.outil?.trim();
+  if (outil) conditions.push({ outils: { has: outil } });
+
+  return prisma.tuto.findMany({
+    where: conditions.length ? { AND: conditions } : undefined,
+    orderBy: triTutos(f.tri),
+  });
+}
+
+export async function compterTutoStats() {
+  const [total, duree] = await Promise.all([
+    prisma.tuto.count(),
+    prisma.tuto.aggregate({ _sum: { dureeMin: true } }),
+  ]);
+  return { total, minutes: duree._sum.dureeMin ?? 0 };
+}
+
+export async function outilsDesTutos() {
+  // Liste distincte et triée de tous les outils présents dans la collection,
+  // pour les pastilles de filtrage (comme les tags d'Aixploria).
+  const lignes = await prisma.tuto.findMany({ select: { outils: true } });
+  const ensemble = new Set<string>();
+  for (const l of lignes) for (const o of l.outils) ensemble.add(o);
+  return [...ensemble].sort((a, b) => a.localeCompare(b, "fr"));
+}
+
+export async function obtenirTuto(slug: string) {
+  return prisma.tuto.findUnique({ where: { slug } });
+}
+
+/** Autres tutoriels autour du même outil, pour la colonne « À suivre ensuite ». */
+export async function tutosSuivants(tutoId: string, outils: string[]) {
+  return prisma.tuto.findMany({
+    where: { id: { not: tutoId }, ...(outils.length ? { outils: { hasSome: outils } } : {}) },
+    orderBy: [{ vues: "desc" }],
+    take: 3,
+  });
+}

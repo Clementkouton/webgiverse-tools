@@ -16,6 +16,7 @@ const LIENS_ANNUAIRE = [
   { href: "/open-source", label: "Open source" },
   { href: "/comparer", label: "Comparer" },
   { href: "/categories", label: "Catégories" },
+  { href: "/tutoriels", label: "Tutoriels" },
 ];
 
 export function Header() {
