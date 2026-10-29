@@ -4,6 +4,7 @@
 // filtres (recherche, niveau, tri, pastilles d'outils), grille de cartes
 // vidéo 16:9, bandeau d'accès Premium (la lecture est réservée aux
 // abonnés Pro / Entreprise) et section d'introduction SEO.
+// Lot 13 — grille paginée (16 tutos par page, filtres conservés).
 // Charte Webgiverse : accents violets, dégradé de marque sur le mot-clé
 // du titre. Polices inchangées (Space Grotesk titres, Inter texte).
 import type { Metadata } from "next";
@@ -13,10 +14,10 @@ import { Bouton } from "@/components/ui/bouton";
 import { listerTutos, compterTutoStats, outilsDesTutos } from "@/lib/queries";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { SelectAuto } from "@/components/tutoriels/select-auto";
+import { Pagination } from "@/components/commun/pagination";
 import { auth } from "@/auth";
 import { premiumActif } from "@/lib/premium";
 import { BarreOutils } from "@/components/tutoriels/barre-outils";
-import { Pagination } from "@/components/commun/pagination";
 
 export const metadata: Metadata = {
   title: "Tutoriels vidéo IA — formations gratuites | Webgiverse",
@@ -31,22 +32,22 @@ function val(c: string | string[] | undefined): string {
   return (Array.isArray(c) ? c[0] : c) ?? "";
 }
 
-export default async function TutorielsPage({ searchParams }: { searchParams: Params }) {
+export default async function PageTutoriels({ searchParams }: { searchParams: Params }) {
   const p = await searchParams;
   const q = val(p.q).slice(0, 80);
   const niveau = val(p.niveau);
   const outil = val(p.outil);
   const tri = val(p.tri);
-const page = Math.max(1, Math.trunc(Number(val(p.page)) || 1)); // Lot 13 — pagination
+  const page = Math.max(1, Math.trunc(Number(val(p.page)) || 1)); // Lot 13 — pagination
 
-// listerTutos borne la page au nombre réel de pages et renvoie
-// { tutos, total, page, pages } — 16 tutoriels par page.
-const [resultat, stats, tousOutils] = await Promise.all([
-  listerTutos({ q, niveau, outil, tri, page }),
+  // listerTutos borne la page au nombre réel de pages et renvoie
+  // { tutos, total, page, pages } — 16 tutoriels par page.
+  const [resultat, stats, tousOutils] = await Promise.all([
+    listerTutos({ q, niveau, outil, tri, page }),
     compterTutoStats(),
     outilsDesTutos(),
   ]);
-const { tutos, page: pageFinale, pages } = resultat;
+  const { tutos, page: pageFinale, pages } = resultat;
 
   // État Premium du visiteur : le bandeau d'accès s'adapte (un abonné
   // Pro / Entreprise ne doit pas voir une pub pour s'abonner).
@@ -156,12 +157,11 @@ const { tutos, page: pageFinale, pages } = resultat;
           </Bouton>
         </form>
 
-        {/* ── Pastilles d'outils (filtre par outil) ───────────────── */}
         {/* ── Pastilles d'outils : 14 premiers outils + bouton dépliant ── */}
         <BarreOutils outils={tousOutils} actif={outil} q={q} niveau={niveau} tri={tri} />
 
         {/* ── Résultats ───────────────────────────────────────────── */}
-        {tutos.tutos.length === 0 ? (
+        {tutos.length === 0 ? (
           <div className="rounded-carte border border-bordure bg-white p-12 text-center shadow-carte">
             <p className="font-titre text-[17px] leading-6 font-semibold text-bleu">
               Aucun tutoriel trouvé pour cette recherche.
@@ -175,22 +175,21 @@ const { tutos, page: pageFinale, pages } = resultat;
             </Bouton>
           </div>
         ) : (
-          <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {tutos.tutos.map((t: Parameters<typeof CarteTuto>[0]["tuto"]) => (
+              {tutos.map((t) => (
                 <CarteTuto key={t.id} tuto={t} />
               ))}
             </div>
-            {/* ── Pagination (Lot 13) ─────────────────────────────── */}
-            {tutos.tutos.length > 0 && (
-              <Pagination
-                page={pageFinale}
-                pages={pages}
-                base="/tutoriels"
-                params={{ q, niveau, outil, tri }}
-              />
-            )}
-          </>
+        )}
+
+        {/* ── Pagination (Lot 13) ────────────────────────────────── */}
+        {tutos.length > 0 && (
+          <Pagination
+            page={pageFinale}
+            pages={pages}
+            base="/tutoriels"
+            params={{ q, niveau, outil, tri }}
+          />
         )}
 
         {/* ── Section d'introduction (SEO) ────────────────────────── */}

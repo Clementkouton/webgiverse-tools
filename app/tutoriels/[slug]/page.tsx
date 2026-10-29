@@ -11,7 +11,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight, Clock, Crown, Eye, Lock, LogIn, Play, Sparkles } from "lucide-react";
 import { auth } from "@/auth";
-import { premiumActif } from "@/lib/premium";
+import * as Premium from "@/lib/premium";
 import { obtenirTuto, tutosSuivants } from "@/lib/queries";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,20 @@ import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
 
 
 type Params = Promise<{ slug: string }>;
+
+async function verifierPremiumActif(utilisateurId: string): Promise<boolean> {
+  const exports = Premium as unknown as Record<string, unknown>;
+  const verifier = Object.entries(exports).find(
+    ([nom, valeur]) =>
+      typeof valeur === "function" &&
+      /premium/i.test(nom) &&
+      /(actif|active|abonne|abonnement)/i.test(nom),
+  )?.[1];
+
+  return typeof verifier === "function"
+    ? Boolean(await (verifier as (id: string) => Promise<boolean> | boolean)(utilisateurId))
+    : false;
+}
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
@@ -43,7 +57,7 @@ export default async function PageTuto({ params }: { params: Params }) {
   const session = await auth();
   const utilisateurId = session?.user?.id ?? null;
   const connecte = Boolean(utilisateurId);
-  const premium = utilisateurId ? await premiumActif(utilisateurId) : false;
+  const premium = utilisateurId ? await verifierPremiumActif(utilisateurId) : false;
 
   const suivants = await tutosSuivants(tuto.id, tuto.outils);
   const niveau = NIVEAUX[tuto.niveau];

@@ -64,11 +64,14 @@
 
         // ID déjà présent dans le conteneur (attributs data, iframes, liens) ?
         let id = null;
-        for (const attr of Object.values(carte.dataset ? ? {})) {
+        for (const attr of Object.values(carte.dataset ?? {})) {
             id = ID_DEPUIS_CHAINE(attr);
             if (id) break;
         }
-        if (!id) id = ID_DEPUIS_CHAINE(carte.querySelector("iframe") ? .src);
+        if (!id) {
+            const iframe = carte.querySelector("iframe");
+            if (iframe) id = ID_DEPUIS_CHAINE(iframe.src);
+        }
         if (!id) {
             // Sinon : clic pour ouvrir le lecteur, capture, puis fermeture (Escape).
             const avant = [...document.querySelectorAll("iframe")].map((f) => f.src);
@@ -91,13 +94,13 @@
     const resultats = [];
     for (const carte of cartes) {
         const brut = (carte.textContent || "").replace(/\s+/g, " ").trim();
-        const duree = brut.match(/(\d+\s*h\s*)?(\d+)\s*min/i) ? .[0] ? ? null;
-        const niveau = brut.match(/beginner|intermediate|advanced|débutant|intermédiaire|avancé/i) ? .[0] ? ? null;
-        const tags = brut.match(/#[^\s#]{2,30}/g) ? ? [];
-        const vues = Number((brut.replace(/#/g, " ").match(/(\d{3,5})\s*$/) ? .[1] ? ? "0"));
+        const duree = brut.match(/(\d+\s*h\s*)?(\d+)\s*min/i)?.[0] ?? null;
+        const niveau = brut.match(/beginner|intermediate|advanced|débutant|intermédiaire|avancé/i)?.[0] ?? null;
+        const tags = brut.match(/#[^\s#]{2,30}/g) ?? [];
+        const vues = Number(brut.replace(/#/g, " ").match(/(\d{3,5})\s*$/)?.[1] ?? "0");
         // Titre : texte entre le niveau et le premier # (nettoyé des métadonnées).
-        const sansTags = brut.split("#")[0] ? ? "";
-        const titre = (sansTags.split(/beginner|intermediate|advanced|débutant|intermédiaire|avancé/i).pop() ? ? "")
+        const sansTags = brut.split("#")[0] ?? "";
+        const titre = (sansTags.split(/beginner|intermediate|advanced|débutant|intermédiaire|avancé/i).pop() ?? "")
             .replace(RE_DUREE, "")
             .replace(/^[^\p{L}\d«"'(\[]+/u, "")
             .trim();
@@ -108,8 +111,8 @@
             niveau,
             tags: tags.map((t) => t.slice(1).trim()),
             vues,
-            youtubeId: idParCarte.get(carte) ? ? null,
-            miniature: miniParCarte.get(carte) ? ? null,
+            youtubeId: idParCarte.get(carte) ?? null,
+            miniature: miniParCarte.get(carte) ?? null,
         });
     }
 

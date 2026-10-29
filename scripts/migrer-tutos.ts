@@ -14,10 +14,12 @@
 // automatiquement la collection). Idempotent : relançable sans doublons.
 
 import { readFileSync } from "node:fs";
-import { PrismaClient, NiveauTuto } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { slugifierTuto } from "../lib/tutos-utils";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient() as PrismaClient & { tuto: any };
+
+type NiveauTuto = "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE";
 
 type TutoExtrait = {
   titre?: string;
