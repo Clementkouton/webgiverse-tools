@@ -1,5 +1,12 @@
+// app/page.tsx
+// Lot 10 — accueil « style Aixploria » : héros avec barre de recherche
+// (renvoie vers /outils?q=…), pastilles de réassurance, navigation par
+// catégories en pastilles (comme la liste de catégories d'Aixploria),
+// puis les sections maison : à la une, nouveautés, prompts, témoignages,
+// plans Premium, actu, blog, FAQ, newsletter. Charte Webgiverse inchangée
+// (accents violets, dégradé de marque, Space Grotesk + Inter).
 import Link from "next/link";
-import { ArrowRight, ChevronRight, ExternalLink, Sparkles, Star } from "lucide-react";
+import { ArrowRight, ChevronRight, ExternalLink, Search, Sparkles, Star } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { Carte } from "@/components/ui/carte";
@@ -7,7 +14,6 @@ import { Accordeon, ItemAccordeon } from "@/components/ui/accordeon";
 import CarteOutilView from "@/components/outil/carte-outil";
 import { BoutonCopier } from "@/components/commun/bouton-copier";
 import { FormulaireNewsletter } from "@/components/commun/formulaire-newsletter";
-import { IconeCategorie } from "@/components/commun/icone-categorie";
 import { SectionPlans } from "@/components/tarifs/section-plans";
 import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
 import { TEMOIGNAGES } from "@/content/temoignages";
@@ -39,14 +45,34 @@ export default async function Accueil() {
     <>
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
-        <div className="mx-auto max-w-7xl px-4 py-16 text-center lg:py-24">
+        <div className="mx-auto max-w-7xl px-4 py-14 text-center lg:py-20">
           <h1 className="mx-auto max-w-[860px] text-[34px] leading-[42px] font-bold tracking-tight sm:text-h1">
             Trouve le <span className="texte-degrade">bon outil IA</span> pour ton projet
           </h1>
           <p className="mesure mx-auto mt-5 text-center text-[18px] leading-7 text-encre">
             L'annuaire francophone des outils IA, testés et expliqués simplement. Apprendre · Créer · Réussir.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+
+          {/* Barre de recherche (style Aixploria) : renvoie vers /outils?q=… */}
+          <form
+            action="/outils"
+            method="get"
+            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-full border border-bordure bg-white p-1.5 pl-5 shadow-carte"
+          >
+            <Search className="size-5 shrink-0 text-encre" aria-hidden />
+            <input
+              type="search"
+              name="q"
+              required
+              minLength={2}
+              placeholder="Recherche un outil, un agent, un usage…"
+              aria-label="Rechercher un outil IA"
+              className="min-h-11 w-full min-w-0 flex-1 bg-transparent text-[15px] text-bleu outline-none placeholder:text-encre/60"
+            />
+            <Bouton type="submit">Rechercher</Bouton>
+          </form>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Bouton taille="lg" asChild>
               <Link href="/outils">Explorer l'annuaire <ArrowRight aria-hidden /></Link>
             </Bouton>
@@ -54,7 +80,7 @@ export default async function Accueil() {
               <Link href="/assistant"><Sparkles aria-hidden /> Lancer l'assistant</Link>
             </Bouton>
           </div>
-          <dl className="mt-12 flex flex-wrap justify-center gap-8 sm:gap-14">
+          <dl className="mt-10 flex flex-wrap justify-center gap-8 sm:gap-14">
             {compteurs.map((c) => (
               <div key={c.libelle} className="text-center">
                 <dt className="sr-only">{c.libelle}</dt>
@@ -63,12 +89,47 @@ export default async function Accueil() {
               </div>
             ))}
           </dl>
+          <ul className="mt-6 flex flex-wrap justify-center gap-2">
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+              Sélection 100 % manuelle
+            </li>
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+              Fiches mises à jour en continu
+            </li>
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+              100 % expliqué en français
+            </li>
+          </ul>
         </div>
       </section>
 
       <VuRecemment />
-      {/* ── À la une (usage unique du magenta) ───────────────── */}
+
+      {/* ── Parcourir par catégorie (pastilles, comme Aixploria) ─ */}
       <section className="bg-white py-14 lg:py-18">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <TitreSection>Parcourir par catégorie</TitreSection>
+            <Link href="/categories" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              Toutes les catégories <ChevronRight className="size-4" aria-hidden />
+            </Link>
+          </div>
+          <ul className="flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <li key={c.slug}>
+                <Link href={`/categorie/${c.slug}`}
+                  className="inline-flex min-h-9 items-center gap-2 rounded-full border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet">
+                  {c.nom}
+                  <span className="text-[12px] leading-4 font-semibold text-encre">{c._count.outils}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ── À la une (usage unique du magenta) ───────────────── */}
+      <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <TitreSection>À la une</TitreSection>
@@ -81,7 +142,7 @@ export default async function Accueil() {
       </section>
 
       {/* ── Nouveautés ───────────────────────────────────────── */}
-      <section className="py-14 lg:py-18">
+      <section className="bg-white py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex items-end justify-between gap-4">
             <TitreSection>Nouveautés</TitreSection>
@@ -96,7 +157,7 @@ export default async function Accueil() {
       </section>
 
       {/* ── Prompts et compétences d'agents ──────────────────── */}
-      <section className="bg-white py-14 lg:py-18">
+      <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <TitreSection>Des prompts prêts à l&apos;emploi</TitreSection>
           <p className="mesure mt-2 mb-8 text-encre">Nos prompt packs Webgiverse, à copier dans ton assistant préféré.</p>
@@ -108,23 +169,6 @@ export default async function Accueil() {
                 <p className="mt-4 mb-5 rounded-champ bg-gris p-4 text-[13px] leading-5 whitespace-pre-wrap text-encre">{p.texte}</p>
                 <div className="mt-auto"><BoutonCopier texte={p.texte} libelle="Copier le prompt" /></div>
               </Carte>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Catégories populaires ────────────────────────────── */}
-      <section className="py-14 lg:py-18">
-        <div className="mx-auto max-w-7xl px-4">
-          <TitreSection>Catégories populaires</TitreSection>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {categories.map((c) => (
-              <Link key={c.slug} href={`/categorie/${c.slug}`}
-                className="group flex flex-col items-start gap-3 rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-violet">
-                <IconeCategorie nom={c.icone} />
-                <span className="font-titre text-[16px] leading-6 font-semibold">{c.nom}</span>
-                <span className="text-legende text-encre">{c._count.outils} outil{c._count.outils > 1 ? "s" : ""}</span>
-              </Link>
             ))}
           </div>
         </div>
