@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { envoyerEmail, emailBienvenue } from "@/lib/email";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -38,6 +39,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  events: {
+    // Nouveau compte créé par l'adaptateur (inscriptions Google) → email de
+    // bienvenue. Les inscriptions par formulaire passent par inscriptionAction
+    // (création manuelle, hors adaptateur) et envoient déjà leur propre email :
+    // les deux chemins sont disjoints, aucun risque de doublon.
+    createUser: async ({ user }) => {
+      if (user?.email) {
+        await envoyerEmail({
+          a: user.email,
+          sujet: "Bienvenue sur Webgiverse !",
+          html: emailBienvenue(user.name),
+        });
+      }
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

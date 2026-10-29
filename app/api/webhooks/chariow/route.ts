@@ -29,7 +29,8 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { activerAbonnement } from "@/lib/abonnements";
-import type { ClePlan } from "@/lib/plans";
+import { PLANS, type ClePlan } from "@/lib/plans";
+import { envoyerEmail, emailPaiementConfirme } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -369,7 +370,19 @@ export async function POST(requete: Request) {
 
     // Active ou prolonge l'abonnement (prolonge depuis l'échéance déjà payée).
     await activerAbonnement({ utilisateurId: utilisateur.id, plan, paiementId: paiement.id });
-
+    // Email de confirmation : récapitulatif plan + montant. Envoyé une seule
+    // fois (les contrôles d'idempotence ci-dessus ont déjà filtré les replays
+    // Chariow et les doubles événements successful.sale / license.issued).
+    // envoyerEmail ne lève jamais d'exception : même en cas de problème SMTP,
+    // le webhook répond correctement { recu: true } à Chariow.
+    await envoyerEmail({
+      a: utilisateur.email,
+      sujet: "Paiement confirmé — ton abonnement Premium est actif",
+      html: emailPaiementConfirme({
+        plan: PLANS[plan]?.nom ?? plan,
+        montant: `${(centimes / 100).toFixed(2)} USD`,
+      }),
+    });
     console.log(
       `[chariow] ✔ ${utilisateur.email} → plan ${plan} activé ` +
         `(${reference}, ${(centimes / 100).toFixed(2)} USD).`,

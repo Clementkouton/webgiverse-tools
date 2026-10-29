@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { envoyerEmail, emailBienvenue } from "@/lib/email";
 
 export type EtatFormulaire = { erreur?: string; succes?: string; lien?: string } | null;
 
@@ -60,6 +61,17 @@ export async function inscriptionAction(_prec: EtatFormulaire, formData: FormDat
   const hash = await bcrypt.hash(motDePasse, 10);
   await prisma.user.create({ data: { name: nom, email, motDePasse: hash } });
 
+  // Email de bienvenue : envoyé AVANT la connexion automatique, car signIn
+  // avec redirectTo interrompt l'exécution (redirection) — tout code placé
+  // après ne serait jamais exécuté. envoyerEmail ne lève jamais d'exception :
+  // même si le SMTP est mal configuré ou en panne, l'inscription continue
+  // normalement et l'utilisateur est connecté sans erreur.
+  await envoyerEmail({
+    a: email,
+    sujet: "Bienvenue sur Webgiverse !",
+    html: emailBienvenue(nom),
+  });
+
   // Connexion automatique après l'inscription
   try {
     await signIn("credentials", { email, password: motDePasse, redirectTo: "/dashboard" });
@@ -82,7 +94,7 @@ export async function motDePasseOublieAction(_prec: EtatFormulaire, formData: Fo
       data: { identifier: email, token, expires: new Date(Date.now() + 60 * 60 * 1000) },
     });
     // ⚠️ MODE DÉVELOPPEMENT : le lien s'affiche à l'écran (pas d'e-mail envoyé).
-    // En production, branche un service e-mail (Resend, Nodemailer…).
+    // La version production est la route API /api/mot-de-passe-oublie (Nodemailer).
     return {
       succes: "Lien de réinitialisation généré (valable 1 heure) :",
       lien: `/reinitialiser?token=${token}`,
