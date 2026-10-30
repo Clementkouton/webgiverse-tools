@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export type TeinteStat = "violet" | "ciel" | "turquoise" | "magenta";
 
 const TEINTES: Record<TeinteStat, string> = {
-  violet: "bg-violet/10 text-violet",
+  violet: "bg-sky-500/10 text-sky-500",
   ciel: "bg-ciel/15 text-[#00648a]",
   turquoise: "bg-turquoise/30 text-bleu",
   magenta: "bg-magenta/10 text-magenta",
@@ -43,7 +43,7 @@ export function CarteStatistique({
     <Link
       href={href}
       style={{ animationDelay: `${delay}ms` }}
-      className="animate-apparition-haut survol-carte group flex items-center gap-4 rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-violet/40"
+      className="animate-apparition-haut survol-carte group flex items-center gap-4 rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-sky-500/40"
     >
       <span
         className={cn(

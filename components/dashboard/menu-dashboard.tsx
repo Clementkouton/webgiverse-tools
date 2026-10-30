@@ -145,7 +145,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     <img
       src={image}
       alt=""
-      className="size-10 shrink-0 rounded-full border-2 border-violet/30 object-cover"
+      className="size-10 shrink-0 rounded-full border-2 border-sky-500/30 object-cover"
     />
   ) : (
     <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
@@ -157,7 +157,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] leading-3.5 font-bold",
-        premium ? "bg-violet/10 text-violet" : "bg-gris text-encre",
+        premium ? "bg-sky-500/10 text-sky-500" : "bg-gris text-encre",
       )}
     >
       {premium ? (
@@ -189,7 +189,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
             "group relative flex items-center gap-3 rounded-champ px-3.5 py-2.5 text-[14px] leading-5 font-semibold transition-all duration-200",
             actif
               ? "bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] text-white shadow-[0_4px_14px_rgba(106,59,255,0.35)]"
-              : "text-bleu hover:bg-gris hover:text-violet active:scale-[0.98]",
+              : "text-bleu hover:bg-gris hover:text-sky-500 active:scale-[0.98]",
           )}
         >
           {/* Indicateur animé à gauche du lien actif */}
@@ -247,7 +247,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       </p>
       <Link
         href="/dashboard/abonnement#plans"
-        className="relative mt-2.5 inline-flex min-h-9 items-center rounded-full bg-white px-3 text-[12px] leading-4 font-bold text-violet transition hover:bg-white/90 active:scale-95"
+          className="relative mt-2.5 inline-flex min-h-9 items-center rounded-full bg-white px-3 text-[12px] leading-4 font-bold text-sky-500 transition hover:bg-white/90 active:scale-95"
       >
         Voir les plans
       </Link>
@@ -277,7 +277,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
         </div>
 
         {/* Identité de l'utilisateur */}
-        <div className="flex items-center gap-3 border-b border-bordure px-5 py-4">
+        <div className="flex items-center lg:hidden gap-3 border-b border-bordure px-5 py-4">
           {avatar}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[14px] leading-5 font-semibold">
@@ -286,7 +286,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
             <p
               className={cn(
                 "inline-flex items-center gap-1 text-[12px] leading-4 font-semibold",
-                premium ? "text-violet" : "text-encre",
+                premium ? "text-sky-500" : "text-encre",
               )}
             >
               {premium ? (
@@ -351,7 +351,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
                   type="search"
                   placeholder="Rechercher un outil…"
                   aria-label="Rechercher dans l'annuaire"
-                  className="min-h-10 w-full rounded-full border border-bordure bg-white pr-4 pl-10 text-[14px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
+                  className="min-h-10 w-full rounded-full border border-bordure bg-white pr-4 pl-10 text-[14px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
                 />
               </div>
             </form>

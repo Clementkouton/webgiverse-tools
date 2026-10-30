@@ -75,7 +75,7 @@ const ONGLETS = [
 type CleOnglet = (typeof ONGLETS)[number]["cle"];
 
 const STYLE_SELECT =
-  "min-h-11 rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-violet focus:outline-none";
+  "min-h-11 rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-sky-500 focus:outline-none";
 
 const ICONES_ACTIVITE: Record<string, { icone: LucideIcon; libelle: string }> = {
   favori: { icone: Star, libelle: "Favoris" },
@@ -220,7 +220,7 @@ export default async function PageDashboard({
       {/* Carte de bienvenue avec progression (animée) */}
       <div className="animate-apparition-haut delai-1 relative mt-6 overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-8">
         <div aria-hidden className="animate-flottant pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-ciel/20 blur-3xl" />
-        <div aria-hidden className="animate-flottant-lent pointer-events-none absolute -bottom-20 -left-10 size-44 rounded-full bg-violet-clair/25 blur-3xl" />
+        <div aria-hidden className="animate-flottant-lent pointer-events-none absolute -bottom-20 -left-10 size-44 rounded-full bg-sky-500-clair/25 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-6">
           <div className="min-w-0">
             <p className="text-legende text-white/70">Ton espace personnel Webgiverse</p>
@@ -502,7 +502,7 @@ export default async function PageDashboard({
               </h2>
               <Link
                 href="/dashboard?onglet=favoris"
-                className="text-[13px] leading-4 font-semibold text-violet hover:underline"
+                className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
               >
                 Tout voir →
               </Link>
@@ -532,7 +532,7 @@ export default async function PageDashboard({
                             <Link href={`/outil/${f.tool.slug}`} className="flex items-center gap-2.5">
                               <LogoOutil nom={f.tool.nom} logo={f.tool.logo} />
                               <span className="min-w-0">
-                                <span className="block max-w-[200px] truncate text-[14px] leading-5 font-semibold text-bleu hover:text-violet">
+                                <span className="block max-w-[200px] truncate text-[14px] leading-5 font-semibold text-bleu hover:text-sky-500">
                                   {f.tool.nom}
                                 </span>
                                 {f.note && (
@@ -579,7 +579,7 @@ export default async function PageDashboard({
               </h2>
               <Link
                 href="/tutoriels"
-                className="text-[13px] leading-4 font-semibold text-violet hover:underline"
+                className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
               >
                 Tous →
               </Link>
@@ -611,7 +611,7 @@ export default async function PageDashboard({
                           </span>
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="line-clamp-2 block text-[13px] leading-4 font-semibold text-bleu group-hover:text-violet">
+                          <span className="line-clamp-2 block text-[13px] leading-4 font-semibold text-bleu group-hover:text-sky-500">
                             {t.titre}
                           </span>
                           <span className="mt-1 block text-[12px] leading-4 text-encre">
@@ -646,7 +646,7 @@ export default async function PageDashboard({
               </div>
               <Link
                 href="/prompts"
-                className="inline-flex min-h-10 shrink-0 items-center rounded-full border border-violet bg-violet/5 px-4 text-[13px] leading-4 font-semibold text-violet transition hover:bg-violet hover:text-white"
+                className="inline-flex min-h-10 shrink-0 items-center rounded-full border border-sky-500 bg-sky-500/5 px-4 text-[13px] leading-4 font-semibold text-sky-500 transition hover:bg-sky-500 hover:text-white"
               >
                 Explorer la bibliothèque
               </Link>
@@ -658,13 +658,13 @@ export default async function PageDashboard({
                     <li key={p.slug}>
                       <Link
                         href={`/prompts/${p.slug}`}
-                        className="group flex h-full items-start gap-3 rounded-carte border border-bordure p-4 transition hover:border-violet"
+                        className="group flex h-full items-start gap-3 rounded-carte border border-bordure p-4 transition hover:border-sky-500"
                       >
                         <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-[18px]">
                           {p.emoji || "✨"}
                         </span>
                         <span className="min-w-0">
-                          <span className="line-clamp-2 block text-[14px] leading-5 font-semibold text-bleu group-hover:text-violet">
+                          <span className="line-clamp-2 block text-[14px] leading-5 font-semibold text-bleu group-hover:text-sky-500">
                             {p.titre}
                           </span>
                           <span className="mt-1 block text-[12px] leading-4 text-encre">
@@ -689,7 +689,7 @@ export default async function PageDashboard({
         <Carte className="animate-apparition-haut delai-2 mt-8 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 items-start gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-violet/10 text-violet">
+              <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
                 <Crown className="size-5" aria-hidden />
               </span>
               <div className="min-w-0">
@@ -750,12 +750,12 @@ export default async function PageDashboard({
                 key={b.titre}
                 title={b.description}
                 className={`flex w-36 shrink-0 flex-col items-center gap-2 rounded-carte border p-4 text-center ${
-                  b.obtenu ? "border-violet bg-violet/5" : "border-bordure bg-gris/60 opacity-60"
+                  b.obtenu ? "border-sky-500 bg-sky-500/5" : "border-bordure bg-gris/60 opacity-60"
                 }`}
               >
                 <span
                   className={`grid size-10 place-items-center rounded-full ${
-                    b.obtenu ? "bg-violet text-white" : "bg-white text-encre"
+                    b.obtenu ? "bg-sky-500 text-white" : "bg-white text-encre"
                   }`}
                 >
                   {b.obtenu ? <b.icone className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
@@ -797,7 +797,7 @@ export default async function PageDashboard({
               </div>
               <Link
                 href="/outils"
-                className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline"
+                className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
               >
                 Voir l'annuaire <ChevronRight className="size-4" aria-hidden />
               </Link>
@@ -814,7 +814,7 @@ export default async function PageDashboard({
                     <div className="min-w-0">
                       <Link
                         href={`/outil/${o.slug}`}
-                        className="font-titre text-[17px] leading-6 font-semibold hover:text-violet"
+                        className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500"
                       >
                         {o.nom}
                       </Link>
@@ -826,7 +826,7 @@ export default async function PageDashboard({
                   <p className="mesure mt-3 line-clamp-2 text-[14px] leading-5 text-encre">{o.description}</p>
                   <Link
                     href={`/outil/${o.slug}`}
-                    className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] leading-5 font-semibold text-violet hover:underline"
+                    className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] leading-5 font-semibold text-sky-500 hover:underline"
                   >
                     Découvrir <ChevronRight className="size-4" aria-hidden />
                   </Link>
@@ -875,7 +875,7 @@ export default async function PageDashboard({
                     <div className="min-w-0">
                       <Link
                         href={`/outil/${o.slug}`}
-                        className="font-titre text-[17px] leading-6 font-semibold hover:text-violet"
+                        className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500"
                       >
                         {o.nom}
                       </Link>
@@ -887,7 +887,7 @@ export default async function PageDashboard({
                   <p className="mesure mt-3 line-clamp-2 text-[14px] leading-5 text-encre">{o.description}</p>
                   <Link
                     href={`/outil/${o.slug}`}
-                    className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] leading-5 font-semibold text-violet hover:underline"
+                    className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] leading-5 font-semibold text-sky-500 hover:underline"
                   >
                     Découvrir <ChevronRight className="size-4" aria-hidden />
                   </Link>
@@ -906,7 +906,7 @@ export default async function PageDashboard({
             <h2 className="text-h3 font-semibold">Dernières recommandations de l'assistant</h2>
             <Link
               href="/assistant"
-              className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline"
+              className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
             >
               Ouvrir l'assistant <Sparkles className="size-4" aria-hidden />
             </Link>
@@ -931,7 +931,7 @@ export default async function PageDashboard({
                         <li key={o.slug}>
                           <Link
                             href={`/outil/${o.slug}`}
-                            className="inline-flex rounded-full border border-violet bg-violet/5 px-3 py-1 text-[13px] leading-4 font-medium text-violet hover:bg-violet/10"
+                            className="inline-flex rounded-full border border-sky-500 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-medium text-sky-500 hover:bg-sky-500/10"
                           >
                             {o.nom}
                           </Link>
@@ -947,7 +947,7 @@ export default async function PageDashboard({
             {recommandations.length === 0 && (
               <Carte className="p-6 text-encre">
                 L'assistant ne t'a encore rien recommandé.{" "}
-                <Link href="/assistant" className="font-semibold text-violet hover:underline">
+                <Link href="/assistant" className="font-semibold text-sky-500 hover:underline">
                   Lance-le ici
                 </Link>
                 .
@@ -971,11 +971,11 @@ export default async function PageDashboard({
                 href={r.href}
                 className="survol-carte group flex items-start gap-3 rounded-carte border border-bordure bg-white p-5 shadow-carte"
               >
-                <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-[linear-gradient(120deg,rgba(106,59,255,0.12),rgba(0,209,255,0.14))] text-violet transition-transform duration-300 group-hover:scale-110">
+                <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-[linear-gradient(120deg,rgba(106,59,255,0.12),rgba(0,209,255,0.14))] text-sky-500 transition-transform duration-300 group-hover:scale-110">
                   <r.icone className="size-5" aria-hidden />
                 </span>
                 <span className="min-w-0">
-                  <span className="block font-titre text-[16px] leading-5 font-semibold group-hover:text-violet">
+                  <span className="block font-titre text-[16px] leading-5 font-semibold group-hover:text-sky-500">
                     {r.titre}
                   </span>
                   <span className="mt-0.5 block text-[13px] leading-4 text-encre">{r.texte}</span>
@@ -1051,7 +1051,7 @@ export default async function PageDashboard({
                 href={f.cle ? `/dashboard?onglet=favoris&statut=${f.cle}` : "/dashboard?onglet=favoris"}
                 aria-current={actif ? "true" : undefined}
                 className={`inline-flex min-h-9 items-center rounded-full border px-3.5 text-[13px] leading-4 font-medium transition ${
-                  actif ? "border-violet bg-violet/10 text-violet" : "border-bordure bg-white text-encre hover:border-violet"
+                  actif ? "border-sky-500 bg-sky-500/10 text-sky-500" : "border-bordure bg-white text-encre hover:border-sky-500"
                 }`}
               >
                 {f.libelle}
@@ -1062,7 +1062,7 @@ export default async function PageDashboard({
 
         {/* Bandeau limite du plan Découverte : 20 favoris maximum */}
         {!premium && nbFavoris >= LIMITES_DECOUVERTE.favoris && (
-          <div className="animate-apparition-haut mt-4 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4">
+          <div className="animate-apparition-haut mt-4 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-sky-500/30 bg-sky-500/5 p-4">
             <p className="min-w-0 text-[14px] leading-5 text-bleu">
               Tu as atteint la limite de{" "}
               <strong>{LIMITES_DECOUVERTE.favoris} favoris</strong> du plan
@@ -1071,7 +1071,7 @@ export default async function PageDashboard({
             </p>
             <Link
               href="/dashboard/abonnement#plans"
-              className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-violet px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-violet-clair"
+              className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-sky-500 px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-sky-500-clair"
             >
               Passer Premium <Crown className="ml-1.5 size-4" aria-hidden />
             </Link>
@@ -1086,7 +1086,7 @@ export default async function PageDashboard({
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/outil/${f.tool.slug}`}
-                    className="font-titre text-[17px] leading-6 font-semibold hover:text-violet"
+                    className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500"
                   >
                     {f.tool.nom}
                   </Link>
@@ -1181,7 +1181,7 @@ export default async function PageDashboard({
         {/* Bandeau limite du plan Découverte : 10 listes maximum
             (affiché aussi quand l'action renvoie ?message=limite-listes) */}
         {!premium && (message === "limite-listes" || nbListes >= LIMITES_DECOUVERTE.listes) && (
-          <div className="animate-apparition-haut mt-4 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4">
+          <div className="animate-apparition-haut mt-4 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-sky-500/30 bg-sky-500/5 p-4">
             <p className="min-w-0 text-[14px] leading-5 text-bleu">
               Limite du plan Découverte atteinte :{" "}
               <strong>{LIMITES_DECOUVERTE.listes} listes maximum</strong>. Passe
@@ -1189,7 +1189,7 @@ export default async function PageDashboard({
             </p>
             <Link
               href="/dashboard/abonnement#plans"
-              className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-violet px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-violet-clair"
+              className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-sky-500 px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-sky-500-clair"
             >
               Passer Premium <Crown className="ml-1.5 size-4" aria-hidden />
             </Link>
@@ -1204,7 +1204,7 @@ export default async function PageDashboard({
             required
             minLength={2}
             maxLength={60}
-            className="min-h-11 w-full max-w-sm flex-1 rounded-champ border border-bordure bg-white px-4 text-[15px] leading-5 focus:border-violet focus:outline-none"
+            className="min-h-11 w-full max-w-sm flex-1 rounded-champ border border-bordure bg-white px-4 text-[15px] leading-5 focus:border-sky-500 focus:outline-none"
           />
           <Bouton variante="secondaire" type="submit">
             <Plus aria-hidden /> Créer la liste
@@ -1216,7 +1216,7 @@ export default async function PageDashboard({
             <Carte key={liste.id} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-2">
                 <h3 className="font-titre text-[17px] leading-6 font-semibold">
-                  <ListChecks className="mr-1 inline size-4 text-violet" aria-hidden />
+                  <ListChecks className="mr-1 inline size-4 text-sky-500" aria-hidden />
                   {liste.nom}
                   <span className="ml-2 text-[12px] leading-4 font-normal text-encre">
                     {liste.items.length} outil{liste.items.length > 1 ? "s" : ""}
@@ -1239,7 +1239,7 @@ export default async function PageDashboard({
                   <li key={item.id} className="flex items-center justify-between gap-2 text-[15px] leading-5">
                     <Link
                       href={`/outil/${item.tool.slug}`}
-                      className="min-h-9 py-1.5 font-medium text-violet hover:underline"
+                      className="min-h-9 py-1.5 font-medium text-sky-500 hover:underline"
                     >
                       {item.tool.nom}
                     </Link>
@@ -1264,7 +1264,7 @@ export default async function PageDashboard({
               <form action={renommerListeFormulaire} className="mt-4 border-t border-bordure pt-4">
                 <input type="hidden" name="listeId" value={liste.id} />
                 <p className="flex items-center gap-1.5 text-[12px] leading-4 font-semibold uppercase tracking-wide text-encre">
-                  <Pencil className="size-3.5 text-violet" aria-hidden /> Renommer la liste
+                  <Pencil className="size-3.5 text-sky-500" aria-hidden /> Renommer la liste
                 </p>
                 <div className="mt-2 flex items-center gap-2">
                   <input
@@ -1274,7 +1274,7 @@ export default async function PageDashboard({
                     minLength={2}
                     maxLength={60}
                     aria-label={`Nouveau nom pour la liste ${liste.nom}`}
-                    className="min-h-11 flex-1 rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 focus:border-violet focus:outline-none"
+                    className="min-h-11 flex-1 rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 focus:border-sky-500 focus:outline-none"
                   />
                   <Bouton variante="secondaire" taille="sm" type="submit">
                     <Pencil aria-hidden />
@@ -1357,7 +1357,7 @@ export default async function PageDashboard({
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/outil/${a.outil.slug}`}
-                    className="font-titre text-[17px] leading-6 font-semibold hover:text-violet"
+                    className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500"
                   >
                     {a.outil.nom}
                   </Link>
@@ -1459,7 +1459,7 @@ export default async function PageDashboard({
               const meta = ICONES_ACTIVITE[a.type] ?? { icone: History, libelle: "Activité" };
               return (
                 <Carte key={a.id} className="flex items-center gap-3 p-4">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-violet">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-sky-500">
                     <meta.icone className="size-5" aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
