@@ -7,6 +7,11 @@
 // (accents violets, dégradé de marque, Space Grotesk + Inter).
 // Lot 14 — vitrine « Tutoriels vidéo IA » : panneau bleu nuit avec halos
 // dégradés, les 4 tutos les plus vus et des boutons vers /tutoriels.
+// Lot 15 — accueil résilient : si la base est momentanément injoignable
+// (coupure réseau, compute Neon endormi, pool de connexions saturé), les
+// requêtes de l'accueil ne font plus planter la page : chaque section
+// alimentée par la base disparaît proprement et les sections statiques
+// (prompts, témoignages, plans, actu, blog, FAQ, newsletter) s'affichent.
 import Link from "next/link";
 import { ArrowRight, ChevronRight, ExternalLink, Play, Search, Sparkles, Star } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
@@ -28,18 +33,48 @@ import VuRecemment from "@/components/visites/vu-recemment";
 // dynamique (lecture du cookie, sans base de données).
 export const dynamic = "force-dynamic";
 
+/* ── Lot 15 — résilience de l'accueil ────────────────────────────────
+   Enveloppe une requête de base de données : si elle échoue (Neon
+   injoignable, pool de connexions épuisé…), on journalise l'erreur côté
+   serveur et on rend la valeur de repli fournie, au lieu de faire
+   échouer la page entière avec une erreur 500. */
+async function avecRepli<T>(promesse: Promise<T>, repli: T): Promise<T> {
+  try {
+    return await promesse;
+  } catch (erreur) {
+    console.error("[accueil] Base de données injoignable — mode dégradé :", erreur);
+    return repli;
+  }
+}
+
+// Replis typés avec les VRAIS types de retour de lib/queries.ts :
+// la page compile et s'affiche même quand la base ne répond pas.
+type StatsAccueil = Awaited<ReturnType<typeof compterStats>>;
+type ResultatOutils = Awaited<ReturnType<typeof listerOutils>>;
+type StatsTutos = Awaited<ReturnType<typeof compterTutoStats>>;
+type ResultatTutos = Awaited<ReturnType<typeof listerTutos>>;
+
+const STATS_ACCUEIL_VIDE: StatsAccueil = { outils: 0, agents: 0, categories: 0 };
+const RESULTAT_OUTILS_VIDE: ResultatOutils = { outils: [], total: 0, page: 1, pages: 1 };
+const STATS_TUTOS_VIDE: StatsTutos = { total: 0, minutes: 0 };
+const RESULTAT_TUTOS_VIDE: ResultatTutos = { tutos: [], total: 0, page: 1, pages: 1 };
+
 function TitreSection({ children }: { children: React.ReactNode }) {
   return <h2 className="text-[26px] leading-8 font-semibold sm:text-h2">{children}</h2>;
 }
 
 export default async function Accueil() {
+  // Lot 15 — chaque requête est enveloppée dans un repli : en cas de panne
+  // de la base, la requête renvoie sa valeur vide et la page continue de
+  // se construire au lieu de renvoyer une erreur 500.
   const [stats, enAvant, nouveautes, categories, tutoStats, resultatTutos] = await Promise.all([
-    compterStats(), outilsMisEnAvant(),
-    listerOutils({ tri: "recente", page: 1 }),
-    listerCategories(),
-    compterTutoStats(),
+    avecRepli(compterStats(), STATS_ACCUEIL_VIDE),
+    avecRepli(outilsMisEnAvant(), []),
+    avecRepli(listerOutils({ tri: "recente", page: 1 }), RESULTAT_OUTILS_VIDE),
+    avecRepli(listerCategories(), []),
+    avecRepli(compterTutoStats(), STATS_TUTOS_VIDE),
     // Lot 14 — les 4 tutoriels les plus vus pour la vitrine de l'accueil.
-    listerTutos({ tri: "vues", parPage: 4 }),
+    avecRepli(listerTutos({ tri: "vues", parPage: 4 }), RESULTAT_TUTOS_VIDE),
   ]);
   const tutoriels = resultatTutos.tutos;
   const heuresTutos = Math.round(tutoStats.minutes / 60);
@@ -92,7 +127,9 @@ export default async function Accueil() {
             {compteurs.map((c) => (
               <div key={c.libelle} className="text-center">
                 <dt className="sr-only">{c.libelle}</dt>
-                <dd className="font-titre text-[32px] leading-10 font-bold text-violet">{c.valeur}</dd>
+                {/* Lot 15 : en mode dégradé (base injoignable) on affiche
+                    un tiret au lieu d'un trompeur « 0 ». */}
+                <dd className="font-titre text-[32px] leading-10 font-bold text-violet">{c.valeur === 0 ? "—" : c.valeur}</dd>
                 <dd className="text-legende text-encre">{c.libelle}</dd>
               </div>
             ))}
@@ -113,7 +150,9 @@ export default async function Accueil() {
 
       <VuRecemment />
 
-      {/* ── Parcourir par catégorie (pastilles, comme Aixploria) ─ */}
+      {/* ── Parcourir par catégorie (pastilles, comme Aixploria) ─
+          Lot 15 : section masquée si la base n'a pas répondu. */}
+      {categories.length > 0 && (
       <section className="bg-white py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -135,8 +174,11 @@ export default async function Accueil() {
           </ul>
         </div>
       </section>
+      )}
 
-      {/* ── À la une (usage unique du magenta) ───────────────── */}
+      {/* ── À la une (usage unique du magenta) — Lot 15 : masquée si
+          la base n'a pas répondu. ─────────────────────────────── */}
+      {enAvant.length > 0 && (
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -148,8 +190,10 @@ export default async function Accueil() {
           </div>
         </div>
       </section>
+      )}
 
-      {/* ── Nouveautés ───────────────────────────────────────── */}
+      {/* ── Nouveautés — Lot 15 : masquée si la base n'a pas répondu ─ */}
+      {nouveautes.outils.length > 0 && (
       <section className="bg-white py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex items-end justify-between gap-4">
@@ -163,12 +207,15 @@ export default async function Accueil() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Tutoriels vidéo IA (Lot 14) ──────────────────────────── */}
       {/* Vitrine sombre qui fait ressortir les vignettes vidéo : panneau
           bleu nuit + halos dégradés de la charte, 4 tutos les plus vus,
           et deux portes d'entrée vers /tutoriels (lien « Voir tout » et
-          bouton « Commencer à apprendre »). */}
+          bouton « Commencer à apprendre »).
+          Lot 15 : section masquée si la base n'a pas répondu. */}
+      {tutoriels.length > 0 && (
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="relative overflow-hidden rounded-carte bg-bleu p-6 shadow-carte sm:p-10">
@@ -217,6 +264,7 @@ export default async function Accueil() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── Prompts et compétences d'agents ──────────────────── */}
       <section className="py-14 lg:py-18">
