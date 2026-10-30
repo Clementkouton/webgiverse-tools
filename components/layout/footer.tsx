@@ -19,6 +19,7 @@ const COLONNES = [
     liens: [
       ["Assistant", "/assistant"],
       ["Tutoriels vidéo", "/tutoriels"],
+      ["Bibliothèque de prompts", "/prompts"],
       ["Blog", "/blog"],
       ["Actualités", "/actualites"],
       ["FAQ", "/faq"],

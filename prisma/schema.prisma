@@ -412,3 +412,52 @@ model Tuto {
   @@index([niveau])
   @@index([vues])
 }
+/* ============================================================
+   BIBLIOTHÈQUE DE PROMPTS IA (/prompts)
+   Lot 17 — catalogue de prompts métiers prêts à l'emploi.
+   La page d'un prompt est accessible à tous (vitrine), mais le
+   contenu complet + la copie sont réservés aux abonnés Premium
+   (Pro / Entreprise) — même logique que les tutoriels vidéo.
+   ============================================================ */
+
+enum TypePrompt {
+  TEXTE
+  IMAGE
+  CODE
+}
+
+model PromptCategorie {
+  id      String   @id @default(cuid())
+  slug    String   @unique // ex: "marketing", "art-design"
+  nom     String // ex: "Marketing"
+  ordre   Int      @default(0) // ordre d'affichage dans la bibliothèque
+  prompts Prompt[]
+
+  @@index([ordre])
+}
+
+model Prompt {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  titre         String
+  emoji         String         @default("✨")
+  description   String // aperçu public (1–2 phrases, visible sans compte)
+  contenu       String // le prompt complet — réservé aux Premium
+  type          TypePrompt     @default(TEXTE)
+  modeles       String[]       @default([]) // ex: ["ChatGPT", "Claude", "Gemini"]
+  categorieId   String
+  categorie     PromptCategorie @relation(fields: [categorieId], references: [id])
+  sousCategorie String         @default("") // tag FR, ex: "Réseaux sociaux"
+  roles         String[]       @default([]) // slugs FR, ex: ["entrepreneurs", "marketeurs"]
+  conseils      String         @default("") // conseils d'utilisation (3 puces)
+  utilisation   String         @default("") // comment l'utiliser (variables à remplir)
+  vues          Int            @default(0) // popularité (tri « Plus vus »)
+  ordre         Int            @default(0) // rang de pertinence (tri par défaut)
+  nouveau       Boolean        @default(false) // récent ajout (tri « Nouveautés »)
+  creeLe        DateTime       @default(now())
+  majLe         DateTime       @updatedAt
+
+  @@index([categorieId])
+  @@index([vues])
+  @@index([type])
+}

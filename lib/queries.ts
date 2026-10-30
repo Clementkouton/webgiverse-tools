@@ -220,3 +220,141 @@ export async function tutosSuivants(tutoId: string, outils: string[]) {
     take: 3,
   });
 }
+/* ============================================================
+   BIBLIOTHÈQUE DE PROMPTS IA (/prompts)
+   Lot 17 — même approche typée que les tutoriels : délégué
+   Prisma typé (promptDb), filtres composés, pagination serveur.
+   ============================================================ */
+
+const promptDb = prisma.prompt;
+const promptCategorieDb = prisma.promptCategorie;
+
+/** Taille de page de la grille /prompts (4 lignes de 4 au bureau). */
+export const PROMPTS_PAR_PAGE = 16;
+
+export type FiltresPrompts = {
+  q?: string; // recherche dans le titre, la description et la sous-catégorie
+  categorie?: string; // slug de PromptCategorie
+  role?: string; // slug de rôle (tableau Prompt.roles[])
+  type?: string; // "texte" | "image" | "code"
+  tri?: string; // "pertinence" (défaut) | "nouveautes" | "vues" | "az" | "za"
+  page?: number;
+};
+
+/** Renvoie le tri Prisma correspondant au tri demandé (typé strictement). */
+function triPrompts(tri?: string): Prisma.PromptOrderByWithRelationInput[] {
+  switch (tri) {
+    case "nouveautes":
+      return [{ nouveau: "desc" }, { ordre: "asc" }];
+    case "vues":
+      return [{ vues: "desc" }];
+    case "az":
+      return [{ titre: "asc" }];
+    case "za":
+      return [{ titre: "desc" }];
+    default:
+      // Pertinence : l'ordre de l'import initial (1 = le plus demandé).
+      return [{ ordre: "asc" }];
+  }
+}
+
+/** Convertit le paramètre GET « type » en valeur d'enum Prisma. */
+function typePromptDepuisFiltre(type?: string): "TEXTE" | "IMAGE" | "CODE" | undefined {
+  if (type === "texte") return "TEXTE";
+  if (type === "image") return "IMAGE";
+  if (type === "code") return "CODE";
+  return undefined;
+}
+
+/** Liste paginée des prompts (bibliothèque, catégorie ou rôle). */
+export async function listerPrompts(f: FiltresPrompts = {}) {
+  const conditions: Prisma.PromptWhereInput[] = [];
+
+  const q = f.q?.trim();
+  if (q) {
+    conditions.push({
+      OR: [
+        { titre: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { sousCategorie: { contains: q, mode: "insensitive" } },
+      ],
+    });
+  }
+  if (f.categorie) conditions.push({ categorie: { slug: f.categorie } });
+  if (f.role) conditions.push({ roles: { has: f.role } });
+  const type = typePromptDepuisFiltre(f.type);
+  if (type) conditions.push({ type });
+
+  const where = conditions.length ? { AND: conditions } : undefined;
+  const total = await promptDb.count({ where });
+  const pages = Math.max(1, Math.ceil(total / PROMPTS_PAR_PAGE));
+  const page = Math.min(pages, Math.max(1, Math.trunc(f.page ?? 1) || 1));
+
+  const prompts = await promptDb.findMany({
+    where,
+    orderBy: triPrompts(f.tri),
+    skip: (page - 1) * PROMPTS_PAR_PAGE,
+    take: PROMPTS_PAR_PAGE,
+    include: { categorie: { select: { nom: true, slug: true } } },
+  });
+
+  return { prompts, total, page, pages };
+}
+
+/** Catégories de la bibliothèque avec leur nombre de prompts (barre de filtres). */
+export async function listerPromptCategories() {
+  return promptCategorieDb.findMany({
+    orderBy: { ordre: "asc" },
+    include: { _count: { select: { prompts: true } } },
+  });
+}
+
+export async function obtenirPromptCategorie(slug: string) {
+  return promptCategorieDb.findUnique({ where: { slug } });
+}
+
+export async function compterPromptStats() {
+  const [total, categories] = await Promise.all([
+    promptDb.count(),
+    promptCategorieDb.count(),
+  ]);
+  return { total, categories };
+}
+
+export async function obtenirPrompt(slug: string) {
+  return promptDb.findUnique({
+    where: { slug },
+    include: { categorie: { select: { nom: true, slug: true } } },
+  });
+}
+
+/** Autres prompts de la même catégorie, pour la section « À essayer aussi ». */
+export async function promptsSimilaires(promptId: string, categorieId: string) {
+  return promptDb.findMany({
+    where: { id: { not: promptId }, categorieId },
+    orderBy: [{ vues: "desc" }],
+    take: 3,
+    include: { categorie: { select: { nom: true, slug: true } } },
+  });
+}
+
+/** Prompts les plus consultés (vitrine d'accueil). */
+export async function promptsPopulaires(n = 4) {
+  return promptDb.findMany({
+    orderBy: [{ vues: "desc" }],
+    take: n,
+    include: { categorie: { select: { nom: true, slug: true } } },
+  });
+}
+
+export type CompteurRoles = { slug: string; total: number };
+
+/** Nombre de prompts par rôle, trié par fréquence (barre des rôles). */
+export async function compterPromptsParRole(): Promise<CompteurRoles[]> {
+  const lignes = await promptDb.findMany({ select: { roles: true } });
+  const compteurs = new Map<string, number>();
+  for (const l of lignes) for (const r of l.roles) compteurs.set(r, (compteurs.get(r) ?? 0) + 1);
+  return [...compteurs.entries()]
+    .map(([slug, total]) => ({ slug, total }))
+    .sort((a, b) => b.total - a.total || a.slug.localeCompare(b.slug, "fr"));
+}
