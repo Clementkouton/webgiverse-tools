@@ -1,0 +1,1916 @@
+{
+  "categories": [
+    {
+      "slug": "art-and-design",
+      "nom": "Art & design",
+      "ordre": 1
+    },
+    {
+      "slug": "marketing",
+      "nom": "Marketing",
+      "ordre": 2
+    },
+    {
+      "slug": "coding",
+      "nom": "Développement",
+      "ordre": 3
+    },
+    {
+      "slug": "seo",
+      "nom": "SEO",
+      "ordre": 4
+    },
+    {
+      "slug": "education",
+      "nom": "Éducation",
+      "ordre": 5
+    },
+    {
+      "slug": "operations",
+      "nom": "Opérations",
+      "ordre": 6
+    },
+    {
+      "slug": "writing",
+      "nom": "Écriture",
+      "ordre": 7
+    },
+    {
+      "slug": "strategy",
+      "nom": "Stratégie",
+      "ordre": 8
+    },
+    {
+      "slug": "productivity",
+      "nom": "Productivité",
+      "ordre": 9
+    },
+    {
+      "slug": "human-resources",
+      "nom": "Ressources humaines",
+      "ordre": 10
+    },
+    {
+      "slug": "research",
+      "nom": "Recherche",
+      "ordre": 11
+    },
+    {
+      "slug": "finance",
+      "nom": "Finance",
+      "ordre": 12
+    },
+    {
+      "slug": "data-analysis",
+      "nom": "Analyse de données",
+      "ordre": 13
+    },
+    {
+      "slug": "legal",
+      "nom": "Juridique",
+      "ordre": 14
+    },
+    {
+      "slug": "customer-service",
+      "nom": "Service client",
+      "ordre": 15
+    },
+    {
+      "slug": "real-estate",
+      "nom": "Immobilier",
+      "ordre": 16
+    },
+    {
+      "slug": "sales",
+      "nom": "Ventes",
+      "ordre": 17
+    },
+    {
+      "slug": "careers",
+      "nom": "Carrière",
+      "ordre": 18
+    }
+  ],
+  "prompts": [
+    {
+      "slug": "portrait-mugshot-vintage",
+      "titre": "Générateur de portrait mugshot vintage",
+      "emoji": "📸",
+      "description": "Crée un portrait photo réaliste style « mugshot » des années 60, avec planche d'identification, lumière dramatique et rendu argentique d'époque. Parfait pour des visuels de marque mémorables.",
+      "type": "IMAGE",
+      "modeles": [
+        "Midjourney",
+        "Flux",
+        "Nano Banana",
+        "GPT Image"
+      ],
+      "categorieSlug": "art-and-design",
+      "sousCategorie": "Portrait & avatar",
+      "roles": [
+        "photographes",
+        "designers",
+        "createurs-de-contenu"
+      ],
+      "conseils": "• Décris la personne en détail (tenue, attitude, coiffure) : plus la description est précise, plus le rendu est fidèle.\n• Garde les paramètres --ar et --no à la fin, ils éliminent les rendus cartoon.\n• Génère 4 variantes puis ajuste un seul élément à la fois pour garder une série cohérente.",
+      "utilisation": "Remplace {{description-personne}} par la personne souhaitée (ex. « femme de 30 ans, cheveux courts châtains »), {{nom-personnage}} par le nom affiché sur la planche, et la date si besoin.",
+      "vues": 620,
+      "ordre": 1,
+      "nouveau": false,
+      "contenu": "Photographie portrait hyper-réaliste 8K, prise au reflex avec objectif 50 mm, profondeur de champ naturelle et mise au point ultra nette. Composition plein cadre style photo d'identification (« mugshot ») imitant l'esthétique des archives de police vintage.\n\n{{description-personne}} appuyé(e) contre un mur, un genou plié, mâchoire marquée, regard intense, léger sourire assuré. Cheveux soignés. Vêtement : {{tenue}}.\n\nPlanche d'identification visible portant l'inscription « {{nom-personnage}} » et la date « {{date}} ».\n\nArrière-plan : bokeh naturel légèrement flouté, texture de mur de studio un peu granuleuse avec toise de hauteur verticale. Photographie d'archive désaturée, légère dominante sépia. Éclairage zénithal ou frontal marqué créant des ombres dramatiques qui soulignent la toise. Exposition propre et équilibrée, ombres et hautes lumières fidèles.\n\nÉtalonnage colorimétrique naturel professionnel, esthétique photo vintage, détail vraisemblable --ar 4:5 --v 6 --style raw --no anime, cartoon, illustration, peinture numérique, rendu 3D, peau plastique, lissage excessif, surexposition"
+    },
+    {
+      "slug": "publicite-parfum-luxe",
+      "titre": "Publicité de parfum de luxe",
+      "emoji": "🥂",
+      "description": "Génère une visuel publicitaire haut de gamme pour un parfum : flacon mis en scène, matières précieuses, lumière dorée. Idéal pour boutiques, marques et campagnes e-commerce.",
+      "type": "IMAGE",
+      "modeles": [
+        "Midjourney",
+        "Flux",
+        "Nano Banana",
+        "GPT Image"
+      ],
+      "categorieSlug": "art-and-design",
+      "sousCategorie": "Photo produit",
+      "roles": [
+        "designers",
+        "photographes",
+        "agences",
+        "vendeurs-e-commerce"
+      ],
+      "conseils": "• Décris le flacon précisément (forme, couleur, matière) sinon l'IA en inventera un.\n• Change une seule matière à la fois (marbre, soie, or) pour créer une gamme déclinée.\n• Pour les réseaux sociaux, garde le format carré --ar 1:1 ; pour une affiche, passe en --ar 4:5.",
+      "utilisation": "Remplace {{description-flacon}} par ton flacon (ex. « flacon rectangulaire en verre ambré, capot doré »), {{univers}} par l'ambiance voulue (ex. « jardin méditerranéen au crépuscule ») et {{marque}} par le nom à afficher.",
+      "vues": 540,
+      "ordre": 2,
+      "nouveau": false,
+      "contenu": "Photographie publicitaire de luxe pour un parfum, rendu studio haut de gamme, ultra détaillée 8K.\n\nSujet : {{description-flacon}}, posé au centre sur un socle en {{matiere-socle}}. Autour : composition épurée avec éléments naturels évoquant {{univers}} (pétales, branches, eau, tissu) disposés avec symétrie élégante.\n\nÉclairage : lumière dorée latérale douce, rayon de soleil traversant le flacon, reflets précis sur le verre, ombres longues et feutrées. Fines particules de poussière lumineuse dans l'air.\n\nPalette : tons chauds et profonds, contrasts maîtrisés, noirs riches, dorés satinés. Profondeur de champ courte, arrière-plan fondu en dégradé sombre.\n\nLe nom « {{marque}} » apparaît gravé discrètement sur le flacon, lisible mais sobre. Aucun texte ajouté autour.\n\nStyle : photographie de produit éditoriale, esthétique parfumerie de luxe, réalisme absolu, textures nerveuses --ar 4:5 --v 6 --style raw --no texte flottant, logo inventé, couleurs criardes, fond blanc clinique, rendu 3D, cartoon, mains, personnes"
+    },
+    {
+      "slug": "photo-style-iphone",
+      "titre": "Photo d'apparence iPhone ultra réaliste",
+      "emoji": "📱",
+      "description": "Transforme n'importe quelle scène en photo qui semble prise au smartphone : cadrage spontané, lumière naturelle, grain discret. L'authenticité qui performe sur les réseaux.",
+      "type": "IMAGE",
+      "modeles": [
+        "Midjourney",
+        "Flux",
+        "Nano Banana",
+        "GPT Image"
+      ],
+      "categorieSlug": "art-and-design",
+      "sousCategorie": "Photo produit",
+      "roles": [
+        "createurs-de-contenu",
+        "photographes",
+        "vendeurs-e-commerce"
+      ],
+      "conseils": "• Le charme vient du réalisme : mentionne des détails « imparfaits » (reflet, grain, lumière dure).\n• Précise l'heure du jour et le lieu, cela conditionne toute la lumière de la scène.\n• Pour un feed cohérent, garde la même heure et le même lieu sur plusieurs générations.",
+      "utilisation": "Remplace {{scene}} par ce que tu veux photographier (ex. « un café latte sur une table en bois », « quelqu'un ouvrant un colis »), {{lieu-heure}} par le contexte (ex. « cuisine lumineuse, fin d'après-midi »).",
+      "vues": 710,
+      "ordre": 3,
+      "nouveau": true,
+      "contenu": "Photographie réaliste prise à l'iPhone, esthétique photo spontanée de tous les jours, sans mise en scène apparente.\n\nScène : {{scene}}. Contexte : {{lieu-heure}}.\n\nCadrage : un peu décentré, comme pris à main levée, angle légèrement plongeant, sujet pas parfaitement centré. Pas de trépied, pas de pose studio.\n\nLumière : naturelle non retouchée, ombres franches si intérieur, contre-jour doux si extérieur, reflets réalistes sur les surfaces brillantes.\n\nRendu : net au centre, léger vignettage des bords, grain numérique très discret de capteur de smartphone, couleurs fidèles légèrement saturées comme le traitement photo natif d'un téléphone récent, HDR subtil.\n\nAucun texte, aucun filigrane, aucun effet spectaculaire : la photo doit sembler capturée en 2 secondes par une personne réelle --ar 4:5 --v 6 --style raw --no studio, éclairage dramatique, couleurs cinématographiques, rendu 3D, illustration, texte, filigrane, perfection plastique"
+    },
+    {
+      "slug": "portrait-retro-annees-80",
+      "titre": "Portrait rétro années 1980",
+      "emoji": "📼",
+      "description": "Recrée l'esthétique des photos argentiques des années 80 : flash direct, grain marqué, couleurs saturées d'époque. Un effet nostalgie qui attire l'œil instantanément.",
+      "type": "IMAGE",
+      "modeles": [
+        "Midjourney",
+        "Flux",
+        "Nano Banana",
+        "GPT Image"
+      ],
+      "categorieSlug": "art-and-design",
+      "sousCategorie": "Portrait & avatar",
+      "roles": [
+        "photographes",
+        "createurs-de-contenu",
+        "designers"
+      ],
+      "conseils": "• Le flash direct frontal est la clé du look 80s : ne le remplace pas par une lumière douce.\n• Cite des éléments d'époque (décor, vêtement, accessoire) pour ancrer la scène dans la décennie.\n• Ajoute une légère dominante (vert, magenta) en la nommant explicitement pour renforcer l'effet pellicule.",
+      "utilisation": "Remplace {{description-personne}} par le sujet (ex. « homme de 25 ans, mulet, blouson en jean ») et {{decor}} par le lieu (ex. « salon avec papier peint fleuri et télévisseur cathodique »).",
+      "vues": 480,
+      "ordre": 4,
+      "nouveau": false,
+      "contenu": "Photographie portrait rétro fidèle aux années 1980, aspect pellicule argentique 35 mm, datée volontairement.\n\nSujet : {{description-personne}}, regardant l'objectif, expression naturelle ou légèrement apprêtée d'époque. Posé dans {{decor}}.\n\nLumière : flash intégré frontal direct, ombres dures portées derrière le sujet, reflet ponctuel dans les yeux, fond légèrement sous-exposé.\n\nRendu : grain argentique visible, couleurs saturées et légèrement décalées avec dominante {{dominante-couleur}}, bords un peu mous, netteté typique des objectifs zoom d'époque, halation discrète autour des hautes lumières.\n\nComposition : plan taille ou buste, sujet centré, horizontale très légèrement de travers comme une photo amateur d'album familial.\n\nEsthétique : photo de vacances ou d'anniversaire retrouvée dans un vieil album, authenticité totale, aucun élément moderne dans le cadre --ar 4:5 --v 6 --style raw --no moderne, smartphone, numérique propre, HDR, éclairage de studio, rendu 3D, cartoon, texte, filigrane"
+    },
+    {
+      "slug": "concevoir-tunnel-marketing",
+      "titre": "Architecte de tunnels marketing",
+      "emoji": "🧲",
+      "description": "Conçois un tunnel de conversion complet, étape par étape : attraction, capture, séquence email, offre. Une architecture claire que tu peux mettre en place immédiatement.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "marketing",
+      "sousCategorie": "Tunnels & séquences",
+      "roles": [
+        "marketeurs",
+        "entrepreneurs",
+        "solopreneurs",
+        "agences"
+      ],
+      "conseils": "• Donne le maximum de contexte sur ton produit et ton audience : la qualité du tunnel dépend de la précision des entrées.\n• Demande ensuite à l'IA de rédiger le contenu de chaque étape une par une, plutôt que tout d'un coup.\n• Teste le tunnel avec 100 visiteurs avant de l'automatiser entièrement.",
+      "utilisation": "Remplace {{produit}}, {{audience-cible}}, {{prix}} et {{objectif}} (ex. « 50 inscriptions par mois »). Ajoute ton canal principal si tu en as déjà un.",
+      "vues": 850,
+      "ordre": 5,
+      "nouveau": false,
+      "contenu": "Agis comme un stratège marketing spécialisé dans la conception de tunnels de conversion (funnels), avec 15 ans d'expérience sur des offres digitales et des PME.\n\nContexte de mon activité :\n- Produit/service : {{produit}}\n- Audience cible : {{audience-cible}}\n- Prix : {{prix}}\n- Objectif chiffré : {{objectif}}\n\nTa mission : concevoir un tunnel marketing complet et actionnable.\n\nStructure ta réponse ainsi :\n1. **Cartographie du tunnel** — les étapes exactes : trafic → page d'atterrissage → capture d'email → séquence de nurturing → offre principale → upsell. Pour chaque étape : objectif, métrique de suivi et taux de conversion réaliste à viser.\n2. **Leurres de capture** — propose 3 idées de lead magnet adaptées à mon audience, classées par facilité de production.\n3. **Séquence email** — plan des 5 premiers emails : objet, angle, appel à l'action de chacun.\n4. **Points de friction** — liste les 5 erreurs les plus probables dans mon cas précis et comment les éviter.\n5. **Plan de test des 30 premiers jours** — quoi mesurer, quels seuils déclenchent un changement.\n\nContraintes : budget faible, aucune équipe dédiée, outils simples (page builder + emailiseur). Sois concret : pas de théorie générale, uniquement des recommandations applicables à ma situation. Pose-moi 3 questions si des informations manquent avant de commencer."
+    },
+    {
+      "slug": "calendrier-editorial-reseaux-sociaux",
+      "titre": "Calendrier éditorial réseaux sociaux (30 jours)",
+      "emoji": "🗓️",
+      "description": "Génère un calendrier de contenu complet sur un mois, adapté à ton activité : formats, angles, jours de publication et appel à l'action pour chaque post.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "marketing",
+      "sousCategorie": "Réseaux sociaux",
+      "roles": [
+        "marketeurs",
+        "createurs-de-contenu",
+        "assistants-virtuels",
+        "vendeurs-e-commerce"
+      ],
+      "conseils": "• Valide d'abord les 4 piliers de contenu proposés avant de demander les 30 posts détaillés.\n• Recycle : demande une version « TikTok » et une version « LinkedIn » d'un même post.\n• Réserve 20 % du calendrier aux réactions d'actualité, donc laisse des cases vides.",
+      "utilisation": "Remplace {{activite}}, {{plateformes}} (ex. « Instagram + LinkedIn »), {{audience}} et {{frequence}} (ex. « 4 posts par semaine »).",
+      "vues": 780,
+      "ordre": 6,
+      "nouveau": false,
+      "contenu": "Agis comme un responsable des réseaux sociaux senior qui planifie le contenu de comptes professionnels B2B et B2C.\n\nMon contexte :\n- Activité : {{activite}}\n- Plateformes : {{plateformes}}\n- Audience : {{audience}}\n- Fréquence souhaitée : {{frequence}}\n\nÉtape 1 — Définis 4 piliers de contenu adaptés à mon activité (ex. pédagogie, coulisses, preuve sociale, offre). Pour chaque pilier : sa proportion dans le mois et l'objectif qu'il sert (visibilité, confiance, conversion).\n\nÉtape 2 — Produis le calendrier des 30 prochains jours sous forme de tableau avec ces colonnes :\n| Jour | Plateforme | Pilier | Format (post, carrousel, vidéo courte, story) | Accroche proposée | Angle en 1 phrase | Appel à l'action |\n\nÉtape 3 — Après le tableau, liste :\n- les 3 posts à fort potentiel que je devrais soigner davantage ;\n- les formats réutilisables entre plateformes pour gagner du temps ;\n- une règle simple pour décider quoi publier quand je n'ai pas d'idée.\n\nRédige les accroches en français naturel, sans formules creuses type « Plongeons dans ». Pose-moi 2 questions si nécessaire avant de produire le tableau."
+    },
+    {
+      "slug": "scripts-video-courte-virale",
+      "titre": "Scripts de vidéos courtes virales (TikTok, Reels, Shorts)",
+      "emoji": "🎬",
+      "description": "Écris des scripts de vidéos de 30 à 60 secondes avec accroche en 2 secondes, structure de rétention et appel à l'action. Prêt à tourner avec un simple smartphone.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "marketing",
+      "sousCategorie": "Réseaux sociaux",
+      "roles": [
+        "createurs-de-contenu",
+        "marketeurs",
+        "copywriters",
+        "vendeurs-e-commerce"
+      ],
+      "conseils": "• Génère 5 scripts d'un coup, puis tourne celui qui te semble le plus naturel à dire à voix haute.\n• Lis le script chronomètre en main : si l'accroche dépasse 3 secondes, coupe-la.\n• Réutilise la structure gagnante d'une vidéo qui a marché en changeant seulement le sujet.",
+      "utilisation": "Remplace {{sujet}}, {{audience}}, {{ton}} (ex. « complice et direct », « expert rassurant ») et {{duree}} (30, 45 ou 60 secondes).",
+      "vues": 920,
+      "ordre": 7,
+      "nouveau": true,
+      "contenu": "Agis comme un scénariste expert des vidéos courtes (TikTok, Reels, YouTube Shorts) dont les scripts dépassent régulièrement les 100 000 vues.\n\nContexte :\n- Sujet de la vidéo : {{sujet}}\n- Audience : {{audience}}\n- Ton de la chaîne : {{ton}}\n- Durée cible : {{duree}} secondes\n\nÉcris 3 scripts différents. Pour chacun, respecte exactement cette structure et présente-la sous forme de tableau à 3 colonnes (Temps | À l'écran / à dire | Indication visuelle) :\n\n1. **Accroche (0-3 s)** — une phrase qui crée une tension immédiate : question brûlante, affirmation contre-intuitive ou résultat visible. Interdiction des accroches génériques (« Aujourd'hui on va voir… »).\n2. **Développement (3 s → 75 % de la durée)** — une seule idée forte, découpée en 3-4 micro-étapes, avec un élément visuel nouveau toutes les 2-3 secondes pour maintenir la rétention.\n3. **Paiement (75-90 %)** — la réponse ou le résultat promis, clair et satisfaisant.\n4. **Appel à l'action (fin)** — une seule action, formulée en moins de 10 mots.\n\nTermine par : la raison pour laquelle chaque accroche fonctionne (mécanisme psychologique, en une ligne). Rédige les dialogues comme on parle vraiment, phrases courtes, français oral."
+    },
+    {
+      "slug": "idees-posts-linkedin",
+      "titre": "Idées de posts LinkedIn qui engagent",
+      "emoji": "💼",
+      "description": "Reçois 10 idées de posts LinkedIn calibrées pour ton expertise : angles originaux, accroches prêtes et formats adaptés. Fini la page blanche du lundi matin.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "marketing",
+      "sousCategorie": "Réseaux sociaux",
+      "roles": [
+        "freelances",
+        "consultants",
+        "solopreneurs",
+        "marketeurs"
+      ],
+      "conseils": "• Choisis 2 idées maximum par semaine : mieux vaut 8 excellents posts par mois que 20 moyens.\n• Garde une trace des idées non utilisées, elles se réutilisent sous un autre angle 6 mois plus tard.\n• Après publication, demande à l'IA d'analyser le post le plus performant pour comprendre son mécanisme.",
+      "utilisation": "Remplace {{expertise}}, {{audience}} et {{experience-a-raconter}} (une anecdote pro, même banale en apparence).",
+      "vues": 690,
+      "ordre": 8,
+      "nouveau": false,
+      "contenu": "Agis comme un ghostwriter LinkedIn qui écrit pour des experts français (consultants, freelances, dirigeants) et qui sait ce qui déclenche des commentaires sur la plateforme.\n\nMon profil :\n- Expertise : {{expertise}}\n- Audience visée : {{audience}}\n- Anecdote ou expérience récente que je peux raconter : {{experience-a-raconter}}\n\nGénère 10 idées de posts, numérotées, organisées en 4 familles :\n- 3 idées « opinion » (une position claire sur mon secteur, même impopulaire) ;\n- 3 idées « apprentissage » (une erreur, une leçon, un avant/après) ;\n- 2 idées « méthode » (un processus concret que mon audience peut copier) ;\n- 2 idées « contre-idée » (une croyance répandue que je réfute avec mon expérience).\n\nPour chaque idée, donne :\n1. Un titre d'accroche (première ligne visible avant « voir plus »), de moins de 12 mots, qui donne envie de cliquer ;\n2. L'angle en 2 phrases ;\n3. Le format recommandé (texte court, carrousel, sondage) ;\n4. Le niveau de risque (si l'opinion peut froider, dis-le).\n\nInterdits : clichés LinkedIn (« Voici ce que j'ai appris », « La réussite n'est pas… »), emojis en début de ligne, promesses exagérées."
+    },
+    {
+      "slug": "architecte-full-stack",
+      "titre": "Architecte full-stack pour ton application",
+      "emoji": "🏗️",
+      "description": "Obtiens une architecture technique complète pour ton application : structure des dossiers, schéma de base de données, choix des outils et plan de construction étape par étape.",
+      "type": "CODE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini"
+      ],
+      "categorieSlug": "coding",
+      "sousCategorie": "Développement d'app",
+      "roles": [
+        "developpeurs",
+        "ingenieurs-ia"
+      ],
+      "conseils": "• Décris ton application en une phrase claire avant tout : c'est l'entrée la plus importante.\n• Fais valider l'architecture par une deuxième passe (« quels sont les points faibles de ce plan ? »).\n• Construis dans l'ordre du plan, sans sauter l'étape des tests.",
+      "utilisation": "Remplace {{description-application}}, {{stack-preferree}} (ex. « Next.js + Prisma + PostgreSQL ») et {{contraintes}} (ex. « hébergement gratuit au départ »).",
+      "vues": 640,
+      "ordre": 9,
+      "nouveau": false,
+      "contenu": "Agis comme un architecte logiciel full-stack senior. Tu conçois des applications robustes, maintenables et adaptées à la taille réelle du projet — pas de sur-ingénierie.\n\nMon projet :\n- Application : {{description-application}}\n- Stack souhaitée : {{stack-preferree}}\n- Contraintes : {{contraintes}}\n- Niveau : développeur autonome mais seul sur le projet.\n\nProduis un document d'architecture structuré :\n\n1. **Vue d'ensemble** — l'application en 5 lignes, les utilisateurs et les 3 fonctionnalités critiques du premier lancement.\n2. **Schéma de base de données** — les tables/modèles avec leurs champs, types et relations, en code (Prisma ou SQL), avec justification d'une ligne par relation non évidente.\n3. **Arborescence des dossiers** — la structure exacte du projet, avec le rôle de chaque dossier.\n4. **Choix techniques commentés** — pour chaque décision (auth, hébergement, paiements, emails) : l'option retenue, une alternative, et pourquoi ce choix dans mon contexte.\n5. **Plan de construction** — les étapes ordonnées pour construire l'app, du projet vierge au déploiement, avec les fichiers à créer à chaque étape et les pièges classiques de l'étape.\n6. **Ce que je ne dois PAS construire maintenant** — la liste des fonctionnalités à repousser après validation du produit.\n\nSi une information manque pour une décision importante, pose la question au lieu d'inventer."
+    },
+    {
+      "slug": "script-connexion-securisee",
+      "titre": "Script d'authentification sécurisé",
+      "emoji": "🔐",
+      "description": "Génère un système de connexion et d'inscription sécurisé : hachage de mot de passe, sessions, protection contre les attaques classiques. Du code prêt à auditer et à adapter.",
+      "type": "CODE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini"
+      ],
+      "categorieSlug": "coding",
+      "sousCategorie": "Sécurité",
+      "roles": [
+        "developpeurs"
+      ],
+      "conseils": "• Ne colle jamais de vrais identifiants ou clés secrètes dans la conversation.\n• Vérifie que le code utilise bcrypt ou argon2 pour les mots de passe, jamais MD5 ni SHA1.\n• Fais relire le code final par l'IA avec la question « quelles failles connues ce code pourrait-il avoir ? ».",
+      "utilisation": "Remplace {{langage-framework}} (ex. « Next.js 14 App Router »), {{base-donnees}} (ex. « PostgreSQL avec Prisma ») et {{fonctionnalites}} (ex. « mot de passe oublié + magic link »).",
+      "vues": 520,
+      "ordre": 10,
+      "nouveau": false,
+      "contenu": "Agis comme un développeur backend spécialisé en sécurité des applications web. Tu écris du code de production, défensif, commenté en français.\n\nEnvironnement technique :\n- Framework : {{langage-framework}}\n- Base de données : {{base-donnees}}\n- Fonctionnalités demandées : {{fonctionnalites}}\n\nGénère un système d'authentification complet comprenant :\n\n1. **Inscription** — validation des champs côté serveur, vérification de la force du mot de passe (longueur minimale 12), hachage avec bcrypt ou argon2id, message d'erreur volontairement vague si l'email existe déjà (anti-énumération).\n2. **Connexion** — comparaison en temps constant, limite de tentatives (5 essais puis temporisation progressive), messages d'erreur identiques pour « email inconnu » et « mot de passe faux ».\n3. **Session** — cookie httpOnly, secure, sameSite strict, expiration, renouvellement d'identifiant de session à la connexion (anti-fixation).\n4. **Mot de passe oublié** — jeton à usage unique expirant en 15 minutes, réponse identique que l'email existe ou non.\n5. **Check-list sécurité** — les 8 points à vérifier avant la mise en production (en-têtes, rate limiting, logs, secrets…).\n\nFormat : un bloc de code par fichier, nom de fichier en commentaire en tête, gestion des erreurs explicite (pas de try/catch vide). Termine par les 3 tests manuels que je dois faire pour valider le système."
+    },
+    {
+      "slug": "chatbot-e-commerce",
+      "titre": "Chatbot e-commerce prêt à intégrer",
+      "emoji": "💬",
+      "description": "Conçois un chatbot de boutique en ligne : réponses aux questions fréquentes, recommandation de produits, gestion des réclamations et passage au human quand il faut.",
+      "type": "CODE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini"
+      ],
+      "categorieSlug": "coding",
+      "sousCategorie": "API & intégrations",
+      "roles": [
+        "developpeurs",
+        "vendeurs-e-commerce"
+      ],
+      "conseils": "• Prépare ta FAQ et tes politiques (livraison, retours) avant : le chatbot ne sera bon que si ses sources sont bonnes.\n• Impose une limite : le chatbot doit renvoyer vers un humain pour tout litige ou remboursement.\n• Teste avec les 10 questions les plus fréquentes de ton service client réel.",
+      "utilisation": "Remplace {{plateforme}} (ex. « Shopify », « WooCommerce »), {{produits}} (type de produits vendus) et {{politiques}} (livraison, retours, garanties).",
+      "vues": 590,
+      "ordre": 11,
+      "nouveau": false,
+      "contenu": "Agis comme un développeur spécialisé dans les chatbots de support client pour le e-commerce.\n\nContexte :\n- Plateforme : {{plateforme}}\n- Produits vendus : {{produits}}\n- Politiques à respecter : {{politiques}}\n\nConstruis le chatbot en 4 livrables :\n\n1. **Prompt système du chatbot** (bloc de code à part) — en français, avec : le rôle, le ton (serviable, concis, jamais familier), les règles strictes (ne jamais inventer un délai de livraison ou un prix, renvoyer vers un humain pour tout litige, remboursement ou problème juridique, répondre en 3 phrases maximum), et le format de réponse souhaité.\n2. **Les 15 intentions à couvrir** — tableau : intention, exemple de formulation client, réponse type, action associée (réponse simple, recherche produit, escalade humaine).\n3. **Le code d'intégration** — l'appel à l'API de modèle avec gestion des erreurs, historique de conversation limité à 10 échanges, et détection du besoin d'escalade.\n4. **Jeu de tests** — 10 messages clients réalistes dont 3 pièges (question ambiguë, réclamation en colère, tentative de contournement des règles) et la réponse attendue pour chacun.\n\nContraintes : aucune donnée personnelle stockée dans l'historique, prix et stocks toujours issus des données réelles passées en contexte, jamais générés."
+    },
+    {
+      "slug": "audit-qualite-code-ia",
+      "titre": "Audit qualité du code généré par IA",
+      "emoji": "🔍",
+      "description": "Colle du code (généré par IA ou non) et reçois un audit structuré : bugs probables, failles de sécurité, dettes techniques et corrections prioritaires, avec le code corrigé.",
+      "type": "CODE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini"
+      ],
+      "categorieSlug": "coding",
+      "sousCategorie": "Refactoring",
+      "roles": [
+        "developpeurs",
+        "ingenieurs-ia"
+      ],
+      "conseils": "• Joins aussi les messages d'erreur ou comportements bizarres observés : cela oriente l'audit.\n• Corrige dans l'ordre de priorité donné, pas dans l'ordre d'apparition du code.\n• Relance l'audit après corrections : une seconde passe attrape souvent 2 ou 3 problèmes de plus.",
+      "utilisation": "Colle ton code à la place de {{code-a-auditer}}, précise {{contexte-execution}} (ex. « route API Next.js appelée par le formulaire de contact ») et {{symptomes}}.",
+      "vues": 460,
+      "ordre": 12,
+      "nouveau": true,
+      "contenu": "Agis comme un réviseur de code impitoyable mais constructif. Tu audits du code comme lors d'une revue de pull request critique avant mise en production.\n\nCode à auditer :\n```\n{{code-a-auditer}}\n```\n\nContexte d'exécution : {{contexte-execution}}\nSymptômes ou remarques : {{symptomes}}\n\nProduis un audit en 4 sections :\n\n1. **Verdict en 3 lignes** — état global, risque principal, aptitude à la production (oui / oui après corrections / non).\n2. **Problèmes classés par gravité** — tableau : gravité (bloquant, majeur, mineur), problème, conséquence concrète, correction. Traite dans cet ordre : failles de sécurité (injection, validation d'entrée, secrets), bugs logiques, gestion des erreurs, performances, lisibilité.\n3. **Code corrigé** — le code complet corrigé, pas des extraits, avec les changements commentés en français.\n4. **Tests à ajouter** — les 5 tests prioritaires (cas nominaux et cas limites) qui auraient attrapé les problèmes trouvés.\n\nSois précis : chaque problème pointe la ligne ou la fonction exacte. N'invente pas des problèmes pour remplir : si le code est correct sur un aspect, dis-le."
+    },
+    {
+      "slug": "audit-seo-complet",
+      "titre": "Audit SEO complet de ton site",
+      "emoji": "🧭",
+      "description": "Fais auditer la structure, les pages et le contenu de ton site selon les critères SEO actuels, avec un plan d'action priorisé sur 30 jours.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "seo",
+      "sousCategorie": "SEO technique",
+      "roles": [
+        "marketeurs",
+        "entrepreneurs",
+        "agences"
+      ],
+      "conseils": "• Colle le contenu de tes pages principales plus ta structure de menus : l'IA ne peut pas visiter ton site seule.\n• Priorise le plan d'action par impact/effort, commence toujours par les corrections techniques.\n• Refais l'audit un mois après : mesure la progression sur les mêmes critères.",
+      "utilisation": "Remplace {{url-et-activite}}, {{pages-principales}} (colle titres + texte des pages clés) et {{mots-cles-vises}}.",
+      "vues": 730,
+      "ordre": 13,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant SEO senior qui audite des sites et produit des plans d'action concrets, pas des généralités.\n\nContexte :\n- Site et activité : {{url-et-activite}}\n- Pages principales (contenu collé) : {{pages-principales}}\n- Mots-clés visés : {{mots-cles-vises}}\n\nRéalise l'audit suivant :\n\n1. **Diagnostic des pages collées** — pour chaque page : force du titre SEO (balise title), de la méta-description, des titres Hn, de la structure sémantique et de l'intention de recherche couverte. Tableau avec note /10 et correction proposée.\n2. **Analyse des mots-clés visés** — pour chacun : l'intention (informationnelle, commerciale, transactionnelle), la pertinence pour ma page actuelle, et la page à créer s'il y a un décalage.\n3. **Problèmes techniques classiques** — vérifie à partir de ce que je t'ai donné : contenu dupliqué entre pages, chaînes de titres incohérentes, pages orphelines probables, maillage interne insuffisant.\n4. **Plan d'action 30 jours** — tableau priorisé : action, impact (fort/moyen/faible), effort (faible/moyen/fort), ordre d'exécution. Maximum 10 actions.\n5. **Quick wins** — les 3 modifications à faire aujourd'hui même, avec le texte corrigé prêt à coller (titles et méta-descriptions réécrits).\n\nSi des éléments essentiels manquent (pages, structure), pose-moi la question avant d'aller plus loin."
+    },
+    {
+      "slug": "recherche-mots-cles-volume",
+      "titre": "Stratège mots-clés à fort potentiel",
+      "emoji": "🔎",
+      "description": "Construis une liste de mots-clés réalistes pour ton site : requêtes longue traîne, intention de recherche, difficulté estimée et page à créer pour chaque mot-clé.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "seo",
+      "sousCategorie": "Recherche de mots-clés",
+      "roles": [
+        "marketeurs",
+        "copywriters",
+        "agences"
+      ],
+      "conseils": "• Vise d'abord la longue traîne : un nouveau site ne se positionne pas sur « logiciel CRM » mais sur « logiciel CRM pour coach sportif ».\n• Vérifie les volumes dans un vrai outil (Ubersuggest, Search Console) : l'IA fournit les requêtes, pas les chiffres exacts.\n• Garde un seul mot-clé principal par page, sinon tes pages se cannibalisent.",
+      "utilisation": "Remplace {{secteur}}, {{offre}} et {{audience}}. Ajoute {{exclusions}} si certains sujets ne te concernent pas.",
+      "vues": 680,
+      "ordre": 14,
+      "nouveau": false,
+      "contenu": "Agis comme un stratège SEO spécialisé dans la recherche de mots-clés pour des sites de PME et de créateurs. Tu penses en clusters thématiques et en intention de recherche.\n\nContexte :\n- Secteur : {{secteur}}\n- Offre : {{offre}}\n- Audience : {{audience}}\n- Exclusions : {{exclusions}}\n\nProduis :\n\n1. **8 clusters thématiques** — par exemple « comparaisons », « prix », « tutoriels », « alternatives », « problèmes »… Pour chaque cluster : l'intention dominante et la difficulté estimée (faible/moyenne/forte) pour un site récent.\n2. **40 mots-clés concrets** — répartis dans les clusters, en français naturel tel que les gens tapent réellement. Tableau : mot-clé, intention (info / commerciale / transactionnelle), difficulté estimée, type de page à créer (article, page service, page comparaison).\n3. **Les 10 priorités** — les mots-clés avec le meilleur ratio opportunité/difficulté pour un site avec peu d'autorité, classés dans l'ordre où je devrais les traiter.\n4. **Anti-cannibalisation** — pour chaque priorité, le mot-clé principal ET les variantes secondaires que cette même page couvrira, pour éviter de créer deux pages concurrentes.\n\nContrainte : uniquement des requêtes qu'une PME française taperait vraiment. Pas de mot-clé générique hors d'atteinte."
+    },
+    {
+      "slug": "strategie-seo-youtube",
+      "titre": "Consultant SEO YouTube",
+      "emoji": "▶️",
+      "description": "Optimise ta chaîne YouTube : titres, miniatures, descriptions et stratégie de playlists pensés pour l'algorithme et le clic. Avec des modèles réutilisables pour tes prochaines vidéos.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "seo",
+      "sousCategorie": "SEO sur YouTube",
+      "roles": [
+        "createurs-de-contenu",
+        "marketeurs"
+      ],
+      "conseils": "• Le titre et la miniature se décident ensemble : génère-les par paire, jamais séparément.\n• Crée des playlists thématiques dès 5 vidéos sur un même sujet : elles améliorent le temps de visionnage.\n• Après chaque vidéo, note son taux de clic : c'est LE chiffre qui guide tes prochains titres.",
+      "utilisation": "Remplace {{theme-chaine}}, {{video-a-optimiser}} (ton sujet ou ton titre actuel) et {{audience-cible}}.",
+      "vues": 560,
+      "ordre": 15,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant SEO YouTube qui accompagne des chaînes francophones en croissance. Tu connais les mécaniques de clic, de rétention et de découverte sur la plateforme.\n\nContexte :\n- Thème de la chaîne : {{theme-chaine}}\n- Vidéo à optimiser : {{video-a-optimiser}}\n- Audience cible : {{audience-cible}}\n\nLivre les éléments suivants :\n\n1. **5 propositions de titres** — moins de 60 caractères, chacun avec une mécanique différente (curiosité, bénéfice chiffré, contre-intuition, question, résultat). Marque celui que tu recommandes et pourquoi.\n2. **Concepts de miniatures** — pour chaque titre : le visuel décrit en une phrase (élément principal, texte éventuel de 3 mots maximum, couleur dominante), compatible avec le titre.\n3. **Description optimisée** — les 2 premières lignes (visibles sans clic) contenant le mot-clé principal naturellement, puis une description complète avec horodatage types, et les mots-clés secondaires glissés naturellement.\n4. **Étiquettes et playlist** — les 8 tags pertinents et la playlist à laquelle rattacher la vidéo.\n5. **Série possible** — 4 idées de vidéos complémentaires sur le même thème pour construire un binge-watching, avec leur titre optimisé.\n\nNe promets aucun résultat en vues : travaille uniquement sur ce qui augmente la probabilité de clic et de rétention."
+    },
+    {
+      "slug": "autorite-thematique-seo",
+      "titre": "Constructeur d'autorité thématique",
+      "emoji": "🏛️",
+      "description": "Construis le plan de contenu complet d'un sujet : page pilier, articles satellites, maillage interne. La méthode qui fait grimper un site sur une thématique entière.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "seo",
+      "sousCategorie": "Contenu & briefs",
+      "roles": [
+        "marketeurs",
+        "copywriters",
+        "consultants"
+      ],
+      "conseils": "• Publie la page pilier en premier même si elle est incomplète : tu la complèteras au fil des articles.\n• Un article = une seule sous-question : refuse les articles qui mélangent plusieurs intentions.\n• Relie chaque nouvel article à la pilier dès sa publication, sinon l'autorité ne circule pas.",
+      "utilisation": "Remplace {{sujet}} (ex. « la facturation pour freelances »), {{site-activite}} et {{niveau-actuel}} (site nouveau / établi).",
+      "vues": 500,
+      "ordre": 16,
+      "nouveau": false,
+      "contenu": "Agis comme un stratège de contenu SEO qui construit des autorités thématiques (topic clusters) pour des sites français. Tu organisais le contenu en pages piliers et articles satellites reliés.\n\nContexte :\n- Sujet à couvrir : {{sujet}}\n- Site et activité : {{site-activite}}\n- Stade du site : {{niveau-actuel}}\n\nConstruis le plan d'autorité thématique :\n\n1. **Cartographie du sujet** — les 4 à 6 sous-thèmes qui couvrent l'ensemble du sujet, du plus recherché au plus niche.\n2. **Page pilier** — plan détaillé : titre H1, structure H2/H3, les questions auxquelles elle répond, la longueur cible et les mots-clés qu'elle vise.\n3. **15 articles satellites** — tableau : titre, sous-thème de rattachement, question précise à laquelle répond l'article, intention de recherche, mot-clé principal, longueur cible.\n4. **Maillage interne** — les règles de liaison : chaque satellite pointe vers la pilier avec une ancre explicite, les satellites de même sous-thème se lient entre eux, la pilier pointe vers les 5 satellites les plus importants.\n5. **Ordre de publication** — la séquence recommandée sur 3 mois, en commençant par ce qui apporte le plus de crédibilité.\n\nChaque titre doit être unique, sans doublon d'intention avec un autre article du plan."
+    },
+    {
+      "slug": "technique-feynman-concepts",
+      "titre": "Technique de Feynman : comprends tout",
+      "emoji": "🧠",
+      "description": "Apprends n'importe quel concept difficile avec la méthode de Feynman : explication simple, détection des lacunes, reformulation. Jusqu'à ce que tu saches l'expliquer à un enfant.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "education",
+      "sousCategorie": "Aide à l'apprentissage",
+      "roles": [
+        "etudiants",
+        "enseignants",
+        "medecins"
+      ],
+      "conseils": "• Explique le concept avec tes propres mots AVANT de lire l'explication de l'IA : c'est là que la lacune se révèle.\n• Refuse d'avancer tant que l'étape 3 n'est pas limpide, même si ça prend trois tours.\n• Reviens sur le concept 48 h plus tard et refais l'exercice de mémoire.",
+      "utilisation": "Remplace {{concept}} par la notion à maîtriser et {{ton-niveau}} par ton niveau actuel (ex. « terminale », « je débute complètement »).",
+      "vues": 610,
+      "ordre": 17,
+      "nouveau": false,
+      "contenu": "Agis comme un tuteur qui applique rigoureusement la technique de Feynman pour rendre n'importe quel concept compréhensible. Tu ne donnes jamais la réponse complète d'un coup : tu guides par étapes.\n\nConcept à maîtriser : {{concept}}\nMon niveau déclaré : {{ton-niveau}}\n\nDéroule le protocole en 4 étapes, une étape par réponse, en attendant ma validation entre chaque :\n\n**Étape 1 — Diagnostic.** Demande-moi d'expliquer le concept avec mes propres mots, comme à un enfant de 10 ans. N'ajoute rien d'autre.\n\n**Étape 2 — Détection des lacunes.** Analyse mon explication : liste précisément ce qui est flou, faux ou manquant, sans me corriger encore. Classe : incompréhension fondamentale / confusion partielle / simple oubli de détail.\n\n**Étape 3 — Réexplication par paliers.** Explique le concept 3 fois : (a) avec une analogie du quotidien, (b) avec les vrais termes techniques mais une phrase par idée, (c) avec un exemple chiffré ou concret. Vérifie à chaque palier que j'ai suivi avant de passer au suivant.\n\n**Étape 4 — Validation finale.** Demande-moi de réexpliquer le concept entièrement, sans aide. Si l'explication est juste, propose 2 questions pièges pour tester la solidité. Sinon, identifie ce qui manque et reprends à l'étape 3."
+    },
+    {
+      "slug": "transcrire-youtube-en-cours",
+      "titre": "Transforme une vidéo YouTube en cours",
+      "emoji": "🎥",
+      "description": "Colle la transcription d'une conférence ou d'un tutoriel YouTube et reçois un cours structuré : fiches, quiz, exercices et plan de révision sur une semaine.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "education",
+      "sousCategorie": "Création de cours",
+      "roles": [
+        "enseignants",
+        "coachs",
+        "createurs-de-contenu"
+      ],
+      "conseils": "• Récupère la transcription officielle de la vidéo (menu « Afficher la transcription ») pour ne pas dépendre de ta mémoire.\n• Demande les fiches de révision séparément pour pouvoir les imprimer seules.\n• Épure : supprime du cours tout ce que la vidéo répète, l'IA garde le principal mais tu veux le condensé.",
+      "utilisation": "Colle la transcription à la place de {{transcription}}, indique {{duree-video}} et {{public}} (ex. « lycéens », « adultes en reconversion »).",
+      "vues": 570,
+      "ordre": 18,
+      "nouveau": false,
+      "contenu": "Agis comme un concepteur pédagogique qui transforme des contenus vidéo en cours mémorisables. Tu élimines les répétitions, tu structures, tu rends actif.\n\nTranscription de la vidéo (durée {{duree-video}}, public {{public}}) :\n{{transcription}}\n\nProduis un dossier de cours complet :\n\n1. **Résumé exécutif** — l'essentiel de la vidéo en 10 lignes maximum, comme si le public n'avait que 2 minutes.\n2. **Plan du cours** — les idées réorganisées en 3 à 5 modules logiques (pas nécessairement dans l'ordre de la vidéo), avec pour chaque module : objectif d'apprentissage formulé (« à la fin, vous serez capable de… »), notions clés, exemples tirés de la vidéo.\n3. **Fiches de révision** — une fiche par module : définitions à connaître, formules ou étapes, et un moyen mnémotechnique quand c'est pertinent.\n4. **Quiz d'auto-évaluation** — 10 questions variées (QCM, vrai/faux, question ouverte courte) avec corrigé et justification d'une ligne.\n5. **Exercice d'application** — 1 exercice concret qui oblige à utiliser les notions, avec sa correction détaillée.\n6. **Plan de révision 7 jours** — quoi revoir chaque jour et pendant combien de minutes, en suivant le principe de répétition espacée.\n\nSignale clairement si la transcription est incohérente ou incomplète à un endroit."
+    },
+    {
+      "slug": "creer-contenu-de-cours",
+      "titre": "Créateur de contenu de cours structuré",
+      "emoji": "📚",
+      "description": "Transforme ton expertise en cours complet : progression pédagogique, séances détaillées, supports et évaluations. Pour enseignants, formateurs et coachs.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "education",
+      "sousCategorie": "Création de cours",
+      "roles": [
+        "enseignants",
+        "coachs"
+      ],
+      "conseils": "• Valide le découpage en modules avant de demander le détail des séances, c'est plus rapide qu'une refonte.\n• Prévois un exercice actif par séance : on retient ce qu'on pratique, pas ce qu'on écoute.\n• Fais relire le cours par l'IA avec la question « où un débutant décroche-t-il ? ».",
+      "utilisation": "Remplace {{sujet-du-cours}}, {{public}}, {{duree-totale}} (ex. « 6 semaines, 2 h par semaine ») et {{format}} (présentiel, visio, en ligne asynchronously).",
+      "vues": 540,
+      "ordre": 19,
+      "nouveau": false,
+      "contenu": "Agis comme un ingénieur pédagogique expérimenté qui conçoit des formations professionnelles et scolaires solides, orientées compétences réelles.\n\nParamètres du cours :\n- Sujet : {{sujet-du-cours}}\n- Public : {{public}}\n- Durée totale : {{duree-totale}}\n- Format : {{format}}\n\nConçois le cours complet :\n\n1. **Compétences visées** — 3 à 5 compétences finales formulées avec des verbes d'action observables.\n2. **Découpage en modules** — progression logique du plus simple au plus complexe, chaque module devant se terminer par une victoire concrète pour l'apprenant.\n3. **Détaillé par séance** — pour chaque séance : objectif, minutage (accroche, apport théorique, activité pratique, synthèse), matériel nécessaire, et le point de vigilance classique (où les apprenants bloquent habituellement).\n4. **Supports à produire** — la liste des documents (slides, fiches, exercices) avec pour chacun une description de son contenu.\n5. **Évaluations** — une évaluation formative par module (rapide, peu notée) et une évaluation finale alignée sur les compétences visées, avec grille de correction.\n6. **Plan B pédagogique** — que faire si le groupe est plus lent ou plus avancé que prévu.\n\nNe rédige pas encore les supports : concentre-toi sur la structure. Demande-moi quelle séance détailler en premier."
+    },
+    {
+      "slug": "simplifier-informations-complexes",
+      "titre": "Simplificateur d'informations complexes",
+      "emoji": "💡",
+      "description": "Transforme un texte technique, médical ou scientifique en explication claire pour n'importe quel public. Trois niveaux de simplification, du profane à l'initié.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "education",
+      "sousCategorie": "Aide à l'apprentissage",
+      "roles": [
+        "medecins",
+        "enseignants",
+        "assistants-virtuels"
+      ],
+      "conseils": "• Indique toujours QUI lira l'explication : la bonne simplification dépend du destinataire, pas du texte.\n• Vérifie qu'aucune nuance importante n'a été perdue, surtout pour du contenu médical ou juridique.\n• Garde la version niveau 3 : c'est souvent elle qui sert quand le lecteur pose des questions.",
+      "utilisation": "Colle le texte à simplifier à la place de {{texte-complexe}} et précise {{public-final}} (ex. « patients », « élèves de 3e », « clients non techniques »).",
+      "vues": 490,
+      "ordre": 20,
+      "nouveau": false,
+      "contenu": "Agis comme un expert en vulgarisation qui rend compréhensible n'importe quel contenu technique, scientifique, médical ou juridique, sans jamais le déformer.\n\nTexte à simplifier :\n{{texte-complexe}}\n\nPublic final : {{public-final}}\n\nProduis :\n\n1. **Version niveau 1 — ultra simple** — explication pour quelqu'un sans aucune connaissance du domaine : phrases de moins de 15 mots, analogies du quotidien, aucun jargon. Maximum 150 mots.\n2. **Version niveau 2 — vulgarisée** — pour un public {{public-final}} motivé : les vrais termes apparaissent mais chacun est défini entre parenthèses à sa première utilisation. Maximum 300 mots.\n3. **Version niveau 3 — initié accessible** — pour quelqu'un qui connaît un peu le sujet : nuances conservées, vocabulaire technique assumé, structurée en 3 paragraphes logiques.\n4. **Glossaire** — les termes techniques du texte, chacun défini en une phrase simple, trié par ordre alphabétique.\n5. **Contrôle de fidélité** — liste ce que la simplification a perdu ou adouci par rapport au texte original (limites, conditions, exceptions), pour que je sache ce que le lecteur ne verra pas.\n\nInterdits : inventer des informations absentes du texte, noircir le tableau ou au contraire rassurer artificiellement."
+    },
+    {
+      "slug": "generer-procedures-operatoires",
+      "titre": "Générateur de procédures (SOP)",
+      "emoji": "📋",
+      "description": "Documente n'importe quel processus de ton entreprise en une procédure claire et transmissible : étapes, responsabilités, points de contrôle. L'antidote au « c'est dans ma tête ».",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "operations",
+      "sousCategorie": "Processus & SOP",
+      "roles": [
+        "chefs-entreprise",
+        "consultants",
+        "assistants-virtuels"
+      ],
+      "conseils": "• Décris le processus comme si tu parlais à un stagiaire : les détails que tu juges évidents sont ceux qui manquent.\n• Une procédure qui dépasse deux pages n'est jamais suivie : coupe ou découpe-la en deux procédures.\n• Fais relire la SOP par la personne qui exécute le travail avant de la publier.",
+      "utilisation": "Remplace {{processus}} (ex. « onboarding d'un nouveau client »), {{equipe}} et {{outils}} utilisés dans le processus.",
+      "vues": 520,
+      "ordre": 21,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant en organisation qui documente les processus d'entreprise en procédures opérationnelles claires, testées sur du personnel nouveau.\n\nProcessus à documenter : {{processus}}\nÉquipe concernée : {{equipe}}\nOutils utilisés : {{outils}}\n\nGénère la procédure opérationnelle complète :\n\n1. **Fiche d'identité** — nom de la procédure, déclencheur (quand démarre-t-elle ?), résultat attendu (comment sait-on qu'elle est terminée et réussie ?), fréquence, responsables.\n2. **Procédure pas à pas** — tableau : numéro, action, qui la réalise, outil utilisé, durée estimée, piège à éviter. Rédigé pour quelqu'un qui n'a jamais fait la tâche.\n3. **Points de contrôle** — les 3 à 5 moments où il faut vérifier que tout est conforme avant de continuer, avec le critère de vérification.\n4. **Cas particuliers** — les 3 situations inhabituelles les plus probables (retard d'un tiers, outil indisponible, information manquante) et la conduite à tenir pour chacune.\n5. **Version condensée** — la même procédure en 5 lignes maximum, pour l'afficher près du poste de travail.\n6. **Améliorations suggérées** — 3 pistes pour simplifier ou automatiser le processus, avec le gain estimé.\n\nTermine par les 3 questions que je dois trancher pour finaliser la procédure."
+    },
+    {
+      "slug": "opportunites-automatisation-workflow",
+      "titre": "Analyste d'automatisation des workflows",
+      "emoji": "⚙️",
+      "description": "Analyse ton flux de travail actuel et découvre ce que tu peux automatiser dès cette semaine, avec les outils adaptés et le gain de temps chiffré pour chaque automatisation.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "operations",
+      "sousCategorie": "Automatisation",
+      "roles": [
+        "consultants",
+        "chefs-entreprise",
+        "ingenieurs-ia"
+      ],
+      "conseils": "• Documente ton workflow réel pendant 3 jours avant : les tâches oubliées sont souvent les plus automatisables.\n• Automatise d'abord ce qui est fréquent et simple, pas ce qui est spectaculaire.\n• Garde toujours une intervention humaine sur les étapes qui touchent un client ou de l'argent.",
+      "utilisation": "Décris ton flux actuel dans {{workflow-actuel}} (étapes, outils, fréquence, temps passé), précise {{budget-outils}} et {{competence-technique}} (aucune / moyenne / développeur).",
+      "vues": 560,
+      "ordre": 22,
+      "nouveau": false,
+      "contenu": "Agis comme un analyste en automatisation des processus qui cherche les gains réels, pas les automatisations gadget. Tu raisonnes en coût/bénéfice et en risques.\n\nMon workflow actuel :\n{{workflow-actuel}}\n\nContexte : budget outils {{budget-outils}}, compétence technique {{competence-technique}}.\n\nAnalyse :\n\n1. **Reconstitution du workflow** — redessine mon processus étape par étape pour vérifier que tu as bien compris ; attends ma validation avant de continuer.\n2. **Cartographie des opportunités** — tableau : tâche, fréquence, temps mensuel passé, automatisable (oui/partiellement/non), difficulté, gain de temps mensuel estimé.\n3. **Top 3 des automatisations prioritaires** — pour chacune : pourquoi maintenant, outil(s) recommandé(s) adaptés à mon budget et mes compétences, étapes de mise en place, ce qui reste manuel volontairement, et le risque principal avec sa parade.\n4. **Ce qu'il ne faut PAS automatiser** — les étapes où l'humain apporte une valeur que la machine n'a pas, avec la justification.\n5. **Plan de la première semaine** — l'implémentation de l'automatisation n° 1, découpée en étapes d'une heure maximum.\n\nUtilise des outils courants et abordables (Zapier, Make, n8n, scripts simples) sauf raison contraire."
+    },
+    {
+      "slug": "revue-qualite-assurance",
+      "titre": "Coach assurance qualité (QA)",
+      "emoji": "🧪",
+      "description": "Mets en place un contrôle qualité simple et durable pour tes livrables ou ton service : critères mesurables, grille de vérification et boucle d'amélioration continue.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "operations",
+      "sousCategorie": "Qualité",
+      "roles": [
+        "consultants",
+        "agences"
+      ],
+      "conseils": "• Trois critères mesurés sérieusement valent mieux que vingt critères jamais regardés.\n• Mesure d'abord la qualité actuelle une semaine : sans point de départ, pas d'amélioration prouvable.\n• Révise la grille chaque trimestre : les critères qui n'ont plus d'incident sortent.",
+      "utilisation": "Remplace {{livrable-ou-service}} (ex. « livraisons de sites web », « réponses support »), {{defauts-constates}} et {{taille-equipe}}.",
+      "vues": 430,
+      "ordre": 23,
+      "nouveau": false,
+      "contenu": "Agis comme un coach en assurance qualité qui installe des dispositifs QA simples dans de petites équipes. Tu privilégies les grilles courtes utilisées réellement aux référentiels encyclopédiques.\n\nContexte :\n- Livrable ou service à contrôler : {{livrable-ou-service}}\n- Défauts ou réclamations déjà constatés : {{defauts-constates}}\n- Taille de l'équipe : {{taille-equipe}}\n\nConçois le dispositif qualité :\n\n1. **Définition mesurable de « bien fait »** — transforme mes défauts constatés en 5 critères observables et vérifiables par une autre personne, sans interprétation.\n2. **Grille de contrôle** — tableau : critère, comment le vérifier concrètement, seuil d'acceptation, action si le seuil n'est pas atteint. Format utilisable en 5 minutes par livraison.\n3. **Double vérification intelligente** — qui contrôle quoi selon la taille de mon équipe, en séparant le contrôle systématique (points critiques) du contrôle par échantillonnage (le reste).\n4. **Boucle d'amélioration** — rituel mensuel de 30 minutes : quels chiffres regarder, comment décider d'un changement de grille, comment tracer les décisions.\n5. **Communication des défauts** — le modèle de message pour signaler un défaut à un collègue sans le braquer, et le modèle pour annoncer un défaut à un client.\n6. **KPI qualité** — les 3 indicateurs seuls à suivre, avec leur cible réaliste au premier trimestre."
+    },
+    {
+      "slug": "feedback-equipe-versus-processus",
+      "titre": "Transforme les retours en processus",
+      "emoji": "🔁",
+      "description": "Prends les retours flous de ton équipe ou de tes clients et transforme-les en améliorations de processus concrètes, priorisées par impact et effort.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "operations",
+      "sousCategorie": "Processus & SOP",
+      "roles": [
+        "chefs-entreprise",
+        "consultants"
+      ],
+      "conseils": "• Colle les retours bruts sans les reformuler : les mots exacts des gens contiennent l'information utile.\n• Cherche la cause du problème avant de changer le processus, sinon le même défaut revient déguisé.\n• Annonce les changements retenus ET ceux refusés, avec la raison : la confiance dépend de cette transparence.",
+      "utilisation": "Colle les retours bruts dans {{retours-bruts}} et décris {{processus-concerne}}.",
+      "vues": 410,
+      "ordre": 24,
+      "nouveau": false,
+      "contenu": "Agis comme un facilitateur d'amélioration continue qui transforme les retours qualitatifs épars en modifications de processus précises et acceptées par l'équipe.\n\nRetours bruts à analyser (équipe ou clients, sans filtre) :\n{{retours-bruts}}\n\nProcessus concerné : {{processus-concerne}}\n\nTravaille en 4 temps :\n\n1. **Clustering des retours** — regroupe les retours en 4 à 6 thèmes, en citant verbatim 2 exemples par thème. Distingue les symptômes (ce que les gens disent) des causes probables (ce qui se passe réellement).\n2. **Diagnostic par thème** — pour chaque thème : la cause probable dans le processus, la fréquence estimée (combien de retours y renvoient), et la gravité (bloquant, gênant, cosmétique).\n3. **Plan d'action priorisé** — tableau : action concrète sur le processus, thème traité, impact attendu, effort de mise en œuvre, ordre recommandé. Maximum 6 actions, dont au moins une faisable en une journée.\n4. **Ce que je ne changerai pas** — les retours qu'il vaut mieux ignorer pour l'instant, avec la raison (coût disproportionné, cas marginal, conflit avec une autre priorité).\n5. **Communication** — le message court à envoyer à l'équipe ou aux clients pour annoncer les changements et les prochaines étapes.\n\nSignale les retours contradictoires entre eux : ils cachent souvent deux usages différents du même processus."
+    },
+    {
+      "slug": "humaniser-un-texte",
+      "titre": "Humaniseur de texte (anti-IA détectée)",
+      "emoji": "🫱",
+      "description": "Transforme un texte artificiel ou généré par IA en une rédaction naturelle : rythme varié, formulations vivantes, zéro cliché de robot. Ton texte, mais sonnant humain.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "writing",
+      "sousCategorie": "Relecture & correction",
+      "roles": [
+        "copywriters",
+        "createurs-de-contenu",
+        "etudiants"
+      ],
+      "conseils": "• Relis le résultat à voix haute : ce qui sonne faux à l'oral doit être retravaillé.\n• Une seule passe d'humanisation suffit ; empiler les passes rend le texte bizarre.\n• Indique ton vrai ton habituel (formel, direct, chaleureux) pour que l'IA garde ta voix.",
+      "utilisation": "Colle le texte dans {{texte-a-humaniser}}, précise {{ton-souhaite}} et {{public}}. Le texte sera réécrit, pas annoté.",
+      "vues": 950,
+      "ordre": 25,
+      "nouveau": true,
+      "contenu": "Agis comme un rédacteur professionnel spécialisé dans les textes naturels qui ne se distinguent pas d'une écriture humaine soignée.\n\nTexte à humaniser :\n{{texte-a-humaniser}}\n\nTon souhaité : {{ton-souhaite}}\nPublic : {{public}}\n\nRéécris intégralement le texte en appliquant ces règles :\n\n1. **Variation du rythme** — alterne phrases longues et courtes ; autorise-toi des phrases de 4 mots après une phrase de 25. Aucune succession de 3 phrases de structure identique.\n2. **Éradication des tics d'IA** — supprime : « il est important de noter », « plongeons dans », « dans le monde d'aujourd'hui », « en conclusion », les triades systématiques (« X, Y et Z » partout), les adverbes intensifs (« incroyablement », « absolument »), les métaphores mélangées et les mots-valises du marketing.\n3. **Concrétude** — chaque affirmation générale est remplacée par son exemple précis ou supprimée. Un chiffre ou un détail concret par paragraphe minimum quand le sujet s'y prête.\n4. **Voix active et adresse directe** — tutoiement ou vouvoiement cohérent avec le public, verbes d'action, sujet humain plutôt qu'abstraction (« l'équipe a lancé » au lieu de « le lancement a été effectué »).\n5. **Imperfections utiles** — une parenthèse, une digression courte, une répétition volontaire pour insister : ce sont les marques de fabrique de l'écriture humaine.\n\nRends ensuite la liste des 5 modifications qui ont le plus changé le texte, pour que je progresse en rédigeant."
+    },
+    {
+      "slug": "cloner-style-d-ecriture",
+      "titre": "ADN d'écriture : clone ton style",
+      "emoji": "🧬",
+      "description": "Analyse 3 à 5 de tes textes et extrais ta charte stylistique : tournures, rythme, vocabulaire, tics. Le système de prompt qui reproduit ta voix sur n'importe quel nouveau texte.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "writing",
+      "sousCategorie": "Voix & persona",
+      "roles": [
+        "copywriters",
+        "createurs-de-contenu"
+      ],
+      "conseils": "• Choisis des textes que tu as vraiment aimés écrire, pas ceux qui ont juste bien performé.\n• Une fois la charte obtenue, teste-la : demande un texte sur un sujet neuf et corrige ce qui sonne faux.\n• Garde la charte dans un document et colle-la au début de chaque nouvelle conversation.",
+      "utilisation": "Colle 3 textes représentatifs dans {{textes-exemples}} et indique {{usages}} (ex. « posts LinkedIn, newsletters, pages de vente »).",
+      "vues": 720,
+      "ordre": 26,
+      "nouveau": false,
+      "contenu": "Agis comme un analyste littéraire et ghostwriter. Ta spécialité : extraire l'ADN stylistique d'un auteur pour pouvoir écrire exactement comme lui sur des sujets nouveaux.\n\nTextes exemples de mon écriture :\n{{textes-exemples}}\n\nUsages prévus : {{usages}}\n\nÉtape 1 — Analyse. Produis ma charte stylistique en 7 axes, avec des exemples tirés de mes textes pour chaque constat :\n- Longueur et rythme des phrases (moyenne, variations, ponctuation)\n- Vocabulaire (niveau, mots signatures que je réutilise, mots que je ne dirais jamais)\n- Ton et posture (distance, humour, autorité, humilité)\n- Structure habituelle (comment je commence, comment je développe, comment je conclus)\n- Rapport au lecteur (tutoiement, questions rhétoriques, anecdotes)\n- Tics et signatures (mes répétitions volontaires, mes habitudes de ponctuation, mes formules d'ouverture et de clôture)\n- Ce qui définit ma voix en une phrase.\n\nÉtape 2 — Système de prompt réutilisable. Rédige un bloc « instructions de style » de 15 lignes maximum que je pourrai coller au début de n'importe quelle conversation pour te faire écrire comme moi, avec les règles essentielles et 3 exemples de phrases caractéristiques.\n\nÉtape 3 — Test. Propose d'écrire un court texte d'essai sur un sujet de mon choix pour valider la charte."
+    },
+    {
+      "slug": "creer-dialogues-personnages",
+      "titre": "Créateur de dialogues vivants",
+      "emoji": "🎭",
+      "description": "Écris des dialogues de fiction ou de scénario qui sonnent vrai : sous-texte, voix distinctes par personnage, tension dramatique. Pour romans, scénarios et jeux vidéo.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "writing",
+      "sousCategorie": "Écriture créative",
+      "roles": [
+        "copywriters"
+      ],
+      "conseils": "• Donne à chaque personnage une phrase secrète qu'il ne dirait jamais : les voix se distinguent par les silences aussi.\n• Un bon dialogue fait deux choses à la fois : avancer l'intrigue ET révéler le caractère.\n• Coupe 20 % des mots après la première version : les dialogues vivent de ce qui est tu.",
+      "utilisation": "Remplace {{situation}}, {{personnages}} (nom + qui il est + ce qu'il veut) et {{tension}} (ce qui oppose les personnages).",
+      "vues": 450,
+      "ordre": 27,
+      "nouveau": false,
+      "contenu": "Agis comme un dialoguiste professionnel (cinéma, roman, jeu vidéo) dont les répliques sonnent comme des conversations écoutées par hasard.\n\nContexte de la scène :\n- Situation : {{situation}}\n- Personnages : {{personnages}}\n- Tension de la scène : {{tension}}\n\nÉcris la scène en suivant ces règles impératives :\n\n1. **Voix distinctes** — chaque personnage doit être identifiable sans indication de nom : par son vocabulaire, la longueur de ses phrases, sa manière d'esquiver. Avant la scène, liste pour chaque personnage sa règle de parole (ex. « répond toujours par une question », « parle par images concrètes »).\n2. **Sous-texte systématique** — aucun personnage ne dit jamais directement ce qu'il veut. Le désir passe par ce qu'il demande à la place, ce qu'il évite, ce qu'il remarque.\n3. **Rythme** — la majorité des répliques font moins de 15 mots. Les silences et actions (il pose sa tasse, elle regarde par la fenêtre) portent autant que les mots : utilise les didascalies avec parcimonie mais à bon escient.\n4. **Escalade** — la tension monte par paliers jusqu'à un point de bascule unique, puis se résout ou se déplace. Pas de résolution trop rapide.\n5. **Fin ouverte ou chute** — termine sur une dernière réplique qui résonne ou déplace le problème.\n\nAprès la scène, explique en 5 lignes ce que chaque personnage voulait vraiment et comment le sous-texte l'a montré."
+    },
+    {
+      "slug": "ameliorateur-qualite-redaction",
+      "titre": "Rehausseur de qualité rédactionnelle",
+      "emoji": "✍️",
+      "description": "Colle n'importe quel texte et reçois une relecture professionnelle : corrections, restructuration, versions avant/après et explication de chaque changement majeur.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "writing",
+      "sousCategorie": "Relecture & correction",
+      "roles": [
+        "copywriters",
+        "etudiants",
+        "freelances"
+      ],
+      "conseils": "• Indique la destination du texte (email, mémoire, site) : les normes changent tout.\n• Lis d'abord la liste des changements avant le texte corrigé : tu apprendras plus vite tes fautes récurrentes.\n• Garde une trace de tes 3 fautes les plus fréquentes : c'est ta feuille de route personnelle.",
+      "utilisation": "Colle le texte dans {{texte-a-corriger}} et précise {{destination}} (ex. « email à un client », « chapitre de mémoire ») ainsi que {{registre}} (soutenu, standard, familier).",
+      "vues": 630,
+      "ordre": 28,
+      "nouveau": false,
+      "contenu": "Agis comme un relecteur-correcteur professionnel (niveau édition) qui améliore un texte sans lui faire perdre la voix de son auteur.\n\nTexte à corriger :\n{{texte-a-corriger}}\n\nDestination : {{destination}}\nRegistre attendu : {{registre}}\n\nTraite le texte en 3 passes, présentées dans cet ordre :\n\n**Passe 1 — Corrections.** Orthographe, grammaire, conjugaison, accords, ponctuation. Présente un tableau : extrait fautif, correction, règle concernée en une ligne. Si un point de langue revient plusieurs fois, regroupe-le dans une note « faute récurrente ».\n\n**Passe 2 — Style.** Redondances, phrases trop longues, voix passive inutile, adverbes superflus, transitions molles. Pour chaque modification d'importance : avant / après / pourquoi, en une ligne claire.\n\n**Passe 3 — Version finale.** Le texte entier corrigé et stylé, prêt à envoyer ou publier. Aucun commentaire dans cette version.\n\nTermine par :\n1. Un diagnostic en 3 lignes : mes 3 points faibles récurrents dans ce texte et l'exercice rapide pour progresser sur chacun ;\n2. La note /10 du texte d'origine, avec le détail : clarté, structure, style, correction.\n\nConserve absolument le niveau de langue de l'auteur : améliore, ne réécris pas à ta façon."
+    },
+    {
+      "slug": "business-plan-complet",
+      "titre": "Générateur de business plan complet",
+      "emoji": "📊",
+      "description": "Construis un business plan crédible section par section : marché, modèle économique, prévisionnel, risques. Conçu pour convaincre banque, investisseur — ou toi-même.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "strategy",
+      "sousCategorie": "Business plans",
+      "roles": [
+        "entrepreneurs",
+        "solopreneurs",
+        "chefs-entreprise"
+      ],
+      "conseils": "• Réponds d'abord aux questions de cadrage posées par l'IA : un business plan générique se repère au premier paragraphe.\n• Demande chaque section une par une et challenge les chiffres à chaque fois (« d'où sort ce taux ? »).\n• Le résumé exécutif se rédige en dernier, jamais en premier.",
+      "utilisation": "Remplace {{idee-business}}, {{marche}}, {{budget-disponible}} et {{objectif-du-plan}} (financement bancaire, investisseur, feuille de route personnelle).",
+      "vues": 880,
+      "ordre": 29,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant en création d'entreprise qui rédige des business plans passés avec succès devant banques et investisseurs. Tu es direct : tu signales les hypothèses fragiles au lieu de les embellir.\n\nMon projet :\n- Idée : {{idee-business}}\n- Marché visé : {{marche}}\n- Budget disponible : {{budget-disponible}}\n- Destination du plan : {{objectif-du-plan}}\n\nMéthode de travail en 2 phases :\n\n**Phase 1 — Cadrage (cette réponse).** Pose-moi les 8 questions essentielles auxquelles un lecteur professionnel attend des réponses (problème réel résolu, client payant précis, concurrence, canal d'acquisition, capacité à délivrer, structure de coûts, besoin de financement, horizon de rentabilité). Attends mes réponses.\n\n**Phase 2 — Rédaction (réponses suivantes).** Construis le business plan section par section, dans cet ordre :\n1. Problème et solution (l'écart entre le monde actuel et le monde avec mon produit)\n2. Marché et concurrence (taille estimée avec la méthode des entonnoirs, tableau des 4 concurrents avec leur angle et ma différence)\n3. Modèle économique (comment l'argent rentre, hypothèses de prix justifiées)\n4. Plan commercial (les 2 premiers canaux d'acquisition uniquement, avec coût d'acquisition estimé)\n5. Prévisionnel 3 ans (tableau : ventes, coûts, résultat, avec 3 scénarios : prudent, central, ambitieux — et l'hypothèse clé de chaque scénario)\n6. Risques et parades (les 5 risques majeurs, dont au moins un non-commercial)\n7. Résumé exécutif (une page, rédigée en dernier)\n\nChallenge chaque chiffre que tu proposes et marque [HYPOTHÈSE À VALIDER] quand une donnée doit être vérifiée sur le terrain."
+    },
+    {
+      "slug": "charte-voix-de-marque",
+      "titre": "Voix de marque : charte complète",
+      "emoji": "🎯",
+      "description": "Définis la voix de ta marque une fois pour toutes : personnalité, ton par situation, mots interdits, exemples avant/après. Le document que toute l'équipe appliquera.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "strategy",
+      "sousCategorie": "Positionnement & message",
+      "roles": [
+        "marketeurs",
+        "agences",
+        "copywriters"
+      ],
+      "conseils": "• Teste la charte sur un cas réel dès qu'elle est prête : une charte qui ne tranche pas un cas concret est inutile.\n• Les « mots interdits » sont aussi importants que les mots signatures : c'est eux qui évitent le ton générique.\n• Fais valider la charte par 2 clients fidèles : s'ils ne te reconnaissent pas, recommence.",
+      "utilisation": "Remplace {{marque-activite}}, {{valeurs}} (3 max), {{audience}} et {{concurrents-ton-generique}} (le ton banal de ton secteur, à éviter).",
+      "vues": 640,
+      "ordre": 30,
+      "nouveau": false,
+      "contenu": "Agis comme un directeur de la communication qui définit des voix de marque mémorables pour des PME et des marques indépendantes. Tu produis des chartes utilisables par des rédacteurs non experts.\n\nMa marque :\n- Activité : {{marque-activite}}\n- Valeurs à incarner : {{valeurs}}\n- Audience : {{audience}}\n- Le ton générique du secteur que je veux éviter : {{concurrents-ton-generique}}\n\nConstruis la charte de voix de marque :\n\n1. **Personnalité en 3 traits** — si ma marque était une personne : son caractère, sa manière de parler, ce qu'elle ne ferait jamais. Une phrase vive par trait.\n2. **Positionnement vocal** — le décalage assumé qui rend la marque reconnaissable, en une phrase (ex. « la rigueur d'un expert, la franchise d'un ami »).\n3. **Le ton par situation** — tableau : situation (annonce, réponse à une réclamation, post réseaux sociaux, email transactionnel, page de vente), intensité du ton (0 à 5 sur les 3 traits de personnalité), et un exemple de phrase réelle pour chaque ligne.\n4. **Vocabulaire** — 10 mots signatures à utiliser, 10 mots bannis (les clichés de mon secteur), et 3 tournures typiques de la marque.\n5. **Avant / après** — 4 exemples de phrases typiques du ton générique du secteur, réécrites dans ma voix, avec l'explication du changement.\n6. **Test de cohérence** — 3 questions que n'importe quel rédacteur doit se poser avant d'envoyer un texte au nom de la marque.\n\nLe tout doit tenir sur 2 pages maximum : une charte longue n'est pas appliquée."
+    },
+    {
+      "slug": "analyse-des-risques-entreprise",
+      "titre": "Analyse des risques de ton entreprise",
+      "emoji": "⚠️",
+      "description": "Identifie les risques qui menacent vraiment ton activité : dépendances, concentrations, angles morts. Avec un plan de réduction priorisé et des indicateurs d'alerte précoce.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "strategy",
+      "sousCategorie": "Cadres & SWOT",
+      "roles": [
+        "chefs-entreprise",
+        "consultants"
+      ],
+      "conseils": "• Sois brutalement honnête dans tes réponses : l'audit ne vaut que ce que valent tes aveux.\n• Le risque le plus dangereux est souvent celui qui rapporte le plus aujourd'hui (dépendance à un gros client par exemple).\n• Fixe une date de revue des risques dans 6 mois, sinon le document meurt dans un tiroir.",
+      "utilisation": "Décris ton activité dans {{activite}}, tes dépendances dans {{points-sensibles}} (clients, fournisseurs, personnes clés, outils) et {{taille-entreprise}}.",
+      "vues": 470,
+      "ordre": 31,
+      "nouveau": false,
+      "contenu": "Agis comme un auditeur de risques stratégiques pour PME. Tu cherches les risques réels de continuité d'activité, pas la liste académique des risques possibles. Tu es direct et sans complaisance.\n\nMon entreprise :\n- Activité : {{activite}}\n- Points sensibles que je connais : {{points-sensibles}}\n- Taille : {{taille-entreprise}}\n\nMène l'analyse :\n\n1. **Cartographie des risques** — tableau structuré par famille : clientèle (concentration, dépendance), fournisseurs et outils (défaillance unique, hausse de prix), personnes clés (savoir non transmis, départ), marché (réglementation, entrant, évolution de la demande), finances (trésorerie, créances). Pour chaque risque : probabilité (faible/moyenne/forte), impact (faible/moyenne/critique), et le scénario de déroulement en 2 lignes.\n2. **Les 3 risques critiques** — ceux qui croisent forte probabilité et fort impact. Pour chacun : signaux d'alerte précoce à surveiller (mesurables), plan de réduction en 3 actions concrètes, et coût estimé de la parade contre coût estimé du sinistre.\n3. **Angles morts** — 3 risques que je n'ai PAS mentionnés dans mes points sensibles mais que ta analyse révèle, avec la question qui me permettrait de vérifier s'ils me concernent.\n4. **Plan 90 jours** — les actions de réduction ordonnées : ce que je fais ce mois-ci, le mois suivant, le troisième mois.\n5. **Tableau de bord des risques** — les 5 indicateurs à revoir chaque trimestre, avec leur seuil d'alerte.\n\nN'adoucis rien : un risque minimisé dans ce document est un risque non préparé."
+    },
+    {
+      "slug": "idees-business-rentables",
+      "titre": "Découverte d'idées de business rentables",
+      "emoji": "💎",
+      "description": "Génère des idées de business adaptées À TES compétences et contraintes, filtrées par rentabilité rapide et faisabilité solo. Avec le plan de validation de la meilleure.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "strategy",
+      "sousCategorie": "Business plans",
+      "roles": [
+        "solopreneurs",
+        "freelances",
+        "entrepreneurs"
+      ],
+      "conseils": "• Remplis honnêtement tes compétences réelles : une idée hors de tes capacités vaut zéro même si elle est rentable.\n• Valide AVANT de construire : demande à 10 clients potentiels s'ils paieraient, pas à tes amis s'ils trouvent ça bien.\n• Fixe une limite de temps de validation (2 semaines) pour éviter l'étude sans fin.",
+      "utilisation": "Remplace {{competences}}, {{interets}}, {{temps-disponible}} (heures par semaine) et {{capital-de-depart}}.",
+      "vues": 810,
+      "ordre": 32,
+      "nouveau": false,
+      "contenu": "Agis comme un mentor de solopreneurs qui identifie des business réalistes et rentables pour une seule personne, sans levée de fonds et sans équipe.\n\nMon profil :\n- Compétences réelles (métiers, outils, savoir-faire) : {{competences}}\n- Centres d'intérêt : {{interets}}\n- Temps disponible : {{temps-disponible}} par semaine\n- Capital de départ : {{capital-de-depart}}\n\nGénère :\n\n1. **8 idées de business** adaptées précisément à mon profil. Pour chacune, un tableau : la proposition en une phrase, le client payant exact (pas « les PME » : QUI, dans quel moment), le modèle de revenus, le prix praticable, le temps avant la première vente (réaliste), les 2 principaux concurrents et la différence exploitable, et le score de faisabilité solo (/5).\n2. **Filtre de rentabilité rapide** — classe les 8 idées par vitesse d'atteinte des {{premier-objectif}} (disons 1 000 € de chiffre d'affaires mensuel) : tableau avec estimation honnête en semaines et l'hypothèse clé qui fait varier ce délai.\n3. **La recommandation** — l'idée que tu choisiras si tu étais à ma place, avec le raisonnement complet (pas de flatterie : si mon profil favorise une idée que j'avais écartée, dis-le).\n4. **Plan de validation 14 jours** pour l'idée recommandée : jour par jour, quoi faire, combien de prospects contacter, quels seuils valident ou invalident l'idée (ex. « 3 personnes acceptent de payer un acompte »).\n5. **Les 3 raisons d'abandonner** — les signaux qui, s'ils apparaissent pendant la validation, doivent me faire arrêter sans culpabiliser."
+    },
+    {
+      "slug": "planifier-semaine-productive",
+      "titre": "Coach de planification hebdomadaire",
+      "emoji": "🗓️",
+      "description": "Transforme ta liste de tâches chaotique en semaine planifiée et réaliste : priorités, plages de concentration, marges pour l'imprévu. Dimanche soir, 15 minutes, c'est réglé.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "productivity",
+      "sousCategorie": "Gestion du temps",
+      "roles": [
+        "freelances",
+        "assistants-virtuels",
+        "etudiants"
+      ],
+      "conseils": "• Planifie 70 % de ton temps maximum : les 30 % restants absorbent l'imprévu inévitable.\n• Place les tâches profondes dans tes 2 meilleures heures d'énergie, pas dans les trous disponibles.\n• Le vendredi, fais la revue de la semaine : c'est ce rituel qui améliore la suivante.",
+      "utilisation": "Liste tes tâches dans {{taches-avec-estimations}}, précise {{contraintes-fixes}} (rendez-vous, horaires) et {{objectif-prioritaire}} de la semaine.",
+      "vues": 590,
+      "ordre": 33,
+      "nouveau": false,
+      "contenu": "Agis comme un coach de productivité pragmatique. Tu planifies des semaines réelles, avec des interruptions, de la fatigue et des imprévus — pas des semaines idéales de manuel.\n\nMes tâches pour la semaine (avec estimation de durée honnête) :\n{{taches-avec-estimations}}\n\nContraintes fixes : {{contraintes-fixes}}\nObjectif prioritaire de la semaine : {{objectif-prioritaire}}\n\nProduis mon plan de semaine :\n\n1. **Triage** — classe les tâches : à faire absolument (impact direct sur l'objectif), à faire si possible, à déléguer, à supprimer ou reporter sans culpabilité. Explique chaque classement en une ligne.\n2. **Planning détaillé** — tableau jour par jour avec des plages nommées : travail profond (tâches exigeantes dans mes heures d'énergie maximales), tâches légères (après 16 h ou entre deux rendez-vous), et 20 % de temps non planifié explicitement réservé à l'imprévu. Vérifie que la somme des durées tient dans la semaine, sinon dis-le franchement et propose quoi sortir.\n3. **La tâche quotidienne n° 1** — pour chaque jour, la seule tâche qui rend la journée réussie même si rien d'autre n'avance.\n4. **Règles anti-dérive** — 3 règles personnalisées selon mes tâches (ex. « pas d'email avant 11 h », « les appels regroupés le mardi après-midi »).\n5. **Rituel de revue du vendredi** — 4 questions à me poser pour ajuster la semaine suivante.\n\nSi mes estimations sont irréalistes (trop de tâches pour le temps disponible), montre-le chiffré avant de proposer le planning."
+    },
+    {
+      "slug": "organiser-pensees-brouillonnes",
+      "titre": "Clarificateur de pensées brouillonnes",
+      "emoji": "🧹",
+      "description": "Vide ta tête : colle ton fouillis mental (idées, inquiétudes, décisions en attente) et reçois une carte claire avec décisions à prendre, actions et choses à laisser aller.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "productivity",
+      "sousCategorie": "Prise de décision",
+      "roles": [
+        "freelances",
+        "etudiants",
+        "entrepreneurs"
+      ],
+      "conseils": "• Écris tout sans trier ni te censurer : le tri est le travail de l'IA, pas le tien.\n• Les inquiétudes récurrentes méritent une décision ou une date de revue, jamais un report flou.\n• Refais l'exercice toutes les 2 semaines : le fouillis se reconstitue, c'est normal.",
+      "utilisation": "Vide simplement ta tête dans {{pensees-brutes}} — sans structure, dans le désordre, comme ça vient. Précise si une décision urgente pèse ({{decision-urgente}}).",
+      "vues": 520,
+      "ordre": 34,
+      "nouveau": false,
+      "contenu": "Agis comme un facilitateur de clarté mentale. Ton travail : transformer un flux de conscience désordonné en une carte exploitable, sans juger et sans inventer de problèmes.\n\nTout ce qui tourne dans ma tête actuellement :\n{{pensees-brutes}}\n\nDécision qui me pèse en particulier : {{decision-urgente}}\n\nStructure ma pensée :\n\n1. **Carte des préoccupations** — regroupe mes pensées en 4-6 familles (décisions en attente, actions à faire, inquiétudes, idées, frustrations). Cite mes mots exacts dans chaque famille : je dois me reconnaître.\n2. **Les vraies questions** — reformule chaque famille en une question claire à laquelle répondre (ex. « faut-il que je… ? », « comment… ? »). Souvent, le brouillon cache 2 vraies questions, pas 20.\n3. **La décision urgente** — décompose-la : critères de décision que je peux extraire de mes propres mots, options implicites présentes dans le fouillis, information manquante pour trancher, et la pire chose qui arriverait avec chaque option (souvent moins grave que le tourment).\n4. **Plan d'action minimal** — les 3 actions à faire cette semaine pour réduire le bruit mental le plus efficacement, choisies pour leur effet de déblocage en cascade.\n5. **À laisser aller** — les pensées qui ne méritent pas d'énergie : hors de mon contrôle, hypothétiques, ou déjà tranchées sans que je l'admette. Dis-le gentiment mais clairement.\n\nTermine par une phrase qui résume où en est vraiment ma situation, sans complaisance ni fausse consolation."
+    },
+    {
+      "slug": "protocole-atteinte-objectifs-tcc",
+      "titre": "Protocole d'atteinte d'objectifs (TCC)",
+      "emoji": "🎯",
+      "description": "Un protocole structuré inspiré des thérapies cognitives et comportementales pour atteindre un objectif : découpage, obstacles mentaux, plan d'action et rituel de suivi.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "productivity",
+      "sousCategorie": "Définition d'objectifs",
+      "roles": [
+        "coachs"
+      ],
+      "conseils": "• Utilise ce protocole pour accompagner UN client ou pour toi, mais jamais comme substitut d'un accompagnement thérapeutique.\n• L'étape des obstacles mentaux est la plus précieuse : ne la saute pas parce qu'elle est inconfortable.\n• Un objectif sans rituel de suivi hebdomadaire échoue dans les 3 semaines : garde le tableau de suivi.",
+      "utilisation": "Remplace {{objectif}}, {{pourquoi-maintenant}} et {{deja-tente}} (ce que tu as déjà essayé, sans succès ou en abandonnant).",
+      "vues": 480,
+      "ordre": 35,
+      "nouveau": false,
+      "contenu": "Agis comme un coach spécialisé dans l'atteinte d'objectifs, en t'appuyant sur des mécanismes éprouvés des thérapies cognitives et comportementales (restructuration des pensées, activation comportementale, exposition progressive). Tu restes dans le champ du coaching : tu n'es pas thérapeute.\n\nMon objectif : {{objectif}}\nPourquoi maintenant : {{pourquoi-maintenant}}\nCe que j'ai déjà tenté : {{deja-tente}}\n\nConstruis le protocole :\n\n1. **Objectif reformulé** — vérifie la formulation : mesurable, borné dans le temps, sous mon contrôle direct. Si mon objectif dépend d'autrui ou est trop vague, reformule-le et fais-moi valider.\n2. **Le réseau de raisons** — mes motivations réelles extraites de mon « pourquoi maintenant », classées : celles qui tiennent la distance et celles qui retombent au premier obstacle.\n3. **Découpage comportemental** — l'objectif traduit en comportements concrets, fréquence et durée : ce que je FAIS chaque semaine, indépendamment du résultat (qui, lui, n'est pas contrôlable à 100 %).\n4. **Cartographie des obstacles** — pour chaque obstacle probable : l'obstacle pratique (temps, argent, logistique) avec sa parade, ET l'obstacle mental (pensée automatique type « de toute façon… ») avec la reformulation réaliste et l'action minimale qui la contourne.\n5. **Plan d'exposition progressive** — les 3 premières semaines détaillées, de la version la plus facile (ex. 10 minutes) à la version cible, pour installer l'habitude avant la performance.\n6. **Tableau de suivi hebdomadaire** — 3 indicateurs maximum, le rituel de revue du dimanche (5 questions, 10 minutes), et la règle de reprise après une semaine manquée (jamais de rattrapage : on reprend simplement).\n\nTermine par la question la plus inconfortable que je devrais me poser sur cet objectif."
+    },
+    {
+      "slug": "pensee-strategique-4d",
+      "titre": "Facilitateur de pensée stratégique 4D",
+      "emoji": "🧠",
+      "description": "Explore une décision ou un problème sous 4 dimensions : court terme, long terme, perspectives opposées et inconnues. La méthode pour sortir des choix évidents mais plats.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "productivity",
+      "sousCategorie": "Brainstorming",
+      "roles": [
+        "consultants",
+        "entrepreneurs",
+        "chefs-entreprise"
+      ],
+      "conseils": "• Accepte la dimension « avocat du diable » même si elle dérange : c'est elle qui révèle les angles morts.\n• Note les questions de la dimension 4 : ce sont souvent elles qui débloquent la décision.\n• Refais l'exercice 48 h plus tard avec une décision prise : compare avec ta première intuition.",
+      "utilisation": "Décris la décision ou le problème dans {{sujet}}, précise {{enjeu}} et {{contraintes-non-negociables}}.",
+      "vues": 440,
+      "ordre": 36,
+      "nouveau": false,
+      "contenu": "Agis comme un facilitateur de réflexion stratégique. Tu ne donnes pas de conseil tout fait : tu organises la pensée pour que la bonne décision devienne évidente. Tu es structuré, challenger, jamais complaisant.\n\nSujet de réflexion : {{sujet}}\nEnjeu : {{enjeu}}\nContraintes non négociables : {{contraintes-non-negociables}}\n\nFacilite ma réflexion en 4 dimensions, une par réponse, en attendant ma validation entre chacune :\n\n**Dimension 1 — Le temps court.** Quelles conséquences dans les 30 prochains jours ? Qu'est-ce qui est urgent contre ce qui semble urgent ? Quels coûts immédiats et quel premier mouvement concret ?\n\n**Dimension 2 — Le temps long.** Où me place cette décision dans 2 ans ? Quelles options se ferment, lesquelles s'ouvrent ? Qu'est-ce que cette décision m'oblige à répéter ensuite ? Le test du regret : qu'est-ce que je regretterais le plus de NE PAS avoir fait ?\n\n**Dimension 3 — Les perspectives opposées.** Défends successivement 3 postures contradictoires avec le meilleur argument de chacune : (a) le partisan enthousiaste, (b) le sceptique aguerri qui explique pourquoi ça échouera, (c) l'observateur extérieur qui voit le travers commun aux deux premiers. Termine par : quels faits trancheraient le débat ?\n\n**Dimension 4 — Les inconnues.** Ce que je suppose vrai sans l'avoir vérifié, les questions que je devrais poser à qui, et les micro-tests bon marché (moins d'une journée) qui valideraient mes hypothèses clés avant de m'engager.\n\nEn synthèse finale : la décision que ma propre réflexion soutient le mieux, et le test décisif à faire cette semaine."
+    },
+    {
+      "slug": "entretiens-annuels-performances",
+      "titre": "Coach d'entretiens annuels",
+      "emoji": "📈",
+      "description": "Prépare tes entretiens annuels : bilan structuré par collaborateur, questions difficiles prêtes, formulation des axes d'amélioration et trame de suivi d'objectifs.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "human-resources",
+      "sousCategorie": "Évaluations",
+      "roles": [
+        "chefs-entreprise",
+        "recruteurs"
+      ],
+      "conseils": "• Prépare chaque entretien séparément : un entretien générique se sent et dévalorise le collaborateur.\n• Commence par les réussites concrètes avant les axes d'amélioration : l'ordre change tout.\n• Note les engagements pris pendant l'entretien et révise-les à mi-année, sinon l'exercice perd son sens.",
+      "utilisation": "Décris le collaborateur dans {{profil-collaborateur}} (poste, ancienneté, faits marquants de l'année avec exemples), et {{points-a-travailler}} si tu en as identifié.",
+      "vues": 460,
+      "ordre": 37,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant RH qui prépare des managers à mener des entretiens annuels justes, motivants et juridiquement solides.\n\nCollaborateur concerné :\n- Profil : {{profil-collaborateur}}\n- Points à travailler identifiés : {{points-a-travailler}}\n\nPrépare l'entretien :\n\n1. **Bilan structuré** — réorganise les faits que j'ai fournis en : réussites de l'année (avec leur impact), compétences démontrées, situations difficiles gérées. Si mes informations sont trop vagues pour un point, pose la question plutôt que d'inventer.\n2. **Déroulé de l'entretien (45 min)** — minutage : accueil et cadre (5), le bilan par le collaborateur d'abord (15), mon retour ensuite (10), axes et objectifs (10), conclusion et suivi (5). Pour chaque temps : ce que je fais, ce que je ne fais pas.\n3. **Les questions clés** — 6 questions ouvertes adaptées à ce collaborateur précis, dont 2 qui abordent les points délicats sans accuser (ex. formulation en termes de situation et d'effet plutôt que de défaut).\n4. **Formulation des axes d'amélioration** — chaque axe en 3 lignes : le comportement observé (faits, pas jugement), l'attendu à venir, le soutien que j'apporte. Relis-toi : aucun axe formulé comme une accusation.\n5. **Objectifs de l'année** — 3 objectifs SMART maximum, alignés sur le poste, avec leur moyen de mesure.\n6. **Gestion des réactions difficiles** — comment répondre si le collaborateur : se braque, relativise tout, ou monte en généralité (« tout le monde pense pareil »). Une phrase de désamorçage par cas.\n\nRappelle-moi en fin : ce que je dois faire DANS L'ANNÉE pour que ces engagements soient tenus."
+    },
+    {
+      "slug": "scoring-cv-quatre-dimensions",
+      "titre": "Scoring de CV sur 4 dimensions",
+      "emoji": "🗂️",
+      "description": "Compare des CV à une offre avec une grille objective : compétences techniques, expérience pertinente, adéquation culturelle, risque d'écart de salaire. Moins d'intuition, plus de méthode.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "human-resources",
+      "sousCategorie": "Tri de CV",
+      "roles": [
+        "recruteurs"
+      ],
+      "conseils": "• Définis la grille AVANT de regarder les CV : une grille ajustée après coup biaise toujours la sélection.\n• Le scoring aide à présélectionner, il ne remplace jamais l'entretien ni le jugement humain.\n• Vérifie les mentions l'IA ne peut pas contrôler (diplômes, références) avant toute décision.",
+      "utilisation": "Colle l'offre dans {{offre-emploi}} et le ou les CV dans {{cv-candidats}}. Précise {{critere-poids}} si certains critères pèsent plus.",
+      "vues": 530,
+      "ordre": 38,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant en recrutement qui présélectionne des CV avec une grille objective et traçable. Tu ne présumes rien de ce qui n'est pas écrit dans le CV.\n\nOffre à pourvoir :\n{{offre-emploi}}\n\nCV à évaluer :\n{{cv-candidats}}\n\nPondération particulière : {{critere-poids}}\n\nÉvalue chaque candidat sur 4 dimensions, note de 1 à 5 avec justification par fait cité du CV (jamais d'inférence sur l'âge, le sexe, le nom ou la localisation) :\n\n1. **Compétences techniques** — correspondance explicite avec les compétences requises de l'offre. Chaque point cite la ligne du CV qui le prouve.\n2. **Expérience pertinente** — ancienneté adaptée ET contexte proche (taille d'entreprise, secteur, type de missions). Une expérience longue mais hors sujet ne vaut pas mieux qu'une courte et pertinente : sois nuancé.\n3. **Adéquation au contexte** — signaux objectifs du CV sur les attentes de l'offre (mobilité mentionnée, type de missions recherchées, progression cohérente).\n4. **Risque d'écart** — les points qui risquent de créer un décalage : seniorité supérieure au poste, omission de détails, incohérences de dates à vérifier en entretien (à lister, pas à pénaliser d'emblée).\n\nProduis :\n- Le tableau comparatif final : candidats × 4 notes + moyenne pondérée, classés ;\n- Pour chaque candidat retenu : les 3 questions d'entretien spécifiques que son CV appelle ;\n- Ce qui manque au dossier (pièces, précisions) avant toute décision.\n\nReste factuel : aucune remarque sur l'apparence du CV, uniquement le fond."
+    },
+    {
+      "slug": "politiques-rh-claires",
+      "titre": "Directives de politiques RH",
+      "emoji": "🏛️",
+      "description": "Rédige ou mets à jour une politique RH claire : télétravail, congés, formation, discipline. Des règles compréhensibles par tous, conformes dans l'esprit, prêtes à faire valider.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "human-resources",
+      "sousCategorie": "Politiques RH",
+      "roles": [
+        "chefs-entreprise",
+        "recruteurs"
+      ],
+      "conseils": "• Fais toujours relire la politique finale par un juriste en droit du travail de TON pays : l'IA ne remplace pas la conformité légale locale.\n• Une politique vague génère plus de conflits que pas de politique du tout : tranche les cas limites explicitement.\n• Implique un représentant des salariés avant publication : les règles imposées sans concertation se contournent.",
+      "utilisation": "Remplace {{politique-a-rediger}} (ex. « politique de télétravail »), {{contexte-entreprise}} (taille, secteur, pays) et {{objectifs}} (ce que la politique doit résoudre).",
+      "vues": 380,
+      "ordre": 39,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant RH qui rédige des politiques d'entreprise claires et applicables pour des PME. Tu produis des documents compréhensibles par un salarié de première ligne, pas du jargon juridique.\n\nPolitique à rédiger : {{politique-a-rediger}}\nContexte : {{contexte-entreprise}}\nProblèmes que la politique doit résoudre : {{objectifs}}\n\nProduis le document en 5 parties :\n\n1. **Objectif et champ d'application** — pourquoi cette politique existe (les problèmes concrets cités), qui est concerné, à partir de quand.\n2. **Les règles** — organisées par situation, écrites en français simple avec des exemples concrets pour chaque cas limite fréquent (retard, exception, cas non prévu). Chaque règle répond aux 3 questions que les salariés se poseront : ai-je le droit ? comment je demande ? qui décide ?\n3. **Les rôles** — tableau : qui applique, qui décide les exceptions, qui répond aux questions. Une seule porte d'entrée par sujet.\n4. **Les limites assumées** — ce que la politique ne règle pas, et le mécanisme de traitement des cas non prévus (commission, manager + RH, délai de réponse).\n5. **FAQ** — les 8 questions que les salariés poseront réellement, avec des réponses d'une ligne.\n\nTermine par : la liste des points à faire valider par un juriste en droit du travail avant publication, et les 3 risques d'application à anticiper dans mon contexte."
+    },
+    {
+      "slug": "feedback-base-sur-les-faits",
+      "titre": "Feedback factuel (méthode SBI)",
+      "emoji": "🧾",
+      "description": "Formule un feedback difficile en situation-comportement-impact : précis, recevable, orienté solution. Le prompt qui transforme une scène évitée en conversation utile.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "human-resources",
+      "sousCategorie": "Points 1:1 & feedback",
+      "roles": [
+        "recruteurs",
+        "chefs-entreprise",
+        "coachs"
+      ],
+      "conseils": "• Écris les faits bruts sans interprétation : « la présentation a commencé 15 min après l'heure » et non « il est toujours en retard ».\n• Choisis un moment neutre pour la conversation, jamais juste après l'incident.\n• Termine par un accord sur la suite, pas par un conseil non demandé.",
+      "utilisation": "Décris la situation dans {{situation-faits}} (ce qui s'est passé, quand, où), {{reception-souhaitee}} et le cadre (entretien 1:1, réunion, écrit).",
+      "vues": 400,
+      "ordre": 40,
+      "nouveau": false,
+      "contenu": "Agis comme un coach en management qui prépare des feedbacks difficiles avec la méthode SBI (Situation – Comportement – Impact). Ton objectif : un feedback qui est entendu et qui déclenche un changement, pas une dispute.\n\nCe qui s'est passé (mes notes brutes) :\n{{situation-faits}}\n\nContexte de la conversation : {{cadre-conversation}}\nRéaction attendue : {{reception-souhaitee}}\n\nPrépare le feedback :\n\n1. **Séparation faits / interprétations** — trie mes notes : d'un côté les faits observables vérifiables, de l'autre mes interprétations et jugements (que je garde pour moi pendant la conversation). Signale les généralisations dangereuses (« toujours », « jamais ») dans mes notes.\n2. **Le feedback SBI rédigé** — Situation : quand et où, en une phrase. Comportement : ce que la personne a fait ou dit, concrètement, sans adjectif qualificatif. Impact : l'effet concret sur l'équipe, le client ou le projet. Maximum 6 phrases au total, formulées à l'oral.\n3. **La question d'ouverture** — la phrase qui invite la personne à réagir après le feedback (ex. « comment tu as vécu ce moment ? »), et les réponses types avec ma conduite pour chacune : elle reconnaît / elle conteste les faits / elle se braque / elle contre-attaque.\n4. **L'accord de suite** — la formulation d'un engagement concret et réaliste (qu'est-ce qui change, à partir de quand, comment on le constate), co-construit plutôt qu'imposé.\n5. **Ce que je ne dois PAS dire** — les 3 phrases tentantes mais contre-productives dans mon cas précis, avec pourquoi.\n\nRelis-toi : si une phrase contient un jugement de personne plutôt qu'un comportement, corrige-la."
+    },
+    {
+      "slug": "recherche-approfondie-sujet",
+      "titre": "Explorateur de recherche approfondie",
+      "emoji": "🌐",
+      "description": "Explore n'importe quel sujet en profondeur et de façon structurée : état des connaissances, écoles de pensée, contradictions entre sources, zones d'ombre à creuser.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "research",
+      "sousCategorie": "Recherche poussée",
+      "roles": [
+        "etudiants",
+        "consultants",
+        "enseignants"
+      ],
+      "conseils": "• Active la recherche web si ton outil le permet : les connaissances internes du modèle ont une date de coupure.\n• Demande systématiquement les désaccords entre experts : c'est là que se cache la matière de ton propre travail.\n• Vérifie chaque référence citée avant de l'utiliser : les IA inventent parfois des titres plausibles.",
+      "utilisation": "Remplace {{sujet}} par la question précise, {{objectif}} (mémoire, décision, article, curiosité) et {{niveau}} (débutant, intermédiaire, expert du domaine).",
+      "vues": 570,
+      "ordre": 41,
+      "nouveau": false,
+      "contenu": "Agis comme un chercheur méthodique qui cartographie un domaine de connaissances. Tu distingues clairement ce qui est établi, ce qui est débattu et ce qui est spéculatif.\n\nSujet : {{sujet}}\nObjectif de la recherche : {{objectif}}\nMon niveau : {{niveau}}\n\nMène l'exploration en 5 temps :\n\n1. **Définitions et cadrage** — les termes du sujet définis précisément, les sous-questions qu'il recouvre, et les frontières (ce que je n'étudie PAS ici). Si mon sujet est trop large, propose un recadrage plus exploitable.\n2. **État des connaissances** — ce qui fait consensus, organisé en 3 à 5 blocs thématiques. Pour chaque bloc : les idées centrales, les noms et travaux de référence à chercher, l'évolution historique en une ligne.\n3. **Les lignes de fracture** — les débats actuels : qui défend quoi et pourquoi, les données contradictoires, les enjeux derrière chaque position. C'est la section la plus importante : sois précis.\n4. **Zones d'ombre** — ce qu'on sait mal, les questions ouvertes, les données manquantes. Ces zones sont des opportunités de contribution pour mon objectif.\n5. **Plan de lecture** — les 8 ressources à consulter en premier (types de documents variés : ouvrages, articles, rapports, sources primaires), avec pour chacune ce qu'elle apporte et l'ordre de lecture recommandé.\n\nEnfin : les 5 questions précises que je devrais poser dans une prochaine session pour creuser, classées par ordre de priorité pour mon objectif."
+    },
+    {
+      "slug": "etude-marche-reddit",
+      "titre": "Étude de marché sur Reddit",
+      "emoji": "👽",
+      "description": "Exploite les discussions Reddit pour comprendre ton marché réel : frustrations exactes, vocabulaire des clients, attentes non servies. Les données que les sondages ne capturent pas.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "research",
+      "sousCategorie": "Étude de marché",
+      "roles": [
+        "entrepreneurs",
+        "marketeurs"
+      ],
+      "conseils": "• Colle de vrais fils de discussion : l'IA ne peut pas naviguer sur Reddit seule, sauf si ton outil a une recherche web.\n• Cherche les phrases exactes des utilisateurs : ce vocabulaire servira tes pages de vente et tes publicités.\n• Les forums francophones (r/france, forums métiers) donnent des données plus exploitables pour un marché français.",
+      "utilisation": "Colle les discussions dans {{fils-reddit}} (titre + commentaires principaux), précise {{produit-ou-service}} et {{segment-etudie}}.",
+      "vues": 620,
+      "ordre": 42,
+      "nouveau": true,
+      "contenu": "Agis comme un analyste qualitatif spécialisé dans l'étude des communautés en ligne. Tu extrais des discussions réelles des insights exploitables, avec une rigueur absolue entre ce qui est dit et ce que j'en conclus.\n\nDiscussions collectées :\n{{fils-reddit}}\n\nMon offre : {{produit-ou-service}}\nSegment étudié : {{segment-etudie}}\n\nAnalyse :\n\n1. **Cartographie des frustrations** — les problèmes exprimés par les utilisateurs, classés par fréquence d'apparition dans les discussions. Pour chaque frustration : le verbatim exact le plus représentatif (entre guillemets, avec sa source), et l'intensité (râlerie passagère, problème récurrent, point de rupture qui fait fuir).\n2. **Vocabulaire du client** — les mots et expressions que les utilisateurs emploient VRAIMENT pour décrire leurs problèmes et leurs désirs. C'est de l'or pour la rédaction : tableau avec l'expression, le sens, et comment l'utiliser dans un message marketing sans la dénaturer.\n3. **Solutions actuelles et leurs manques** — ce que les gens utilisent aujourd'hui (y compris les solutions bricolées), ce qui les satisfait, ce qui les agace. Le décalage entre l'usage déclaré et la solution actuelle est l'espace d'opportunité.\n4. **Signaux de willingness to pay** — les indices que les gens paieraient pour résoudre le problème (mises boutiques, prix mentionnés, « je paierais pour… ») contre les indices contraires.\n5. **Hypothèses à tester** — 3 hypothèses que cette analyse suggère pour mon offre, avec le test concret et peu coûteux pour chacune.\n\nDistingue clairement les faits cités de tes interprétations : jamais de citation inventée."
+    },
+    {
+      "slug": "analyste-tendances-marche",
+      "titre": "Analyste des tendances de marché",
+      "emoji": "📈",
+      "description": "Analyse les signaux d'un marché : tendances montantes, signaux faibles, dynamiques concurrentielles. Avec une lecture critique des modes et une fenêtre d'opportunité estimée.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "research",
+      "sousCategorie": "Analyse de tendances",
+      "roles": [
+        "consultants",
+        "traders",
+        "entrepreneurs"
+      ],
+      "conseils": "• Distingue toujours tendance (structurelle) de mode (passagère) : l'IA t'aide à trier les signaux.\n• Croise avec des données réelles (rapports sectoriels, Google Trends) avant de prendre une décision.\n• Demande explicitement les arguments CONTRAIRE à la tendance : chaque mode a ses rationalistes.",
+      "utilisation": "Remplace {{marche}}, {{horizon}} (6 mois, 2 ans, 5 ans) et {{position-actuelle}} (où tu te situes sur ce marché).",
+      "vues": 510,
+      "ordre": 43,
+      "nouveau": false,
+      "contenu": "Agis comme un analyste de marché senior qui lit les tendances avec un esprit critique : tu sépares les signaux structurels des effets de mode, et tu chiffres les fenêtres d'opportunité.\n\nMarché analysé : {{marche}}\nHorizon : {{horizon}}\nMa position actuelle : {{position-actuelle}}\n\nProduis l'analyse :\n\n1. **Les 5 tendances majeures** — pour chacune : description en une phrase, moteurs réels (pourquoi maintenant : technologie, réglementation, changement de comportement), maturité (émergente / en croissance / mûre), et le test simple qui distingue une tendance d'une mode.\n2. **Signaux faibles** — les mouvements récents encore peu visibles qui pourraient devenir structurants, avec leur probabilité estimée et l'indicateur à surveiller pour vérifier.\n3. **Les contre-arguments** — pour chaque tendance majeure : les raisons sérieuses pour lesquelles elle pourrait ne pas se concrétiser (obstacles réglementaires, comportements récalcitrants, acteurs dominants qui écrasent l'innovation). Aucune tendance ne doit survivre sans ce test.\n4. **Fenêtres d'opportunité** — tableau : opportunité, pour qui elle est réaliste (taille, compétences requises), durée estimée avant saturation, premier mouvement conseillé.\n5. **Implications pour ma position** — ce que ces tendances changent concrètement pour moi : quoi renforcer, quoi abandonner, quoi préparer, et la décision que je devrais prendre dans les 30 jours.\n6. **Sources à suivre** — les types de sources (rapports, acteurs, publications) qui me tiendront informé en 15 minutes par mois.\n\nMarque [À VÉRIFIER] sur chaque donnée chiffrée : elle doit être confirmée par une source réelle avant décision."
+    },
+    {
+      "slug": "valider-idee-saas",
+      "titre": "Validateur d'idées SaaS",
+      "emoji": "🧪",
+      "description": "Teste ton idée de logiciel avant de la développer : analyse du problème, alternatives existantes, willigness to pay, MVP minimal et critères de go/no-go chiffrés.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "research",
+      "sousCategorie": "Étude de marché",
+      "roles": [
+        "entrepreneurs",
+        "developpeurs"
+      ],
+      "conseils": "• La première question n'est pas « le produit est-il faisable ? » mais « quelqu'un paie-t-il déjà pour résoudre ce problème ? ».\n• Un MVP peut être un faux produit (landing page, service manuel derrière) : teste d'abord la demande, pas la technique.\n• Définis les critères d'abandon AVANT de commencer : c'est ce qui évite les projets fantômes de 2 ans.",
+      "utilisation": "Remplace {{idee-saas}}, {{probleme-resolu}} (le problème tel que le vit l'utilisateur) et {{audience}} (le segment précis).",
+      "vues": 580,
+      "ordre": 44,
+      "nouveau": false,
+      "contenu": "Agis comme un investisseur-analyseur de projets SaaS qui a vu passer des centaines d'idées : tu sais reconnaître les signaux d'un produit viable et ceux d'un projet de développeur sans client.\n\nMon idée : {{idee-saas}}\nProblème tel que le vit l'utilisateur : {{probleme-resolu}}\nAudience visée : {{audience}}\n\nMène la validation en 6 étapes :\n\n1. **Reformulation du problème** — le problème en une phrase du point de vue de l'utilisateur, avec la fréquence, le coût actuel du problème (temps, argent, erreurs) et ce qu'il fait aujourd'hui pour le contourner. Si le contournement actuel est déjà bon, dis-le franchement.\n2. **Paysage concurrentiel** — les solutions existantes (y compris Excel, les humains et les scripts maison : ce sont les vrais concurrents). Tableau : solution, ce qu'elle fait bien, ses manques, pourquoi les gens restent malgré les manques.\n3. **Le test de la douleur** — 5 questions d'entretien client à poser (sans jamais parler de ma solution) qui révèlent si le problème vaut de l'argent, avec les réponses qui valident et celles qui invalident.\n4. **MVP minimal** — la version la plus petite possible qui teste la VOLONTÉ DE PAYER (pas la technique) : options classées du plus rapide au plus cher (landing page avec précommandes, service manuel, prototype unique client).\n5. **Modèle économique préliminaire** — hypothèses de prix, coût d'acquisition estimé, seuil de viabilité (combien de clients pour couvrir mes coûts + mon temps).\n6. **Go / No-go chiffré** — les critères de décision AVANT le test : les seuils qui disent « continue » et ceux qui disent « arrête », y compris les échéances de temps.\n\nSois impitoyable à l'étape 1 : la majorité des idées SaaS meurent d'un problème insuffisamment douloureux."
+    },
+    {
+      "slug": "optimisateur-finances-personnelles",
+      "titre": "Optimisateur de finances personnelles",
+      "emoji": "💰",
+      "description": "Fais le point sur tes finances : structure des dépenses, épargne de précaution, plan de réduction des dettes et automatismes. Un plan par étapes, sans morale ni jargon.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "finance",
+      "sousCategorie": "Finances perso",
+      "roles": [
+        "freelances",
+        "etudiants"
+      ],
+      "conseils": "• Sois précis et honnête sur tes chiffres : l'optimisation vaut exactement la qualité des données d'entrée.\n• Le plan suit un ordre strict : sécurité d'abord (épargne de précaution), optimisation ensuite.\n• Automatise les virements le jour de la paie : la volonté ne tient pas, les automatismes oui.",
+      "utilisation": "Fournis {{revenus-mensuels}}, {{depenses-structurelles}} (loyer, abonnements…), {{epargne-actuelle}} et {{dettes}} le cas échéant. N'indique jamais de données bancaires réelles.",
+      "vues": 660,
+      "ordre": 45,
+      "nouveau": false,
+      "contenu": "Agis comme un conseiller en finances personnelles pédagogue et sans jugement. Tu ne recommandes aucun produit financier précis ; tu structures. Tu rappelles que rien ne remplace un conseiller régulé pour les produits d'investissement.\n\nMa situation :\n- Revenus mensuels moyens : {{revenus-mensuels}}\n- Dépenses fixes : {{depenses-structurelles}}\n- Épargne actuelle : {{epargne-actuelle}}\n- Dettes : {{dettes}}\n\nConstruis mon plan en 5 étapes, dans cet ordre strict :\n\n1. **Photographie** — mes dépenses reclassées (fixes, variables, loisirs), mon taux d'épargne actuel, et les 3 lignes qui sautent aux yeux comme marges d'optimisation, chiffrées.\n2. **Fondation de sécurité** — l'objectif d'épargne de précaution (3 mois de dépenses essentielles), le délai réaliste pour l'atteindre selon ma capacité, et où la placer (sans conseil de produit : les critères de choix à vérifier).\n3. **Si dettes il y a** — la stratégie adaptée à mes chiffres : avalanche (taux le plus élevé d'abord) ou boule de neige (petites sommes d'abord pour la motivation), avec le calcul des deux scénarios et le coût des intérêts évité.\n4. **Automatismes** — le système de virements automatiques (jour, montant, destination) qui fait fonctionner le plan sans volonté quotidienne, et la règle des 50/30/20 adaptée à ma réalité si elle est pertinente.\n5. **Revue trimestrielle** — les 4 chiffres à vérifier tous les 3 mois, les seuils qui déclenchent un ajustement, et les pièges classiques (dépenses de style de vie qui suivent les revenus, abonnements oubliés) avec leur parade.\n\nTermine par les 3 actions à faire cette semaine, en moins de 30 minutes chacune."
+    },
+    {
+      "slug": "prevoir-tresorerie",
+      "titre": "Prévisionnel de trésorerie 12 mois",
+      "emoji": "💧",
+      "description": "Construis un plan de trésorerie sur 12 mois : encaissements, décaissements, mois creux identifiés, seuil d'alerte. L'outil qui évite les fins de mois à vapeur d'eau.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "finance",
+      "sousCategorie": "Trésorerie",
+      "roles": [
+        "chefs-entreprise",
+        "comptables"
+      ],
+      "conseils": "• Prévois les ENCAISSEMENTS à leur date réelle de paiement, pas à la date de facturation : le délai client tue plus d'entreprises que l'absence de profit.\n• Construis deux scénarios : central et prudent (ventes -30 %). Le plan doit tenir au prudent.\n• Mets à jour le prévisionnel chaque mois avec le réel : l'écart réel/prévu est ton meilleur enseignement.",
+      "utilisation": "Fournis {{tresorerie-actuelle}}, {{encaissements-prevus}} (factures, contrats, saisonnalité), {{decaissements-fixes}} et {{decaissements-variables}}.",
+      "vues": 540,
+      "ordre": 46,
+      "nouveau": false,
+      "contenu": "Agis comme un directeur financier d'appoint pour PME, spécialisé dans la prévision de trésorerie. Tu penses en dates de flux réels, pas en chiffres d'affaires théoriques.\n\nMes données :\n- Trésorerie actuelle : {{tresorerie-actuelle}}\n- Encaissements prévus (avec leurs dates ou saisonnalité) : {{encaissements-prevus}}\n- Décaissements fixes : {{decaissements-fixes}}\n- Décaissements variables : {{decaissements-variables}}\n\nConstruis le prévisionnel :\n\n1. **Tableau de trésorerie 12 mois** — colonne par mois, lignes : encaissements réalistes (en intégrant les délais de paiement constatés dans mon secteur : pose-moi la question si je ne les ai pas donnés), décaissements, solde du mois, trésorerie cumulée. Présente aussi le scénario prudent (encaissements -30 %).\n2. **Les mois à risque** — identification précise des mois où la trésorerie passe sous le seuil de sécurité, avec le montant du creux et sa cause (délai client, saisonnalité, échéance annuelle).\n3. **Seuil d'alerte** — le niveau de trésorerie minimal à respecter (base : un mois de décaissements fixes, à discuter selon ma situation), et le protocole à suivre si le seuil est franchi.\n4. **Leviers de lissage** — pour chaque creux identifié : les solutions classées par rapidité d'activation (relance des créances, acomptes sur devis, décalage d'investissements non critiques, financement court terme) avec leur coût et leur limite.\n5. **Discipline de suivi** — le rituel mensuel : quoi saisir, quand, quels écarts réel/prévisionnel analyser, et comment réviser les hypothèses du prévisionnel.\n\nMarque clairement toutes les hypothèses que tu as dû poser, pour que je puisse les corriger."
+    },
+    {
+      "slug": "revenus-passifs-strategie",
+      "titre": "Stratégies de revenus passifs",
+      "emoji": "🏝️",
+      "description": "Explore les sources de revenus semi-passifs réalistes adaptées à tes compétences : création une fois, revenus récurrents. Avec la charge réelle de maintenance, pas le rêve marketing.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "finance",
+      "sousCategorie": "Finances perso",
+      "roles": [
+        "solopreneurs",
+        "freelances"
+      ],
+      "conseils": "• Méfie-toi du mot « passif » : chaque source demande un effort initial fort puis une maintenance réelle, l'IA doit te le chiffrer.\n• Une seule source développée à fond bat cinq sources commencées et abandonnées.\n• Vise la synergie : la source qui réutilise ce que tu produis déjà bat celle qui part de zéro.",
+      "utilisation": "Remplace {{competences-actifs}} (ce que tu sais faire et ce que tu as déjà produit), {{temps-initial}} disponible et {{objectif-mensuel}} visé.",
+      "vues": 700,
+      "ordre": 47,
+      "nouveau": false,
+      "contenu": "Agis comme un stratège de revenus complémentaires qui évalue les options avec honnêteté : pour chaque piste, la charge de travail RÉELLE (création et maintenance), le délai avant le premier euro, et la probabilité réaliste de succès. Tu ne vends pas de rêve.\n\nMon profil :\n- Compétences et actifs déjà possédés (contenus, audience, code, expertise) : {{competences-actifs}}\n- Temps investissable au départ : {{temps-initial}}\n- Objectif mensuel visé : {{objectif-mensuel}}\n\nProduis l'analyse :\n\n1. **Le spectre des revenus semi-passifs** — les 6 familles pertinentes pour mon profil (produits numériques, contenu monétisé, licences, affiliation, location d'actifs, dividendes/épargne investie — cette dernière uniquement mentionnée et renvoyée à un conseiller régulé), avec pour chaque famille : effort initial typique, maintenance mensuelle typique, plafond réaliste, et le piège principal.\n2. **Mes 4 pistes prioritaires** — construites à partir de mes actifs existants (pas de piste qui part de zéro si j'ai déjà quelque chose à exploiter). Tableau : piste, pourquoi elle me correspond, effort de création chiffré en jours, maintenance réelle en heures/mois, délai honnête avant le premier euro, potentiel vers mon objectif.\n3. **Le verdict** — la piste recommandée avec le raisonnement, ET le scénario d'échec typique de cette piste (pourquoi la plupart des gens échouent dessus) pour que je décide en connaissance de cause.\n4. **Plan des 30 premiers jours** — pour la piste retenue : les étapes jusqu'à la première version vendable, en semaines.\n5. **Le test de réalité** — les 3 questions qui vérifient que je suis prêt pour la maintenance long terme (répondre aux clients, mettre à jour, gérer les impôts associés)."
+    },
+    {
+      "slug": "analyser-potentiel-action",
+      "titre": "Analyste de potentiel d'action",
+      "emoji": "📉",
+      "description": "Analyse une action avec une grille structurée : modèle économique, valorisation, risques, scénarios. Une approche méthodique d'investisseur, sans garantie ni conseil personnalisé.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "finance",
+      "sousCategorie": "Bourse & investissement",
+      "roles": [
+        "traders",
+        "comptables"
+      ],
+      "conseils": "• L'IA analyse une structure, pas l'actualité : complète avec les derniers résultats et rapports officiels de l'entreprise.\n• Exige toujours les arguments contraires : une thèse d'investissement sans scénario de perte est un coup de cœur, pas une analyse.\n• Rien de ceci n'est un conseil financier : croise avec un professionnel régulé avant toute décision.",
+      "utilisation": "Remplace {{action-etudiee}}, {{donnees-entreprise}} (chiffres clés, résultats récents, actualité que tu connais) et {{horizon}} (court terme / long terme).",
+      "vues": 610,
+      "ordre": 48,
+      "nouveau": false,
+      "contenu": "Agis comme un analyste financier méthodique qui évalue une action selon une grille d'investissement rigoureuse. Tu n'es pas conseil en investissement : tu structures la réflexion. Tu signales systématiquement que tes sorties ne valent pas recommandation.\n\nAction analysée : {{action-etudiee}}\nDonnées dont je dispose : {{donnees-entreprise}}\nHorizon : {{horizon}}\n\nMène l'analyse en 5 volets :\n\n1. **Compréhension du modèle** — comment l'entreprise gagne de l'argent, en 5 lignes. Ses sources de revenus, leur diversification, et la question du fondateur : qu'est-ce qui empêche un concurrent de reprendre sa place ?\n2. **Santé financière** — à partir des données fournies : croissance, rentabilité, endettement, génération de trésorerie. Marque [À VÉRIFIER] sur chaque chiffre et indique où vérifier (dernier rapport annuel, document d'information).\n3. **Valorisation** — les ratios clés à calculer, leur lecture (cher / raisonnable / bon marché RELATIF à son secteur et à son histoire), et les pièges classiques du ratio sur ce type d'entreprise.\n4. **Risques et thèse inverse** — les 5 risques majeurs, y compris les risques non financiers (réglementaire, technologique, concentration client). Puis construis la thèse de vente : pourquoi un investisseur sérieux REFUSERAIT d'acheter. Une analyse sans thèse inverse est inutile.\n5. **Scénarios** — optimiste / central / pessimiste : les conditions de chacun, l'ordre de grandeur d'impact, et les signaux qui indiquent en temps réel dans quel scénario on se dirige.\n\nTermine par : la checklist des informations manquantes que je dois réunir avant toute décision."
+    },
+    {
+      "slug": "convertir-francais-vers-sql",
+      "titre": "Convertisseur français → SQL",
+      "emoji": "🗣️",
+      "description": "Pose ta question en français normal (« quels clients n'ont rien commandé depuis 6 mois ? ») et reçois la requête SQL correcte, commentée, avec les cas limites gérés.",
+      "type": "CODE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini"
+      ],
+      "categorieSlug": "data-analysis",
+      "sousCategorie": "Requêtes SQL",
+      "roles": [
+        "developpeurs",
+        "comptables",
+        "consultants"
+      ],
+      "conseils": "• Donne le schéma exact de tes tables (noms, colonnes, types) : sans lui, l'IA invente des noms de colonnes.\n• Demande toujours la version « ce que fait la requête » : c'est là que tu repères les malentendus.\n• Teste d'abord en lecture seule : ne lance jamais une requête UPDATE sans avoir vérifié le WHERE avec un SELECT.",
+      "utilisation": "Décris {{schema-tables}} (noms des tables et colonnes), pose ta question dans {{question-francaise}} et précise {{moteur-sql}} (PostgreSQL, MySQL, SQLite…).",
+      "vues": 590,
+      "ordre": 49,
+      "nouveau": false,
+      "contenu": "Agis comme un expert SQL qui traduit des questions de métier en requêtes correctes, performantes et compréhensibles. Tu ne devines jamais : tu clarifies.\n\nSchéma de mes tables :\n{{schema-tables}}\n\nQuestion (en français) : {{question-francaise}}\nMoteur : {{moteur-sql}}\n\nRéponds en 4 blocs :\n\n1. **Reformulation** — ma question traduite en besoin de données précis : quelles lignes, quelles colonnes, quels filtres, quel regroupement. C'est ici que se corrige le malentendu éventuel : si ma question est ambiguë (ex. « les clients actifs » : actif selon quel critère ?), pose la question AVANT d'écrire le SQL.\n2. **La requête** — SQL complet et exécutable, formaté, avec un commentaire français sur chaque bloc logique (jointure, filtre, agrégat). Conventions : noms exacts de mon schéma, gestion explicite des NULL, pas de SELECT *.\n3. **Ce que fait la requête** — le résultat attendu en français, avec 2 lignes d'exemple fictif (avant/après). Signale les pièges (doublons créés par une jointure, dates aux limites incluses ou exclues, valeurs nulles ignorées par les agrégats).\n4. **Cas limites** — les situations où la requête peut tromper : lignes sans correspondance, doublons, fuseaux horaires, données manquantes. Avec la variante SQL si un cas limite doit être traité différemment.\n\nSi ma question nécessite une fonction spécifique au moteur (fenêtrage, CTE), utilise-la et explique-la en une ligne."
+    },
+    {
+      "slug": "tableau-bord-kpi",
+      "titre": "Créateur de tableaux de bord KPI",
+      "emoji": "📊",
+      "description": "Conçois le tableau de bord que tu ouvriras vraiment chaque matin : KPI essentiels, seuils d'alerte, fréquence de mesure. Fini les dashboards remplis de chiffres jamais regardés.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "data-analysis",
+      "sousCategorie": "Rapports & dashboards",
+      "roles": [
+        "consultants",
+        "chefs-entreprise",
+        "marketeurs"
+      ],
+      "conseils": "• Maximum 7 indicateurs : le huitième ne sera jamais lu.\n• Un KPI sans seuil d'alerte ni décision associée est un ornement, pas un indicateur.\n• Construis d'abord « quelle décision ce chiffre déclenche-t-il ? » : si aucune, supprime le chiffre.",
+      "utilisation": "Remplace {{activite-et-objectif}}, {{decisions-frequentes}} (les décisions que tu prends chaque semaine) et {{sources-donnees}} (outils où vivent tes données).",
+      "vues": 560,
+      "ordre": 50,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant en pilotage de la performance qui conçoit des tableaux de bord utiles — ceux qu'on regarde vraiment, parce que chaque chiffre déclenche une décision.\n\nContexte :\n- Activité et objectif principal : {{activite-et-objectif}}\n- Les décisions que je prends régulièrement : {{decisions-frequentes}}\n- Sources de données disponibles : {{sources-donnees}}\n\nConçois le tableau de bord :\n\n1. **Arbre des décisions** — remonte des mes décisions courantes vers les questions qui les déterminent, puis vers les indicateurs qui y répondent. C'est l'inverse de la méthode classique (pas « quelles données ai-je ? » mais « de quoi ai-je besoin pour décider ? »).\n2. **Les KPI retenus (6 maximum)** — tableau : indicateur, définition exacte (formule de calcul, périmètre, période), décision qu'il déclenche, seuil d'alerte vert/orange/rouge, fréquence de mesure, source de données.\n3. **Structure du dashboard** — la mise en page recommandée : les 3 chiffres vitaux en haut (ceux qui « arrêtent tout » s'ils dérapent), les tendances au milieu, le détail en dessous. Pour chaque zone : pourquoi elle est placée là.\n4. **Anti-vanity metrics** — les indicateurs flatteurs mais inutiles pour mon cas (à bannir du dashboard), avec la raison et le KPI de remplacement.\n5. **Rituel de lecture** — le moment et la durée de consultation (ex. « 5 minutes chaque lundi »), les 3 questions à se poser face au dashboard, et la règle : un indicateur rouge pendant 2 semaines déclenche quoi.\n6. **Feuille de route technique** — comment construire le dashboard avec mes outils actuels, étape par étape, du plus simple (tableau manuel hebdo) vers le plus automatisé."
+    },
+    {
+      "slug": "prevoir-ltv-et-attrition",
+      "titre": "Prévision LTV & risque d'attrition",
+      "emoji": "🔮",
+      "description": "Analyse tes données clients pour estimer la valeur vie client (LTV) et repérer les signaux d'attrition avant qu'il ne parte. Actions de rétention priorisées par segment.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "data-analysis",
+      "sousCategorie": "Analyse de données",
+      "roles": [
+        "marketeurs",
+        "entrepreneurs",
+        "comptables"
+      ],
+      "conseils": "• Fournis au moins 6 mois d'historique : une LTV estimée sur 2 mois est une illusion.\n• Le signal d'attrition le plus fiable est comportemental (moins de connexions, paniers abandonnés), pas déclaratif.\n• Retiens 2 ou 3 actions de rétention maximum : les programmes à 10 actions ne sont exécutés nulle part.",
+      "utilisation": "Colle tes données (anonymisées) dans {{donnees-clients}} : transactions, fréquence, panier moyen, ancienneté, interactions. Précise {{modele-activite}} (abonnement, e-commerce, service).",
+      "vues": 480,
+      "ordre": 51,
+      "nouveau": false,
+      "contenu": "Agis comme un analyste de données clients spécialisé en valeur vie client (LTV) et en prévention d'attrition (churn). Tu raisonnes en segments et en signaux comportementaux.\n\nDonnées clients (anonymisées) :\n{{donnees-clients}}\n\nModèle d'activité : {{modele-activite}}\n\nAnalyse :\n\n1. **Nettoyage et lecture des données** — ce que tes données permettent de conclure et ce qu'elles ne permettent PAS (durée d'observation trop courte, variables manquantes). Sois franc sur les limites.\n2. **Segments comportementaux** — regroupe les clients en 3 à 5 segments selon leur comportement (fréquence, valeur, régularité, ancienneté), avec le profil type et la part du chiffre d'affaires de chaque segment.\n3. **Estimation LTV par segment** — la méthode de calcul explicitée (formule, hypothèses, durée de vie retenue et pourquoi), le résultat par segment, et la marge d'incertitude. Compare la LTV au coût d'acquisition si je l'ai fourni, sinon indique la LTV cible minimale pour que l'acquisition soit rentable.\n4. **Signaux d'attrition** — les comportements précis observés dans mes données qui précèdent les départs (baisse de fréquence, panier en baisse, dernière interaction datée). Pour chaque signal : délai d'alerte utile et fiabilité estimée.\n5. **Plan de rétention** — pour chaque segment à risque : la 1 action de rétention la plus adaptée (pas 10 : une), son coût estimé, et le seuil de succès mesurable.\n6. **À surveiller** — les données que je devrais commencer à collecter pour affiner les analyses suivantes."
+    },
+    {
+      "slug": "concevoir-dashboard-web",
+      "titre": "Designer de dashboard web responsive",
+      "emoji": "🖥️",
+      "description": "Obtiens le code d'un dashboard web responsive et élégant : cartes de KPI, graphiques lisibles, table triable, mode sombre. Prêt à brancher sur tes données réelles.",
+      "type": "CODE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini"
+      ],
+      "categorieSlug": "data-analysis",
+      "sousCategorie": "Rapports & dashboards",
+      "roles": [
+        "developpeurs",
+        "agences"
+      ],
+      "conseils": "• Décris précisément tes données et ton audience (desktop ou mobile ?) : le design suit l'usage réel.\n• Exige des données de démo réalistes pour voir le rendu immédiatement, puis remplace par tes vraies données.\n• Vérifie le comportement sur petit écran : la moitié des dashboards sont consultés sur mobile le soir.",
+      "utilisation": "Remplace {{metriques-a-afficher}}, {{stack}} (ex. « React + Tailwind », « HTML/CSS/JS pur ») et {{donnees-demo}} (le type de données à simuler).",
+      "vues": 450,
+      "ordre": 52,
+      "nouveau": false,
+      "contenu": "Agis comme un développeur frontend spécialisé dans les dashboards de données : lisibilité d'abord, esthétique toujours, gadgets jamais.\n\nSpécifications :\n- Métriques à afficher : {{metriques-a-afficher}}\n- Stack technique : {{stack}}\n- Données de démonstration : {{donnees-demo}}\n\nProduis le dashboard complet :\n\n1. **Structure et hiérarchie** — le layout en 3 niveaux : bandeau des indicateurs vitaux (4 cartes maximum avec valeur, variation vs période précédente, et flèche de tendance), zone principale (2 graphiques maximum : séries temporelles et répartition), zone détail (tableau triable des données brutes récentes).\n2. **Le code complet** — tous les fichiers nécessaires, chacun identifié par son nom en commentaire. Contraintes : responsive mobile-first, composants réutilisables, données de démo dans un fichier séparé prêt à remplacer par un appel API réel (avec le point d'insertion commenté).\n3. **Design** — palette sobre (une couleur d'accent maximum), typographie lisible, espacements réguliers, états de survol discrets. Mode sombre si la stack le facilite. Aucune animation qui ralentit la lecture des chiffres.\n4. **Lisibilité des graphiques** — axes et unités explicites, seuils d'alerte matérialisés (ligne horizontale), tooltips utiles au survol, légendes concises. Un graphique sans unité lisible est un bug.\n5. **Points d'extension** — comment brancher mes vraies données (format attendu), comment ajouter un indicateur, et où insérer un rafraîchissement automatique.\n\nVérifie toi-même avant de rendre : le code doit s'exécuter sans erreur et s'afficher correctement en 360 px de large comme en 1920 px."
+    },
+    {
+      "slug": "conditions-generales-utilisation",
+      "titre": "Générateur de CGU / CGV",
+      "emoji": "📜",
+      "description": "Prépare un premier projet de conditions générales adapté à ton service en ligne : clauses essentielles, obligations des parties, résiliation. À faire valider par un avocat.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "legal",
+      "sousCategorie": "Contrats",
+      "roles": [
+        "entrepreneurs",
+        "chefs-entreprise"
+      ],
+      "conseils": "• Ce document donne un PROJET de travail : fais-le relire par un avocat avant publication, surtout pour la conformité RGPD et droit de la consommation.\n• Rédige les clauses de limitation de responsabilité avec soin : c'est la plus stratégique de toutes.\n• Relis les CGU au moins une fois par an : le service évolue, les clauses doivent suivre.",
+      "utilisation": "Remplace {{service-decrit}}, {{modele-economicque}} (gratuit, abonnement, paiement à l'acte) et {{specificites}} (particularités de ton offre).",
+      "vues": 640,
+      "ordre": 53,
+      "nouveau": false,
+      "contenu": "Agis comme un juriste contractuel spécialisé dans les services numériques. Tu rédiges un PROJET de conditions générales structuré et lisible, en rappelant systématiquement qu'il doit être validé par un avocat inscrit au barreau avant publication — tu ne remplaces pas une consultation juridique.\n\nService concerné :\n- Description : {{service-decrit}}\n- Modèle économique : {{modele-economicque}}\n- Spécificités : {{specificites}}\n\nRédige le projet en 9 clauses :\n\n1. **Objet et acceptation** — définition du service, modalités d'acceptation des CGU, preuve d'acceptation.\n2. **Description du service** — ce que le service fait, ce qu'il ne fait pas, évolutions et disponibilité.\n3. **Accès et compte** — conditions d'inscription, exactitude des informations, sécurité du mot de passe, suspension en cas d'usage abusif.\n4. **Obligations de l'utilisateur** — usages autorisés et interdits (liste explicite : contenus illégaux, reverse engineering, contournement des limites).\n5. **Propriété intellectuelle** — droits sur le service, droits des contenus de l'utilisateur, licence concédée.\n6. **Données personnelles** — renvoi vers la politique de confidentialité, les bases légales et les droits RGPD (avec le point à vérifier pour la conformité exacte).\n7. **Paiement et abonnement** (si applicable) — tarifs, reconduction, rétractation, résiliation, ce que la loi française impose en matière d'information précontractuelle.\n8. **Responsabilité** — limitation de responsabilité, force majeure, niveau de service (avec la règle : aucun engagement de disponibilité à 100 %).\n9. **Résiliation, droit applicable, modifications des CGU** — procédure de préavis et d'information.\n\nTermine par : la liste des clauses à faire revoir en priorité par l'avocat et les questions juridiques spécifiques à mon offre que je devrai trancher."
+    },
+    {
+      "slug": "accord-confidentialite-nda",
+      "titre": "Accord de confidentialité (NDA)",
+      "emoji": "🤐",
+      "description": "Génère un projet d'accord de confidentialité réciproque ou unilatéral, calibré pour ta situation : périmètre, durée, exceptions, sanctions. Base de travail pour ton avocat.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "legal",
+      "sousCategorie": "NDA & accords",
+      "roles": [
+        "freelances",
+        "consultants",
+        "entrepreneurs"
+      ],
+      "conseils": "• Le périmètre des informations confidentielles est la clause la plus importante : trop large, le NDA sera contesté ; trop étroit, il ne protège rien.\n• Précise le régime applicable (droit français ? autre ?) : un NDA international sans clause de droit applicable est un piège.\n• Fais valider la version finale par un avocat : les montants de pénalités notamment doivent être crédibles juridiquement.",
+      "utilisation": "Remplace {{contexte-echange}}, {{sens-de-l-echange}} (réciproque ou unilatéral : qui divulgue, qui reçoit) et {{duree-souhaitee}}.",
+      "vues": 520,
+      "ordre": 54,
+      "nouveau": false,
+      "contenu": "Agis comme un juriste d'affaires qui prépare des projets d'accords de confidentialité (NDA) pour des freelances, consultants et petites entreprises. Tu produis un document de travail clair, avec les points de vigilance signalés — la validation finale par un avocat reste indispensable.\n\nContexte de l'échange : {{contexte-echange}}\nSens de l'échange d'informations : {{sens-de-l-echange}}\nDurée souhaitée : {{duree-souhaitee}}\n\nRédige le projet d'accord en 8 articles :\n\n1. **Objet** — pourquoi les parties échangent des informations (projet précis mais sans tout dévoiler dans le contrat lui-même).\n2. **Définition des informations confidentielles** — le périmètre : par nature (technique, commerciale, financière) et par support (écrit, oral, électronique), la mention « confidentiel » et son absence (les informations orales identifiées comme confidentielles le sont-elles ?), et la définition des copies et résumés.\n3. **Exclusions** — les informations qui ne sont PAS confidentielles : déjà publiques, déjà connues du destinataire sans lien avec l'échange, reçues légitimement d'un tiers, développées indépendamment (avec preuve).\n4. **Obligations du destinataire** — usage limité à l'objet défini, protection au moins équivalente à ses propres informations confidentielles, restriction du cercle des personnes autorisées (collaborateurs, conseils — avec engagement de confidentialité en cascade).\n5. **Durée** — la durée de l'engagement à partir de chaque divulgation, et ce qui survit à la fin de l'accord.\n6. **Retour ou destruction** — le sort des informations à la fin de l'accord, avec la procédure et l'attestation.\n7. **Sanctions** — dommages-intérêts, mesures d'urgence (référé), sans fixation d'un montant de pénalité forfaitaire discutable : signale ce point à valider.\n8. **Droit applicable, juridiction, divers** — le droit choisi, le tribunal compétent, la nullité partielle.\n\nTermine par : les 4 points que je dois trancher avec mon avocat avant signature."
+    },
+    {
+      "slug": "note-analyse-juridique",
+      "titre": "Générateur de notes d'analyse juridique",
+      "emoji": "⚖️",
+      "description": "Structure une analyse juridique professionnelle : qualification des faits, règles applicables, discussion contradictoire, conclusion nuancée. Le format attendu par un cabinet.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "legal",
+      "sousCategorie": "Recherche juridique",
+      "roles": [
+        "avocats"
+      ],
+      "conseils": "• Vérifie chaque référence normative citée : les numéros d'articles et de décisions peuvent être inexacts, surtout après une réforme.\n• La section « discussion » doit peser les deux sens : une analyse juridique à sens unique est une opinion, pas une analyse.\n• Indique toujours la juridiction et la date : le droit évolue, une note sans contexte temporel est dangereuse.",
+      "utilisation": "Décris {{question-juridique}}, {{faits}} (chronologie précise), {{regles-connues}} (les textes que tu as déjà identifiés) et {{juridiction}} (pays, ordre de juridiction).",
+      "vues": 470,
+      "ordre": 55,
+      "nouveau": false,
+      "contenu": "Agis comme un juriste d'expérience qui rédige des notes d'analyse structurées selon la méthode des cabinets : qualification, règles, discussion contradictoire, conclusion nuancée. Tu signales systématiquement que les références doivent être vérifiées dans les sources officielles.\n\nDossier :\n- Question de droit : {{question-juridique}}\n- Faits (chronologie) : {{faits}}\n- Règles que j'ai déjà identifiées : {{regles-connues}}\n- Juridiction et ordre concernés : {{juridiction}}\n\nRédige la note :\n\n1. **Résumé exécutif** — la réponse probable en 5 lignes, avec son degré de certitude (fort / probable / incertain) et les conditions qui feraient basculer la conclusion.\n2. **Qualification** — la qualification juridique des faits, les notions mobilisées et leurs conditions d'application une par une, avec le tableau fait ↔ condition (satisfait / à vérifier / non satisfait).\n3. **Cadre normatif** — les règles applicables hiérarchisées (loi, règlement, jurisprudence, doctrine), avec pour chaque référence : [À VÉRIFIER] sur les numéros exacts et l'indication de la source officielle où la contrôler.\n4. **Discussion** — le cœur de la note : les arguments pour chaque sens de la solution, les interprétations possibles des textes, les distinctions de cas qui conduisent à des solutions différentes, les objections et leurs réponses.\n5. **Conclusion et recommandations** — la réponse nuancée à la question, les scénarios selon les faits alternatifs plausibles, et les préconisations opérationnelles (à faire, à documenter, à éviter).\n6. **Points de vigilance** — ce qui pourrait invalider l'analyse : faits incomplets, réformes en cours, divergences de jurisprudence à vérifier.\n\nLe ton est celui d'une note interne de cabinet : précis, neutre, sans emphase."
+    },
+    {
+      "slug": "extraire-faits-juridiques",
+      "titre": "Extracteur de faits juridiques",
+      "emoji": "🔍",
+      "description": "Colle des documents (courriers, PV, contrats, échanges) et reçois une chronologie factuelle ordonnée : dates, acteurs, faits vérifiés, lacunes et contradictions à creuser.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "legal",
+      "sousCategorie": "Recherche juridique",
+      "roles": [
+        "avocats"
+      ],
+      "conseils": "• Colle les documents dans l'ordre chronologique d'apparition, avec leur nature indiquée : le tri factuel en dépend.\n• Les contradictions relevées sont le plus précieux du rapport : elles guident les questions à poser au client.\n• Anonymise les tiers sensibles avant de coller des documents dans un outil en ligne.",
+      "utilisation": "Colle les documents dans {{documents-fournis}} (avec nature et date de chaque pièce), et indique {{objet-dossier}}.",
+      "vues": 410,
+      "ordre": 56,
+      "nouveau": false,
+      "contenu": "Agis comme un juriste qui extrait et organise les faits d'un dossier à partir de documents bruts. Tu sépares rigoureusement le fait (écrit dans un document) de l'affirmation (dite par une partie) et de l'inférence (conclusion du lecteur).\n\nObjet du dossier : {{objet-dossier}}\n\nDocuments fournis (nature et date indiquées pour chacun) :\n{{documents-fournis}}\n\nProduis le rapport factuel :\n\n1. **Inventaire des pièces** — tableau : pièce, nature, date, expéditeur/destinataire, ce qu'elle apporte au dossier. Signale les pièces datées de façon imprécise.\n2. **Chronologie factuelle** — tableau ordonné : date, fait, source (numéro de pièce), statut (établi par écrit / affirmé par une partie / contesté). Un fait qui n'apparaît que dans la version d'une partie est marqué comme tel, jamais présenté comme établi.\n3. **Acteurs et rôles** — les personnes et entités impliquées, leur rôle dans les faits, les liens entre eux, les rôles ambigus ou non documentés.\n4. **Lacunes du dossier** — les périodes ou événements sans pièce, les informations attendues mais absentes (quels documents réclamer, à qui), et les questions de fait à poser au client, listées par ordre d'importance.\n5. **Contradictions et zones de tension** — les désaccords entre pièces (dates qui ne collent pas, versions différentes d'un même événement), avec leur implication potentielle sur l'issue du dossier.\n6. **Faits juridiquement pertinents** — parmi tous les faits, ceux qui semblent déterminants pour l'objet du dossier, avec la raison de leur pertinence (sans trancher la question de droit, qui fait l'objet d'une note séparée).\n\nRègle absolue : aucune inférence présentée comme un fait. Chaque affirmation du rapport renvoie à sa source."
+    },
+    {
+      "slug": "communication-incident-clients",
+      "titre": "Communication d'incident aux clients",
+      "emoji": "🚨",
+      "description": "Gère une panne ou un incident avec honnêteté et méthode : premier message d'annonce, mises à jour régulières, message de résolution et bilan. La confiance se préserve dans la crise.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "customer-service",
+      "sousCategorie": "Réponses support",
+      "roles": [
+        "assistants-virtuels",
+        "agences",
+        "chefs-entreprise"
+      ],
+      "conseils": "• Annonce vite et incomplet plutôt que tard et complet : le silence génère plus de dégâts que le problème lui-même.\n• Une seule source de vérité (page de statut, email) : des messages contradictoires entre canaux multiplient les tickets.\n• Admets l'impact concret pour le client (« vos exports n'ont pas été envoyés ») : le mot « incident » ne dit rien à personne.",
+      "utilisation": "Remplace {{incident}}, {{impact-clients}} (ce qui ne marche pas concrètement) et {{canaux}} (email, page de statut, réseaux sociaux).",
+      "vues": 450,
+      "ordre": 57,
+      "nouveau": false,
+      "contenu": "Agis comme un responsable de la relation client qui gère des incidents avec transparence et calme. Tu produis des messages honnêtes, sans jargon technique et sans fausse réassurance.\n\nIncident en cours : {{incident}}\nImpact concret pour les clients : {{impact-clients}}\nCanaux de communication : {{canaux}}\n\nProduis la trousse de communication complète :\n\n1. **Message d'annonce (à envoyer dans les 15 minutes)** — moins de 120 mots : ce qui se passe en langage client, ce que nous faisons, la prochaine mise à jour à une heure précise (engagée), et où suivre l'évolution. Pas de cause encore inconnue annoncée avec certitude : on dit ce qu'on sait, point.\n2. **Modèle de mise à jour (toutes les X heures)** — la structure réutilisable : état depuis la dernière annonce, progrès constatés, prochaine échéance. Version courte pour les réseaux sociaux, version longue pour l'email.\n3. **Message de résolution** — l'heure de retour normal, la durée totale de l'incident, ce que les clients doivent faire le cas échéant (raffraîchir, relancer une action), et la promesse de retour détaillé.\n4. **Bilan post-incident** — le message d'excuse sincère sans flagornerie : ce qui s'est passé en 3 lignes, la cause racine en une phrase compréhensible, les mesures concrètes pour éviter la répétition (2 maximum, réelles).\n5. **Réponses aux réactions difficiles** — 3 modèles de réponse aux clients : en colère, qui demandent une compensation, qui soupçonnent une perte de données. Chaque réponse : reconnaissance, réponse factuelle, suite concrète.\n6. **Règles d'or** — les 5 interdits de communication pendant l'incident (culpabiliser un fournisseur publiquement, minimiser, promettre une heure de rétablissement non maîtrisée…).\n\nAdapte le ton : calme, direct, responsable. Aucun « nous nous excusons pour la gêne occasionnée » mécanique."
+    },
+    {
+      "slug": "checklist-onboarding-clients",
+      "titre": "Checklist d'onboarding client",
+      "emoji": "✅",
+      "description": "Construis le parcours d'accueil de tes nouveaux clients : jalons de la première semaine, checklist par étape, signaux de réussite et plan de sauvetage si le client décroche.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "customer-service",
+      "sousCategorie": "Onboarding",
+      "roles": [
+        "assistants-virtuels",
+        "agences"
+      ],
+      "conseils": "• Un onboarding réussi se mesure à une seule chose : le client atteint sa première victoire rapidement.\n• Répartis les tâches entre le client et toi : les checklists à sens unique créent des faux départs.\n• Le jour 7 est le point critique : prévois le contact qui réengagent ceux qui n'ont pas démarré.",
+      "utilisation": "Remplace {{offre}}, {{premiere-victoire}} (le premier résultat concret que le client obtient) et {{canaux-communication}}.",
+      "vues": 480,
+      "ordre": 58,
+      "nouveau": false,
+      "contenu": "Agis comme un responsable de la réussite client (customer success) qui conçoit des parcours d'onboarding qui amènent les clients à leur première victoire sans friction.\n\nContexte :\n- Offre : {{offre}}\n- Première victoire du client (le résultat concret rapide) : {{premiere-victoire}}\n- Canaux de communication disponibles : {{canaux-communication}}\n\nConçois l'onboarding :\n\n1. **Cartographie du parcours** — les 4 jalons du premier mois, du plus court chemin vers la première victoire au consolidation. Pour chaque jalon : le résultat visible, la durée cible, et la principale raison pour laquelle les clients y échouent.\n2. **La checklist jour 1** — ce que LE CLIENT fait (3 actions maximum, chacune en moins de 10 minutes) et ce que NOUS faisons (configuration, envoi des accès, message d'accueil). Format à copier dans un email.\n3. **Les 3 premières semaines** — tableau semaine par semaine : notre action proactive (email, appel, tutoriel), le jalon attendu du client, le signal d'alerte qui indique qu'il décroche.\n4. **Plan de sauvetage** — pour un client inactif au jour 7 : la séquence de réengagement (message de relance non accusateur, offre d'aide en 15 minutes, alternative simplifiée), et la décision de classement final si rien ne fonctionne.\n5. **Mesure de l'onboarding** — les 3 indicateurs : taux d'atteinte de la première victoire à 7 jours, délai moyen, taux de survie à 30 jours. Avec la cible réaliste pour chaque.\n6. **Le message d'accueil type** — le premier email prêt à envoyer : court, avec la checklist jour 1, l'aide accessible et une seule chose à faire d'abord.\n\nLe parcours entier doit pouvoir se suivre sans intervention manuelle lourde de notre côté : pointe ce qui peut être automatisé."
+    },
+    {
+      "slug": "notes-escalade-interne",
+      "titre": "Notes d'escalade internes",
+      "emoji": "⏫",
+      "description": "Formule une escalade de dossier client vers ton équipe technique ou ta direction : contexte condensé, impact chiffré, ce qui a été tenté, décision attendue. Le ticket que tout le monde traite en priorité.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "customer-service",
+      "sousCategorie": "Réponses support",
+      "roles": [
+        "assistants-virtuels"
+      ],
+      "conseils": "• Une escalade utile tient en 15 lignes : le destinataire doit comprendre sans ouvrir l'historique.\n• Chiffre l'impact (client concerné, montant, urgence réelle) : « urgent » seul ne déclenche rien.\n• Propose ta recommandation : l'escalade qui arrive avec une solution pré-qualifiée est traitée plus vite.",
+      "utilisation": "Décris {{dossier}}, {{actions-deja-tentees}} et {{decisions-attendues}}. L'IA formate la note pour le destinataire choisi.",
+      "vues": 380,
+      "ordre": 59,
+      "nouveau": false,
+      "contenu": "Agis comme un chef d'équipe support qui écrit des notes d'escalade que les équipes destinataires traitent en priorité — parce qu'elles sont complètes, courtes et actionnables.\n\nDossier à escalader : {{dossier}}\nCe qui a déjà été tenté : {{actions-deja-tentees}}\nDécision ou action attendue : {{decisions-attendues}}\n\nRédige la note d'escalade en 2 versions :\n\n**Version 1 — vers l'équipe technique** (15 lignes maximum) :\n1. Résumé en 2 phrases : qui, quoi, depuis quand.\n2. Impact chiffré : client concerné, nombre d'utilisateurs touchés, montant ou risque commercial, urgence réelle (avec la date limite de traitement).\n3. Les symptômes observés, précis et reproductibles (étapes, messages d'erreur exacts).\n4. Ce qui a été tenté et exclu, avec les résultats.\n5. La demande précise : quelle décision ou action, et le délai souhaité.\n6. La recommandation que je propose, avec sa justification en une ligne.\n\n**Version 2 — vers la direction** (10 lignes maximum) :\n1. L'affaire en une phrase.\n2. L'enjeu business (risque, coût, client stratégique).\n3. Les options avec leurs coûts/risques (2-3 maximum), ma recommandation marquée.\n4. La décision attendue et avant quelle date.\n\nRègles : aucun reproche voilé à une autre équipe, aucune émotion, chaque affirmation vérifiable dans les pièces jointes citées. Si une information manque pour une escalade crédible, dis-moi ce que je dois vérifier avant d'envoyer."
+    },
+    {
+      "slug": "objectifs-onboarding-clients",
+      "titre": "Objectifs d'onboarding client",
+      "emoji": "🎯",
+      "description": "Définis des objectifs d'onboarding clairs pour tes nouveaux clients : résultats attendus à 30, 60 et 90 jours, critères de succès mesurables et plan de responsabilisation.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "customer-service",
+      "sousCategorie": "Onboarding",
+      "roles": [
+        "agences",
+        "entrepreneurs"
+      ],
+      "conseils": "• Fixe les objectifs AVEC le client lors de la vente, pas après : un objectif imposé n'engage personne.\n• Trois jalons mesurables valent mieux qu'un plan de 20 actions : c'est le résultat qui compte au client.\n• Revois les objectifs au jour 30 : la réalité du terrain corrige toujours les prévisions de la vente.",
+      "utilisation": "Remplace {{offre}}, {{type-client}} et {{resultat-attendu}} (ce que le client espère obtenir en achetant).",
+      "vues": 360,
+      "ordre": 60,
+      "nouveau": false,
+      "contenu": "Agis comme un directeur de la réussite client qui transforme la promesse de vente en objectifs d'onboarding mesurables et partagés. Tu évites les objectifs vagues (« maîtriser l'outil ») au profit de résultats observables.\n\nContexte :\n- Offre : {{offre}}\n- Type de client : {{type-client}}\n- Résultat attendu par le client : {{resultat-attendu}}\n\nConstruis le cadre d'onboarding :\n\n1. **La promesse traduite en résultats** — reformule ce que le client attend en 3 résultats observables à 90 jours, chacun mesurable par un chiffre ou un fait vérifiable (pas des impressions).\n2. **Les jalons 30 / 60 / 90 jours** — tableau : jalon, critère de succès (mesurable), qui fait quoi (client / nous / les deux), la réunion ou le livrable de validation, et le risque principal du jalon avec sa parade.\n3. **Le contrat de responsabilités** — la répartition honnête : ce que nous garantissons, ce dont le client est responsable (accès, données, disponibilité des bonnes personnes), et ce qui arrive si l'un des deux ne tient pas son engagement. C'est la clause qui évite 80 % des frustrations.\n4. **Le suivi** — le rituel léger : point d'étape mensuel de 30 minutes (ordre du jour fixe : les 3 résultats, les blocages, la décision suivante), le tableau de suivi partagé, et la règle d'ajustement des objectifs si la réalité du terrain change.\n5. **Le message de cadrage** — l'email prêt à envoyer au jour 1 qui pose ces objectifs au client, dans un ton de partenariat (ni contractuel glacé, ni promesse gonflée), avec les 3 jalons et la première action attendue de chacun.\n\nVérifie toi-même : chaque critère de succès doit pouvoir être répondu par « oui » ou « non », ou par un chiffre — jamais par une impression."
+    },
+    {
+      "slug": "annonces-location-immobilieres",
+      "titre": "Rédacteur d'annonces de location",
+      "emoji": "🏠",
+      "description": "Rédige des annonces de location qui déclenchent des visites : accroche qui cible le bon locataire, points forts valorisés sans gonflement, informations pratiques complètes.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "real-estate",
+      "sousCategorie": "Marketing immobilier",
+      "roles": [
+        "agents-immobiliers"
+      ],
+      "conseils": "• Vise le bon locataire plutôt que tous les locataires : une annonce qui parle à des étudiants ne parle pas à une famille.\n• Les défauts connus doivent être adressés plutôt que cachés : ils sortiront à la visite et détruiront la confiance.\n• Teste 2 accroches différentes sur des portails différents et compare les demandes de visite.",
+      "utilisation": "Fournis {{caracteristiques-bien}} (surface, pièces, étage, équipements, quartier), {{loyer-charges}} et {{locataire-ideal}}.",
+      "vues": 540,
+      "ordre": 61,
+      "nouveau": false,
+      "contenu": "Agis comme un rédacteur d'annonces immobilières expert, qui connaît les codes des portails français (Leboncoin, SeLoger, PAP) et ce qui fait cliquer sans tromper.\n\nBien à louer :\n- Caractéristiques : {{caracteristiques-bien}}\n- Loyer et charges : {{loyer-charges}}\n- Locataire idéal recherché : {{locataire-ideal}}\n\nProduis :\n\n1. **3 accroches de titre** (moins de 70 caractères chacune), chacune avec une mécanique différente : le point fort unique du bien, le mode de vie qu'il permet, le quartier. Marque ta recommandée.\n2. **L'annonce complète (200-250 mots)** structurée ainsi :\n   - Le premier paragraphe place le lecteur dans le bien (matière, lumière, sensation) — pas « je vous présente ce magnifique appartement » ;\n   - Les points forts développés avec des détails concrets qui les prouvent ;\n   - Un paragraphe honnête sur le type de vie dans le logement (bruit léger, quartier vivant, vis-à-vis partiel) : c'est un filtre positif qui évite les visites inutiles ;\n   - Les informations pratiques : charges incluses ou non, dépôt de garantie, disponibilité, diagnostic énergie.\n3. **La version courte** (80 mots) pour les portails qui plafonnent la longueur.\n4. **Les 5 questions que les candidats poseront** avec la réponse prête, pour accélérer le tri des demandes.\n5. **Ce qu'il manque** — les informations que je devrais ajouter pour rendre l'annonce complète et éviter les allers-retours.\n\nInterdits : superlatifs creux (« coup de cœur assuré »), fausse rareté, promesses non vérifiables."
+    },
+    {
+      "slug": "tendances-marche-immobilier",
+      "titre": "Analyste des tendances immobilières",
+      "emoji": "📊",
+      "description": "Analyse ton marché immobilier local : dynamique des prix, tension locative, évolution des profils d'acheteurs. Avec les indicateurs à suivre et les implications pour ton activité.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "real-estate",
+      "sousCategorie": "Analyse de marché",
+      "roles": [
+        "agents-immobiliers",
+        "comptables"
+      ],
+      "conseils": "• Fournis des données réelles (DVF, observatoires locaux, ton fichier clients) : l'IA structure l'analyse, les chiffres viennent des sources officielles.\n• Croise toujours prix affichés et prix transactionnels : l'écart révèle la vraie tension du marché.\n• Fais l'exercice par quartier, jamais à l'échelle de la ville entière : les marchés se déplacent par micro-zones.",
+      "utilisation": "Fournis {{zone-etudiee}}, {{donnees-locales}} (prix, volumes, délais de vente que tu observes) et {{objet-analyse}} (investir, vendre, conseiller des clients).",
+      "vues": 470,
+      "ordre": 62,
+      "nouveau": false,
+      "contenu": "Agis comme un analyste immobilier spécialisé dans les marchés locaux français. Tu structures l'analyse mais tu exige des données réelles : tu marques [À VÉRIFIER] sur toute donnée que je n'ai pas fournie.\n\nZone analysée : {{zone-etudiee}}\nDonnées locales dont je dispose : {{donnees-locales}}\nObjet de l'analyse : {{objet-analyse}}\n\nMène l'analyse en 5 volets :\n\n1. **Cadre de lecture** — les 6 indicateurs qui caractérisent un marché local (prix moyen au m², délai de vente, volume des transactions, rapport prix affiché/prix vendu, tension locative, flux de construction), avec les sources officielles où les trouver pour ma zone (DVF, INSEE, observatoires).\n2. **Lecture de mes données** — ce que les chiffres que j'ai fournis révèlent : phase du marché (acheteur, équilibré, vendeur), direction (hausse, plateau, correction), et les signaux contradictoires éventuels.\n3. **Dynamiques cachées** — les phénomènes locaux à vérifier : effets de périmètre (un quartier tire la moyenne), stocks qui se dégradent, migration des profils d'acheteurs, impact des taux sur la capacité d'emprunt des cibles locales.\n4. **Implications pratiques** — pour mon objet d'analyse : prix de mise en vente ou d'acquisition conseillé (fourchette), arguments de négociation pour chaque côté, typologie de bien à privilégier ou éviter, et calendrier (vendre maintenant ou attendre ?).\n5. **Veille du marché** — le rituel trimestriel : 4 chiffres à relever, où, et les seuils qui doivent déclencher une révision de ma stratégie.\n\nNe conclue jamais sans les données : si ma zone est trop mal documentée dans ce que j'ai fourni, dis-le et liste exactement ce qu'il me faut collecter."
+    },
+    {
+      "slug": "estimation-loyer-marche",
+      "titre": "Estimation de loyer de marché",
+      "emoji": "🧮",
+      "description": "Estime le loyer de marché d'un bien avec une méthode comparable : biens similaires, ajustements, fourchette défendable. La base d'une négociation de loyer sereine.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "real-estate",
+      "sousCategorie": "Analyse d'affaires",
+      "roles": [
+        "agents-immobiliers"
+      ],
+      "conseils": "• La comparaison n'est valable qu'entre biens du MÊME quartier et de typologie proche : un ajustement de plus de 15 % invalide le comparable.\n• Fournis au moins 3 annonces comparables réelles : l'IA ajuste des données, elle n'en invente pas.\n• La fourchette finale doit être justifiable face au propriétaire et au locataire : documente chaque ajustement.",
+      "utilisation": "Décris {{bien-a-louer}} en détail, fournis {{annonces-comparables}} (3-5 annonces avec loyer) et {{contraintes}} (encadrement, travaux, meublé ou non).",
+      "vues": 500,
+      "ordre": 63,
+      "nouveau": false,
+      "contenu": "Agis comme un expert en évaluation locative qui estime des loyers de marché avec la méthode des comparables, ajustements documentés à l'appui. Tu ne livres jamais un chiffre unique : tu livres une fourchette argumentée.\n\nBien à évaluer : {{bien-a-louer}}\nAnnonces comparables relevées : {{annonces-comparables}}\nContraintes : {{contraintes}}\n\nMène l'estimation :\n\n1. **Fiche du bien de référence** — les caractéristiques qui influencent le loyer, hiérarchisées : surface, typologie, étage et ascenseur, état, équipements, exposition, performance énergétique, et les facteurs de quartier (transports, commerces, calme).\n2. **Tableau des comparables** — pour chaque annonce : loyer, surface, prix au m², écarts avec mon bien (typologie, étage, état, équipements), et le coefficient de pertinence (comparable direct / proche / indicatif seulement). Écarte explicitement les comparables trop distants (écart d'ajustement supérieur à 15 %).\n3. **Ajustements** — la valeur corrective de chaque écart (conventions du marché : prime étage élevé avec vue, décote rez-de-chaussée sur rue, plus-values équipements), appliquée à chaque comparable pour l'aligner sur mon bien.\n4. **Fourchette de loyer de marché** — la fourchette basse / médiane / haute issue des comparables ajustés, avec la défense argumentée de la fourchette médiane, et les conditions qui justifieraient de viser le haut ou le bas.\n5. **Points de vigilance** — l'encadrement des loyers s'il s'applique à ma ville (avec [À VÉRIFIER] sur les plafonds officiels), l'impact du type de location (meublé/non meublé) sur la fiscalité et le loyer, et le risque de sous-évaluation qui coûte des années de revenus.\n\nChaque ajustement doit être justifiable à l'oral face à un propriétaire sceptique : pas de coefficient magique."
+    },
+    {
+      "slug": "rapport-marche-quartier",
+      "titre": "Rapport de marché par quartier",
+      "emoji": "🏘️",
+      "description": "Produis un rapport de quartier professionnel pour tes clients : dynamique des prix, offre disponible, profil des acquéreurs, arguments de vente. Ton document de référence en rendez-vous.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "real-estate",
+      "sousCategorie": "Analyse de marché",
+      "roles": [
+        "agents-immobiliers"
+      ],
+      "conseils": "• Un rapport actualisé par trimestre bat un rapport parfait jamais mis à jour : prévois la maintenance dès sa conception.\n• Les chiffres officiels (DVF, INSEE) prêtés en rendez-vous créent l'autorité : cite tes sources sur chaque page.\n• Termine toujours par « ce que ça change pour VOUS » : le client retient l'implication, pas la statistique.",
+      "utilisation": "Fournis {{quartier}}, {{donnees-relevees}} (prix, volumes, annonces que tu as compilées) et {{destinataire}} (vendeur, acquéreur, investisseur).",
+      "vues": 430,
+      "ordre": 64,
+      "nouveau": false,
+      "contenu": "Agis comme un analyste immobilier qui rédige des rapports de quartier utilisés en rendez-vous client. Le format : des chiffres sourcés, des constats clairs, des implications directes pour le lecteur.\n\nQuartier : {{quartier}}\nDonnées relevées : {{donnees-relevees}}\nDestinataire du rapport : {{destinataire}}\n\nRédige le rapport en 6 sections :\n\n1. **Fiche d'identité du quartier** — l'essentiel en 10 lignes : typologie de l'habitat, services, transports, ambiance, et les 2 caractéristiques qui définissent sa valeur (ce que les habitants citent en premier).\n2. **Dynamique des prix** — les chiffres fournis organisés : prix moyen au m² et son évolution, délai de vente moyen, volume des transactions, avec [SOURCE À CITER] sur chaque chiffre (DVF, INSEE, observatoire local). Le constat en une phrase : où en est le quartier dans son cycle.\n3. **L'offre en présence** — ce qui est en vente aujourd'hui : typologies, états, prix affichés vs prix attendus, le stock qui traîne (et pourquoi : sur-prix, défaut, mauvaise exposition).\n4. **Profil des acquéreurs** — qui achète dans ce quartier (premiers acquéreurs, familles, investisseurs, seconds résidents), leur capacité d'emprunt typique au taux actuel, et ce qu'ils recherchent en priorité.\n5. **Implications pour le destinataire** — la section la plus importante : selon {{destinataire}}, ce que ces chiffres changent concrètement — prix de mise en vente, arguments de négociation, timing, points de vigilance, et la décision à prendre dans les 30 jours.\n6. **Veille et actualisation** — les 4 indicateurs à re-suivre chaque trimestre, les sources exactes, et la date de prochaine mise à jour du rapport.\n\nTon : professionnel et tranché. Chaque section se termine par la phrase « ce que cela signifie pour vous »."
+    },
+    {
+      "slug": "modeles-emails-a-froid",
+      "titre": "Modèles d'emails à froid qui répondent",
+      "emoji": "❄️",
+      "description": "Obtiens des emails de prospection à froid courts, personnalisés et sans agacement : accroche pertinente, valeur en une phrase, appel à l'action discret. Trois modèles + la séquence de suivi.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "sales",
+      "sousCategorie": "Prospection à froid",
+      "roles": [
+        "equipes-de-vente",
+        "freelances",
+        "agences"
+      ],
+      "conseils": "• L'objet et la première ligne font 80 % du résultat : travaille-les avant le corps du message.\n• Une seule demande par email, minuscule (« 15 minutes jeudi ? ») : les grosses demandes froides ne passent pas.\n• Arrête la séquence après 3 relances sans réponse : un 4e email coûte ta réputation sans rapport.",
+      "utilisation": "Remplace {{ton-offre}}, {{cible}} (fonction, taille, secteur des prospects) et {{preuve}} (un résultat concret que tu as obtenu pour un client comparable).",
+      "vues": 760,
+      "ordre": 65,
+      "nouveau": false,
+      "contenu": "Agis comme un spécialiste de la prospection B2B à froid dont les emails obtiennent des taux de réponse réels. Ta méthode : court, spécifique, respectueux du temps du destinataire, zéro formule de vente forcée.\n\nContexte :\n- Mon offre : {{ton-offre}}\n- Cible : {{cible}}\n- Preuve sociale disponible : {{preuve}}\n\nProduis :\n\n1. **3 modèles d'email d'ouverture** (moins de 90 mots chacun, objet inclus) avec 3 mécaniques différentes :\n   - Le problème observé : une situation spécifique que ma cible vit, et la question qui l'ouvre ;\n   - La preuve : le résultat obtenu pour un client comparable, en une phrase, et la question de pertinence ;\n   - La pertinence assumée : pourquoi JE les contacte EUX précisément (déclencheur observable : recrutement, lancement, actualité).\n   Pour chaque modèle : les variables à personnaliser entre {{…}} et l'erreur qui tuerait l'email.\n2. **La séquence de suivi** — relance 1 (j+4) : apport de valeur nouveau, pas de culpabilisation ; relance 2 (j+9) : la demande encore plus petite ; relance 3 (j+15) : l'email de sortie courtois qui laisse la porte ouverte. Chaque email complet, moins de 60 mots.\n3. **Les objets qui s'ouvrent** — 5 objets d'email testés, 2 à 5 mots, sans ponctuation trompeuse ni « Ré: » frauduleux.\n4. **Les interdits** — la liste des phrases qui tuent les réponses (parlez-vous bientôt, je me permets, ne serait-ce que 5 minutes…) avec leur remplacement.\n5. **Le plan de personnalisation** — le processus de 5 minutes maximum par prospect : où trouver le déclencheur, comment l'insérer sans paraître surveillé.\n\nTous les emails en français naturel, vouvoiement, aucune promesse de résultat garanti."
+    },
+    {
+      "slug": "pitch-adapter-audience",
+      "titre": "Pitch adapté à ta cible",
+      "emoji": "🎤",
+      "description": "Transforme ton pitch générique en versions ciblées : 30 secondes pour un investisseur, 10 secondes pour un client pressé, version écrite pour un email. Le bon message, au bon interlocuteur.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "sales",
+      "sousCategorie": "Argumentaires de vente",
+      "roles": [
+        "entrepreneurs",
+        "equipes-de-vente"
+      ],
+      "conseils": "• Le pitch se juge sur la réaction du destinataire, pas sur la beauté de la phrase : teste chaque version 5 fois avant de la valider.\n• Le destinataire se fiche de ton produit : il se demande ce que ça change POUR LUI. Chaque version répond d'abord à ça.\n• Garde la version 10 secondes prête : 90 % des occasions de pitch réelles durent moins.",
+      "utilisation": "Fournis {{ton-produit}}, {{cibles-a-pitcher}} (les 3 audiences à adapter) et {{objectif-pitch}} (rendez-vous, vente, financement, partenariat).",
+      "vues": 560,
+      "ordre": 66,
+      "nouveau": false,
+      "contenu": "Agis comme un coach de pitch qui adapte le même message à des audiences différentes. Tu sais qu'un investisseur, un client et un partenaire ne répondent pas à la même question — et tu construis chaque version autour de LA question de son audience.\n\nMon produit/service : {{ton-produit}}\nAudiences à pitcher : {{cibles-a-pitcher}}\nObjectif du pitch : {{objectif-pitch}}\n\nProduis :\n\n1. **Le socle** — l'identité du message en 4 éléments : le problème vécu par l'utilisateur (pas la solution), la solution en une phrase sans jargon, la preuve ou le différenciateur le plus fort, et l'appel à l'action unique. Ce socle reste constant dans toutes les versions.\n2. **Une version par audience**, chacune avec sa logique :\n   - Version 10 secondes (l'ascenseur réel) : une seule phrase qui donne envie de demander la suite ;\n   - Version 30 secondes (rendez-vous informel) : problème-solution-preuve-action ;\n   - Version 2 minutes (présentation structurée) : avec le point d'entrée spécifique à l'audience (l'investisseur entend le marché, le client entend son gain, le partenaire entend la complémentarité) ;\n   - Version écrite (email ou LinkedIn) : 5 lignes, avec l'accroche de première ligne.\n3. **Les questions qui viennent après** — les 3 objections ou questions prévisibles de chaque audience, avec la réponse en une phrase.\n4. **Le test de validation** — comment vérifier qu'une version fonctionne : ce que le destinataire doit dire ou faire à la fin (et qui prouve que le pitch a atteint son but).\n\nInterdits : « nous sommes une entreprise innovante qui… », les mots techniques non définis, la promesse chiffrée invérifiable."
+    },
+    {
+      "slug": "criteres-qualification-leads",
+      "titre": "Cadre de qualification de leads (BANT+)",
+      "emoji": "🧲",
+      "description": "Construis ta grille de qualification sur mesure : critères objectifs, questions de qualification, scoring et règles de priorité. Ne perds plus de temps avec les faux prospects.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "sales",
+      "sousCategorie": "Prospection à froid",
+      "roles": [
+        "equipes-de-vente"
+      ],
+      "conseils": "• Les critères doivent être vérifiables par des faits (budget voté, décisionnaire identifié), jamais par des impressions (« il semblait intéressé »).\n• Définis AVANT le premier appel ce qui fait un lead qualifié, sinon chaque commercial qualifiera selon sa humeur.\n• Un lead « non qualifié aujourd'hui » est une pépinière : prévois sa date de revue plutôt qu'une poubelle.",
+      "utilisation": "Remplace {{ton-offre}}, {{cycle-de-vente}} (durée et acteurs typiques) et {{erreurs-passees}} (les mauvaises surprises avec des clients mal qualifiés).",
+      "vues": 470,
+      "ordre": 67,
+      "nouveau": false,
+      "contenu": "Agis comme un directeur commercial qui construit des cadres de qualification rigoureux pour des équipes B2B. L'objectif : ne jamais passer plus de 2 heures sur un prospect qui n'achètera pas, et repérer vite ceux qui signeront.\n\nContexte :\n- Mon offre : {{ton-offre}}\n- Cycle de vente typique : {{cycle-de-vente}}\n- Les erreurs passées avec des clients mal qualifiés : {{erreurs-passees}}\n\nConstruis le cadre de qualification :\n\n1. **Les 4 dimensions adaptées à mon offre** — à partir du cadre BANT (budget, autorité, besoin, échéance) complété de ce que mes erreurs passées révèlent (ex. : processus de décision réel, technique faisable, concurrence en place). Pour chaque dimension : le critère objectif qui la valide.\n2. **Les questions de qualification** — 8 questions d'entretien qui font émerger les critères sans ressembler à un interrogatoire, avec pour chacune les réponses qui valident et celles qui disqualifient.\n3. **Le scoring** — la grille : chaque dimension notée 0/1/2 avec sa définition précise, le score minimum pour avancer, la règle d'or (une seule dimension à 0 mais critique = disqualifié, même si le total est bon).\n4. **Les profils types** — 3 profils réels de leads : le rêve (2 sur chaque dimension), le piège (beaucoup d'enthousiasme, zéro échéance ni décisionnaire), le futur bon client (1 ou 2 aujourd'hui, mais revue programmée). Le comportement type de chacun.\n5. **Les règles de priorité** — comment répartir mon temps : le partage 40/40/20 entre leads chauds, développement des moyens, et pépinière des faibles — avec la date de revue à fixer pour chaque lead non qualifié.\n6. **Le tableau de bord** — les 3 chiffres hebdomadaires qui montrent si la qualification fonctionne (taux de qualification, durée moyenne perdue sur les disqualifiés, taux de conversion des qualifiés)."
+    },
+    {
+      "slug": "optimiser-les-devis",
+      "titre": "Optimiseur de devis et propositions",
+      "emoji": "📑",
+      "description": "Transforme tes devis en documents qui convertissent : structure qui rassure, options qui valorisent, gestion du prix sans s'excuser. Avec les relances qui déclenchent la signature.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "sales",
+      "sousCategorie": "Propositions & devis",
+      "roles": [
+        "freelances",
+        "agences"
+      ],
+      "conseils": "• Le devis se lit dans un ordre : bénéfice attendu d'abord, prix ensuite, jamais l'inverse.\n• Offre toujours 2 à 3 options : le client qui choisit entre options a déjà dit oui au principe.\n• Fixe une date de validité : sans échéance, un devis peut dormir 3 mois et mourir sans décision.",
+      "utilisation": "Colle ton devis actuel dans {{devis-actuel}} et décris {{contexte-client}}. Précise {{taux-conversion-actuel}} si tu le connais.",
+      "vues": 520,
+      "ordre": 68,
+      "nouveau": false,
+      "contenu": "Agis comme un consultant en développement commercial spécialisé dans les propositions de services. Tu sais qu'un devis ne vend pas un service : il sécurise une décision déjà prise — ou il déclenche cette décision.\n\nDevis actuel :\n{{devis-actuel}}\n\nContexte client : {{contexte-client}}\nTaux de conversion actuel : {{taux-conversion-actuel}}\n\nAméliore la proposition :\n\n1. **Diagnostic du devis** — ce qui fonctionne, ce qui affaiblit la décision : ordre de présentation, vocabulaire (lignes techniques sans bénéfice visible), absence de contexte, prix présenté sans alternative. Note /10 avec le détail.\n2. **La structure corrigée** — l'ordre qui convertit : (1) la compréhension du besoin reformulée en 3 lignes, (2) le résultat attendu et sa valeur pour le client, (3) la solution en 3 blocs de travail avec livrables, (4) les options, (5) le prix par option, (6) les preuves, (7) les conditions et la date de validité.\n3. **Les options** — la présentation en 3 formules (essentielle / recommandée / premium) avec la logique de chaque : la recommandée doit être celle que je veux vendre, la premium rend la recommandée raisonnable, l'essentielle sécurise le budget serré.\n4. **La présentation du prix** — le passage corrigé : prix rattaché à la valeur (pas « 12 000 € HT » isolé), les modalités de paiement qui facilitent la décision, et la formulation de la date de validité sans urgence artificielle.\n5. **La relance qui déclenche** — le message à J+5 sans réponse (qui apporte un élément nouveau, pas un « je reviens vers vous »), le message à J+12 (la question directe sur les blocages), et l'email de clôture gracieuse à J+20.\n6. **Les phrases à bannir** — les tournures qui minent la confiance dans mes devis actuels, corrigées une par une."
+    },
+    {
+      "slug": "cv-professionnel-sur-mesure",
+      "titre": "Spécialiste du CV sur mesure",
+      "emoji": "📄",
+      "description": "Transforme ton CV en document qui déclenche des entretiens : relecture critique, reformulation en résultats, adaptation à l'offre visée et passage des filtres ATS.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "careers",
+      "sousCategorie": "CV & LinkedIn",
+      "roles": [
+        "etudiants",
+        "freelances"
+      ],
+      "conseils": "• Un CV se réécrit POUR CHAQUE offre : les mots-clés de l'annonce doivent se retrouver dans tes expériences.\n• Remplace les responsabilités par des résultats chiffrés : « géré les réseaux sociaux » devient « +40 % d'abonnés en 8 mois ».\n• Garde une page si tu as moins de 10 ans d'expérience : le recruteur décide en 30 secondes.",
+      "utilisation": "Colle ton CV dans {{cv-actuel}} et l'offre visée dans {{offre-ciblee}}. Précise {{niveau-experience}}.",
+      "vues": 840,
+      "ordre": 69,
+      "nouveau": false,
+      "contenu": "Agis comme un spécialiste du recrutement qui relit des centaines de CV par an et sait exactement ce qui fait passer un candidat du tri à l'entretien.\n\nMon CV actuel :\n{{cv-actuel}}\n\nOffre visée :\n{{offre-ciblee}}\n\nNiveau d'expérience : {{niveau-experience}}\n\nTravaille le CV en 4 temps :\n\n1. **Diagnostic** — la lecture du recruteur en 30 secondes sur mon CV actuel : ce qu'il retient (et si ce n'est pas ce que je veux), les redondances, les informations inutiles, les trous ou incohérences, et la compatibilité avec les filtres ATS (titres de postes standard, mots-clés de l'offre absents).\n2. **Reformulation en résultats** — pour chaque expérience : transformation des missions en accomplissements mesurables. Format : verbe d'action + ce que j'ai fait + résultat chiffré ou vérifiable. Là où je n'ai pas de chiffre : la question à me poser pour le trouver ou la reformulation qualitative la plus forte.\n3. **La version réécrite** — le CV complet réorganisé : titre professionnel aligné sur l'offre, accroche de 2 lignes, expériences ordonnées par pertinence (pas seulement par date), mots-clés de l'offre intégrés naturellement, compétences vérifiables. Une page pour moins de 10 ans d'expérience.\n4. **Les points de vigilance** — ce qu'il reste à vérifier : les affirmations que je dois pouvoir défendre en entretien, les dates à consolider, la photo et les informations personnelles (ce qui est attendu ou au contraire à supprimer en France), et le fichier à produire (format, nom du fichier).\n\nNe racconte jamais rien que je n'ai pas fourni : les accomplissements inventés se paient en entretien."
+    },
+    {
+      "slug": "preparer-entretien-embauche",
+      "titre": "Préparation d'entretien d'embauche",
+      "emoji": "🗣️",
+      "description": "Prépare ton entretien comme un pro : questions probables avec réponses structurées, méthode STAR pour tes exemples, questions à poser et gestion des moments difficiles.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "careers",
+      "sousCategorie": "Préparation d'entretien",
+      "roles": [
+        "etudiants"
+      ],
+      "conseils": "• Prépare 5 exemples STAR polyvalents : ils couvrent 90 % des questions comportementales.\n• Entraîne-toi à voix haute, pas dans ta tête : la réponse qui sonne bien écrite bafouille à l'oral si elle n'a pas été dite.\n• Prépare tes questions à poser : le candidat qui n'en pose aucune laisse tomber la moitié de sa crédibilité.",
+      "utilisation": "Fournis {{poste-et-entreprise}}, {{ton-profil}} (expériences clés en 5 lignes) et {{preoccupations}} (les points qui t'inquiètent : trou dans le CV, changement de voie, peu d'expérience).",
+      "vues": 720,
+      "ordre": 70,
+      "nouveau": false,
+      "contenu": "Agis comme un coach d'entretien qui prépare des candidats aux entretiens d'embauche réels, avec la méthode des recruteurs (et pas celle des manuels).\n\nPoste et entreprise : {{poste-et-entreprise}}\nMon profil (expériences clés) : {{ton-profil}}\nMes points d'inquiétude : {{preoccupations}}\n\nPrépare l'entretien :\n\n1. **Les 10 questions probables** — issues du poste et de mon profil : les classiques (parcours, motivation, points forts/faibles) et les spécifiques à cette entreprise ou ce métier. Pour chacune : ce que le recruteur cherche VRAIMENT derrière la question.\n2. **Mes 5 exemples STAR** — construits à partir de mes expériences : pour chacun, la situation, la tâche, l'action (ce que MOI j'ai fait, pas l'équipe), le résultat chiffré ou vérifiable, et les questions auxquelles cet exemple répond (un bon exemple couvre 3 questions).\n3. **Mes réponses types** — pour les 5 questions les plus critiques : une réponse rédigée comme je la dirais à l'oral (phrases courtes, naturelles), avec la version courte (30 secondes) et la version étendue (90 secondes) selon la réaction du recruteur.\n4. **Désamorcer mes points d'inquiétude** — pour chacun : la stratégie honnête (assumer et retourner en force, ou cadrer et rediriger), avec la phrase exacte à dire. Interdiction du mensonge et de la esquive pure : les recruteurs les détectent.\n5. **Mes questions à poser** — 6 questions qui montrent une réflexion réelle sur le poste et l'équipe (pas les questions dont les réponses sont sur le site), dont 2 qui aident à évaluer si CE poste me convient.\n6. **Le plan d'entraînement** — la répétition en conditions : quoi faire les 3 jours précédents, l'entraînement à voix haute, et le rituel du matin même.\n\nRappelle-moi en fin : les 3 phrases à éviter absolument (« je suis perfectionniste » en guise de défaut, « je connais bien » sans preuve, la critique d'un ancien employeur)."
+    },
+    {
+      "slug": "optimiser-profil-linkedin",
+      "titre": "Stratégie SEO LinkedIn",
+      "emoji": "🔗",
+      "description": "Optimise ton profil LinkedIn pour être trouvé par les recruteurs et clients : mots-clés stratégiques, titre qui vend, sections réécrites et plan d'activité hebdomadaire de 30 minutes.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "careers",
+      "sousCategorie": "CV & LinkedIn",
+      "roles": [
+        "freelances",
+        "consultants"
+      ],
+      "conseils": "• LinkedIn fonctionne comme un moteur de recherche : les mots-clés de ton métier doivent apparaître dans le titre, le résumé et les expériences.\n• Le titre n'est pas ton poste officiel : c'est ta promesse de valeur. « Consultant SEO — j'aide les e-commerces à vendre plus » bat « Consultant chez Moi ».\n• L'algorithme récompense la régularité : 2 publications par semaine valent mieux que 10 en un jour puis plus rien.",
+      "utilisation": "Colle ton profil actuel dans {{profil-actuel}} et précise {{objectif}} (être recruté, trouver des clients, construire une autorité) ainsi que {{mots-cles-metier}}.",
+      "vues": 680,
+      "ordre": 71,
+      "nouveau": false,
+      "contenu": "Agis comme un stratège LinkedIn qui optimise des profils pour la visibilité et les opportunités. Tu connais le fonctionnement du moteur de recherche interne et ce qui fait accepter une demande de contact.\n\nProfil actuel :\n{{profil-actuel}}\n\nObjectif : {{objectif}}\nMots-clés de mon métier : {{mots-cles-metier}}\n\nOptimise le profil en 6 points :\n\n1. **Diagnostic** — ce qu'un recruteur ou client potentiel retient en 10 secondes sur mon profil actuel, les mots-clés manquants, et les 3 éléments qui me font passer pour « tout le monde » dans mon métier.\n2. **Le titre et la photo de bannière** — 3 propositions de titre (moins de 120 caractères) qui combinent fonction + valeur + mots-clés, et la description de la bannière qui complète le titre sans le répéter.\n3. **Le résumé (section Infos)** — la version réécrite : les 3 premières lignes visibles avant « voir plus » qui donnent envie d'ouvrir, la structure problème-compétence-preuve-action, mes mots-clés intégrés naturellement. Maximum 200 mots.\n4. **Les expériences** — la réécriture des 3 dernières : chaque poste avec sa promesse en une ligne puis 3 accomplissements mesurables. Les compétences (jusqu'à 50) hiérarchisées par pertinence pour mon objectif.\n5. **La preuve sociale** — les recommandations à demander (à qui, avec quel message de demande), les certifications et projets à valoriser, et le format des réalisations épinglées.\n6. **Le plan d'activité 30 minutes/semaine** — le programme précis : 2 publications par semaine (types de contenu alternés), 15 commentaires pertinents sur des comptes de mon secteur, et la règle d'engagement qui fait vivre le profil sans y passer ses journées.\n\nVérifie : chaque section réécrite doit contenir au moins 2 de mes mots-clés métier."
+    },
+    {
+      "slug": "feuille-route-competences",
+      "titre": "Feuille de route d'apprentissage de compétences",
+      "emoji": "🗺️",
+      "description": "Construis ton plan d'apprentissage d'une compétence : déclic du niveau actuel au niveau visé, ressources par palier, projets pratiques et jalons de validation. Un plan qui tient 3 mois.",
+      "type": "TEXTE",
+      "modeles": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Mistral"
+      ],
+      "categorieSlug": "careers",
+      "sousCategorie": "Évolution de carrière",
+      "roles": [
+        "etudiants",
+        "developpeurs"
+      ],
+      "conseils": "• Un projet concret par palier vaut tous les tutos : on apprend en produisant, pas en consommant.\n• Prévois 2 sessions courtes par semaine plutôt qu'une marathon : la régularité bat l'intensité.\n• Fixe un jalon de validation à 6 semaines : si tu ne l'atteins pas, ajuste le plan plutôt que d'abandonner.",
+      "utilisation": "Remplace {{competence-ciblee}}, {{niveau-actuel}}, {{temps-hebdo}} et {{objectif-concret}} (ce que tu veux POUVOIR FAIRE à la fin).",
+      "vues": 590,
+      "ordre": 72,
+      "nouveau": false,
+      "contenu": "Agis comme un concepteur de parcours d'apprentissage qui construit des plans réalistes — ceux qu'on suit vraiment jusqu'au bout, parce qu'ils sont calibrés sur le temps réel disponible et les vrais mécanismes d'apprentissage (pratique espacée, feedback, projets).\n\nCompétence visée : {{competence-ciblee}}\nMon niveau actuel : {{niveau-actuel}}\nTemps disponible : {{temps-hebdo}} par semaine\nObjectif concret (ce que je veux savoir FAIRE) : {{objectif-concret}}\n\nConstruis la feuille de route :\n\n1. **Cartographie de la compétence** — les 4 à 5 sous-compétences qui la composent, classées par ordre d'apprentissage logique, avec la part de chacune dans l'objectif final. Signale les prérequis que je pourrais manquer.\n2. **Le plan sur 3 mois** — tableau semaine par semaine : sous-compétence travaillée, ressource précise (type et exemple : doc officielle, cours, exercice), l'action pratique de la semaine (à produire, pas à lire), et le temps estimé. Le total doit tenir dans {{temps-hebdo}} : si ce n'est pas le cas, réduis le périmètre et dis-le.\n3. **Les projets jalons** — 3 projets de difficulté croissante qui produisent quelque chose d'utilisable (portfolio, outil personnel, contribution), chacun avec son périmètre minimal et le critère de réussite.\n4. **La pratique espacée** — comment entretenir les acquis des semaines précédentes (10 minutes de révision, exercices flash) pour ne pas apprendre en oubliant.\n5. **Le système de feedback** — où obtenir une correction réelle (communauté, mentor, comparaison avec des travaux de référence) : apprendre seul sans feedback est le premier facteur d'abandon.\n6. **Les jalons de validation** — à 6 semaines et 12 semaines : les tests objectifs qui prouvent la progression, et le plan B si un jalon est manqué (ralentir, changer de ressource, réduire le périmètre — jamais tout abandonner).\n\nTermine par les 3 pièges classiques de CETTE compétence qui font abandonner la plupart des apprenants, avec la parade pour chacun."
+    }
+  ]
+}
