@@ -20,6 +20,7 @@ import {
   Lock,
   MessageSquareQuote,
   Pencil,
+  Play,
   Plus,
   Search,
   Share2,
@@ -56,6 +57,10 @@ import { PortailConnexion } from "@/components/auth/portail-connexion";
 import BoutonPartageListe from "@/components/partage/bouton-partage-liste";
 import VuRecemment from "@/components/visites/vu-recemment";
 import BoutonExportPdf from "@/components/pdf/bouton-export-pdf";
+import { CarteStatistique } from "@/components/dashboard/carte-statistique";
+import { GraphiqueActivite } from "@/components/dashboard/graphique-activite";
+import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
+import { urlMiniature, formaterDuree, NIVEAUX } from "@/lib/tutos-utils";
 
 export const metadata: Metadata = { title: "Mon espace" };
 
@@ -322,33 +327,362 @@ export default async function PageDashboard({
         ? abonnementEnTete
         : null;
 
+    // ── Données du tableau de bord (style Metis) — toutes défensives :
+    //    si une table est absente ou vide, l'aperçu reste affichable. ──
+    const debutSemaine = new Date();
+    debutSemaine.setHours(0, 0, 0, 0);
+    debutSemaine.setDate(debutSemaine.getDate() - 6);
+
+    let activites7j: { creeLe: Date }[] = [];
+    try {
+      activites7j = await prisma.activiteUtilisateur.findMany({
+        where: { utilisateurId: userId, creeLe: { gte: debutSemaine } },
+        select: { creeLe: true },
+      });
+    } catch {
+      /* journal indisponible : le graphique affichera une ligne à zéro */
+    }
+    const jours = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(debutSemaine);
+      d.setDate(debutSemaine.getDate() + i);
+      return d;
+    });
+    const valeursActivite = jours.map((d) => {
+      const fin = new Date(d);
+      fin.setDate(d.getDate() + 1);
+      return activites7j.filter((a) => a.creeLe >= d && a.creeLe < fin).length;
+    });
+    const labelsJours = jours.map((d) =>
+      new Intl.DateTimeFormat("fr-FR", { weekday: "short" })
+        .format(d)
+        .replace(".", ""),
+    );
+    const totalActivite = valeursActivite.reduce((somme, v) => somme + v, 0);
+
+    const nbATester = await prisma.favorite.count({
+      where: { userId, statut: "A_TESTER" },
+    });
+
+    const derniersFavoris = await prisma.favorite.findMany({
+      where: { userId },
+      include: {
+        tool: {
+          include: { categories: { select: { categorie: { select: { nom: true } } } } },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+    });
+
+    const tutosPopulaires = await prisma.tuto.findMany({
+      orderBy: [{ vues: "desc" }],
+      take: 3,
+      select: {
+        slug: true,
+        titre: true,
+        dureeMin: true,
+        niveau: true,
+        miniature: true,
+        youtubeId: true,
+        vues: true,
+      },
+    });
+
+    const deleguePrompt = (prisma as any).prompt;
+    const promptsPopulaires = deleguePrompt?.findMany
+      ? await deleguePrompt
+          .findMany({
+            orderBy: [{ vues: "desc" }],
+            take: 4,
+            select: {
+              slug: true,
+              titre: true,
+              emoji: true,
+              vues: true,
+              categorie: { select: { nom: true } },
+            },
+          })
+          .catch(() => [])
+      : [];
+
+    const formateurJour = new Intl.DateTimeFormat("fr-FR", {
+      day: "numeric",
+      month: "short",
+    });
+
     contenu = (
       <>
-        {/* Statistiques cliquables */}
-        <section aria-label="Mes statistiques" className="mt-8 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          {[
-            { libelle: "Favoris", valeur: nbFavoris, icone: Star, href: "/dashboard?onglet=favoris" },
-            { libelle: "En cours", valeur: nbEnCours, icone: Loader, href: "/dashboard?onglet=favoris&statut=EN_COURS" },
-            { libelle: "Adoptés", valeur: nbAdoptes, icone: CheckCircle2, href: "/dashboard?onglet=favoris&statut=ADOPTE" },
-            { libelle: "Avis publiés", valeur: nbAvis, icone: MessageSquareQuote, href: "/dashboard?onglet=avis" },
-            { libelle: "Votes donnés", valeur: nbVotes, icone: ThumbsUp, href: "/populaires" },
-            { libelle: "Listes", valeur: nbListes, icone: ListChecks, href: "/dashboard?onglet=listes" },
-          ].map((s, index) => (
-            <Link
-              key={s.libelle}
-              href={s.href}
-              style={{ animationDelay: `${index * 70}ms` }}
-              className="animate-apparition-haut survol-carte group flex items-center gap-3 rounded-carte border border-bordure bg-white p-4 shadow-carte"
-            >
-              <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-[linear-gradient(120deg,rgba(106,59,255,0.12),rgba(0,209,255,0.14))] text-violet transition-transform duration-300 group-hover:scale-110">
-                <s.icone className="size-5" aria-hidden />
-              </span>
-              <span className="min-w-0">
-                <span className="block font-titre text-[22px] leading-7 font-bold">{s.valeur}</span>
-                <span className="block truncate text-[12px] leading-4 text-encre">{s.libelle}</span>
-              </span>
-            </Link>
-          ))}
+        {/* ── Cartes statistiques (style Metis) ───────────────────── */}
+        <section aria-label="Mes statistiques" className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <CarteStatistique
+            href="/dashboard?onglet=favoris"
+            libelle="Favoris"
+            valeur={nbFavoris}
+            contexte={premium ? "Illimité · plan Premium" : `Limite : ${LIMITES_DECOUVERTE.favoris} · plan Découverte`}
+            icone={Star}
+            teinte="violet"
+          />
+          <CarteStatistique
+            href="/dashboard?onglet=favoris&statut=ADOPTE"
+            libelle="Outils adoptés"
+            valeur={nbAdoptes}
+            contexte={`${nbEnCours} en cours de test`}
+            icone={CheckCircle2}
+            teinte="ciel"
+            delay={70}
+          />
+          <CarteStatistique
+            href="/dashboard?onglet=avis"
+            libelle="Avis publiés"
+            valeur={nbAvis}
+            contexte={nbVotes > 0 ? `${nbVotes} votes de recommandation` : "Un avis aide toute la communauté"}
+            icone={MessageSquareQuote}
+            teinte="turquoise"
+            delay={140}
+          />
+          <CarteStatistique
+            href="/dashboard?onglet=activite"
+            libelle="Points d'activité"
+            valeur={score}
+            contexte={`Niveau : ${palier.nom}`}
+            icone={Sparkles}
+            teinte="magenta"
+            delay={210}
+          />
+        </section>
+
+        {/* ── Graphiques : activité 7 jours + favoris par statut ──── */}
+        <section className="mt-6 grid gap-4 lg:grid-cols-3">
+          <Carte className="animate-apparition-haut p-6 lg:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Mon activité</h2>
+              <Badge variante="defaut">7 derniers jours</Badge>
+            </div>
+            <p className="mt-1 text-[13px] leading-4 text-encre">
+              {totalActivite > 0
+                ? `${totalActivite} action${totalActivite > 1 ? "s" : ""} enregistrée${totalActivite > 1 ? "s" : ""} cette semaine (favoris, avis, recherches…).`
+                : "Aucune action enregistrée cette semaine : ajoute un favori ou publie un avis !"}
+            </p>
+            <div className="mt-4">
+              <GraphiqueActivite valeurs={valeursActivite} labels={labelsJours} />
+            </div>
+          </Carte>
+
+          <Carte className="animate-apparition-haut delai-1 p-6">
+            <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+              Mes favoris par statut
+            </h2>
+            {nbFavoris > 0 ? (
+              <div className="mt-4">
+                <GraphiqueRepartition
+                  segments={[
+                    { libelle: "Adoptés", valeur: nbAdoptes, couleur: "#6a3bff" },
+                    { libelle: "En cours", valeur: nbEnCours, couleur: "#00d1ff" },
+                    { libelle: "À tester", valeur: nbATester, couleur: "#8a94a6" },
+                  ]}
+                  total={nbFavoris}
+                  totalLibelle="favoris"
+                />
+              </div>
+            ) : (
+              <p className="mt-8 mb-6 text-center text-[14px] leading-6 text-encre">
+                Ajoute ton premier outil en favori pour voir la répartition
+                apparaître ici.
+              </p>
+            )}
+          </Carte>
+        </section>
+
+        {/* ── Derniers favoris (tableau style Metis) + Tutoriels ──── */}
+        <section className="mt-6 grid gap-4 lg:grid-cols-3">
+          <Carte className="animate-apparition-haut overflow-hidden p-0 lg:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bordure px-5 pt-5 pb-4">
+              <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+                Derniers favoris
+              </h2>
+              <Link
+                href="/dashboard?onglet=favoris"
+                className="text-[13px] leading-4 font-semibold text-violet hover:underline"
+              >
+                Tout voir →
+              </Link>
+            </div>
+            {derniersFavoris.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[520px] text-left">
+                  <thead>
+                    <tr className="border-b border-bordure bg-gris/50 text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase">
+                      <th scope="col" className="px-5 py-2.5">Outil</th>
+                      <th scope="col" className="px-3 py-2.5">Catégorie</th>
+                      <th scope="col" className="px-3 py-2.5">Statut</th>
+                      <th scope="col" className="px-5 py-2.5 text-right">Mis à jour</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {derniersFavoris.map((f) => {
+                      const metaStatut =
+                        f.statut === "ADOPTE"
+                          ? { libelle: "Adopté", variante: "source" as const }
+                          : f.statut === "EN_COURS"
+                            ? { libelle: "En cours", variante: "agent" as const }
+                            : { libelle: "À tester", variante: "defaut" as const };
+                      return (
+                        <tr key={f.id} className="border-b border-bordure/60 last:border-0">
+                          <td className="px-5 py-3">
+                            <Link href={`/outil/${f.tool.slug}`} className="flex items-center gap-2.5">
+                              <LogoOutil nom={f.tool.nom} logo={f.tool.logo} />
+                              <span className="min-w-0">
+                                <span className="block max-w-[200px] truncate text-[14px] leading-5 font-semibold text-bleu hover:text-violet">
+                                  {f.tool.nom}
+                                </span>
+                                {f.note && (
+                                  <span className="block max-w-[200px] truncate text-[12px] leading-4 text-encre">
+                                    {f.note}
+                                  </span>
+                                )}
+                              </span>
+                            </Link>
+                          </td>
+                          <td className="px-3 py-3 text-[13px] leading-4 text-encre">
+                            {f.tool.categories[0]?.categorie.nom ?? "—"}
+                          </td>
+                          <td className="px-3 py-3">
+                            <Badge variante={metaStatut.variante}>{metaStatut.libelle}</Badge>
+                          </td>
+                          <td className="px-5 py-3 text-right text-[13px] leading-4 text-encre">
+                            {formateurJour.format(f.updatedAt)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <p className="text-[14px] leading-6 text-encre">
+                  Aucun favori pour le moment. Explore l&apos;annuaire et garde
+                  tes découvertes ici.
+                </p>
+                <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
+                  <Link href="/outils">Explorer l&apos;annuaire</Link>
+                </Bouton>
+              </div>
+            )}
+          </Carte>
+
+          {/* Tutoriels à suivre (les plus vus) */}
+          <Carte className="animate-apparition-haut delai-1 p-5">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+                Tutoriels à suivre
+              </h2>
+              <Link
+                href="/tutoriels"
+                className="text-[13px] leading-4 font-semibold text-violet hover:underline"
+              >
+                Tous →
+              </Link>
+            </div>
+            {tutosPopulaires.length > 0 ? (
+              <ul className="mt-4 grid gap-4">
+                {tutosPopulaires.map((t) => {
+                  const niveau = NIVEAUX[t.niveau];
+                  const mini = urlMiniature(t);
+                  return (
+                    <li key={t.slug}>
+                      <Link href={`/tutoriels/${t.slug}`} className="group flex items-center gap-3">
+                        <span className="relative block aspect-video w-24 shrink-0 overflow-hidden rounded-champ bg-bleu">
+                          {mini ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={mini}
+                              alt=""
+                              loading="lazy"
+                              className="size-full object-cover transition duration-300 group-hover:scale-105"
+                            />
+                          ) : (
+                            <span className="grid size-full place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
+                              <Play className="size-5 text-white" aria-hidden />
+                            </span>
+                          )}
+                          <span className="absolute right-1 bottom-1 rounded bg-black/75 px-1.5 text-[10px] leading-3.5 font-semibold text-white">
+                            {formaterDuree(t.dureeMin)}
+                          </span>
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="line-clamp-2 block text-[13px] leading-4 font-semibold text-bleu group-hover:text-violet">
+                            {t.titre}
+                          </span>
+                          <span className="mt-1 block text-[12px] leading-4 text-encre">
+                            {niveau.libelle} · {t.vues.toLocaleString("fr-FR")} vues
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="mt-6 mb-2 text-[14px] leading-6 text-encre">
+                Les tutoriels vidéo apparaîtront ici dès leur publication.
+              </p>
+            )}
+          </Carte>
+        </section>
+
+        {/* ── Prompts IA populaires ────────────────────────────────── */}
+        <section className="mt-6">
+          <Carte className="animate-apparition-haut p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+                  Prompts IA populaires
+                </h2>
+                <p className="mt-0.5 text-[13px] leading-4 text-encre">
+                  Les prompts les plus consultés — lecture et copie réservées aux
+                  abonnés Premium.
+                </p>
+              </div>
+              <Link
+                href="/prompts"
+                className="inline-flex min-h-10 shrink-0 items-center rounded-full border border-violet bg-violet/5 px-4 text-[13px] leading-4 font-semibold text-violet transition hover:bg-violet hover:text-white"
+              >
+                Explorer la bibliothèque
+              </Link>
+            </div>
+            {promptsPopulaires.length > 0 ? (
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {promptsPopulaires.map(
+                  (p: { slug: string; titre: string; emoji: string; vues: number; categorie?: { nom: string } | null }) => (
+                    <li key={p.slug}>
+                      <Link
+                        href={`/prompts/${p.slug}`}
+                        className="group flex h-full items-start gap-3 rounded-carte border border-bordure p-4 transition hover:border-violet"
+                      >
+                        <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-[18px]">
+                          {p.emoji || "✨"}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="line-clamp-2 block text-[14px] leading-5 font-semibold text-bleu group-hover:text-violet">
+                            {p.titre}
+                          </span>
+                          <span className="mt-1 block text-[12px] leading-4 text-encre">
+                            {p.categorie?.nom ?? "Prompt"} · {p.vues.toLocaleString("fr-FR")} vues
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ),
+                )}
+              </ul>
+            ) : (
+              <p className="mt-4 text-[14px] leading-6 text-encre">
+                La bibliothèque de prompts s&apos;affichera ici dès que les
+                données seront disponibles.
+              </p>
+            )}
+          </Carte>
         </section>
 
         {/* Mon abonnement Premium */}

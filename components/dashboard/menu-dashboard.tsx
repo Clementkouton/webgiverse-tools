@@ -1,9 +1,15 @@
 // components/dashboard/menu-dashboard.tsx
 // ─────────────────────────────────────────────────────────────────
-// Menu professionnel du dashboard — LA SEULE navigation de l'espace :
-//   • Ordinateur : barre latérale fixe pleine hauteur (le header
-//     général du site est masqué sur /dashboard).
-//   • Mobile : barre supérieure collante + tiroir coulissant animé.
+// Lot 18 — Coquille du dashboard, redesign « Metis » adapté à la
+// charte Webgiverse (polices du site conservées : font-titre + Inter) :
+//   • Barre supérieure collante TOUS ÉCRANS : titre + sous-titre de la
+//     page courante, recherche qui mène à l'annuaire, profil à droite,
+//     déconnexion en un tap sur mobile.
+//   • Barre latérale fixe sur ordinateur, tiroir coulissant animé sur
+//     mobile (fond assombri, fermeture Échap, verrou de défilement).
+//   • Nouvelle section « Apprendre » : Tutoriels IA et Prompts IA.
+//   • Toile gris clair derrière le contenu : les cartes blanches
+//     ressortent comme dans le template Metis.
 // L'état actif suit l'URL (/dashboard?onglet=…) et la route
 // (/dashboard/abonnement).
 // ─────────────────────────────────────────────────────────────────
@@ -21,8 +27,11 @@ import {
   ListChecks,
   Menu,
   MessageSquareQuote,
+  MonitorPlay,
+  Search,
   Sparkles,
   Star,
+  TerminalSquare,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -54,7 +63,7 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
   {
     titre: "Mon espace",
     liens: [
-      { href: "/dashboard?onglet=apercu", libelle: "Aperçu", icone: LayoutDashboard, onglet: "apercu" },
+      { href: "/dashboard?onglet=apercu", libelle: "Tableau de bord", icone: LayoutDashboard, onglet: "apercu" },
       { href: "/dashboard?onglet=favoris", libelle: "Favoris", icone: Star, onglet: "favoris" },
       { href: "/dashboard?onglet=listes", libelle: "Mes listes", icone: ListChecks, onglet: "listes" },
       { href: "/dashboard?onglet=avis", libelle: "Mes avis", icone: MessageSquareQuote, onglet: "avis" },
@@ -62,9 +71,10 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     ],
   },
   {
-    titre: "Abonnement",
+    titre: "Apprendre",
     liens: [
-      { href: "/dashboard/abonnement", libelle: "Mon abonnement", icone: Crown, route: "abonnement" },
+      { href: "/tutoriels", libelle: "Tutoriels IA", icone: MonitorPlay },
+      { href: "/prompts", libelle: "Prompts IA", icone: TerminalSquare },
     ],
   },
   {
@@ -75,7 +85,23 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/comparer", libelle: "Comparateur", icone: ArrowLeftRight },
     ],
   },
+  {
+    titre: "Abonnement",
+    liens: [
+      { href: "/dashboard/abonnement", libelle: "Mon abonnement", icone: Crown, route: "abonnement" },
+    ],
+  },
 ];
+
+/** Titre + sous-titre de la barre supérieure, selon la page courante. */
+const TITRES: Record<string, { titre: string; sousTitre: string }> = {
+  apercu: { titre: "Tableau de bord", sousTitre: "Vue d'ensemble de ton espace Webgiverse" },
+  favoris: { titre: "Mes favoris", sousTitre: "Outils suivis, statuts et notes" },
+  listes: { titre: "Mes listes", sousTitre: "Organise tes outils par projet ou par client" },
+  avis: { titre: "Mes avis", sousTitre: "Tes retours d'expérience sur les outils testés" },
+  activite: { titre: "Mon activité", sousTitre: "Historique de tes actions" },
+  abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
+};
 
 export default function MenuDashboard({ prenom, image, premium, pied, children }: Props) {
   const [menuOuvert, setMenuOuvert] = useState(false);
@@ -86,6 +112,12 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
   const ongletActif =
     chemin === "/dashboard" ? (params.get("onglet") ?? "apercu") : null;
   const surAbonnement = chemin.startsWith("/dashboard/abonnement");
+
+  const page = ongletActif
+    ? (TITRES[ongletActif] ?? TITRES.apercu)
+    : surAbonnement
+      ? TITRES.abonnement
+      : { titre: "Mon espace", sousTitre: "Espace personnel Webgiverse" };
 
   // Ferme le tiroir à chaque navigation
   useEffect(() => {
@@ -121,6 +153,23 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     </span>
   );
 
+  const etiquettePlan = (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] leading-3.5 font-bold",
+        premium ? "bg-violet/10 text-violet" : "bg-gris text-encre",
+      )}
+    >
+      {premium ? (
+        <>
+          <Crown className="size-3" aria-hidden /> Premium
+        </>
+      ) : (
+        "Découverte"
+      )}
+    </span>
+  );
+
   /** Rend les liens d'une section (desktop et tiroir partagent le style). */
   function liensDeSection(section: (typeof SECTIONS)[number], surClic?: () => void) {
     return section.liens.map((lien) => {
@@ -140,7 +189,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
             "group relative flex items-center gap-3 rounded-champ px-3.5 py-2.5 text-[14px] leading-5 font-semibold transition-all duration-200",
             actif
               ? "bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] text-white shadow-[0_4px_14px_rgba(106,59,255,0.35)]"
-              : "text-bleu hover:bg-gris hover:text-violet active:scale-[0.98]"
+              : "text-bleu hover:bg-gris hover:text-violet active:scale-[0.98]",
           )}
         >
           {/* Indicateur animé à gauche du lien actif */}
@@ -153,21 +202,12 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
           <lien.icone
             className={cn(
               "size-[18px] shrink-0 transition-transform duration-200",
-              !actif && "group-hover:scale-110"
+              !actif && "group-hover:scale-110",
             )}
             aria-hidden
           />
           <span className="min-w-0 flex-1 truncate">{lien.libelle}</span>
-          {lien.route === "abonnement" && (
-            <span
-              className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-[10px] leading-3.5 font-bold uppercase",
-                premium ? "bg-magenta text-white" : "bg-gris text-encre"
-              )}
-            >
-              {premium ? "Premium" : "Gratuit"}
-            </span>
-          )}
+          {lien.route === "abonnement" && etiquettePlan}
         </Link>
       );
     });
@@ -246,7 +286,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
             <p
               className={cn(
                 "inline-flex items-center gap-1 text-[12px] leading-4 font-semibold",
-                premium ? "text-violet" : "text-encre"
+                premium ? "text-violet" : "text-encre",
               )}
             >
               {premium ? (
@@ -271,38 +311,68 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
 
       {/* ═══ Contenu principal ═══ */}
       {/* w-full + overflow-x-clip : aucun enfant ne peut élargir la page
-          au-delà de l'écran (correctif du débordement horizontal mobile) */}
-      <div className="flex min-h-dvh w-full flex-col overflow-x-clip lg:pl-[268px]">
-        {/* Barre supérieure mobile collante — le seul « navbar » du dashboard sur téléphone */}
-        <header className="verre sticky top-0 z-40 border-b border-bordure lg:hidden">
-          <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
+          au-delà de l'écran (correctif du débordement horizontal mobile).
+          Toile gris clair #f4f6fb : les cartes blanches ressortent
+          comme dans le template Metis. */}
+      <div className="flex min-h-dvh w-full flex-col overflow-x-clip bg-[#f4f6fb] lg:pl-[268px]">
+        {/* Barre supérieure collante — titre, recherche et profil (style Metis) */}
+        <header className="verre sticky top-0 z-40 border-b border-bordure">
+          <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:h-[72px]">
+            {/* Burger (mobile) */}
             <button
               type="button"
               onClick={() => setMenuOuvert(true)}
               aria-label="Ouvrir le menu de l'espace"
               aria-expanded={menuOuvert}
-              className="grid size-11 shrink-0 place-items-center rounded-full border border-bordure bg-white/70 text-bleu transition hover:bg-white active:scale-95"
+              className="grid size-11 shrink-0 place-items-center rounded-full border border-bordure bg-white/70 text-bleu transition hover:bg-white active:scale-95 lg:hidden"
             >
               <Menu className="size-5" aria-hidden />
             </button>
-            <div className="flex min-w-0 flex-1 items-center gap-2.5">
-              {avatar}
-              <div className="min-w-0">
-                <p className="truncate text-[14px] leading-5 font-semibold">
-                  {prenom ? `Espace de ${prenom.trim().split(/\s+/)[0]}` : "Mon espace"}
-                </p>
-                <p
-                  className={cn(
-                    "text-[12px] leading-4",
-                    premium ? "font-semibold text-violet" : "text-encre"
-                  )}
-                >
-                  {premium ? "Plan Premium" : "Plan Découverte"}
-                </p>
-              </div>
+
+            {/* Titre + sous-titre de la page courante */}
+            <div className="min-w-0">
+              <p className="truncate font-titre text-[17px] leading-6 font-bold text-bleu">
+                {page.titre}
+              </p>
+              <p className="hidden truncate text-[12px] leading-4 text-encre sm:block">
+                {page.sousTitre}
+              </p>
             </div>
-            {/* Déconnexion en un tap — vraie suppression du cookie de session */}
-            <BoutonDeconnexionBarre />
+
+            {/* Recherche (desktop) — mène à l'annuaire, comme sur le site */}
+            <form action="/outils" role="search" className="ml-auto hidden w-full max-w-xs md:block lg:max-w-sm">
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-encre"
+                  aria-hidden
+                />
+                <input
+                  name="q"
+                  type="search"
+                  placeholder="Rechercher un outil…"
+                  aria-label="Rechercher dans l'annuaire"
+                  className="min-h-10 w-full rounded-full border border-bordure bg-white pr-4 pl-10 text-[14px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
+                />
+              </div>
+            </form>
+
+            <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-3">
+              {/* Profil (desktop) */}
+              <div className="hidden min-w-0 items-center gap-2.5 lg:flex">
+                {avatar}
+                <div className="min-w-0">
+                  <p className="max-w-[140px] truncate text-[13px] leading-4 font-semibold text-bleu">
+                    {prenom ? prenom.trim().split(/\s+/)[0] : "Membre"}
+                  </p>
+                  <div className="mt-0.5">{etiquettePlan}</div>
+                </div>
+              </div>
+              {/* Déconnexion en un tap — visible sur mobile/tablette uniquement
+                  (sur desktop elle reste en bas de la barre latérale) */}
+              <span className="lg:hidden">
+                <BoutonDeconnexionBarre />
+              </span>
+            </div>
           </div>
         </header>
 
@@ -319,7 +389,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
         onClick={() => setMenuOuvert(false)}
         className={cn(
           "fixed inset-0 z-[60] bg-bleu/45 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
-          menuOuvert ? "opacity-100" : "pointer-events-none opacity-0"
+          menuOuvert ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
       {/* Panneau coulissant */}
@@ -329,7 +399,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
         aria-label="Menu de l'espace personnel"
         className={cn(
           "fixed inset-y-0 left-0 z-[61] flex w-[282px] max-w-[86vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden",
-          menuOuvert ? "translate-x-0" : "-translate-x-full"
+          menuOuvert ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex items-center justify-between border-b border-bordure px-4 py-3.5">
