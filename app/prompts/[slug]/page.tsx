@@ -115,7 +115,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
             {prompt.roles.map((r: string) => (
               <Link
                 key={r}
-                href={`/prompts/role/${encodeURIComponent(r)}`}
+                href={`/prompts/roles/${encodeURIComponent(r)}`}
                 className="rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
               >
                 {nomRole(r)}

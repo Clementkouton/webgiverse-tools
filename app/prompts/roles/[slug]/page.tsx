@@ -73,7 +73,7 @@ export default async function PageRolePrompts({
       {/* ── Héros du métier ─────────────────────────────────────── */}
       <section className="hero-verre mt-4 border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-10 text-center lg:py-12">
-          <h1 className="mx-auto max-w-[720px] text-[28px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
+          <h1 className="mx-auto max-w-180 text-[28px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
             Prompts pour <span className="texte-degrade">{role.nom.toLowerCase()}</span>
           </h1>
           <p className="mesure mx-auto mt-3 text-[15px] leading-7 text-encre">
@@ -107,7 +107,7 @@ export default async function PageRolePrompts({
         <Pagination
           page={pageFinale}
           pages={pages}
-          base={`/prompts/role/${slug}`}
+          base={`/prompts/roles/${slug}`}
           params={{ tri }}
         />
       </div>

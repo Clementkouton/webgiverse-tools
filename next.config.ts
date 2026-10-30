@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
   // « strict-origin-when-cross-origin » = politique par défaut des navigateurs,
   // rendue explicite ici pour garantir que l'origine est toujours transmise.
   // ───────────────────────────────────────────────────────────────
+    async redirects() {
+    return [
+      {
+        source: "/prompts/role/:slug",
+        destination: "/prompts/roles/:slug",
+        permanent: false,
+      },
+    ];
+  },
+  
   async headers() {
     return [
       {

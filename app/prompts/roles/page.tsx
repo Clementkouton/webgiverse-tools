@@ -49,7 +49,7 @@ export default async function PageRoles() {
             return (
               <li key={r.slug}>
                 <Link
-                  href={`/prompts/role/${r.slug}`}
+                  href={`/prompts/roles/${r.slug}`}
                   className="survol-eleve flex min-h-11 items-center justify-between gap-3 rounded-carte border border-bordure bg-white px-4 py-3 shadow-carte transition hover:border-violet"
                 >
                   <span className="font-titre text-[15px] leading-5 font-semibold text-bleu transition hover:text-violet">

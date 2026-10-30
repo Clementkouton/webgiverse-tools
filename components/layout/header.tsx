@@ -1,13 +1,19 @@
 // components/layout/header.tsx
+// ─────────────────────────────────────────────────────────────────
+// Header recentré sur l'essentiel : Annuaire, Prompts IA, Tutoriels,
+// Premium + bouton d'espace. La barre de recherche, Actualités, Blog
+// et « Proposer un outil » quittent le header (ils restent accessibles
+// depuis l'accueil et le footer). Nouveau : état actif violet sur la
+// section en cours de visite. Charte Webgiverse inchangée.
+// ─────────────────────────────────────────────────────────────────
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Menu, Search, X, Sparkles } from "lucide-react";
+import { ChevronDown, Menu, X, Sparkles } from "lucide-react";
 import { LienLogo } from "@/components/commun/logo";
 import { Bouton } from "@/components/ui/bouton";
 
-const SUGGESTIONS = ["Code", "Vente", "Marketing", "SEO", "Vidéo", "Voix"];
 const LIENS_ANNUAIRE = [
   { href: "/outils", label: "Outils IA" },
   { href: "/agents", label: "Agents" },
@@ -16,12 +22,20 @@ const LIENS_ANNUAIRE = [
   { href: "/open-source", label: "Open source" },
   { href: "/comparer", label: "Comparer" },
   { href: "/categories", label: "Catégories" },
-  { href: "/tutoriels", label: "Tutoriels" },
+];
+
+/** Bases d'URL qui « allument » le menu Annuaire quand on y navigue. */
+const BASES_ANNUAIRE = [
+  "/outils",
+  "/agents",
+  "/gratuits",
+  "/open-source",
+  "/comparer",
+  "/categories",
 ];
 
 export function Header() {
   const [menuOuvert, setMenuOuvert] = useState(false);
-  const [rechercheActive, setRechercheActive] = useState(false);
   const [connecte, setConnecte] = useState(false);
   const [estAdmin, setEstAdmin] = useState(false);
   const chemin = usePathname();
@@ -48,42 +62,35 @@ export function Header() {
   const hrefEspace = estAdmin ? "/admin" : connecte ? "/dashboard" : "/connexion";
   const libelleEspace = estAdmin ? "Espace Admin" : connecte ? "Mon espace" : "Connexion";
 
+  // ── États actifs : la section en cours est surlignée en violet ───────
+  const annuaireActif = BASES_ANNUAIRE.some((b) => chemin.startsWith(b));
+  const promptsActif = chemin === "/prompts" || chemin.startsWith("/prompts/");
+  const tutorielsActif = chemin.startsWith("/tutoriels");
+  const premiumActif = chemin.startsWith("/tarifs");
+
+  /** Classe commune des liens simples : actif = pastille violette. */
+  const classeLien = (actif: boolean) =>
+    `rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium transition ${
+      actif
+        ? "bg-violet/10 text-violet"
+        : "text-bleu hover:bg-violet/10 hover:text-violet"
+    }`;
+
   return (
     <header className="verre sticky top-0 z-50 border-b border-bordure">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 lg:h-[72px]">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-3 lg:h-[72px]">
         <LienLogo />
-
-        {/* Recherche (desktop) avec suggestions rapides */}
-        <form action="/outils" role="search"
-          className="relative hidden flex-1 justify-center md:flex"
-          onFocus={() => setRechercheActive(true)}
-          onBlur={() => setRechercheActive(false)}>
-          <div className="relative w-full max-w-md">
-            <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-encre" aria-hidden />
-            <input name="q" type="search" placeholder="Rechercher un outil, une tâche…"
-              aria-label="Rechercher dans l'annuaire"
-              className="min-h-11 w-full rounded-full border border-bordure bg-white/80 pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none" />
-            {rechercheActive && (
-              <div className="absolute top-13 right-0 left-0 z-10 flex flex-wrap gap-2 rounded-carte border border-bordure bg-white p-3 shadow-carte"
-                onMouseDown={(e) => e.preventDefault()}>
-                <span className="w-full text-[12px] leading-4 font-medium tracking-wide text-encre uppercase">
-                  Suggestions rapides
-                </span>
-                {SUGGESTIONS.map((s) => (
-                  <button key={s} type="submit" name="q" value={s}
-                    className="rounded-full border border-bordure bg-gris px-3 py-1.5 text-[13px] leading-4 font-medium text-bleu hover:border-violet hover:text-violet">
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </form>
 
         {/* Navigation desktop */}
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
           <details className="group relative">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium text-bleu hover:bg-white/70 [&::-webkit-details-marker]:hidden">
+            <summary
+              className={`flex min-h-11 cursor-pointer list-none items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium transition [&::-webkit-details-marker]:hidden ${
+                annuaireActif
+                  ? "bg-violet/10 text-violet"
+                  : "text-bleu hover:bg-violet/10 hover:text-violet"
+              }`}
+            >
               Annuaire
               <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
             </summary>
@@ -96,22 +103,27 @@ export function Header() {
               ))}
             </div>
           </details>
-          <Link href="/actualites" className="rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium text-bleu hover:bg-white/70">Actualités</Link>
-          <Link href="/blog" className="rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium text-bleu hover:bg-white/70">Blog</Link>
-          <Link href="/tarifs"
-            className="inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-violet transition hover:bg-violet hover:text-white">
+          <Link href="/prompts" aria-current={promptsActif ? "page" : undefined} className={classeLien(promptsActif)}>
+            Prompts IA
+          </Link>
+          <Link href="/tutoriels" aria-current={tutorielsActif ? "page" : undefined} className={classeLien(tutorielsActif)}>
+            Tutoriels
+          </Link>
+          <Link href="/tarifs" aria-current={premiumActif ? "page" : undefined}
+            className={
+              premiumActif
+                ? "inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                : "inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-violet transition hover:bg-violet hover:text-white"
+            }>
             <Sparkles className="size-4" aria-hidden /> Premium
           </Link>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-0">
-          <Bouton variante="secondaire" taille="sm" asChild className="hidden sm:inline-flex">
-            <Link href="/proposer">Proposer un outil</Link>
-          </Bouton>
+        <div className="ml-auto flex items-center gap-2">
           <Bouton taille="sm" asChild>
             <Link href={hrefEspace}>{libelleEspace}</Link>
           </Bouton>
-          <button className="grid size-11 place-items-center rounded-full text-bleu hover:bg-white/70 lg:hidden"
+          <button className="grid size-11 place-items-center rounded-full text-bleu hover:bg-violet/10 lg:hidden"
             aria-expanded={menuOuvert} aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
             onClick={() => setMenuOuvert((v) => !v)}>
             {menuOuvert ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -119,29 +131,40 @@ export function Header() {
         </div>
       </div>
 
-      {/* Menu mobile */}
+      {/* Menu mobile — mêmes priorités que le desktop : l'annuaire est
+          regroupé sous son étiquette, puis les deux vitrines (Prompts IA,
+          Tutoriels) et Premium. Plus de recherche ni de liens secondaires. */}
       {menuOuvert && (
         <nav className="border-t border-bordure bg-white px-4 py-4 lg:hidden" aria-label="Navigation mobile">
-          <form action="/outils" role="search" className="mb-4">
-            <input name="q" type="search" placeholder="Rechercher un outil, une tâche…" aria-label="Rechercher"
-              className="min-h-11 w-full rounded-full border border-bordure px-4 text-[15px] focus:border-violet focus:outline-none" />
-          </form>
+          <p className="px-3 pb-1 text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase">
+            Annuaire
+          </p>
           <ul className="grid gap-1">
             {LIENS_ANNUAIRE.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} onClick={() => setMenuOuvert(false)}
-                  className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris">{l.label}</Link>
+                  className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-violet">{l.label}</Link>
               </li>
             ))}
-            <li><Link href="/actualites" onClick={() => setMenuOuvert(false)} className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris">Actualités</Link></li>
-            <li><Link href="/blog" onClick={() => setMenuOuvert(false)} className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris">Blog</Link></li>
+            <li aria-hidden className="my-2 border-t border-bordure" />
+            <li>
+              <Link href="/prompts" onClick={() => setMenuOuvert(false)}
+                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris">
+                Prompts IA
+              </Link>
+            </li>
+            <li>
+              <Link href="/tutoriels" onClick={() => setMenuOuvert(false)}
+                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-violet">
+                Tutoriels
+              </Link>
+            </li>
             <li>
               <Link href="/tarifs" onClick={() => setMenuOuvert(false)}
                 className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris">
                 <Sparkles className="size-4" aria-hidden /> Passer Premium
               </Link>
             </li>
-            <li><Link href="/proposer" onClick={() => setMenuOuvert(false)} className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-violet hover:bg-gris">Proposer un outil</Link></li>
           </ul>
         </nav>
       )}

@@ -22,7 +22,7 @@ import { Pagination } from "@/components/commun/pagination";
 import { auth } from "@/auth";
 import { premiumActif } from "@/lib/premium";
 import { TRIS_PROMPTS, nomRole } from "@/lib/prompts-utils";
-
+import { OngletsFiltres } from "@/components/prompts/onglets-filtres";
 export const metadata: Metadata = {
   title: "Bibliothèque de prompts IA — catalogue métier | Webgiverse",
   description:
@@ -161,66 +161,75 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
           </Bouton>
         </form>
 
-        {/* ── Pastilles de catégories ─────────────────────────────── */}
-        <nav aria-label="Catégories de prompts" className="mb-4 flex flex-wrap items-center gap-2">
-          <Link
-            href={hrefSans("categorie", { q, categorie, role, type, tri })}
-            className={
-              !categorie
-                ? "inline-flex min-h-11 items-center rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                : `${PASTILLE} border-violet bg-violet/5 text-violet`
-            }
-          >
-            Toutes
-          </Link>
-          {categories.map((c: { slug: string; nom: string; _count: { prompts: number } }) =>
-            c.slug === categorie ? (
-              <span
-                key={c.slug}
-                aria-current="true"
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-              >
-                {c.nom} <span className="opacity-80">{c._count.prompts}</span>
-              </span>
-            ) : (
+                {/* ── Onglets « Catégories / Métiers » ────────────────────── */}
+        {/* Correctif : les deux familles de filtres étaient collées sans
+            repère visuel. Deux onglets (style godofprompt) les séparent
+            désormais. L'onglet ouvert au chargement suit le filtre actif
+            de l'URL (?categorie=… ouvre Catégories, ?role=… ouvre Métiers). */}
+        <OngletsFiltres
+          ongletInitial={categorie ? "categories" : role ? "metiers" : "categories"}
+          totalCategories={categories.length}
+          totalMetiers={compteurRoles.length}
+          panneauCategories={
+            <nav aria-label="Catégories de prompts" className="flex flex-wrap items-center gap-2">
               <Link
-                key={c.slug}
-                href={`/prompts?categorie=${encodeURIComponent(c.slug)}`}
-                className={PASTILLE}
+                href={hrefSans("categorie", { q, categorie, role, type, tri })}
+                className={
+                  !categorie
+                    ? "inline-flex min-h-11 items-center rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                    : `${PASTILLE} border-violet bg-violet/5 text-violet`
+                }
               >
-                {c.nom} <span className="text-encre/60">{c._count.prompts}</span>
+                Toutes
               </Link>
-            ),
-          )}
-        </nav>
-
-        {/* ── Pastilles de rôles (les plus fournis) ───────────────── */}
-        {compteurRoles.length > 0 && (
-          <nav aria-label="Métiers" className="mb-8 flex flex-wrap items-center gap-2">
-            {compteurRoles.slice(0, 12).map((r: { slug: string; total: number }) =>
-              r.slug === role ? (
-                <span
-                  key={r.slug}
-                  aria-current="true"
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-violet bg-violet/10 px-4 text-[13px] leading-4 font-semibold text-violet"
-                >
-                  {nomRole(r.slug)} <span className="opacity-70">{r.total}</span>
-                </span>
-              ) : (
-                <Link
-                  key={r.slug}
-                  href={`/prompts/role/${encodeURIComponent(r.slug)}`}
-                  className={PASTILLE}
-                >
-                  {nomRole(r.slug)} <span className="text-encre/60">{r.total}</span>
-                </Link>
-              ),
-            )}
-            <Link href="/prompts/roles" className="text-[13px] font-semibold text-violet hover:underline">
-              Tous les métiers →
-            </Link>
-          </nav>
-        )}
+              {categories.map((c: { slug: string; nom: string; _count: { prompts: number } }) =>
+                c.slug === categorie ? (
+                  <span
+                    key={c.slug}
+                    aria-current="true"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                  >
+                    {c.nom} <span className="opacity-80">{c._count.prompts}</span>
+                  </span>
+                ) : (
+                  <Link
+                    key={c.slug}
+                    href={`/prompts?categorie=${encodeURIComponent(c.slug)}`}
+                    className={PASTILLE}
+                  >
+                    {c.nom} <span className="text-encre/60">{c._count.prompts}</span>
+                  </Link>
+                ),
+              )}
+            </nav>
+          }
+          panneauMetiers={
+            <nav aria-label="Métiers" className="flex flex-wrap items-center gap-2">
+              {compteurRoles.slice(0, 12).map((r: { slug: string; total: number }) =>
+                r.slug === role ? (
+                  <span
+                    key={r.slug}
+                    aria-current="true"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-violet bg-violet/10 px-4 text-[13px] leading-4 font-semibold text-violet"
+                  >
+                    {nomRole(r.slug)} <span className="opacity-70">{r.total}</span>
+                  </span>
+                ) : (
+                  <Link
+                    key={r.slug}
+                    href={`/prompts/roles/${encodeURIComponent(r.slug)}`}
+                    className={PASTILLE}
+                  >
+                    {nomRole(r.slug)} <span className="text-encre/60">{r.total}</span>
+                  </Link>
+                ),
+              )}
+              <Link href="/prompts/roles" className="text-[13px] font-semibold text-violet hover:underline">
+                Tous les métiers →
+              </Link>
+            </nav>
+          }
+        />
 
         {/* ── Résultats ───────────────────────────────────────────── */}
         {prompts.length === 0 ? (
