@@ -5,19 +5,22 @@
 // puis les sections maison : à la une, nouveautés, prompts, témoignages,
 // plans Premium, actu, blog, FAQ, newsletter. Charte Webgiverse inchangée
 // (accents violets, dégradé de marque, Space Grotesk + Inter).
+// Lot 14 — vitrine « Tutoriels vidéo IA » : panneau bleu nuit avec halos
+// dégradés, les 4 tutos les plus vus et des boutons vers /tutoriels.
 import Link from "next/link";
-import { ArrowRight, ChevronRight, ExternalLink, Search, Sparkles, Star } from "lucide-react";
+import { ArrowRight, ChevronRight, ExternalLink, Play, Search, Sparkles, Star } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { Carte } from "@/components/ui/carte";
 import { Accordeon, ItemAccordeon } from "@/components/ui/accordeon";
 import CarteOutilView from "@/components/outil/carte-outil";
+import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { BoutonCopier } from "@/components/commun/bouton-copier";
 import { FormulaireNewsletter } from "@/components/commun/formulaire-newsletter";
 import { SectionPlans } from "@/components/tarifs/section-plans";
 import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
 import { TEMOIGNAGES } from "@/content/temoignages";
-import { compterStats, listerCategories, outilsMisEnAvant, listerOutils } from "@/lib/queries";
+import { compterStats, listerCategories, outilsMisEnAvant, listerOutils, listerTutos, compterTutoStats } from "@/lib/queries";
 import VuRecemment from "@/components/visites/vu-recemment";
 
 // La section Premium lit la session elle-même (dans SectionPlans) pour
@@ -30,11 +33,16 @@ function TitreSection({ children }: { children: React.ReactNode }) {
 }
 
 export default async function Accueil() {
-  const [stats, enAvant, nouveautes, categories] = await Promise.all([
+  const [stats, enAvant, nouveautes, categories, tutoStats, resultatTutos] = await Promise.all([
     compterStats(), outilsMisEnAvant(),
     listerOutils({ tri: "recente", page: 1 }),
     listerCategories(),
+    compterTutoStats(),
+    // Lot 14 — les 4 tutoriels les plus vus pour la vitrine de l'accueil.
+    listerTutos({ tri: "vues", parPage: 4 }),
   ]);
+  const tutoriels = resultatTutos.tutos;
+  const heuresTutos = Math.round(tutoStats.minutes / 60);
   const compteurs = [
     { valeur: stats.outils, libelle: "outils référencés" },
     { valeur: stats.agents, libelle: "agents IA" },
@@ -152,6 +160,60 @@ export default async function Accueil() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {nouveautes.outils.slice(0, 8).map((o) => <CarteOutilView key={o.id} outil={o} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Tutoriels vidéo IA (Lot 14) ──────────────────────────── */}
+      {/* Vitrine sombre qui fait ressortir les vignettes vidéo : panneau
+          bleu nuit + halos dégradés de la charte, 4 tutos les plus vus,
+          et deux portes d'entrée vers /tutoriels (lien « Voir tout » et
+          bouton « Commencer à apprendre »). */}
+      <section className="py-14 lg:py-18">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="relative overflow-hidden rounded-carte bg-bleu p-6 shadow-carte sm:p-10">
+            <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-violet/30 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full bg-ciel/20 blur-3xl" />
+            <div className="relative">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <Play className="size-3.5" aria-hidden /> Tutoriels vidéo IA
+                  </p>
+                  <h2 className="mt-4 text-[26px] leading-8 font-semibold text-white sm:text-h2">
+                    Apprends les outils IA <span className="texte-degrade-clair">en vidéo</span>
+                  </h2>
+                  <p className="mesure mt-2 max-w-2xl text-[15px] leading-6 text-white/70">
+                    Des formations gratuites sélectionnées à la main : tu regardes le tutoriel
+                    directement sur Webgiverse, puis tu testes l&apos;outil dans l&apos;annuaire.
+                  </p>
+                </div>
+                <Link href="/tutoriels" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-white hover:underline">
+                  Tous les tutoriels <ChevronRight className="size-4" aria-hidden />
+                </Link>
+              </div>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {tutoriels.map((t) => <CarteTuto key={t.id} tuto={t} />)}
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+                <ul className="flex flex-wrap gap-2">
+                  <li className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    {tutoStats.total} tutoriels
+                  </li>
+                  <li className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    {heuresTutos}h+ de contenu
+                  </li>
+                  <li className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    100 % gratuits à parcourir
+                  </li>
+                </ul>
+                <Bouton taille="lg" asChild>
+                  <Link href="/tutoriels">Commencer à apprendre <ArrowRight aria-hidden /></Link>
+                </Bouton>
+              </div>
+            </div>
           </div>
         </div>
       </section>
