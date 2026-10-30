@@ -59,6 +59,13 @@
         outline-offset: 2px;
         border-radius: 4px;
     }
+    /* Lot 16 — contrôles tactiles : le navigateur supprime le délai
+       d'attente au toucher et ne cherche plus un double-tap de zoom
+       sur les liens et boutons */
+    a,
+    button {
+        touch-action: manipulation;
+    }
     /* Mouvement discret : respect de prefers-reduced-motion */
     @media (prefers-reduced-motion: reduce) {
         *,
@@ -86,7 +93,6 @@
         background-clip: text;
         color: transparent;
     }
-    /* Glassmorphism — barre de navigation et hero uniquement */
     /* Glassmorphism — barre de navigation et hero uniquement */
     .verre {
         background: rgba(255, 255, 255, 0.94);
@@ -240,16 +246,74 @@
 }
 
 
-/* ── Élévation au survol (cartes cliquables) ───────────────────── */
+/* ── Lot 16 — entrée orchestrée des héros (une seule fois, au chargement) ──
+   Un seul moment animé par page, discret et bref : les enfants du bandeau
+   « hero-verre » montent en cascade (0,4 s de décalage maximum). C'est le
+   SEUL mouvement non déclenché par l'utilisateur sur ces pages. Les
+   personnes en mode « mouvement réduit » voient la page immédiatement
+   (bloc prefers-reduced-motion dans @layer base). */
 
-.survol-eleve {
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+.hero-verre>div>* {
+    animation: monter-apparaitre 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.survol-eleve:hover {
+.hero-verre>div>*:nth-child(2) {
+    animation-delay: 0.08s;
+}
+
+.hero-verre>div>*:nth-child(3) {
+    animation-delay: 0.16s;
+}
+
+.hero-verre>div>*:nth-child(4) {
+    animation-delay: 0.24s;
+}
+
+.hero-verre>div>*:nth-child(5) {
+    animation-delay: 0.32s;
+}
+
+.hero-verre>div>*:nth-child(6) {
+    animation-delay: 0.4s;
+}
+
+.hero-verre>div>*:nth-child(n + 7) {
+    animation-delay: 0.4s;
+}
+
+
+/* ── Élévation au survol (cartes cliquables) ───────────────────── */
+
+
+/* Lot 16 — .survol-eleve et .survol-carte partagent le même réglage :
+   - courbe d'entrée cubic-bezier(0.22, 1, 0.36, 1) sur le déplacement
+     (le mouvement semble « décidé » au lieu de mou),
+   - ombre et bordure plus lentes, listées explicitement (jamais
+     transition: all),
+   - le survol n'est activé qu'avec une vraie souris/stylet : sur
+     tactile, un tap ne déclenche plus l'élévation,
+   - le focus clavier reçoit le même retour visuel que le survol
+     (règle d'équivalence survol/focus). */
+
+.survol-eleve,
+.survol-carte {
+    transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.2s ease;
+}
+
+.survol-eleve:focus-visible,
+.survol-carte:focus-visible {
     transform: translateY(-4px);
     box-shadow: 0 14px 34px rgba(11, 27, 63, 0.12);
     border-color: var(--color-violet);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .survol-eleve:hover,
+    .survol-carte:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 34px rgba(11, 27, 63, 0.12);
+        border-color: var(--color-violet);
+    }
 }
 
 
@@ -346,15 +410,10 @@
 
 /* Élévation au survol — variante « carte » du dashboard */
 
-.survol-carte {
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
 
-.survol-carte:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 34px rgba(11, 27, 63, 0.12);
-    border-color: var(--color-violet);
-}
+/* Élévation au survol — variante « carte » du dashboard : depuis le
+   Lot 16, .survol-carte partage la définition commune de .survol-eleve
+   (voir plus haut) : même courbe, mêmes délais, même équivalence focus. */
 
 
 /* Barre de progression du niveau : se remplit à l'apparition */

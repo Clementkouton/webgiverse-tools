@@ -17,7 +17,7 @@ export function CarteTuto({ tuto }: { tuto: Tuto }) {
   return (
     <Link
       href={`/tutoriels/${tuto.slug}`}
-      className="group flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition hover:border-violet"
+      className="group survol-eleve flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition hover:border-violet"
     >
       {/* ── Miniature 16:9 ─────────────────────────────────────── */}
       <span className="relative block aspect-video w-full overflow-hidden bg-bleu">
