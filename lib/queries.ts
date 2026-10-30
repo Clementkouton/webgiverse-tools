@@ -115,8 +115,10 @@ export async function outilsAlternatifs(outilId: string, categorieSlugs: string[
    TUTORIELS VIDÉO IA (/tutoriels)
    ============================================================ */
 
-// Le client Prisma actuellement généré ne déclare pas encore le modèle Tuto.
-const tutoDb = (prisma as any).tuto;
+// Le client généré déclare désormais le modèle Tuto (prisma/schema.prisma) :
+// on utilise le délégué TYPÉ — `niveau` est un vrai NiveauTuto, plus aucun
+// `any` qui faisait échouer le build strict de Vercel (TS7053/TS7006).
+const tutoDb = prisma.tuto;
 
 export type FiltresTutos = {
   q?: string; // recherche plein texte dans le titre et les tags
@@ -130,21 +132,21 @@ export type FiltresTutos = {
 /** Taille de page par défaut de la grille /tutoriels (4 lignes de 4 au bureau). */
 export const TUTOS_PAR_PAGE = 16;
 
-/** Renvoie le filtre Prisma correspondant au tri demandé. */
-function triTutos(tri?: string) {
+/** Renvoie le tri Prisma correspondant au tri demandé (typé strictement). */
+function triTutos(tri?: string): Prisma.TutoOrderByWithRelationInput[] {
   switch (tri) {
     case "nouveautes":
       // Les ajouts récents d'abord, puis par pertinence décroissante.
-      return [{ nouveau: "desc" }, { ordre: "desc" }] as const;
+      return [{ nouveau: "desc" }, { ordre: "desc" }];
     case "vues":
-      return [{ vues: "desc" }] as const;
+      return [{ vues: "desc" }];
     case "az":
-      return [{ titre: "asc" }] as const;
+      return [{ titre: "asc" }];
     case "za":
-      return [{ titre: "desc" }] as const;
+      return [{ titre: "desc" }];
     default:
       // Pertinence : l'ordre Aixploria conservé lors de l'import (1 = meilleur).
-      return [{ ordre: "asc" }] as const;
+      return [{ ordre: "asc" }];
   }
 }
 
@@ -153,7 +155,7 @@ function triTutos(tri?: string) {
 // les 84 tutoriels d'un coup. Le numéro de page demandé est borné au
 // nombre réel de pages : une URL « ?page=999 » retombe sur la dernière.
 export async function listerTutos(f: FiltresTutos = {}) {
-  const conditions: Record<string, any>[] = [];
+  const conditions: Prisma.TutoWhereInput[] = [];
 
   const q = f.q?.trim();
   if (q) {
@@ -161,9 +163,9 @@ export async function listerTutos(f: FiltresTutos = {}) {
       OR: [{ titre: { contains: q, mode: "insensitive" } }, { outils: { has: q } }],
     });
   }
-  if (f.niveau === "debutant" || f.niveau === "intermediaire" || f.niveau === "avance") {
-    conditions.push({ niveau: f.niveau.toUpperCase() as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE" });
-  }
+  if (f.niveau === "debutant") conditions.push({ niveau: "DEBUTANT" });
+  else if (f.niveau === "intermediaire") conditions.push({ niveau: "INTERMEDIAIRE" });
+  else if (f.niveau === "avance") conditions.push({ niveau: "AVANCE" });
   const outil = f.outil?.trim();
   if (outil) conditions.push({ outils: { has: outil } });
 

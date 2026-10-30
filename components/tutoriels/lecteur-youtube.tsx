@@ -5,12 +5,21 @@
 // intégrables (bug connu du domaine nocookie) sans qu'aucun site ne
 // puisse le détecter ni le gérer.
 //
+// Correctif v2 (après l'article officiel YouTube « Provide a HTTP referer
+// header to enable video playback » — support.google.com/youtube/answer/171780) :
+//  - YouTube exige désormais un Referer valide sur les lecteurs intégrés ;
+//    sans cela, la lecture est bloquée avec l'erreur 153. Cela arrive avec
+//    certains navigateurs anti-pistage, bloqueurs de publicités, ou quand
+//    la page est ouverte via une IP locale (192.168.x.x) ou un tunnel dev.
+//  - Face à une erreur 101/150/153, le lecteur retente AUTOMATIQUEMENT une
+//    fois sans le paramètre `origin` (les deux configurations ont été
+//    validées en test) avant d'afficher l'écran de secours.
+//  - L'écran de secours explique la cause probable (référent bloqué) et
+//    propose « Voir sur YouTube » + « Réessayer ».
+//
 // Fonctionnement :
 //  - L'API officielle https://www.youtube.com/iframe_api est chargée
 //    une seule fois (domaine standard youtube.com, pas nocookie).
-//  - onError (codes 2, 5, 100, 101, 150, 153) → voile de secours avec la
-//    miniature, un bouton « Voir sur YouTube » (nouvel onglet) et un
-//    bouton « Réessayer » — au lieu de l'erreur brute de YouTube.
 //  - Si l'API ne répond pas en 12 s (bloqueur de scripts, réseau) →
 //    repli sur une iframe classique, comme avant.
 //  - L'identifiant est normalisé : si la base contient un jour une URL
@@ -66,14 +75,27 @@ function normaliserId(valeur: string): string {
   return m ? m[1] : v;
 }
 
+/** Codes qui concernent l'intégration (le reste : vidéo invalide/absente). */
+function estErreurIntegration(code: number): boolean {
+  return code === 101 || code === 150 || code === 153;
+}
+
 /** Message en français selon le code d'erreur renvoyé par le lecteur. */
 function messageErreur(code: number): string {
-  if (code === 101 || code === 150 || code === 153) {
-    return "Le propriétaire de cette vidéo n'autorise pas sa lecture sur d'autres sites.";
+  if (estErreurIntegration(code)) {
+    return "YouTube n'a pas pu vérifier l'origine de cette page (référent absent ou bloqué), ou la vidéo refuse l'intégration.";
   }
   if (code === 100) return "Cette vidéo a été supprimée ou rendue privée sur YouTube.";
   if (code === 2 || code === 5) return "Lecture impossible : cette vidéo semble invalide.";
   return "Une erreur technique empêche la lecture de cette vidéo.";
+}
+
+/** Conseil pratique affiché sous le message (piste de résolution côté visiteur). */
+function conseilErreur(code: number): string {
+  if (estErreurIntegration(code)) {
+    return "Un bloqueur de publicités ou un navigateur anti-pistage (Brave…) peut provoquer cela : autorise ce site, puis réessaie. En local, utilise http://localhost:3000 plutôt que l'adresse IP du réseau.";
+  }
+  return "";
 }
 
 export function LecteurYoutube({
@@ -90,6 +112,10 @@ export function LecteurYoutube({
   const joueurRef = useRef<JoueurYT | null>(null);
   const [etat, setEtat] = useState<Etat>({ genre: "chargement" });
   const [tentative, setTentative] = useState(0);
+  // 2e essai automatique : recréer le lecteur SANS le paramètre `origin`
+  // (certains contextes — tunnel dev, IP locale — rejettent l'origin
+  // alors que l'embed « nu » passe).
+  const [planB, setPlanB] = useState(false);
 
   useEffect(() => {
     let abandon = false;
@@ -106,12 +132,14 @@ export function LecteurYoutube({
         if (abandon || !hoteRef.current) return;
         const hote = document.createElement("div");
         hoteRef.current.replaceChildren(hote);
+        const vars: Record<string, unknown> = { rel: 0, modestbranding: 1, playsinline: 1 };
+        // `origin` : recommandé par la doc YouTube pour les embeds tierces —
+        // mais on le retire au 2e essai si YouTube l'a refusé (erreur 153).
+        if (!planB) vars.origin = window.location.origin;
         try {
           joueurRef.current = new (window as FenetreYT).YT!.Player(hote, {
             videoId: id,
-            // origin : recommandé par la doc YouTube pour les embeds tierces,
-            // il évite plusieurs erreurs de lecture (dont des 153 sporadiques).
-            playerVars: { rel: 0, modestbranding: 1, playsinline: 1, origin: window.location.origin },
+            playerVars: vars,
             events: {
               onReady: () => {
                 if (!abandon) {
@@ -120,10 +148,17 @@ export function LecteurYoutube({
                 }
               },
               onError: (e: { data?: number }) => {
-                if (!abandon) {
-                  clearTimeout(minuterie);
-                  setEtat({ genre: "erreur", code: e.data ?? 0 });
+                if (abandon) return;
+                clearTimeout(minuterie);
+                const code = e.data ?? 0;
+                // Erreur d'intégration et 1er essai → on retente sans `origin`
+                // avant d'afficher l'écran de secours (invisible si la vidéo joue).
+                if (estErreurIntegration(code) && !planB) {
+                  setPlanB(true);
+                  setTentative((t) => t + 1);
+                  return;
                 }
+                setEtat({ genre: "erreur", code });
               },
             },
           });
@@ -147,7 +182,7 @@ export function LecteurYoutube({
       }
       joueurRef.current = null;
     };
-  }, [id, tentative]);
+  }, [id, tentative, planB]);
 
   const vignette = miniature || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
@@ -158,10 +193,13 @@ export function LecteurYoutube({
 
       {etat.genre === "repli" && (
         // Repli dégradé : l'API n'est pas disponible → iframe simple (comme avant le Lot 13).
+        // referrerPolicy explicite : garantit l'envoi de l'origine au lecteur
+        // (exigence YouTube — support.google.com/youtube/answer/171780).
         <iframe
           src={`https://www.youtube.com/embed/${id}?rel=0`}
           title={titre}
           className="absolute inset-0 size-full"
+          referrerPolicy="strict-origin-when-cross-origin"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         />
@@ -169,7 +207,7 @@ export function LecteurYoutube({
 
       {etat.genre === "erreur" && (
         // Voile de secours : au lieu de l'erreur brute de YouTube, un écran
-        // clair qui permet quand même de regarder la vidéo sur YouTube.
+        // clair qui explique la cause et permet quand même de regarder la vidéo.
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-bleu p-4 text-center text-white sm:p-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={vignette} alt="" className="absolute inset-0 size-full object-cover opacity-20" />
@@ -181,8 +219,13 @@ export function LecteurYoutube({
               Impossible de lire la vidéo ici
             </p>
             <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-5 text-white/80">
-              {messageErreur(etat.code)} Tu peux la regarder directement sur YouTube, ou réessayer.
+              {messageErreur(etat.code)}
             </p>
+            {conseilErreur(etat.code) && (
+              <p className="mx-auto mt-1.5 max-w-sm text-[12px] leading-5 text-white/60">
+                {conseilErreur(etat.code)}
+              </p>
+            )}
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               <a
                 href={`https://www.youtube.com/watch?v=${id}`}
@@ -194,7 +237,10 @@ export function LecteurYoutube({
               </a>
               <button
                 type="button"
-                onClick={() => setTentative((t) => t + 1)}
+                onClick={() => {
+                  setPlanB(false);
+                  setTentative((t) => t + 1);
+                }}
                 className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 text-[14px] leading-5 font-semibold text-white transition hover:bg-white/20"
               >
                 <RotateCcw className="size-4" aria-hidden /> Réessayer
