@@ -1,8 +1,4 @@
 // app/assistant/page.tsx
-// Lot 19 — la page accepte désormais ?c=<id> pour ouvrir directement
-// UNE conversation existante (lien « Ouvrir » de « Mes conversations »
-// dans le dashboard). L'id est simplement transmis au composant client,
-// qui charge la conversation via l'API existante.
 import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { AssistantOnglets } from "@/components/assistant/assistant-client";
@@ -15,12 +11,7 @@ export const metadata: Metadata = {
   description: "Trois questions, trois outils adaptés à ton objectif, ton niveau et ton budget. Ou décris ton besoin en texte libre.",
 };
 
-export default async function PageAssistant({
-  searchParams,
-}: {
-  searchParams: Promise<{ c?: string }>;
-}) {
-  const { c } = await searchParams;
+export default async function PageAssistant() {
   const session = await auth();
   const quota = session?.user?.id
     ? await quotaAssistant(session.user.id)
@@ -34,7 +25,7 @@ export default async function PageAssistant({
       <p className="mesure mt-2 text-encre">
         Il ne recommande que des outils présents dans l'annuaire, avec leurs vrais tarifs. Aucune invention.
       </p>
-      <AssistantOnglets quota={quota} conversationInitiale={c ?? null} />
+      <AssistantOnglets quota={quota} />
     </div>
   );
 }

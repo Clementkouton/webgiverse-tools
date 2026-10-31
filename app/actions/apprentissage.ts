@@ -19,26 +19,6 @@ async function userIdConnecte(): Promise<string | null> {
   return session?.user?.id ?? null;
 }
 
-// Le client Prisma peut ne pas encore inclure ce modèle si `prisma generate`
-// n'a pas été relancé après son ajout au schéma.
-const promptFavori = (prisma as unknown as {
-  promptFavori: {
-    findUnique: (args: object) => Promise<{ id: string } | null>;
-    delete: (args: object) => Promise<unknown>;
-    count: (args: object) => Promise<number>;
-    create: (args: object) => Promise<unknown>;
-    deleteMany: (args: object) => Promise<unknown>;
-  };
-}).promptFavori;
-
-// Le client Prisma peut également ne pas encore inclure ce modèle.
-const progressionTuto = (prisma as unknown as {
-  progressionTuto: {
-    upsert: (args: object) => Promise<unknown>;
-    deleteMany: (args: object) => Promise<unknown>;
-  };
-}).progressionTuto;
-
 /* ════════════════════════════════════════════════════════════════
    1) FAVORIS DE PROMPTS
    ════════════════════════════════════════════════════════════════ */
@@ -57,7 +37,7 @@ export async function basculerFavoriPrompt(promptId: string): Promise<{
 
   let existant: { id: string } | null = null;
   try {
-    existant = await promptFavori.findUnique({
+    existant = await prisma.promptFavori.findUnique({
       where: { userId_promptId: { userId, promptId } },
       select: { id: true },
     });
@@ -66,11 +46,7 @@ export async function basculerFavoriPrompt(promptId: string): Promise<{
   }
 
   if (existant) {
-    try {
-      await promptFavori.delete({ where: { id: existant.id } });
-    } catch {
-      return { ok: false, raison: "indisponible" };
-    }
+    await prisma.promptFavori.delete({ where: { id: existant.id } });
     revalidatePath("/dashboard/prompts");
     revalidatePath("/prompts");
     return { ok: true, favori: false };
@@ -78,22 +54,13 @@ export async function basculerFavoriPrompt(promptId: string): Promise<{
 
   // Plan Découverte : nombre de prompts sauvegardés limité
   if (!(await premiumActif(userId))) {
-    let nbPrompts: number;
-    try {
-      nbPrompts = await promptFavori.count({ where: { userId } });
-    } catch {
-      return { ok: false, raison: "indisponible" };
-    }
+    const nbPrompts = await prisma.promptFavori.count({ where: { userId } });
     if (nbPrompts >= LIMITES_DECOUVERTE.prompts) {
       return { ok: false, raison: "limite" };
     }
   }
 
-  try {
-    await promptFavori.create({ data: { userId, promptId } });
-  } catch {
-    return { ok: false, raison: "indisponible" };
-  }
+  await prisma.promptFavori.create({ data: { userId, promptId } });
   journaliser(userId, "prompt_favori", JSON.stringify({ promptId }));
   revalidatePath("/dashboard/prompts");
   revalidatePath("/prompts");
@@ -106,7 +73,7 @@ export async function retirerPromptFormulaire(donnees: FormData): Promise<void> 
   if (!userId) return;
   const promptId = z.string().min(1).parse(donnees.get("promptId"));
   try {
-    await promptFavori.deleteMany({ where: { userId, promptId } });
+    await prisma.promptFavori.deleteMany({ where: { userId, promptId } });
   } catch {
     return;
   }
@@ -134,7 +101,7 @@ export async function majProgressionTuto(
   if (!analyse.success) return { ok: false, raison: "invalide" };
 
   try {
-    await progressionTuto.upsert({
+    await prisma.progressionTuto.upsert({
       where: { userId_tutoId: { userId, tutoId } },
       update: { statut: analyse.data.statut },
       create: { userId, tutoId, statut: analyse.data.statut },
@@ -153,7 +120,7 @@ export async function retirerProgressionTuto(tutoId: string): Promise<{ ok: bool
   const userId = await userIdConnecte();
   if (!userId) return { ok: false };
   try {
-    await progressionTuto.deleteMany({ where: { userId, tutoId } });
+    await prisma.progressionTuto.deleteMany({ where: { userId, tutoId } });
   } catch {
     return { ok: false };
   }

@@ -330,7 +330,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
           au-delà de l'écran (correctif du débordement horizontal mobile).
           Toile gris clair #f4f6fb : les cartes blanches ressortent
           comme dans le template Metis. */}
-            <div data-zone-contenu className="flex min-h-dvh w-full flex-col overflow-x-clip bg-[#f4f6fb] lg:pl-[268px]">
+      <div data-zone-contenu className="flex min-h-dvh w-full flex-col overflow-x-clip bg-[#f4f6fb] lg:pl-[268px]">
         {/* Barre supérieure collante — titre, recherche et profil (style Metis) */}
         <header className="verre sticky top-0 z-40 border-b border-bordure">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:h-[72px]">
