@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         select: {
           statut: true,
           note: true,
-          creeLe: true,
+          createdAt: true,
           tool: {
             select: {
               nom: true,
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
           libelles[favori.statut] ?? favori.statut,
           favori.note ?? "",
           favori.tool.tarif ?? "",
-          new Intl.DateTimeFormat("fr-FR", { dateStyle: "short" }).format(favori.creeLe),
+          new Intl.DateTimeFormat("fr-FR", { dateStyle: "short" }).format(favori.createdAt),
           `https://webgiverse-tools.vercel.app/outils/${favori.tool.slug}`,
         ]);
       }

@@ -104,7 +104,7 @@ export default async function PageExport() {
     id: string;
     statut: "A_TESTER" | "EN_COURS" | "ADOPTE";
     note: string | null;
-    creeLe: Date;
+    createdAt: Date;
     tool: {
       nom: string;
       slug: string;
@@ -263,7 +263,7 @@ export default async function PageExport() {
                         </span>
                       </td>
                       <td className="py-2 pr-3 text-encre">{favori.note || "—"}</td>
-                      <td className="py-2 text-encre">{formatteurDate.format(favori.creeLe)}</td>
+                      <td className="py-2 text-encre">{formatteurDate.format(favori.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>
