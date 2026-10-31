@@ -15,6 +15,8 @@
 //      générique. Le détail complet est aussi écrit dans le terminal.
 //   3. Raisons typées exportées (RaisonApprentissage) pour un affichage
 //      précis côté client.
+//   4. Client Prisma non régénéré (prisma.promptFavori undefined) → raison
+//      « client » : message dédié avec la procédure de régénération.
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -30,6 +32,7 @@ export type RaisonApprentissage =
   | "invalide"
   | "limite" // plan Découverte : quota atteint
   | "base" // base de données non à jour (tables absentes)
+  | "client" // client Prisma non régénéré (modèles nouveaux inconnus)
   | "indisponible"; // erreur passagère
 
 /** Traduit une erreur Prisma en raison affichable + trace dans le terminal. */
@@ -44,6 +47,28 @@ function raisonDepuisErreur(erreur: unknown, contexte: string): RaisonApprentiss
     );
     return "base";
   }
+
+  // « Cannot read properties of undefined (reading 'findUnique') » etc. :
+  // le modèle n'existe pas dans le client généré → client Prisma ancien
+  // (régénération échouée, typiquement à cause du serveur qui tournait).
+  const brut = erreur instanceof Error ? erreur.message : String(erreur ?? "");
+  if (
+    (brut.includes("of undefined") || brut.includes("of null")) &&
+    /(findUnique|findMany|findFirst|upsert|create|createMany|delete|deleteMany|update|updateMany|count|aggregate)/.test(brut)
+  ) {
+    console.error(
+      `[apprentissage] ${contexte} : CLIENT PRISMA NON RÉGÉNÉRÉ — il ne connaît pas les\n` +
+        "  modèles PromptFavori / ProgressionTuto ajoutés au Lot 19.\n" +
+        "→ Dans le projet, DANS L'ORDRE :\n" +
+        "    1. arrête le serveur (Ctrl+C)\n" +
+        "    2. npx prisma db push\n" +
+        "    3. Remove-Item -Recurse -Force node_modules\\.prisma\n" +
+        "    4. npx prisma generate\n" +
+        "    5. npm run dev",
+    );
+    return "client";
+  }
+
   console.error(`[apprentissage] ${contexte} :`, erreur);
   return "indisponible";
 }
