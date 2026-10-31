@@ -41,6 +41,7 @@ export default async function PageMesPrompts() {
     id: string;
     creeLe: Date;
     prompt: {
+      id: string;
       slug: string;
       titre: string;
       emoji: string;
@@ -59,6 +60,7 @@ export default async function PageMesPrompts() {
         creeLe: true,
         prompt: {
           select: {
+            id: true,
             slug: true,
             titre: true,
             emoji: true,

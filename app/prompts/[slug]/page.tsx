@@ -32,20 +32,6 @@ import { LIBELLES_TYPE, MODELES_PAR_TYPE, nomRole } from "@/lib/prompts-utils";
 
 type Params = Promise<{ slug: string }>;
 
-async function verifierPremiumActif(utilisateurId: string): Promise<boolean> {
-  const exports = Premium as unknown as Record<string, unknown>;
-  const verifier = Object.entries(exports).find(
-    ([nom, valeur]) =>
-      typeof valeur === "function" &&
-      /premium/i.test(nom) &&
-      /(actif|active|abonne|abonnement)/i.test(nom),
-  )?.[1];
-
-  return typeof verifier === "function"
-    ? Boolean(await (verifier as (id: string) => Promise<boolean> | boolean)(utilisateurId))
-    : false;
-}
-
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const prompt = await obtenirPrompt(slug);
@@ -107,10 +93,9 @@ export default async function PagePrompt({ params }: { params: Params }) {
           <li className="line-clamp-1 max-w-105 font-medium text-bleu">{prompt.titre}</li>
         </ol>
       </nav>
-
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:py-10">
-        {/* ── Colonne principale : titre + contenu ────────────────── */}
-        <div>
+      <div className="mx-auto mt-6 flex w-full ">
+        <div className="flex w-full">
+          {/* ── Colonne principale : titre + contenu ────────────────── */}
           <h1 className="flex items-start gap-3 font-titre text-[24px] leading-8 font-bold tracking-tight text-bleu sm:text-[28px] sm:leading-9">
             <span aria-hidden className="text-[26px] leading-9 sm:text-[30px]">{prompt.emoji}</span>
             <span>{prompt.titre}</span>
@@ -129,12 +114,6 @@ export default async function PagePrompt({ params }: { params: Params }) {
             <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
               <Eye className="size-3.5" aria-hidden /> {prompt.vues.toLocaleString("fr-FR")} vues
             </span>
-            <BoutonFavoriPrompt
-              promptId={prompt.id}
-              favoriInitial={favoriInitial}
-              connecte={connecte}
-              hrefConnexion={`/connexion?suite=/prompts/${prompt.slug}`}
-            />
             {prompt.roles.map((r: string) => (
               <Link
                 key={r}
@@ -145,7 +124,6 @@ export default async function PagePrompt({ params }: { params: Params }) {
               </Link>
             ))}
           </div>
-
           <p className="mt-4 max-w-3xl text-[15px] leading-7 text-encre">{prompt.description}</p>
 
           {/* ── Contenu du prompt (gating Premium) ────────────────── */}
@@ -154,95 +132,109 @@ export default async function PagePrompt({ params }: { params: Params }) {
               <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
                 <TerminalSquare className="size-4.5 text-violet" aria-hidden /> Le prompt
               </h2>
-              <ActionsPrompt contenu={prompt.contenu} premium={premium} />
+              <div className="flex items-center gap-2">
+                <BoutonFavoriPrompt
+                  promptId={prompt.id}
+                  favoriInitial={favoriInitial}
+                  connecte={connecte}
+                  hrefConnexion={`/connexion?suite=/prompts/${prompt.slug}`}
+                />
+                <ActionsPrompt contenu={prompt.contenu} premium={premium} />
+              </div>
+              <BlocContenuPrompt
+                contenu={prompt.contenu}
+                premium={premium}
+                connecte={connecte}
+                slug={prompt.slug}
+              />
             </div>
-            <BlocContenuPrompt
-              contenu={prompt.contenu}
-              premium={premium}
-              connecte={connecte}
-              slug={prompt.slug}
-            />
           </section>
+        </div>
 
-          {/* ── Comment l'utiliser ────────────────────────────────── */}
-          {prompt.utilisation && (
-            <section aria-label="Comment utiliser ce prompt" className="mt-8 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
-              <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-                <Variable className="size-4.5 text-violet" aria-hidden /> Comment l&apos;utiliser
-              </h2>
-              <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
-                {prompt.utilisation}
-              </p>
-            </section>
-          )}
+        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:gap-8">
+          <div className="flex-1">
+            {/* ── Comment l'utiliser ────────────────────────────────── */}
+            {prompt.utilisation && (
+              <section aria-label="Comment utiliser ce prompt" className=" rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
+                <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
+                  <Variable className="size-4.5 text-violet" aria-hidden /> Comment l&apos;utiliser
+                </h2>
+                <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
+                  {prompt.utilisation}
+                </p>
+              </section>
+            )}
 
-          {/* ── Conseils ──────────────────────────────────────────── */}
-          {prompt.conseils && (
-            <section aria-label="Conseils d'utilisation" className="mt-4 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
-              <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-                <ListChecks className="size-4.5 text-violet" aria-hidden /> Conseils pour de meilleurs résultats
-              </h2>
-              <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
-                {prompt.conseils}
-              </p>
-            </section>
-          )}
+            {/* ── Conseils ──────────────────────────────────────────── */}
+            {prompt.conseils && (
+              <section aria-label="Conseils d'utilisation" className="mt-4 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
+                <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
+                  <ListChecks className="size-4.5 text-violet" aria-hidden /> Conseils pour de meilleurs résultats
+                </h2>
+                <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
+                  {prompt.conseils}
+                </p>
+              </section>
+            )}
+          </div>
+          <div className="flex-1">
+            <aside className="relative">
+              <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
+                <h2 className="font-titre text-[15px] leading-5 font-semibold text-bleu">
+                  Ce prompt en résumé
+                </h2>
+                <dl className="mt-3 space-y-3 text-[14px] leading-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Catégorie</dt>
+                    <dd className="font-medium text-bleu">{prompt.categorie.nom}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Type</dt>
+                    <dd className="font-medium text-bleu">{LIBELLES_TYPE[prompt.type] ?? "Texte"}</dd>
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <dt className="shrink-0 text-encre">Compatibilité</dt>
+                    <dd className="flex flex-wrap justify-end gap-1.5">
+                      {modeles.map((m: string) => (
+                        <Badge key={m} variante="defaut">{m}</Badge>
+                      ))}
+                    </dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Vues</dt>
+                    <dd className="font-medium text-bleu">{prompt.vues.toLocaleString("fr-FR")}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Ajouté le</dt>
+                    <dd className="font-medium text-bleu">{ajouteLe}</dd>
+                  </div>
+                </dl>
+                {!premium && (
+                  <div className="mt-4 rounded-carte border border-violet/30 bg-violet/5 p-3">
+                    <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
+                      <Crown className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                      <span>
+                        L&apos;abonnement <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> débloque
+                        la copie de tous les prompts + les tutoriels vidéo et l&apos;assistant IA sans quota.
+                      </span>
+                    </p>
+                    <Bouton asChild taille="sm" className="mt-3 w-full">
+                      <Link href="/tarifs">Voir les tarifs</Link>
+                    </Bouton>
+                  </div>
+                )}
+                {!premium && (
+                  <p className="mt-3 flex items-start gap-2 text-[12px] leading-5 text-encre/80">
+                    <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                    <span>Les variables {"{{entre accolades}}"} se remplacent avec tes propres informations.</span>
+                  </p>
+                )}
+              </div>
+            </aside>
+          </div>
         </div>
 
         {/* ── Colonne latérale : fiche résumé ─────────────────────── */}
-        <aside className="space-y-4">
-          <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
-            <h2 className="font-titre text-[15px] leading-5 font-semibold text-bleu">
-              Ce prompt en résumé
-            </h2>
-            <dl className="mt-3 space-y-3 text-[14px] leading-5">
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Catégorie</dt>
-                <dd className="font-medium text-bleu">{prompt.categorie.nom}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Type</dt>
-                <dd className="font-medium text-bleu">{LIBELLES_TYPE[prompt.type] ?? "Texte"}</dd>
-              </div>
-              <div className="flex items-start justify-between gap-3">
-                <dt className="shrink-0 text-encre">Compatibilité</dt>
-                <dd className="flex flex-wrap justify-end gap-1.5">
-                  {modeles.map((m: string) => (
-                    <Badge key={m} variante="defaut">{m}</Badge>
-                  ))}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Vues</dt>
-                <dd className="font-medium text-bleu">{prompt.vues.toLocaleString("fr-FR")}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Ajouté le</dt>
-                <dd className="font-medium text-bleu">{ajouteLe}</dd>
-              </div>
-            </dl>
-            {!premium && (
-              <div className="mt-4 rounded-carte border border-violet/30 bg-violet/5 p-3">
-                <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
-                  <Crown className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
-                  <span>
-                    L&apos;abonnement <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> débloque
-                    la copie de tous les prompts + les tutoriels vidéo et l&apos;assistant IA sans quota.
-                  </span>
-                </p>
-                <Bouton asChild taille="sm" className="mt-3 w-full">
-                  <Link href="/tarifs">Voir les tarifs</Link>
-                </Bouton>
-              </div>
-            )}
-            {!premium && (
-              <p className="mt-3 flex items-start gap-2 text-[12px] leading-5 text-encre/80">
-                <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                <span>Les variables {"{{entre accolades}}"} se remplacent avec tes propres informations.</span>
-              </p>
-            )}
-          </div>
-        </aside>
       </div>
 
       {/* ── À essayer aussi ───────────────────────────────────────── */}
