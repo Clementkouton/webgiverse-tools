@@ -11,6 +11,8 @@ type AvisItem = {
   nom: string;
   image: string | null;
   aMoi: boolean;
+  votes: number;   // Lot 20 — votes « Utile » reçus
+  monVote: boolean; // Lot 20 — est-ce que J'ai voté « Utile »
 };
 
 type Donnees = {
@@ -66,6 +68,7 @@ export default function SectionAvis({ slug }: { slug: string }) {
   const [erreur, setErreur] = useState<string | null>(null);
   const [charge, setCharge] = useState(false);
   const [popupOuvert, setPopupOuvert] = useState(false);
+  const [voteEnCours, setVoteEnCours] = useState<string | null>(null); // id de l'avis en cours de vote
 
   const charger = useCallback(async () => {
     try {
@@ -130,6 +133,43 @@ export default function SectionAvis({ slug }: { slug: string }) {
     setNote(0);
     setContenu("");
     charger();
+  }
+
+  // Lot 20 — bascule le vote « Utile » sur un avis (1 clic pour voter,
+  // un second pour retirer). L'auteur est notifié in-app côté serveur.
+  async function voter(avisId: string) {
+    if (voteEnCours) return;
+    if (!data?.connecte) {
+      setPopupOuvert(true);
+      return;
+    }
+    setVoteEnCours(avisId);
+    try {
+      const res = await fetch("/api/avis/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avisId }),
+      });
+      if (res.ok) {
+        const r = await res.json();
+        setData((ancienne) =>
+          ancienne
+            ? {
+                ...ancienne,
+                avis: ancienne.avis.map((a) =>
+                  a.id === avisId
+                    ? { ...a, monVote: Boolean(r.monVote), votes: Number(r.votes) || 0 }
+                    : a,
+                ),
+              }
+            : ancienne,
+        );
+      }
+    } catch {
+      // erreur réseau ignorée : le compteur restera tel quel
+    } finally {
+      setVoteEnCours(null);
+    }
   }
 
   const avisTries = data
@@ -258,6 +298,27 @@ export default function SectionAvis({ slug }: { slug: string }) {
               <p className="whitespace-pre-line text-sm leading-6 text-encre/80">
                 {a.contenu}
               </p>
+              {/* Lot 20 — vote « Utile » (désactivé sur son propre avis) */}
+              <div className="mt-3 flex items-center gap-2 border-t border-bordure/60 pt-3">
+                <button
+                  type="button"
+                  onClick={() => voter(a.id)}
+                  disabled={a.aMoi || voteEnCours === a.id}
+                  aria-pressed={a.monVote}
+                  className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] leading-4 font-semibold transition ${
+                    a.monVote
+                      ? "border-violet bg-violet/10 text-violet"
+                      : "border-bordure bg-white text-encre hover:border-violet hover:text-violet"
+                  } ${a.aMoi ? "cursor-default opacity-50" : ""}`}
+                >
+                  👍 Utile · {a.votes}
+                </button>
+                {a.aMoi && (
+                  <span className="text-[11px] leading-4 text-encre/50">
+                    C'est ton avis — les votes des membres s'affichent ici.
+                  </span>
+                )}
+              </div>
             </article>
           ))}
         </div>
