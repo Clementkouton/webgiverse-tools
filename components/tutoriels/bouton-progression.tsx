@@ -1,14 +1,23 @@
 // components/tutoriels/bouton-progression.tsx
-// Lot 19 — suivi de progression d'un tutoriel vidéo. Deux états
-// personnels : « En cours » et « Terminé » ; cliquer sur l'état actif
-// remet le tutoriel à zéro. Client component qui appelle les actions
-// serveur majProgressionTuto / retirerProgressionTuto.
+// Lot 19 (correctif) — suivi de progression d'un tutoriel vidéo. Deux
+// états personnels : « En cours » et « Terminé » ; cliquer sur l'état
+// actif remet le tutoriel à zéro. Client component qui appelle les
+// actions serveur majProgressionTuto / retirerProgressionTuto.
+//
+// CORRECTIFS apportés par cette version :
+//   1. try/finally : même si l'action plante, les boutons redeviennent
+//      cliquables (avant, un échec laissait le groupe figé).
+//   2. L'état visuel ne bouge QUE si le serveur confirme (resultat.ok) :
+//      avant, un échec silencieux donnait l'impression que la progression
+//      « ne restait pas active ».
+//   3. Échec affiché sous le bouton, dans le flux : base non à jour →
+//      instruction « npx prisma db push » ; sinon message de réessai.
 // Non connecté → lien d'invitation vers la connexion.
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, CircleDashed, Loader2 } from "lucide-react";
+import { CheckCircle2, CircleDashed, Loader2, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { majProgressionTuto, retirerProgressionTuto } from "@/app/actions/apprentissage";
 
@@ -25,6 +34,7 @@ type Props = {
 export function BoutonProgression({ tutoId, statutInitial, connecte, hrefConnexion }: Props) {
   const [statut, setStatut] = useState<StatutProgression>(statutInitial);
   const [enCours, setEnCours] = useState(false);
+  const [echec, setEchec] = useState<string | null>(null);
 
   // Visiteur non connecté : invitation discrète, sans état
   if (!connecte) {
@@ -41,19 +51,40 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, hrefConnexi
   async function definir(nouveau: Exclude<StatutProgression, "AUCUN">) {
     if (enCours) return;
     setEnCours(true);
-    if (statut === nouveau) {
-      // Clic sur l'état déjà actif → on remet à zéro
-      const resultat = await retirerProgressionTuto(tutoId);
-      if (resultat.ok) setStatut("AUCUN");
-    } else {
-      const resultat = await majProgressionTuto(tutoId, nouveau);
-      if (resultat.ok) setStatut(nouveau);
+    setEchec(null);
+    try {
+      if (statut === nouveau) {
+        // Clic sur l'état déjà actif → on remet à zéro
+        const resultat = await retirerProgressionTuto(tutoId);
+        if (resultat.ok) setStatut("AUCUN");
+        else afficherEchec(resultat.raison);
+      } else {
+        const resultat = await majProgressionTuto(tutoId, nouveau);
+        if (resultat.ok) setStatut(nouveau);
+        else afficherEchec(resultat.raison);
+      }
+    } catch (erreur) {
+      // L'action ne doit normalement jamais planter, mais si le réseau
+      // coupe : les boutons restent utilisables et l'erreur est affichée.
+      console.error("Progression du tutoriel impossible :", erreur);
+      setEchec("Action impossible pour le moment — réessaie dans un instant.");
+    } finally {
+      setEnCours(false);
     }
-    setEnCours(false);
+  }
+
+  function afficherEchec(raison?: string) {
+    if (raison === "base") {
+      setEchec(
+        "Fonctionnalité pas encore activée sur la base : lance npx prisma db push dans le terminal du projet, puis recharge la page.",
+      );
+    } else {
+      setEchec("Action impossible pour le moment — réessaie dans un instant.");
+    }
   }
 
   return (
-    <div className="inline-flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
       <span className="text-[12px] leading-4 font-semibold text-encre">Ma progression :</span>
       <div
         role="group"
@@ -105,6 +136,17 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, hrefConnexi
         <span className="text-[12px] leading-4 text-encre">
           Clique à nouveau pour retirer.
         </span>
+      )}
+
+      {/* Échec affiché DANS le flux, sous le groupe de boutons */}
+      {echec && (
+        <p
+          aria-live="polite"
+          className="flex w-full max-w-md items-start gap-1.5 rounded-carte border border-amber-300 bg-amber-50 p-2 text-[12px] leading-4 text-encre"
+        >
+          <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-600" aria-hidden />
+          <span>{echec}</span>
+        </p>
       )}
     </div>
   );

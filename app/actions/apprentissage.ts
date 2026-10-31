@@ -1,10 +1,20 @@
 // app/actions/apprentissage.ts
-// Lot 19 — actions serveur de la section « Apprendre » du dashboard :
-//   • favoris de prompts IA (basculer / retirer via formulaire)
-//   • progression des tutoriels (en cours / terminé / retirer)
-//   • suppression d'une conversation de l'assistant
-// Toutes les actions vérifient la session côté serveur et ne font jamais
-// planter la page si les tables ne sont pas encore créées (db push absent).
+// Lot 19 (correctif) — actions serveur de la section « Apprendre » du
+// dashboard : favoris de prompts IA, progression des tutoriels,
+// suppression d'une conversation de l'assistant.
+//
+// CORRECTIFS apportés par cette version :
+//   1. TOUTES les requêtes Prisma sont dans un try/catch : une action ne
+//      plante plus jamais. Avant, un échec hors try/catch (create, count,
+//      delete…) faisait planter l'action entière → côté client le bouton
+//      restait figé et l'overlay d'erreur recouvrait la page.
+//   2. Si la base de données n'est pas à jour (tables PromptFavori /
+//      ProgressionTuto absentes — codes Prisma P2021 / P2022), l'action
+//      renvoie la raison « base » : les boutons affichent alors
+//      l'instruction exacte « npx prisma db push » au lieu d'un message
+//      générique. Le détail complet est aussi écrit dans le terminal.
+//   3. Raisons typées exportées (RaisonApprentissage) pour un affichage
+//      précis côté client.
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -14,9 +24,38 @@ import { prisma } from "@/lib/prisma";
 import { LIMITES_DECOUVERTE, premiumActif } from "@/lib/premium";
 import { journaliser } from "@/lib/journal";
 
+/** Raisons renvoyées aux composants clients pour afficher le bon message. */
+export type RaisonApprentissage =
+  | "non-connecte"
+  | "invalide"
+  | "limite" // plan Découverte : quota atteint
+  | "base" // base de données non à jour (tables absentes)
+  | "indisponible"; // erreur passagère
+
+/** Traduit une erreur Prisma en raison affichable + trace dans le terminal. */
+function raisonDepuisErreur(erreur: unknown, contexte: string): RaisonApprentissage {
+  const code = (erreur as { code?: string } | null)?.code ?? null;
+  if (code === "P2021" || code === "P2022") {
+    // P2021 : la table n'existe pas · P2022 : une colonne manque
+    console.error(
+      `[apprentissage] ${contexte} : base de données NON À JOUR (code ${code}).\n` +
+        "→ Dans le projet : arrête le serveur puis lance  npx prisma db push\n" +
+        "  (crée les tables PromptFavori / ProgressionTuto manquantes), relance le serveur et recharge la page.",
+    );
+    return "base";
+  }
+  console.error(`[apprentissage] ${contexte} :`, erreur);
+  return "indisponible";
+}
+
 async function userIdConnecte(): Promise<string | null> {
-  const session = await auth();
-  return session?.user?.id ?? null;
+  try {
+    const session = await auth();
+    return session?.user?.id ?? null;
+  } catch (erreur) {
+    console.error("[apprentissage] Session illisible :", erreur);
+    return null;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -27,7 +66,7 @@ async function userIdConnecte(): Promise<string | null> {
 export async function basculerFavoriPrompt(promptId: string): Promise<{
   ok: boolean;
   favori?: boolean;
-  raison?: string;
+  raison?: RaisonApprentissage;
 }> {
   const userId = await userIdConnecte();
   if (!userId) return { ok: false, raison: "non-connecte" };
@@ -35,46 +74,47 @@ export async function basculerFavoriPrompt(promptId: string): Promise<{
   const idValide = z.string().min(1).max(64).safeParse(promptId);
   if (!idValide.success) return { ok: false, raison: "invalide" };
 
-  let existant: { id: string } | null = null;
   try {
-    existant = await prisma.promptFavori.findUnique({
+    const existant = await prisma.promptFavori.findUnique({
       where: { userId_promptId: { userId, promptId } },
       select: { id: true },
     });
-  } catch {
-    return { ok: false, raison: "indisponible" };
-  }
 
-  if (existant) {
-    await prisma.promptFavori.delete({ where: { id: existant.id } });
+    if (existant) {
+      await prisma.promptFavori.delete({ where: { id: existant.id } });
+      revalidatePath("/dashboard/prompts");
+      revalidatePath("/prompts");
+      return { ok: true, favori: false };
+    }
+
+    // Plan Découverte : nombre de prompts sauvegardés limité
+    if (!(await premiumActif(userId))) {
+      const nbPrompts = await prisma.promptFavori.count({ where: { userId } });
+      if (nbPrompts >= LIMITES_DECOUVERTE.prompts) {
+        return { ok: false, raison: "limite" };
+      }
+    }
+
+    await prisma.promptFavori.create({ data: { userId, promptId } });
+    journaliser(userId, "prompt_favori", JSON.stringify({ promptId }));
     revalidatePath("/dashboard/prompts");
     revalidatePath("/prompts");
-    return { ok: true, favori: false };
+    return { ok: true, favori: true };
+  } catch (erreur) {
+    return { ok: false, raison: raisonDepuisErreur(erreur, "basculerFavoriPrompt") };
   }
-
-  // Plan Découverte : nombre de prompts sauvegardés limité
-  if (!(await premiumActif(userId))) {
-    const nbPrompts = await prisma.promptFavori.count({ where: { userId } });
-    if (nbPrompts >= LIMITES_DECOUVERTE.prompts) {
-      return { ok: false, raison: "limite" };
-    }
-  }
-
-  await prisma.promptFavori.create({ data: { userId, promptId } });
-  journaliser(userId, "prompt_favori", JSON.stringify({ promptId }));
-  revalidatePath("/dashboard/prompts");
-  revalidatePath("/prompts");
-  return { ok: true, favori: true };
 }
 
 /** Bouton « retirer » d'une carte du dashboard (formulaire). */
 export async function retirerPromptFormulaire(donnees: FormData): Promise<void> {
   const userId = await userIdConnecte();
   if (!userId) return;
-  const promptId = z.string().min(1).parse(donnees.get("promptId"));
+  const analyse = z.string().min(1).max(64).safeParse(donnees.get("promptId"));
+  if (!analyse.success) return;
   try {
-    await prisma.promptFavori.deleteMany({ where: { userId, promptId } });
-  } catch {
+    await prisma.promptFavori.deleteMany({ where: { userId, promptId: analyse.data } });
+  } catch (erreur) {
+    raisonDepuisErreur(erreur, "retirerPromptFormulaire");
     return;
   }
   revalidatePath("/dashboard/prompts");
@@ -91,7 +131,7 @@ type StatutTuto = (typeof STATUTS_TUTO)[number];
 export async function majProgressionTuto(
   tutoId: string,
   statut: StatutTuto,
-): Promise<{ ok: boolean; raison?: string }> {
+): Promise<{ ok: boolean; raison?: RaisonApprentissage }> {
   const userId = await userIdConnecte();
   if (!userId) return { ok: false, raison: "non-connecte" };
 
@@ -102,27 +142,31 @@ export async function majProgressionTuto(
 
   try {
     await prisma.progressionTuto.upsert({
-      where: { userId_tutoId: { userId, tutoId } },
+      where: { userId_tutoId: { userId, tutoId: analyse.data.tutoId } },
       update: { statut: analyse.data.statut },
-      create: { userId, tutoId, statut: analyse.data.statut },
+      create: { userId, tutoId: analyse.data.tutoId, statut: analyse.data.statut },
     });
-  } catch {
-    return { ok: false, raison: "indisponible" };
+  } catch (erreur) {
+    return { ok: false, raison: raisonDepuisErreur(erreur, "majProgressionTuto") };
   }
-  journaliser(userId, "tuto_progression", JSON.stringify({ tutoId, statut: analyse.data.statut }));
+  journaliser(userId, "tuto_progression", JSON.stringify({ tutoId: analyse.data.tutoId, statut: analyse.data.statut }));
   revalidatePath("/dashboard/tutoriels");
   revalidatePath("/tutoriels");
   return { ok: true };
 }
 
 /** Retire le tutoriel de la liste (repart de zéro). */
-export async function retirerProgressionTuto(tutoId: string): Promise<{ ok: boolean }> {
+export async function retirerProgressionTuto(
+  tutoId: string,
+): Promise<{ ok: boolean; raison?: RaisonApprentissage }> {
   const userId = await userIdConnecte();
-  if (!userId) return { ok: false };
+  if (!userId) return { ok: false, raison: "non-connecte" };
+  const analyse = z.string().min(1).max(64).safeParse(tutoId);
+  if (!analyse.success) return { ok: false, raison: "invalide" };
   try {
-    await prisma.progressionTuto.deleteMany({ where: { userId, tutoId } });
-  } catch {
-    return { ok: false };
+    await prisma.progressionTuto.deleteMany({ where: { userId, tutoId: analyse.data } });
+  } catch (erreur) {
+    return { ok: false, raison: raisonDepuisErreur(erreur, "retirerProgressionTuto") };
   }
   revalidatePath("/dashboard/tutoriels");
   revalidatePath("/tutoriels");
@@ -136,15 +180,16 @@ export async function retirerProgressionTuto(tutoId: string): Promise<{ ok: bool
 export async function majProgressionFormulaire(donnees: FormData): Promise<void> {
   const userId = await userIdConnecte();
   if (!userId) return;
-  const tutoId = z.string().min(1).parse(donnees.get("tutoId"));
+  const tutoAnalyse = z.string().min(1).max(64).safeParse(donnees.get("tutoId"));
+  if (!tutoAnalyse.success) return;
   const brut = String(donnees.get("statut") ?? "");
   if (brut === "AUCUN") {
-    await retirerProgressionTuto(tutoId);
+    await retirerProgressionTuto(tutoAnalyse.data);
     return;
   }
   const analyse = z.enum(STATUTS_TUTO).safeParse(brut);
   if (!analyse.success) return;
-  await majProgressionTuto(tutoId, analyse.data);
+  await majProgressionTuto(tutoAnalyse.data, analyse.data);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -155,12 +200,14 @@ export async function majProgressionFormulaire(donnees: FormData): Promise<void>
 export async function supprimerConversationFormulaire(donnees: FormData): Promise<void> {
   const userId = await userIdConnecte();
   if (!userId) return;
-  const conversationId = z.string().min(1).parse(donnees.get("conversationId"));
+  const analyse = z.string().min(1).max(64).safeParse(donnees.get("conversationId"));
+  if (!analyse.success) return;
   try {
     await prisma.conversation.deleteMany({
-      where: { id: conversationId, utilisateurId: userId },
+      where: { id: analyse.data, utilisateurId: userId },
     });
-  } catch {
+  } catch (erreur) {
+    raisonDepuisErreur(erreur, "supprimerConversationFormulaire");
     return;
   }
   revalidatePath("/dashboard/assistant");

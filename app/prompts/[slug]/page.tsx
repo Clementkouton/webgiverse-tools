@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import * as Premium from "@/lib/premium";
+import { premiumActif } from "@/lib/premium";
 import { obtenirPrompt, promptsSimilaires } from "@/lib/queries";
 import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
@@ -66,20 +66,21 @@ export default async function PagePrompt({ params }: { params: Params }) {
   const session = await auth();
   const utilisateurId = session?.user?.id ?? null;
   const connecte = Boolean(utilisateurId);
-  const premium = utilisateurId ? await verifierPremiumActif(utilisateurId) : false;
+  const premium = utilisateurId ? await premiumActif(utilisateurId) : false;
 
   // Lot 19 — le prompt est-il déjà sauvegardé par cet utilisateur ?
   // (défensif : si la table PromptFavori n'existe pas encore, on renvoie false)
-  const prismaPromptFavori = (prisma as any).promptFavori;
   let favoriInitial = false;
-  if (utilisateurId && prismaPromptFavori?.findUnique) {
-    const favoriExistant = await prismaPromptFavori
-      .findUnique({
+  if (utilisateurId) {
+    try {
+      const favoriExistant = await prisma.promptFavori.findUnique({
         where: { userId_promptId: { userId: utilisateurId, promptId: prompt.id } },
         select: { id: true },
-      })
-      .catch(() => null);
-    favoriInitial = Boolean(favoriExistant);
+      });
+      favoriInitial = Boolean(favoriExistant);
+    } catch {
+      favoriInitial = false;
+    }
   }
 
   const similaires = await promptsSimilaires(prompt.id, prompt.categorieId);
