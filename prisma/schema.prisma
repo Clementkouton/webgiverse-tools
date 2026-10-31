@@ -113,6 +113,9 @@ model User {
   votes         Vote[]
   abonnement    Abonnement?
   paiements     Paiement[]
+  // Lot 19 — section « Apprendre »
+  promptFavoris     PromptFavori[]
+  progressionsTutos ProgressionTuto[]
 }
 
 model Account {
@@ -408,6 +411,7 @@ model Tuto {
   verifieLe DateTime?
   creeLe    DateTime   @default(now())
   majLe     DateTime   @updatedAt
+  progressions ProgressionTuto[]
 
   @@index([niveau])
   @@index([vues])
@@ -456,8 +460,46 @@ model Prompt {
   nouveau       Boolean        @default(false) // récent ajout (tri « Nouveautés »)
   creeLe        DateTime       @default(now())
   majLe         DateTime       @updatedAt
+  favoris       PromptFavori[]
 
   @@index([categorieId])
   @@index([vues])
   @@index([type])
+}
+
+// ═════════════════════════════════════════════════════════════════
+// Lot 19 — section « Apprendre » du dashboard
+// ═════════════════════════════════════════════════════════════════
+
+enum StatutTuto {
+  EN_COURS
+  TERMINE
+}
+
+// Prompt IA sauvegardé par un utilisateur (« Mes prompts » du dashboard)
+model PromptFavori {
+  id       String   @id @default(cuid())
+  userId   String
+  promptId String
+  creeLe   DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt   Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, promptId])
+  @@index([promptId])
+}
+
+// Progression d'un utilisateur sur un tutoriel vidéo (« Mes tutoriels »)
+model ProgressionTuto {
+  id     String     @id @default(cuid())
+  userId String
+  tutoId String
+  statut StatutTuto @default(EN_COURS)
+  creeLe DateTime   @default(now())
+  majLe  DateTime   @updatedAt
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tuto   Tuto       @relation(fields: [tutoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tutoId])
+  @@index([tutoId])
 }

@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 /** Limites du plan Découverte (gratuit) — celles affichées sur /tarifs. */
 export const LIMITES_DECOUVERTE = {
   favoris: 20,
+  prompts: 10, // prompts IA sauvegardés (« Mes prompts » du dashboard)
   listes: 10,
   assistantMois: 10, // questions de chat libre par mois calendaire
 } as const;

@@ -20,6 +20,8 @@ import {
   Lock,
   MessageSquareQuote,
   Pencil,
+  MonitorPlay,
+  TerminalSquare,
   Play,
   Plus,
   Search,
@@ -57,9 +59,6 @@ import { PortailConnexion } from "@/components/auth/portail-connexion";
 import BoutonPartageListe from "@/components/partage/bouton-partage-liste";
 import VuRecemment from "@/components/visites/vu-recemment";
 import BoutonExportPdf from "@/components/pdf/bouton-export-pdf";
-import { CarteStatistique } from "@/components/dashboard/carte-statistique";
-import { GraphiqueActivite } from "@/components/dashboard/graphique-activite";
-import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
 import { urlMiniature, formaterDuree, NIVEAUX } from "@/lib/tutos-utils";
 
 export const metadata: Metadata = { title: "Mon espace" };
@@ -76,6 +75,126 @@ type CleOnglet = (typeof ONGLETS)[number]["cle"];
 
 const STYLE_SELECT =
   "min-h-11 rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-sky-500 focus:outline-none";
+
+const TEINTES_STATISTIQUE = {
+  violet: "bg-violet-100 text-violet-700",
+  ciel: "bg-sky-100 text-sky-700",
+  turquoise: "bg-teal-100 text-teal-700",
+  magenta: "bg-fuchsia-100 text-fuchsia-700",
+} as const;
+
+function CarteStatistique({
+  href,
+  libelle,
+  valeur,
+  contexte,
+  icone: Icone,
+  teinte,
+  delay = 0,
+}: {
+  href: string;
+  libelle: string;
+  valeur: number;
+  contexte: string;
+  icone: LucideIcon;
+  teinte: keyof typeof TEINTES_STATISTIQUE;
+  delay?: number;
+}) {
+  return (
+    <Link
+      href={href}
+      className="animate-apparition-haut rounded-carte border border-bordure bg-white p-5 transition-shadow hover:shadow-carte"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[13px] leading-5 text-encre">{libelle}</p>
+          <p className="mt-1 font-titre text-[26px] leading-8 font-bold text-bleu">{valeur}</p>
+        </div>
+        <span className={`grid size-10 shrink-0 place-items-center rounded-xl ${TEINTES_STATISTIQUE[teinte]}`}>
+          <Icone className="size-5" aria-hidden />
+        </span>
+      </div>
+      <p className="mt-3 text-[12px] leading-4 text-encre">{contexte}</p>
+    </Link>
+  );
+}
+
+function GraphiqueActivite({ valeurs, labels }: { valeurs: number[]; labels: string[] }) {
+  const maximum = Math.max(...valeurs, 1);
+  const points = valeurs.map((valeur, index) => {
+    const x = valeurs.length > 1 ? 24 + (index * 652) / (valeurs.length - 1) : 350;
+    const y = 145 - (valeur / maximum) * 112;
+    return { x, y, valeur, label: labels[index] ?? "" };
+  });
+
+  return (
+    <svg viewBox="0 0 700 190" className="h-44 w-full" role="img" aria-label="Activité des sept derniers jours">
+      {[33, 89, 145].map((y) => (
+        <line key={y} x1="20" x2="680" y1={y} y2={y} stroke="#e5e7eb" strokeDasharray="4 5" />
+      ))}
+      {points.length > 1 && (
+        <polyline
+          points={points.map(({ x, y }) => `${x},${y}`).join(" ")}
+          fill="none"
+          stroke="#6a3bff"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+      {points.map(({ x, y, valeur, label }, index) => (
+        <g key={`${label}-${index}`}>
+          <circle cx={x} cy={y} r="4" fill="#6a3bff" />
+          <text x={x} y="177" textAnchor="middle" fill="#667085" fontSize="12">{label}</text>
+          <title>{`${label} : ${valeur} action${valeur === 1 ? "" : "s"}`}</title>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function GraphiqueRepartition({
+  segments,
+  total,
+  totalLibelle,
+}: {
+  segments: { libelle: string; valeur: number; couleur: string }[];
+  total: number;
+  totalLibelle: string;
+}) {
+  let cumul = 0;
+  const gradient = segments.map((segment) => {
+    const debut = total > 0 ? (cumul / total) * 100 : 0;
+    cumul += segment.valeur;
+    const fin = total > 0 ? (cumul / total) * 100 : 0;
+    return `${segment.couleur} ${debut}% ${fin}%`;
+  }).join(", ");
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-6">
+      <div
+        className="relative grid size-32 shrink-0 place-items-center rounded-full"
+        style={{ background: total > 0 ? `conic-gradient(${gradient})` : "#e5e7eb" }}
+        role="img"
+        aria-label={`${total} ${totalLibelle}`}
+      >
+        <div className="grid size-20 place-content-center rounded-full bg-white text-center">
+          <span className="font-titre text-xl font-bold text-bleu">{total}</span>
+          <span className="text-[11px] text-encre">{totalLibelle}</span>
+        </div>
+      </div>
+      <ul className="space-y-2 text-[13px]">
+        {segments.map((segment) => (
+          <li key={segment.libelle} className="flex items-center gap-2 text-encre">
+            <span className="size-2.5 rounded-full" style={{ backgroundColor: segment.couleur }} aria-hidden />
+            {segment.libelle} <span className="font-semibold text-bleu">{segment.valeur}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const ICONES_ACTIVITE: Record<string, { icone: LucideIcon; libelle: string }> = {
   favori: { icone: Star, libelle: "Favoris" },
@@ -153,7 +272,11 @@ export default async function PageDashboard({
   // encore régénéré (ou si la requête échoue), on affiche 0 sans crash.
   const prismaAvis = (prisma as any).avis;
   const prismaVote = (prisma as any).vote;
-  const [nbFavoris, nbEnCours, nbAdoptes, nbAvis, nbVotes, nbListes] = await Promise.all([
+  // Lot 19 — nouveaux compteurs de la section « Apprendre » (défensifs :
+  // tables PromptFavori / ProgressionTuto créées lors du db push)
+  const prismaPromptFavori = (prisma as any).promptFavori;
+  const prismaProgressionTuto = (prisma as any).progressionTuto;
+  const [nbFavoris, nbEnCours, nbAdoptes, nbAvis, nbVotes, nbListes, nbPromptsFavoris, nbTutosTermines] = await Promise.all([
     prisma.favorite.count({ where: { userId } }),
     prisma.favorite.count({ where: { userId, statut: "EN_COURS" } }),
     prisma.favorite.count({ where: { userId, statut: "ADOPTE" } }),
@@ -164,6 +287,12 @@ export default async function PageDashboard({
       ? prismaVote.count({ where: { utilisateurId: userId } }).catch(() => 0)
       : Promise.resolve(0),
     prisma.list.count({ where: { userId } }),
+    prismaPromptFavori?.count
+      ? prismaPromptFavori.count({ where: { userId } }).catch(() => 0)
+      : Promise.resolve(0),
+    prismaProgressionTuto?.count
+      ? prismaProgressionTuto.count({ where: { userId, statut: "TERMINE" } }).catch(() => 0)
+      : Promise.resolve(0),
   ]);
 
   const score = nbFavoris + nbEnCours + nbAdoptes * 2 + nbAvis * 2 + nbVotes + nbListes;
@@ -413,7 +542,25 @@ export default async function PageDashboard({
     contenu = (
       <>
         {/* ── Cartes statistiques (style Metis) ───────────────────── */}
-        <section aria-label="Mes statistiques" className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section aria-label="Mes statistiques" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <CarteStatistique
+            href="/dashboard/prompts"
+            libelle="Prompts sauvegardés"
+            valeur={nbPromptsFavoris}
+            contexte={premium ? "Illimité · plan Premium" : `Limite : ${LIMITES_DECOUVERTE.prompts} · plan Découverte`}
+            icone={TerminalSquare}
+            teinte="violet"
+            delay={280}
+          />
+          <CarteStatistique
+            href="/dashboard/tutoriels"
+            libelle="Tutoriels terminés"
+            valeur={nbTutosTermines}
+            contexte="Ta progression dans la collection vidéo"
+            icone={MonitorPlay}
+            teinte="ciel"
+            delay={350}
+          />
           <CarteStatistique
             href="/dashboard?onglet=favoris"
             libelle="Favoris"

@@ -20,10 +20,14 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   ArrowLeftRight,
+  Bot,
   Compass,
   Crown,
+  Download,
+  GraduationCap,
   History,
   LayoutDashboard,
+  Library,
   ListChecks,
   Menu,
   MessageSquareQuote,
@@ -73,8 +77,11 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
   {
     titre: "Apprendre",
     liens: [
-      { href: "/tutoriels", libelle: "Tutoriels IA", icone: MonitorPlay },
-      { href: "/prompts", libelle: "Prompts IA", icone: TerminalSquare },
+      { href: "/dashboard/prompts", libelle: "Mes prompts", icone: TerminalSquare, route: "/dashboard/prompts" },
+      { href: "/dashboard/tutoriels", libelle: "Mes tutoriels", icone: MonitorPlay, route: "/dashboard/tutoriels" },
+      { href: "/dashboard/assistant", libelle: "Mes conversations", icone: Bot, route: "/dashboard/assistant" },
+      { href: "/prompts", libelle: "Bibliothèque de prompts", icone: Library },
+      { href: "/tutoriels", libelle: "Tous les tutoriels", icone: GraduationCap },
     ],
   },
   {
@@ -88,7 +95,8 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
   {
     titre: "Abonnement",
     liens: [
-      { href: "/dashboard/abonnement", libelle: "Mon abonnement", icone: Crown, route: "abonnement" },
+      { href: "/dashboard/abonnement", libelle: "Mon abonnement", icone: Crown, route: "/dashboard/abonnement" },
+      { href: "/dashboard/export", libelle: "Export premium", icone: Download, route: "/dashboard/export" },
     ],
   },
 ];
@@ -101,6 +109,10 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   avis: { titre: "Mes avis", sousTitre: "Tes retours d'expérience sur les outils testés" },
   activite: { titre: "Mon activité", sousTitre: "Historique de tes actions" },
   abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
+  prompts: { titre: "Mes prompts", sousTitre: "Les prompts IA que tu as sauvegardés" },
+  tutoriels: { titre: "Mes tutoriels", sousTitre: "Ta progression dans la collection vidéo" },
+  assistant: { titre: "Mes conversations", sousTitre: "Historique de tes échanges avec l'assistant" },
+  export: { titre: "Export premium", sousTitre: "Tes favoris et tes listes en PDF ou CSV" },
 };
 
 export default function MenuDashboard({ prenom, image, premium, pied, children }: Props) {
@@ -111,12 +123,16 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
   // Onglet actif : paramètre d'URL (défaut « aperçu » sur /dashboard)
   const ongletActif =
     chemin === "/dashboard" ? (params.get("onglet") ?? "apercu") : null;
-  const surAbonnement = chemin.startsWith("/dashboard/abonnement");
+  // Sous-pages du dashboard (/dashboard/abonnement, /prompts, /tutoriels,
+  // /assistant, /export) : la clé de titre = dernier segment du chemin.
+  const segment = chemin.startsWith("/dashboard/")
+    ? chemin.slice("/dashboard/".length).split("/")[0]
+    : null;
 
   const page = ongletActif
     ? (TITRES[ongletActif] ?? TITRES.apercu)
-    : surAbonnement
-      ? TITRES.abonnement
+    : segment && TITRES[segment]
+      ? TITRES[segment]
       : { titre: "Mon espace", sousTitre: "Espace personnel Webgiverse" };
 
   // Ferme le tiroir à chaque navigation
@@ -175,8 +191,8 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     return section.liens.map((lien) => {
       const actif = lien.onglet
         ? ongletActif === lien.onglet
-        : lien.route === "abonnement"
-          ? surAbonnement
+        : lien.route
+          ? chemin.startsWith(lien.route)
           : false;
 
       return (
@@ -207,7 +223,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
             aria-hidden
           />
           <span className="min-w-0 flex-1 truncate">{lien.libelle}</span>
-          {lien.route === "abonnement" && etiquettePlan}
+          {lien.route === "/dashboard/abonnement" && etiquettePlan}
         </Link>
       );
     });
@@ -314,7 +330,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
           au-delà de l'écran (correctif du débordement horizontal mobile).
           Toile gris clair #f4f6fb : les cartes blanches ressortent
           comme dans le template Metis. */}
-      <div className="flex min-h-dvh w-full flex-col overflow-x-clip bg-[#f4f6fb] lg:pl-[268px]">
+            <div data-zone-contenu className="flex min-h-dvh w-full flex-col overflow-x-clip bg-[#f4f6fb] lg:pl-[268px]">
         {/* Barre supérieure collante — titre, recherche et profil (style Metis) */}
         <header className="verre sticky top-0 z-40 border-b border-bordure">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:h-[72px]">

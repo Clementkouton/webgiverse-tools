@@ -27,7 +27,14 @@ const SUGGESTIONS = [
   { icone: Mic, texte: "Un outil pour transcrire des réunions en texte" },
 ];
 
-export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
+export function AssistantOnglets({
+  quota,
+  conversationInitiale,
+}: {
+  quota?: QuotaProp;
+  /** Id de conversation à ouvrir automatiquement (lien « Ouvrir » du dashboard). */
+  conversationInitiale?: string | null;
+}) {
   const [onglet, setOnglet] = useState<Onglet>("guide");
   const [messages, setMessages] = useState<MessageChat[]>([]);
   const [saisie, setSaisie] = useState("");
@@ -41,9 +48,16 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
   const [restantes, setRestantes] = useState<number | null>(quota?.restantes ?? null);
   const finRef = useRef<HTMLDivElement>(null);
 
+  // Lot 19 — ouvre directement une conversation si un id est passé en
+  // prop (lien « Ouvrir » depuis « Mes conversations » du dashboard).
+  // Le ref garantit un chargement unique, même en cas de re-rendu.
+  const conversationChargee = useRef<string | null>(null);
   useEffect(() => {
-    finRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, envoi]);
+    if (!conversationInitiale || conversationChargee.current === conversationInitiale) return;
+    conversationChargee.current = conversationInitiale;
+    chargerConversation(conversationInitiale);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationInitiale]);
 
   async function envoyer() {
     const texte = saisie.trim();
@@ -157,7 +171,7 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
             onClick={() => setOnglet(o)}
             className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
               onglet === o
-                ? "bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow"
+              ? "bg-linear-to-r from-indigo-600 to-sky-500-600 text-white shadow"
                 : "text-gray-600 hover:text-indigo-600"
             }`}
           >
@@ -180,7 +194,7 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
           ) : (
             <div className="flex h-160 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               {/* ── En-tête du chat ─────────────────────────────── */}
-              <div className="flex items-center gap-3 border-b bg-linear-to-r from-indigo-600 to-violet-600 px-5 py-4 text-white">
+                <div className="flex items-center gap-3 border-b bg-linear-to-r from-indigo-600 to-sky-500-600 px-5 py-4 text-white">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 ring-2 ring-white/30">
                   <Bot className="h-5 w-5" />
                 </span>
@@ -201,7 +215,7 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
               {(premium || restantes !== null) && (
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-white px-5 py-2 text-xs">
                   {premium ? (
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-violet">
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-sky-500">
                       <Crown className="h-3.5 w-3.5" aria-hidden />
                       Questions illimitées · merci pour votre abonnement
                     </span>
@@ -212,7 +226,7 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
                           ? "Quota mensuel atteint · plan Découverte"
                           : `${restantes} question${restantes !== 1 ? "s" : ""} restante${restantes !== 1 ? "s" : ""} ce mois-ci · plan Découverte`}
                       </span>
-                      <a href="/tarifs" className="font-semibold text-violet hover:underline">
+                          <a href="/tarifs" className="font-semibold text-sky-500 hover:underline">
                         Passer Premium
                       </a>
                     </>
@@ -224,7 +238,7 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
               <div className="flex-1 space-y-5 overflow-y-auto bg-gray-50 p-5">
                 {messages.length === 0 && (
                   <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
-                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg">
+                      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-indigo-600 to-sky-500-600 text-white shadow-lg">
                       <Sparkles className="h-8 w-8" />
                     </span>
                     <div>
@@ -262,14 +276,14 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
                     }`}
                   >
                     {m.role === "assistant" && (
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-r from-indigo-600 to-sky-500-600 text-white shadow">
                         <Bot className="h-4 w-4" />
                       </span>
                     )}
                     <div
                       className={`max-w-[78%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                         m.role === "user"
-                          ? "rounded-br-md bg-linear-to-r from-indigo-600 to-violet-600 text-white"
+                        ? "rounded-br-md bg-linear-to-r from-indigo-600 to-sky-500-600 text-white"
                           : "rounded-bl-md border border-gray-100 bg-white text-gray-800"
                       }`}
                     >
@@ -285,7 +299,7 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
 
                 {envoi && (
                   <div className="flex items-end gap-2.5">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-r from-indigo-600 to-sky-500-600 text-white shadow">
                       <Bot className="h-4 w-4" />
                     </span>
                     <div className="flex gap-1.5 rounded-2xl rounded-bl-md border border-gray-100 bg-white px-4 py-4 shadow-sm">
@@ -351,7 +365,7 @@ export function AssistantOnglets({ quota }: { quota?: QuotaProp }) {
                     onClick={envoyer}
                     disabled={envoi || !saisie.trim() || quotaEpuise}
                     aria-label="Envoyer"
-                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-r from-indigo-600 to-sky-500-600 text-white shadow transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Send className="h-4.5 w-4.5" />
                   </button>

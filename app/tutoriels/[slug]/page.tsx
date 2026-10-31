@@ -11,11 +11,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronRight, Clock, Crown, Eye, Lock, LogIn, Play, Sparkles } from "lucide-react";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import * as Premium from "@/lib/premium";
 import { obtenirTuto, tutosSuivants } from "@/lib/queries";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
+import { BoutonProgression } from "@/components/tutoriels/bouton-progression";
 import { PLANS } from "@/lib/plans";
 import { LecteurYoutube } from "@/components/tutoriels/lecteur-youtube";
 import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
@@ -58,7 +60,19 @@ export default async function PageTuto({ params }: { params: Params }) {
   const utilisateurId = session?.user?.id ?? null;
   const connecte = Boolean(utilisateurId);
   const premium = utilisateurId ? await verifierPremiumActif(utilisateurId) : false;
-
+  // Lot 19 — progression personnelle sur ce tutoriel (défensif : table
+  // ProgressionTuto absente avant db push → « AUCUN » sans erreur)
+  const prismaProgression = (prisma as any).progressionTuto;
+  let statutInitial: "AUCUN" | "EN_COURS" | "TERMINE" = "AUCUN";
+  if (utilisateurId && prismaProgression?.findUnique) {
+    const progression = await prismaProgression
+      .findUnique({
+        where: { userId_tutoId: { userId: utilisateurId, tutoId: tuto.id } },
+        select: { statut: true },
+      })
+      .catch(() => null);
+    statutInitial = progression?.statut ?? "AUCUN";
+  }
   const suivants = await tutosSuivants(tuto.id, tuto.outils);
   const niveau = NIVEAUX[tuto.niveau];
   const ajouteLe = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(tuto.creeLe);
@@ -68,15 +82,15 @@ export default async function PageTuto({ params }: { params: Params }) {
       {/* ── Fil d'Ariane ────────────────────────────────────────── */}
       <nav aria-label="Fil d'Ariane" className="mx-auto w-full max-w-7xl px-4 pt-6">
         <ol className="flex flex-wrap items-center gap-1.5 text-[13px] leading-4 text-encre">
-          <li><Link href="/" className="hover:text-violet">Accueil</Link></li>
+          <li><Link href="/" className="hover:text-sky-500">Accueil</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
-          <li><Link href="/tutoriels" className="hover:text-violet">Tutoriels</Link></li>
+          <li><Link href="/tutoriels" className="hover:text-sky-500">Tutoriels</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
           <li className="line-clamp-1 font-medium text-bleu">{tuto.titre}</li>
         </ol>
       </nav>
 
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:py-10">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 ">
         {/* ── Colonne principale : lecteur + titre ────────────────── */}
         <div>
           <div className="relative aspect-video w-full overflow-hidden rounded-carte border border-bordure bg-bleu shadow-carte">
@@ -139,71 +153,86 @@ export default async function PageTuto({ params }: { params: Params }) {
               </div>
             )}
           </div>
+          <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:py-10">
+            <div className="space-y-2">
+              {/* ── Titre + méta ─────────────────────────────────────── */}
+              <h1 className="mt-5 font-titre text-[24px] leading-8 font-bold tracking-tight text-bleu sm:text-[28px] sm:leading-9">
+                {tuto.titre}
+              </h1>
+              <div className="mt-3 flex flex-wrap items-center ">
+                <Badge variante={niveau.variante}>{niveau.libelle}</Badge>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
+                  <Clock className="size-3.5" aria-hidden /> {formaterDuree(tuto.dureeMin)}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
+                  <Eye className="size-3.5" aria-hidden /> {tuto.vues.toLocaleString("fr-FR")} vues
+                </span>
+                    {tuto.outils.slice(0, 4).map((o: string) => (
+                  <Link
+                    key={o}
+                    href={`/tutoriels?outil=${encodeURIComponent(o)}`}
+                    className="rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-medium text-violet transition hover:border-violet"
+                  >
+                    #{o}
+                  </Link>
+                ))}
+              </div>
 
-          {/* ── Titre + méta ─────────────────────────────────────── */}
-          <h1 className="mt-5 font-titre text-[24px] leading-8 font-bold tracking-tight text-bleu sm:text-[28px] sm:leading-9">
-            {tuto.titre}
-          </h1>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Badge variante={niveau.variante}>{niveau.libelle}</Badge>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
-              <Clock className="size-3.5" aria-hidden /> {formaterDuree(tuto.dureeMin)}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
-              <Eye className="size-3.5" aria-hidden /> {tuto.vues.toLocaleString("fr-FR")} vues
-            </span>
-            {tuto.outils.slice(0, 4).map((o: string) => (
-              <Link
-                key={o}
-                href={`/tutoriels?outil=${encodeURIComponent(o)}`}
-                className="rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-medium text-violet transition hover:border-violet"
-              >
-                #{o}
-              </Link>
-            ))}
+              {/* ── Progression personnelle (Lot 19) ─────────────────── */}
+              <div className="mt-4">
+                <BoutonProgression
+                  tutoId={tuto.id}
+                  statutInitial={statutInitial}
+                  connecte={connecte}
+                  hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
+                />
+              </div>
+            </div>
+            {/* ── Colonne latérale : fiche résumé ─────────────────────── */}
+            <aside className="space-y-4">
+              <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
+                <h2 className="font-titre text-[15px] leading-5 font-semibold text-bleu">
+                  Ce tutoriel en résumé
+                </h2>
+                <dl className="mt-3 space-y-3 text-[14px] leading-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Niveau</dt>
+                    <dd><Badge variante={niveau.variante}>{niveau.libelle}</Badge></dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Durée</dt>
+                    <dd className="font-medium text-bleu">{formaterDuree(tuto.dureeMin)}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Vues</dt>
+                    <dd className="font-medium text-bleu">{tuto.vues.toLocaleString("fr-FR")}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-encre">Ajouté le</dt>
+                    <dd className="font-medium text-bleu">{ajouteLe}</dd>
+                  </div>
+                </dl>
+                {!premium && (
+                  <div className="mt-4 rounded-carte border border-sky-500/30 bg-sky-500/5 p-3">
+                    <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
+                      <Crown className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
+                      <span>
+                        L&apos;abonnement <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> débloque
+                        tous les tutoriels + les favoris illimités et l&apos;assistant IA sans quota.
+                      </span>
+                    </p>
+                    <Bouton asChild taille="sm" className="mt-3 w-full">
+                      <Link href="/tarifs">Voir les tarifs</Link>
+                    </Bouton>
+                  </div>
+                )}
+              </div>
+            </aside>
           </div>
+
+
         </div>
 
-        {/* ── Colonne latérale : fiche résumé ─────────────────────── */}
-        <aside className="space-y-4">
-          <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
-            <h2 className="font-titre text-[15px] leading-5 font-semibold text-bleu">
-              Ce tutoriel en résumé
-            </h2>
-            <dl className="mt-3 space-y-3 text-[14px] leading-5">
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Niveau</dt>
-                <dd><Badge variante={niveau.variante}>{niveau.libelle}</Badge></dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Durée</dt>
-                <dd className="font-medium text-bleu">{formaterDuree(tuto.dureeMin)}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Vues</dt>
-                <dd className="font-medium text-bleu">{tuto.vues.toLocaleString("fr-FR")}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt className="text-encre">Ajouté le</dt>
-                <dd className="font-medium text-bleu">{ajouteLe}</dd>
-              </div>
-            </dl>
-            {!premium && (
-              <div className="mt-4 rounded-carte border border-violet/30 bg-violet/5 p-3">
-                <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
-                  <Crown className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
-                  <span>
-                    L&apos;abonnement <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> débloque
-                    tous les tutoriels + les favoris illimités et l&apos;assistant IA sans quota.
-                  </span>
-                </p>
-                <Bouton asChild taille="sm" className="mt-3 w-full">
-                  <Link href="/tarifs">Voir les tarifs</Link>
-                </Bouton>
-              </div>
-            )}
-          </div>
-        </aside>
       </div>
 
       {/* ── À suivre ensuite ──────────────────────────────────────── */}
