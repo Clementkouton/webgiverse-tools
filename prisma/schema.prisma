@@ -116,6 +116,13 @@ model User {
   // Lot 19 — section « Apprendre »
   promptFavoris     PromptFavori[]
   progressionsTutos ProgressionTuto[]
+  // Lot 20 — notifications in-app + parrainage
+  notifications  Notification[]
+  votesAvis      VoteAvis[]
+  refCode        String?  @unique // code personnel pour le lien d'invitation (?ref=…)
+  parraineParId  String?
+  parrainePar    User?    @relation("Parrainage", fields: [parraineParId], references: [id], onDelete: SetNull)
+  filleuls       User[]   @relation("Parrainage")
 }
 
 model Account {
@@ -267,13 +274,52 @@ model Avis {
   note          Int
   contenu       String
   creeLe        DateTime @default(now())
+  // Lot 20 — votes « Utile » donnés par les autres membres
+  votes         AvisVote[]
   majLe         DateTime @updatedAt
 
   outil       Tool @relation(fields: [outilId], references: [id], onDelete: Cascade)
   utilisateur User @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
-
+  
+  // Lot 20 — votes « Utile » reçus sur cet avis
+  votes VoteAvis[]
   @@unique([outilId, utilisateurId])
   @@index([outilId])
+}
+// Lot 20 — vote « Utile » d'un membre sur un avis (1 vote max par
+// membre et par avis, un 2e clic retire le vote). L'auteur de l'avis
+// reçoit une notification in-app à chaque nouveau vote.
+model VoteAvis {
+  id     String   @id @default(cuid())
+  avisId String
+  userId String
+  creeLe DateTime @default(now())
+
+  avis Avis @relation(fields: [avisId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([avisId, userId])
+  @@index([avisId])
+}
+
+// Lot 20 — notifications in-app affichées dans la cloche de la topbar
+// Metis : vote « Utile » reçu sur un avis, nouveau tuto en lien avec
+// les outils favoris, etc. `type` permet de filtrer, `lien` est la
+// destination interne quand on clique sur la notification.
+model Notification {
+  id      String   @id @default(cuid())
+  userId  String
+  type    String // "VOTE_AVIS", "NOUVEAU_TUTO", ...
+  titre   String
+  message String
+  lien    String?
+  lue     Boolean  @default(false)
+  creeLe  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lue])
+  @@index([userId, creeLe])
 }
 
 model Vote {
@@ -502,4 +548,60 @@ model ProgressionTuto {
 
   @@unique([userId, tutoId])
   @@index([tutoId])
+}
+
+// ═════════════════════════════════════════════════════════════════
+// Lot 20 — engagement & rétention : notifications in-app, votes
+// « Utile » sur les avis, parrainage (?ref=… → 1 mois offert).
+// ═════════════════════════════════════════════════════════════════
+
+// Notification in-app (cloche de la topbar du dashboard).
+// type : "tuto" | "vote_avis" | "parrainage" | "systeme"
+model Notification {
+  id            String   @id @default(cuid())
+  utilisateurId String
+  type          String   @default("systeme")
+  titre         String
+  corps         String?
+  lien          String? // URL interne (ex: /tutoriels/chatgpt-debutant)
+  lu            Boolean  @default(false)
+  creeLe        DateTime @default(now())
+  utilisateur   User     @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@index([utilisateurId, lu])
+  @@index([utilisateurId, creeLe])
+}
+
+// Vote « Utile » sur l'avis d'un autre membre (1 par membre et par avis).
+model AvisVote {
+  id            String   @id @default(cuid())
+  avisId        String
+  utilisateurId String
+  creeLe        DateTime @default(now())
+  avis          Avis     @relation(fields: [avisId], references: [id], onDelete: Cascade)
+  utilisateur   User     @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@unique([avisId, utilisateurId])
+  @@index([avisId])
+}
+
+enum StatutParrainage {
+  EN_ATTENTE // le filleul s'est inscrit mais n'a pas encore souscrit
+  RECOMPENSE // le filleul a payé → le parrain a reçu 1 mois offert
+}
+
+// Parrainage : le filleul s'est inscrit avec le lien ?ref=<id du parrain>.
+// La récompense (1 mois offert) est versée au parrain quand le filleul
+// souscrit un abonnement payant (webhook de paiement).
+model Parrainage {
+  id           String           @id @default(cuid())
+  parrainId    String
+  filleulId    String           @unique
+  statut       StatutParrainage @default(EN_ATTENTE)
+  recompenseLe DateTime?
+  creeLe       DateTime         @default(now())
+  parrain      User             @relation("parrainagesEnCours", fields: [parrainId], references: [id], onDelete: Cascade)
+  filleul      User             @relation("parrainagesRecus", fields: [filleulId], references: [id], onDelete: Cascade)
+
+  @@index([parrainId])
 }

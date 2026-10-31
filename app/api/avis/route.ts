@@ -32,11 +32,46 @@ export async function GET(req: Request) {
 
     const session = await auth();
 
-    const listeAvis = await avis.findMany({
+    // Lot 20 — votes « Utile » : on les inclut seulement si le client
+    // Prisma connaît déjà le modèle AvisVote (sinon requête simple).
+    const votesDisponibles = Boolean((prisma as any).avisVote?.findMany);
+        const listeAvis = await avis.findMany({
       where: { outilId: outil.id },
       include: { utilisateur: { select: { name: true, image: true } } },
       orderBy: { creeLe: "desc" },
     });
+
+    // Lot 20 — votes « Utile » par avis. Dégradation douce : si la
+    // table VoteAvis n'existe pas encore (db push non fait), la page
+    // des avis continue de fonctionner avec votes = 0.
+    const idsAvis = listeAvis.map((a: { id: string }) => a.id);
+    let comptes = new Map<string, number>();
+    let mesVotes = new Set<string>();
+    try {
+      const votesAvis = (prisma as any).voteAvis;
+      if (votesAvis && typeof votesAvis.groupBy === "function" && idsAvis.length > 0) {
+        const groupes = await votesAvis.groupBy({
+          by: ["avisId"],
+          where: { avisId: { in: idsAvis } },
+          _count: { avisId: true },
+        });
+        comptes = new Map(
+          groupes.map((g: { avisId: string; _count: { avisId: number } }) => [
+            g.avisId,
+            g._count.avisId,
+          ])
+        );
+        if (session?.user?.id) {
+          const miens = await votesAvis.findMany({
+            where: { avisId: { in: idsAvis }, userId: session.user.id },
+            select: { avisId: true },
+          });
+          mesVotes = new Set(miens.map((v: { avisId: string }) => v.avisId));
+        }
+      }
+    } catch (e) {
+      console.error("[/api/avis][GET] votes indisponibles (non bloquant) :", e);
+    }
 
     const nombre = listeAvis.length;
     const moyenne =
@@ -63,6 +98,7 @@ export async function GET(req: Request) {
           creeLe: Date;
           utilisateurId: string;
           utilisateur: { name: string | null; image: string | null } | null;
+          votes?: { utilisateurId: string }[];
         }) => ({
           id: a.id,
           note: a.note,
@@ -71,7 +107,10 @@ export async function GET(req: Request) {
           nom: a.utilisateur?.name ?? "Membre",
           image: a.utilisateur?.image ?? null,
           aMoi: a.utilisateurId === session?.user?.id,
-        })
+          // Lot 20 — votes « Utile »
+          votes: comptes.get(a.id) ?? 0,
+          monVote: mesVotes.has(a.id),
+        }) 
       ),
     });
   } catch (erreur: any) {

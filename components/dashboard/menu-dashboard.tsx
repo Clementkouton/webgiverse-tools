@@ -20,11 +20,13 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   ArrowLeftRight,
+  Bell,
   Bot,
   Compass,
   Crown,
   Download,
   GraduationCap,
+  Handshake,
   History,
   LayoutDashboard,
   Library,
@@ -43,6 +45,7 @@ import { cn } from "@/lib/utils";
 import { LienLogo } from "@/components/commun/logo";
 import PiedDashboard from "@/components/dashboard/pied-dashboard";
 import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
+import ClocheNotifications from "@/components/dashboard/cloche-notifications";
 
 type Props = {
   prenom: string;
@@ -72,6 +75,8 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/dashboard?onglet=listes", libelle: "Mes listes", icone: ListChecks, onglet: "listes" },
       { href: "/dashboard?onglet=avis", libelle: "Mes avis", icone: MessageSquareQuote, onglet: "avis" },
       { href: "/dashboard?onglet=activite", libelle: "Activité", icone: History, onglet: "activite" },
+      { href: "/dashboard/notifications", libelle: "Notifications", icone: Bell, route: "/dashboard/notifications" },
+      { href: "/dashboard/parrainage", libelle: "Parrainage", icone: Handshake, route: "/dashboard/parrainage" },
     ],
   },
   {
@@ -108,6 +113,8 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   listes: { titre: "Mes listes", sousTitre: "Organise tes outils par projet ou par client" },
   avis: { titre: "Mes avis", sousTitre: "Tes retours d'expérience sur les outils testés" },
   activite: { titre: "Mon activité", sousTitre: "Historique de tes actions" },
+  notifications: { titre: "Notifications", sousTitre: "Nouveautés, votes sur tes avis et récompenses" },
+  parrainage: { titre: "Parrainage", sousTitre: "1 mois offert pour chaque filleul Premium" },
   abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
   prompts: { titre: "Mes prompts", sousTitre: "Les prompts IA que tu as sauvegardés" },
   tutoriels: { titre: "Mes tutoriels", sousTitre: "Ta progression dans la collection vidéo" },
@@ -372,7 +379,9 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
               </div>
             </form>
 
-            <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-3">
+              <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-3">
+              {/* Lot 20 — cloche des notifications in-app (tous écrans) */}
+              <ClocheNotifications />
               {/* Profil (desktop) */}
               <div className="hidden min-w-0 items-center gap-2.5 lg:flex">
                 {avatar}
