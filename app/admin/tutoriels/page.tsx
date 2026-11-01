@@ -1,10 +1,12 @@
 // app/admin/tutoriels/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 21 — Contrôle des TUTORIELS depuis la console admin :
-//   • 4 tuiles de statistiques (tutos, vues, en cours, terminés) ;
+// Lot 22 — Contrôle des TUTORIELS depuis la console admin :
+//   • 4 tuiles de statistiques (tutos, vues, en cours, terminés)
+//     avec pastilles pastel « TailwindAdmin » (indigo, info, ambre,
+//     menthe) ;
 //   • tableau complet : niveau, durée, vues, progressions ;
 //   • actions : basculer le badge « Nouveau », supprimer (confirmé).
-// Style Spark : tableau épuré, pastilles, boutons verts sans dégradé.
+// Tableau épuré, pastilles douces, interrupteurs indigo.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -16,15 +18,16 @@ import {
   basculerTutoNouveauFormulaire,
   supprimerTutoFormulaire,
 } from "@/app/actions/admin";
+import { PASTILLE_TUILE, type Ton } from "@/components/admin/carte-stat-admin";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Tutoriels — Administration" };
 export const dynamic = "force-dynamic";
 
 const NIVEAU: Record<string, string> = {
-  DEBUTANT: "bg-vert-clair text-vert-fonce",
-  INTERMEDIAIRE: "bg-amber-50 text-amber-700",
-  AVANCE: "bg-red-50 text-red-700",
+  DEBUTANT: "bg-adm-info-doux text-[#2b6be0]",
+  INTERMEDIAIRE: "bg-adm-alerte-doux text-[#b26f00]",
+  AVANCE: "bg-adm-erreur-doux text-[#c94f35]",
 };
 const LIBELLE_NIVEAU: Record<string, string> = {
   DEBUTANT: "Débutant",
@@ -54,11 +57,11 @@ export default async function PageTutorielsAdmin() {
     prisma.progressionTuto.findMany({ where: { statut: "TERMINE" }, select: { id: true } }),
   ]);
 
-  const TUILES = [
-    { libelle: "Tutoriels", valeur: tutos.length, icone: MonitorPlay },
-    { libelle: "Vues cumulées", valeur: vuesTotales._sum.vues ?? 0, icone: PlayCircle },
-    { libelle: "En cours de visionnage", valeur: progressions.length, icone: GraduationCap },
-    { libelle: "Tutoriels terminés", valeur: nbTermines.length, icone: CheckCircle2 },
+  const TUILES: { libelle: string; valeur: number; icone: typeof MonitorPlay; ton: Ton }[] = [
+    { libelle: "Tutoriels", valeur: tutos.length, icone: MonitorPlay, ton: "primaire" },
+    { libelle: "Vues cumulées", valeur: vuesTotales._sum.vues ?? 0, icone: PlayCircle, ton: "info" },
+    { libelle: "En cours de visionnage", valeur: progressions.length, icone: GraduationCap, ton: "alerte" },
+    { libelle: "Tutoriels terminés", valeur: nbTermines.length, icone: CheckCircle2, ton: "succes" },
   ];
 
   return (
@@ -78,12 +81,12 @@ export default async function PageTutorielsAdmin() {
             className="animate-apparition-haut flex items-center gap-4 p-5"
             style={{ animationDelay: `${i * 70}ms` }}
           >
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-vert-clair text-vert">
+            <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", PASTILLE_TUILE[t.ton])}>
               <t.icone className="size-5" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block font-titre text-[24px] leading-8 font-bold text-bleu">{t.valeur}</span>
-              <span className="block truncate text-[13px] leading-4 font-semibold text-bleu">{t.libelle}</span>
+              <span className="block font-titre text-[24px] leading-8 font-bold text-adm-sombre">{t.valeur}</span>
+              <span className="block truncate text-[13px] leading-4 font-semibold text-adm-gris">{t.libelle}</span>
             </span>
           </Carte>
         ))}
@@ -105,9 +108,9 @@ export default async function PageTutorielsAdmin() {
           </thead>
           <tbody>
             {tutos.map((t) => (
-              <tr key={t.id} className="border-t border-bordure">
+              <tr key={t.id} className="border-t border-bordure transition hover:bg-adm-fond/70">
                 <td className="max-w-80 px-5 py-3.5">
-                  <Link href={`/tutoriels/${t.slug}`} className="block truncate font-semibold text-bleu hover:text-vert">
+                  <Link href={`/tutoriels/${t.slug}`} className="block truncate font-semibold text-adm-sombre hover:text-primaire-texte">
                     {t.titre}
                   </Link>
                   <span className="text-[12px] leading-4 text-encre">/tutoriels/{t.slug}</span>
@@ -118,7 +121,7 @@ export default async function PageTutorielsAdmin() {
                   </span>
                 </td>
                 <td className="px-3 py-3.5 text-encre">{duree(t.dureeMin)}</td>
-                <td className="px-3 py-3.5 font-semibold text-vert tabular-nums">{t.vues}</td>
+                <td className="px-3 py-3.5 font-semibold text-primaire-texte tabular-nums">{t.vues}</td>
                 <td className="px-3 py-3.5 text-encre tabular-nums">{t._count.progressions}</td>
                 <td className="px-3 py-3.5">
                   <form action={basculerTutoNouveauFormulaire}>
@@ -130,7 +133,7 @@ export default async function PageTutorielsAdmin() {
                       aria-label={`Badge nouveau : ${t.titre}`}
                       className={cn(
                         "relative h-6 w-10 shrink-0 rounded-full transition",
-                        t.nouveau ? "bg-vert" : "bg-bordure",
+                        t.nouveau ? "bg-primaire" : "bg-adm-bordure",
                       )}
                     >
                       <span

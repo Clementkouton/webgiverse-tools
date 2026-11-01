@@ -1,10 +1,10 @@
 // app/admin/propositions/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 21 — Propositions d'outils : leur PROPRE page de modération
+// Lot 22 — Propositions d'outils : leur PROPRE page de modération
 // (elles quittent le tableau de bord, qui reste épuré).
 //   • en attente : approuver (crée l'outil publié) ou refuser ;
 //   • historique : 20 dernières propositions traitées avec pastille
-//     d'état (style Spark : vert / ambre / rouge).
+//     d'état douce (ambre / menthe / corail, palette TailwindAdmin).
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -19,9 +19,9 @@ export const metadata: Metadata = { title: "Propositions — Administration" };
 export const dynamic = "force-dynamic";
 
 const PASTILLE: Record<string, string> = {
-  EN_ATTENTE: "bg-amber-50 text-amber-700",
-  APPROUVE: "bg-vert-clair text-vert-fonce",
-  REFUSE: "bg-red-50 text-red-700",
+  EN_ATTENTE: "bg-adm-alerte-doux text-[#b26f00]",
+  APPROUVE: "bg-adm-succes-doux text-[#0b8a78]",
+  REFUSE: "bg-adm-erreur-doux text-[#c94f35]",
 };
 const LIBELLE: Record<string, string> = {
   EN_ATTENTE: "En attente",
@@ -54,7 +54,9 @@ export default async function PagePropositionsAdmin() {
             Modère les outils proposés par la communauté : approuver publie la fiche instantanément.
           </p>
         </div>
-        {nbEnAttente > 0 && <Badge variante="nouveau">{nbEnAttente} en attente</Badge>}
+        {nbEnAttente > 0 && (
+          <Badge className="border-transparent bg-adm-alerte-doux text-[#b26f00]">{nbEnAttente} en attente</Badge>
+        )}
       </div>
 
       {/* ── En attente ──────────────────────────────────────────────── */}
@@ -68,13 +70,13 @@ export default async function PagePropositionsAdmin() {
             </div>
             <p className="mt-2 text-[14px] leading-5 text-encre">{p.description}</p>
             <p className="mt-1 text-[13px] leading-5 text-encre">
-              <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-vert hover:underline">{p.url}</a>
+              <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-primaire-texte hover:underline">{p.url}</a>
               {p.tarif ? ` · ${p.tarif}` : ""}{p.contact ? ` · ${p.contact}` : ""}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <form action={approuverPropositionFormulaire}>
                 <input type="hidden" name="propositionId" value={p.id} />
-                <Bouton taille="sm" variante="vert" type="submit">Approuver et publier</Bouton>
+                <Bouton taille="sm" variante="indigo" type="submit">Approuver et publier</Bouton>
               </form>
               <form action={refuserPropositionFormulaire}>
                 <input type="hidden" name="propositionId" value={p.id} />
@@ -92,7 +94,7 @@ export default async function PagePropositionsAdmin() {
 
       {/* ── Historique ──────────────────────────────────────────────── */}
       <section className="mt-8">
-        <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+        <h2 className="font-titre text-[17px] leading-6 font-semibold text-adm-sombre">
           Historique <span className="font-normal text-encre">({nbTraitees} traitée{nbTraitees > 1 ? "s" : ""})</span>
         </h2>
         <Carte className="mt-4 overflow-x-auto p-0">
@@ -107,8 +109,8 @@ export default async function PagePropositionsAdmin() {
             </thead>
             <tbody>
               {historique.map((p) => (
-                <tr key={p.id} className="border-t border-bordure">
-                  <td className="max-w-70 truncate px-5 py-3.5 font-semibold text-bleu">{p.nom}</td>
+                <tr key={p.id} className="border-t border-bordure transition hover:bg-adm-fond/70">
+                  <td className="max-w-70 truncate px-5 py-3.5 font-semibold text-adm-sombre">{p.nom}</td>
                   <td className="px-3 py-3.5 text-encre">{p.category?.nom ?? "—"}</td>
                   <td className="px-3 py-3.5">
                     <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE[p.statut])}>

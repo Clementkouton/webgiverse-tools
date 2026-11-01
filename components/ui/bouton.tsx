@@ -17,9 +17,9 @@ const boutonVariants = cva(
         fantome: "text-bleu hover:bg-white/70",
         sombre: "border border-white/25 bg-white/10 text-white hover:bg-white/20",
         danger: "border border-red-300 bg-white text-red-700 hover:bg-red-50",
-        /* Console admin « Spark » — vert plein, SANS dégradé */
-        vert: "bg-vert text-white shadow-[0_2px_10px_rgba(23,133,79,0.28)] hover:bg-vert-fonce",
-        vertDoux: "border border-vert/30 bg-vert-clair text-vert-fonce hover:border-vert/60",
+        /* Console admin « TailwindAdmin » — indigo plein, SANS dégradé */
+        indigo: "bg-primaire text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)] hover:bg-primaire-fonce",
+        indigoDoux: "border border-primaire/30 bg-primaire/10 text-primaire-texte hover:border-primaire/60 hover:bg-primaire/15",
       },
       taille: {
         sm: "min-h-11 px-4 text-[14px] leading-5", // 44 px minimum (tactile)

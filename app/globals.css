@@ -21,19 +21,38 @@
     --color-magenta: #ff3dff;
     /* accent rare : 1 seul usage par écran */
     --color-bordure: #dbe4f7;
-    /* ── Console admin « Spark » (uniquement /admin) ───────────── */
-    --color-sapin: #0f2e21;
-    /* barre latérale vert très foncé */
-    --color-foret: #1c4a33;
-    /* bandeau d'annonce, hovers sombres */
-    --color-vert: #17854f;
-    /* boutons pleins (sans dégradé), liens, actifs */
-    --color-vert-fonce: #116b3f;
+    /* ── Console admin « TailwindAdmin » (uniquement /admin) ──── */
+    --color-primaire: #5d87ff;
+    /* couleur principale du template : boutons pleins, actifs, liens */
+    --color-primaire-fonce: #4669d9;
     /* survol du bouton plein */
-    --color-vert-clair: #e3f3ea;
-    /* tuiles d'icônes, fonds doux */
-    --color-lime: #b6e355;
-    /* accents lumineux, badges, décorations */
+    --color-primaire-texte: #3a5bc7;
+    /* texte primaire, lisible (AA) sur fond blanc */
+    --color-ceruleen: #49beff;
+    /* secondaire du template : dégradés, accents */
+    --color-adm-sombre: #202936;
+    /* textes forts de la console (gris ardoise du template) */
+    --color-adm-gris: #4a5565;
+    /* textes secondaires, liens du menu */
+    --color-adm-gris-clair: #99a1af;
+    /* légendes, titres de section, placeholders */
+    --color-adm-bordure: #ebf1f6;
+    /* bordures de la sidebar, topbar et cartes */
+    --color-adm-fond: #f6f8fb;
+    /* fond des pages admin (les cartes restent blanches) */
+    --color-adm-info: #539bff;
+    /* pastille « info » */
+    --color-adm-succes: #15deb9;
+    /* pastille « succès » (menthe du template) */
+    --color-adm-alerte: #ffae20;
+    /* pastille « attention » */
+    --color-adm-erreur: #fa896b;
+    /* pastille « erreur », badge de la cloche */
+    --color-adm-info-doux: #ebf3fe;
+    --color-adm-succes-doux: #e6fffa;
+    --color-adm-alerte-doux: #fef5e5;
+    --color-adm-erreur-doux: #fdede8;
+    /* fonds pastels officiels du template (tuiles, badges) */
     /* ── Typographie ────────────────────────────────────────────── */
     --font-titre: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
     --font-texte: var(--font-inter), ui-sans-serif, system-ui, sans-serif;

@@ -1,4 +1,9 @@
 // app/admin/outils/page.tsx
+// ─────────────────────────────────────────────────────────────────
+// Lot 22 — style « TailwindAdmin » : bouton indigo plein, notice de
+// recherche indigo doux, filtres actifs indigo, liens de table en
+// indigo lisible. Structure et requêtes inchangées.
+// ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
@@ -60,19 +65,19 @@ export default async function PageOutilsAdmin({
           <h2 className="text-h3 font-semibold">Outils ({outils.length}{q.trim() ? ` résultat${outils.length > 1 ? "s" : ""}` : `/${nbTotal}`})</h2>
           <p className="mt-1 text-[14px] text-encre">Modifie les fiches, publie ou archive, mets en avant, supprime.</p>
         </div>
-        <Bouton asChild taille="sm" variante="vert">
+        <Bouton asChild taille="sm" variante="indigo">
           <Link href="/admin/outils/nouveau">+ Nouvel outil</Link>
         </Bouton>
       </div>
 
       {q.trim() && (
-        <p role="status" className="mt-4 rounded-carte border border-vert/30 bg-vert-clair px-4 py-3 text-[14px] font-semibold text-vert-fonce">
+        <p role="status" className="mt-4 rounded-carte border border-primaire/30 bg-primaire/10 px-4 py-3 text-[14px] font-semibold text-primaire-texte">
           Recherche : {outils.length} outil{outils.length > 1 ? "s" : ""} pour « {q.trim()} » — <Link href="/admin/outils" className="underline">réinitialiser</Link>
         </p>
       )}
 
       {(cree || maj) && (
-        <p role="status" className="mt-4 rounded-carte border border-[#00845c]/30 bg-[#00845c]/10 px-4 py-3 text-[14px] font-semibold text-[#00553a]">
+        <p role="status" className="mt-4 rounded-carte border border-adm-succes/40 bg-adm-succes-doux px-4 py-3 text-[14px] font-semibold text-[#0b8a78]">
           {cree ? "✅ Outil créé avec succès." : "✅ Modifications enregistrées."}
         </p>
       )}
@@ -84,8 +89,10 @@ export default async function PageOutilsAdmin({
             key={f.valeur}
             href={f.valeur ? `/admin/outils?statut=${f.valeur}` : "/admin/outils"}
             className={cn(
-              "rounded-full px-4 py-2 text-[14px] leading-5 font-semibold",
-              statut === f.valeur ? "bg-sky-500 text-white" : "bg-white text-encre hover:text-bleu"
+              "rounded-full border px-4 py-2 text-[14px] leading-5 font-semibold transition",
+              statut === f.valeur
+                ? "border-transparent bg-primaire text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)]"
+                : "border-adm-bordure bg-white text-adm-gris hover:border-primaire/40 hover:text-primaire-texte",
             )}
           >
             {f.libelle}
@@ -106,12 +113,12 @@ export default async function PageOutilsAdmin({
           </thead>
           <tbody>
             {outils.map((o) => (
-              <tr key={o.id} className="border-t border-bordure align-middle">
+              <tr key={o.id} className="border-t border-bordure align-middle transition hover:bg-adm-fond/70">
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     <LogoOutil nom={o.nom} logo={o.logo} />
                     <div className="min-w-0">
-                      <Link href={`/outil/${o.slug}`} className="font-semibold text-sky-500 hover:underline">
+                      <Link href={`/outil/${o.slug}`} className="font-semibold text-primaire-texte hover:underline">
                         {o.nom}
                       </Link>
                       <p className="truncate text-[12px] text-encre">
@@ -134,7 +141,7 @@ export default async function PageOutilsAdmin({
                     </Bouton>
                     <form action={basculerPublicationFormulaire}>
                       <input type="hidden" name="outilId" value={o.id} />
-                      <Bouton taille="sm" variante="secondaire" type="submit">
+                      <Bouton taille="sm" variante="indigoDoux" type="submit">
                         {o.statut === "PUBLIE" ? "Archiver" : "Publier"}
                       </Bouton>
                     </form>

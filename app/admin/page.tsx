@@ -1,10 +1,10 @@
 // app/admin/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 21 — TABLEAU DE BORD ADMIN « Spark » : l'ESSENTIEL uniquement.
+// Lot 22 — TABLEAU DE BORD ADMIN « TailwindAdmin » : l'ESSENTIEL.
 //   • en-tête + période du mois en cours ;
-//   • bandeau vert d'activité (style Spark, décoration étoile) ;
-//   • 4 cartes statistiques avec tendance ± % vs le mois dernier et
-//     mini-courbe des 7 derniers jours ;
+//   • bannière dégradé indigo → bleu ciel (style du template) ;
+//   • 4 cartes statistiques avec pastilles pastel, tendance ± % vs
+//     le mois dernier et mini-courbe des 7 derniers jours ;
 //   • graphique en barres des inscriptions (14 jours) + anneau
 //     « Membres par plan ».
 // Aucun tableau ici : chaque contenu a sa page dans le menu
@@ -138,19 +138,21 @@ export default async function PageAdmin() {
         <Badge variante="defaut" className="capitalize">{periode}</Badge>
       </div>
 
-      {/* ── Bandeau vert d'activité (style Spark) ───────────────────── */}
-      <div className="animate-apparition-haut delai-1 relative mt-5 overflow-hidden rounded-carte bg-foret p-6 text-white sm:p-7">
+      {/* ── Bannière d'activité (dégradé TailwindAdmin) ─────────────── */}
+      <div className="animate-apparition-haut delai-1 relative mt-5 overflow-hidden rounded-carte bg-[linear-gradient(115deg,#5d87ff_0%,#49beff_100%)] p-6 text-white sm:p-7">
+        <span aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-white/15 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-44 rounded-full bg-white/10 blur-2xl" />
         <Sparkles
           aria-hidden
-          className="pointer-events-none absolute -right-4 -bottom-6 size-32 text-lime/25"
+          className="pointer-events-none absolute -right-4 -bottom-6 size-32 text-white/20"
         />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-lime px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-sapin">
+              <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-white">
                 Activité
               </span>
-              <span className="text-[12px] leading-4 font-medium text-white/70 capitalize">{dateLongue}</span>
+              <span className="text-[12px] leading-4 font-medium text-white/85 capitalize">{dateLongue}</span>
             </p>
             <p className="mt-2.5 font-titre text-[19px] leading-7 font-semibold">
               {inscritsMois > 0
@@ -160,7 +162,7 @@ export default async function PageAdmin() {
           </div>
           <Link
             href="/admin/utilisateurs"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-lime px-4 py-2 text-[13px] font-bold text-sapin transition hover:bg-lime/85 active:scale-[0.98]"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-primaire-texte shadow-[0_4px_14px_rgba(32,41,54,0.18)] transition hover:bg-white/90 active:scale-[0.98]"
           >
             Voir les utilisateurs <ArrowRight className="size-4" aria-hidden />
           </Link>
@@ -174,6 +176,7 @@ export default async function PageAdmin() {
           libelle="Utilisateurs"
           valeur={nbUtilisateurs}
           icone={Users}
+          ton="primaire"
           tendance={tendance(inscritsMois, inscritsMoisPrec)}
           contexte={`${inscritsMois} inscription${inscritsMois > 1 ? "s" : ""} ce mois`}
           donnees={joursInscrits}
@@ -184,6 +187,7 @@ export default async function PageAdmin() {
           libelle="Outils publiés"
           valeur={nbOutilsPublies}
           icone={Wrench}
+          ton="succes"
           tendance={tendance(outilsMois, outilsMoisPrec)}
           contexte={`${nbOutilsTotal} fiches au total`}
           donnees={joursOutils}
@@ -194,6 +198,7 @@ export default async function PageAdmin() {
           libelle="Avis publiés"
           valeur={nbAvis}
           icone={MessageSquareQuote}
+          ton="alerte"
           tendance={tendance(avisMois, avisMoisPrec)}
           contexte={`${nbVotesUtile} vote${nbVotesUtile > 1 ? "s" : ""} « Utile »`}
           donnees={joursAvis}
@@ -204,6 +209,7 @@ export default async function PageAdmin() {
           libelle="Abonnés Premium"
           valeur={nbPremium}
           icone={Crown}
+          ton="info"
           tendance={tendance(revenusCur, revenusPrec)}
           contexte="tendance des revenus du mois"
           donnees={joursRevenus.length > 0 ? joursRevenus : joursPremium}
@@ -237,9 +243,9 @@ export default async function PageAdmin() {
           <div className="mt-4">
             <GraphiqueRepartition
               segments={[
-                { libelle: "Découverte", valeur: nbDecouverte, couleur: "#97a3b8" },
-                { libelle: "Premium Pro", valeur: nbPro, couleur: "#17854f" },
-                { libelle: "Entreprise", valeur: nbEntreprise, couleur: "#0f2e21" },
+                { libelle: "Découverte", valeur: nbDecouverte, couleur: "#99a1af" },
+                { libelle: "Premium Pro", valeur: nbPro, couleur: "#5d87ff" },
+                { libelle: "Entreprise", valeur: nbEntreprise, couleur: "#202936" },
               ]}
               total={nbUtilisateurs}
               totalLibelle="membres"

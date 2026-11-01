@@ -1,9 +1,10 @@
 // components/admin/carte-stat-admin.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 21 — Carte statistique « Spark » de la console admin :
-// icône sur tuile vert clair, valeur en gros, tendance ± % vs le
-// mois dernier (flèche verte/rouge) et mini courbe (sparkline SVG
-// statique rendue côté serveur). Aucun dégradé, aucune librairie.
+// Lot 22 — Carte statistique « TailwindAdmin » de la console admin :
+// icône sur pastille pastel (indigo / info / menthe / ambre / corail,
+// comme les tuiles du template), valeur en gros, tendance ± % vs le
+// mois dernier (badge doux vert menthe / corail) et mini courbe SVG
+// statique rendue côté serveur. Aucun dégradé, aucune librairie.
 // ─────────────────────────────────────────────────────────────────
 import Link from "next/link";
 import { Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
@@ -14,6 +15,8 @@ type Props = {
   libelle: string;
   valeur: number | string;
   icone: LucideIcon;
+  /** Couleur de la pastille d'icône (palette TailwindAdmin). */
+  ton?: Ton;
   /** Variation en % vs la période précédente (null = pas de tendance). */
   tendance?: number | null;
   /** Libellé de la tendance (ex. « vs le mois dernier »). */
@@ -26,7 +29,18 @@ type Props = {
   delay?: number;
 };
 
-/** Mini courbe SVG 96×36 — trait vert si ça monte, rouge si ça baisse. */
+export type Ton = "primaire" | "info" | "succes" | "alerte" | "erreur";
+
+/** Pastilles pastel officielles du template + texte foncé assorti. */
+export const PASTILLE_TUILE: Record<Ton, string> = {
+  primaire: "bg-primaire/10 text-primaire-texte",
+  info: "bg-adm-info-doux text-[#2b6be0]",
+  succes: "bg-adm-succes-doux text-[#0f9b85]",
+  alerte: "bg-adm-alerte-doux text-[#b26f00]",
+  erreur: "bg-adm-erreur-doux text-[#c94f35]",
+};
+
+/** Mini courbe SVG 96×36 — trait indigo si ça monte, corail si ça baisse. */
 function Etincelle({ donnees }: { donnees: number[] }) {
   const L = 96;
   const H = 36;
@@ -38,11 +52,11 @@ function Etincelle({ donnees }: { donnees: number[] }) {
   ] as const);
   const trace = points.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   const aire = `${trace} L ${L},${H} L 0,${H} Z`;
-  const couleur = donnees[donnees.length - 1] >= donnees[0] ? "#17854f" : "#dc2626";
+  const couleur = donnees[donnees.length - 1] >= donnees[0] ? "#5d87ff" : "#fa896b";
 
   return (
     <svg viewBox={`0 0 ${L} ${H}`} aria-hidden className="h-9 w-24 shrink-0">
-      <path d={aire} fill={couleur} fillOpacity="0.09" />
+      <path d={aire} fill={couleur} fillOpacity="0.10" />
       <path d={trace} fill="none" stroke={couleur} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -53,6 +67,7 @@ export function CarteStatAdmin({
   libelle,
   valeur,
   icone: Icone,
+  ton = "primaire",
   tendance = null,
   libelleTendance = "vs le mois dernier",
   contexte,
@@ -66,16 +81,21 @@ export function CarteStatAdmin({
     <Link
       href={href}
       style={{ animationDelay: `${delay}ms` }}
-      className="animate-apparition-haut group flex items-center justify-between gap-4 rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-vert/40"
+      className="animate-apparition-haut group flex items-center justify-between gap-4 rounded-carte border border-adm-bordure bg-white p-5 shadow-carte transition hover:border-primaire/40 hover:shadow-[0_8px_28px_rgba(93,135,255,0.12)]"
     >
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-3">
-          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-vert-clair text-vert transition-transform duration-300 group-hover:scale-110">
+          <span
+            className={cn(
+              "grid size-11 shrink-0 place-items-center rounded-xl transition-transform duration-300 group-hover:scale-110",
+              PASTILLE_TUILE[ton],
+            )}
+          >
             <Icone className="size-5" aria-hidden />
           </span>
           <span className="min-w-0">
-            <span className="block font-titre text-[24px] leading-8 font-bold text-bleu">{valeur}</span>
-            <span className="block truncate text-[13px] leading-4 font-semibold text-bleu">{libelle}</span>
+            <span className="block font-titre text-[24px] leading-8 font-bold text-adm-sombre">{valeur}</span>
+            <span className="block truncate text-[13px] leading-4 font-semibold text-adm-gris">{libelle}</span>
           </span>
         </span>
         <span className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] leading-4">
@@ -83,8 +103,8 @@ export function CarteStatAdmin({
             <span
               className={cn(
                 "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-semibold",
-                montante && "bg-vert-clair text-vert-fonce",
-                descendante && "bg-red-50 text-red-700",
+                montante && "bg-adm-succes-doux text-[#0f9b85]",
+                descendante && "bg-adm-erreur-doux text-[#c94f35]",
                 !montante && !descendante && "bg-gris text-encre",
               )}
             >
@@ -98,7 +118,7 @@ export function CarteStatAdmin({
               {montante ? "+" : ""}{tendance} %
             </span>
           )}
-          <span className="truncate text-encre">{contexte ?? libelleTendance}</span>
+          <span className="truncate text-adm-gris">{contexte ?? libelleTendance}</span>
         </span>
       </span>
       {donnees && donnees.length > 1 && <Etincelle donnees={donnees} />}

@@ -1,15 +1,17 @@
 // components/admin/menu-admin.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 21 — Console d'administration redesignée « Spark » :
-//   • Barre latérale VERT SAPIN pleine hauteur, repliable en rail
+// Lot 22 — Console d'administration redesignée « TailwindAdmin » :
+//   • Barre latérale BLANCHE pleine hauteur (270 px) bordée
+//     #ebf1f6, liens arrondis qui passent en indigo doux au survol
+//     et à l'activation (comme le template) ; repliable en rail
 //     d'icônes (PC, état mémorisé dans localStorage) ;
 //   • Topbar claire collante : menu (mobile), repli (PC), recherche
-//     d'outils, bouton vert « + Outil » SANS dégradé, cloche des
-//     propositions à modérer, avatar ;
+//     d'outils, bouton indigo « + Outil », cloche des propositions
+//     à modérer (badge corail), avatar ;
 //   • Sections : Pilotage / Catalogue (Outils, Tutoriels, Prompts,
 //     Articles) / Modération (Propositions, Avis, Utilisateurs) /
 //     Monétisation (Abonnements) — chaque contenu a sa page ;
-//   • Mobile : tiroir coulissant animé (mêmes couleurs).
+//   • Mobile : tiroir coulissant blanc, fond assombri ardoise.
 // Le header et le footer du site sont masqués sur /admin.
 // ─────────────────────────────────────────────────────────────────
 "use client";
@@ -157,24 +159,24 @@ export default function MenuAdmin({
     <img
       src={image}
       alt=""
-      className="size-10 shrink-0 rounded-full border-2 border-lime/50 object-cover"
+      className="size-10 shrink-0 rounded-full border-2 border-primaire/40 object-cover"
     />
   ) : (
-    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-vert font-titre text-[15px] font-bold text-white">
+    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primaire font-titre text-[15px] font-bold text-white">
       {initiale}
     </span>
   );
 
   /** Bloc identité (partagé entre la sidebar et le tiroir mobile). */
   const identite = (replie: boolean) => (
-    <div className={cn("flex items-center border-b border-white/10 px-4 py-4", replie ? "justify-center gap-0" : "gap-3 px-5")}>
+    <div className={cn("flex items-center border-b border-adm-bordure px-4 py-4", replie ? "justify-center gap-0" : "gap-3 px-5")}>
       {avatar}
       {!replie && (
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[14px] leading-5 font-semibold text-white">
+          <p className="truncate text-[14px] leading-5 font-semibold text-adm-sombre">
             {prenom ? prenom.trim().split(/\s+/)[0] : "Admin"}
           </p>
-          <p className="inline-flex items-center gap-1 text-[12px] leading-4 font-semibold text-lime">
+          <p className="inline-flex items-center gap-1 rounded-full bg-primaire/10 px-2 py-0.5 text-[11px] leading-4 font-semibold text-primaire-texte">
             <ShieldCheck className="size-3.5" aria-hidden /> Administrateur
           </p>
         </div>
@@ -182,14 +184,14 @@ export default function MenuAdmin({
     </div>
   );
 
-  /** Liens des 4 sections (styles sombres, partagés sidebar + tiroir). */
+  /** Liens des 4 sections (styles clairs, partagés sidebar + tiroir). */
   function liensAdmin(replie: boolean, surClic?: () => void) {
     return SECTIONS.map((section) => (
       <div key={section.titre} className="mt-5 first:mt-1">
         {replie ? (
-          <div className="mx-3 my-2 border-t border-white/15" aria-hidden />
+          <div className="mx-3 my-2 border-t border-adm-bordure" aria-hidden />
         ) : (
-          <p className="px-3.5 pb-1.5 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-lime/70">
+          <p className="px-3.5 pb-1.5 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
             {section.titre}
           </p>
         )}
@@ -207,11 +209,11 @@ export default function MenuAdmin({
                 title={replie ? lien.libelle : undefined}
                 aria-current={actif ? "page" : undefined}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-champ text-[14px] leading-5 font-semibold transition-all duration-200",
+                  "group relative flex items-center gap-3 rounded-champ text-[14px] leading-5 font-medium transition-all duration-200",
                   replie ? "mx-auto w-11 justify-center px-0 py-2.5" : "px-3.5 py-2.5",
                   actif
-                    ? "bg-vert text-white shadow-[0_4px_14px_rgba(23,133,79,0.45)]"
-                    : "text-white/75 hover:bg-white/10 hover:text-white active:scale-[0.98]",
+                    ? "bg-primaire/10 font-semibold text-primaire-texte"
+                    : "text-adm-gris hover:bg-primaire/10 hover:text-primaire-texte active:scale-[0.98]",
                 )}
               >
                 <lien.icone
@@ -227,7 +229,7 @@ export default function MenuAdmin({
                     {lien.notification && propositionsEnAttente > 0 && (
                       <span
                         title={`${propositionsEnAttente} proposition(s) à traiter`}
-                        className="shrink-0 rounded-full bg-lime px-1.5 py-0.5 text-[10px] leading-3.5 font-bold text-sapin"
+                        className="shrink-0 rounded-full bg-primaire px-1.5 py-0.5 text-[10px] leading-3.5 font-bold text-white"
                       >
                         {propositionsEnAttente}
                       </span>
@@ -237,7 +239,7 @@ export default function MenuAdmin({
                 {replie && lien.notification && propositionsEnAttente > 0 && (
                   <span
                     aria-hidden
-                    className="absolute top-1.5 right-1.5 size-2 rounded-full bg-lime"
+                    className="absolute top-1.5 right-1.5 size-2 rounded-full bg-adm-erreur ring-2 ring-white"
                   />
                 )}
               </Link>
@@ -259,7 +261,7 @@ export default function MenuAdmin({
             onClick={surClic}
             title={replie ? lien.libelle : undefined}
             className={cn(
-              "group flex items-center gap-3 rounded-champ text-[14px] leading-5 font-semibold text-white/75 transition hover:bg-white/10 hover:text-white",
+              "group flex items-center gap-3 rounded-champ text-[14px] leading-5 font-medium text-adm-gris transition hover:bg-primaire/10 hover:text-primaire-texte",
               replie ? "mx-auto w-11 justify-center px-0 py-2.5" : "px-3.5 py-2.5",
             )}
           >
@@ -278,20 +280,20 @@ export default function MenuAdmin({
   const marque = (replie: boolean) => (
     <Link
       href="/admin"
-      className={cn("flex items-center border-b border-white/10 py-4", replie ? "justify-center px-0" : "gap-2.5 px-5")}
+      className={cn("flex items-center border-b border-adm-bordure py-4", replie ? "justify-center px-0" : "gap-2.5 px-5")}
     >
       <span
         aria-hidden
-        className="grid size-9 shrink-0 place-items-center rounded-champ bg-vert shadow-[0_4px_14px_rgba(23,133,79,0.45)]"
+        className="grid size-9 shrink-0 place-items-center rounded-champ bg-primaire shadow-[0_4px_14px_rgba(93,135,255,0.4)]"
       >
-        <Sparkles className="size-5 text-lime" />
+        <Sparkles className="size-5 text-white" />
       </span>
       {!replie && (
         <span className="min-w-0">
-          <span className="block font-titre text-[15px] leading-5 font-bold text-white">
+          <span className="block font-titre text-[15px] leading-5 font-bold text-adm-sombre">
             Webgiverse
           </span>
-          <span className="block text-[11px] leading-4 font-bold uppercase tracking-[0.16em] text-lime">
+          <span className="block text-[11px] leading-4 font-bold uppercase tracking-[0.16em] text-primaire-texte">
             Console admin
           </span>
         </span>
@@ -303,10 +305,10 @@ export default function MenuAdmin({
 
   return (
     <>
-      {/* ═══ Barre latérale sapin — desktop (repliable) ═══ */}
+      {/* ═══ Barre latérale blanche — desktop (repliable) ═══ */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 hidden flex-col bg-sapin transition-[width] duration-300 lg:flex",
+          "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-adm-bordure bg-white transition-[width] duration-300 lg:flex",
           reduit ? "w-[76px]" : "w-[268px]",
         )}
       >
@@ -321,11 +323,11 @@ export default function MenuAdmin({
         </nav>
 
         {/* Bas du menu : sorties + déconnexion (contenu serveur) */}
-        <div className={cn("grid gap-3 border-t border-white/10 p-3", reduit && "justify-items-center")}>
+        <div className={cn("grid gap-3 border-t border-adm-bordure p-3", reduit && "justify-items-center")}>
           {liensSortie(reduit)}
           {reduit ? (
             /* En mode rail : bouton rond icône (même logique de déconnexion réelle) */
-            <BoutonDeconnexionBarre sombre />
+            <BoutonDeconnexionBarre />
           ) : (
             pied
           )}
@@ -337,12 +339,12 @@ export default function MenuAdmin({
           au-delà de l'écran (même correctif que le Dashboard) */}
       <div
         className={cn(
-          "flex min-h-dvh w-full flex-col overflow-x-clip bg-[#f3f6f4] transition-[padding] duration-300",
+          "flex min-h-dvh w-full flex-col overflow-x-clip bg-adm-fond transition-[padding] duration-300",
           reduit ? "lg:pl-[76px]" : "lg:pl-[268px]",
         )}
       >
-        {/* ═══ Topbar Spark (toutes tailles) ═══ */}
-        <header className="sticky top-0 z-40 border-b border-bordure bg-white/95 backdrop-blur">
+        {/* ═══ Topbar TailwindAdmin (toutes tailles) ═══ */}
+        <header className="sticky top-0 z-40 border-b border-adm-bordure bg-white/95 backdrop-blur">
           <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
             {/* Menu mobile */}
             <button
@@ -350,13 +352,13 @@ export default function MenuAdmin({
               onClick={() => setMenuOuvert(true)}
               aria-label="Ouvrir le menu de la console"
               aria-expanded={menuOuvert}
-              className="relative grid size-10 shrink-0 place-items-center rounded-full border border-bordure bg-white text-bleu transition hover:bg-gris active:scale-95 lg:hidden"
+              className="relative grid size-10 shrink-0 place-items-center rounded-full border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95 lg:hidden"
             >
               <Menu className="size-5" aria-hidden />
               {propositionsEnAttente > 0 && (
                 <span
                   aria-hidden
-                  className="absolute top-1 right-1 size-2.5 rounded-full bg-lime ring-2 ring-white"
+                  className="absolute top-1 right-1 size-2.5 rounded-full bg-adm-erreur ring-2 ring-white"
                 />
               )}
             </button>
@@ -367,7 +369,7 @@ export default function MenuAdmin({
               onClick={basculerReduit}
               aria-label={reduit ? "Déplier le menu de la console" : "Replier le menu de la console"}
               aria-pressed={reduit}
-              className="hidden size-10 shrink-0 place-items-center rounded-full border border-bordure bg-white text-bleu transition hover:bg-gris active:scale-95 lg:grid"
+              className="hidden size-10 shrink-0 place-items-center rounded-full border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95 lg:grid"
             >
               {reduit ? (
                 <PanelLeftOpen className="size-5" aria-hidden />
@@ -379,7 +381,7 @@ export default function MenuAdmin({
             {/* Recherche d'outils */}
             <form action="/admin/outils" method="get" className="relative min-w-0 flex-1 sm:max-w-md">
               <Search
-                className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-encre"
+                className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-adm-gris-clair"
                 aria-hidden
               />
               <input
@@ -387,16 +389,16 @@ export default function MenuAdmin({
                 name="q"
                 placeholder="Rechercher un outil…"
                 aria-label="Rechercher un outil"
-                className="h-10 w-full rounded-full border border-bordure bg-gris pl-10 pr-4 text-[14px] text-bleu placeholder:text-encre focus:border-vert focus:bg-white focus:outline-none"
+                className="h-10 w-full rounded-full border border-adm-bordure bg-adm-fond pl-10 pr-4 text-[14px] text-adm-sombre placeholder:text-adm-gris-clair focus:border-primaire focus:bg-white focus:outline-none"
               />
             </form>
 
             <span className="flex-1 hidden sm:block" aria-hidden />
 
-            {/* Bouton vert « + Outil » (sans dégradé) */}
+            {/* Bouton indigo « + Outil » (sans dégradé) */}
             <Link
               href="/admin/outils/nouveau"
-              className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-vert px-4 text-[14px] font-semibold text-white shadow-[0_2px_10px_rgba(23,133,79,0.28)] transition hover:bg-vert-fonce active:scale-[0.98] md:inline-flex"
+              className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primaire px-4 text-[14px] font-semibold text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)] transition hover:bg-primaire-fonce active:scale-[0.98] md:inline-flex"
             >
               <Plus className="size-4" aria-hidden /> Outil
             </Link>
@@ -405,11 +407,11 @@ export default function MenuAdmin({
             <Link
               href="/admin/propositions"
               aria-label={`Propositions d'outils à modérer${propositionsEnAttente > 0 ? ` : ${propositionsEnAttente} en attente` : ""}`}
-              className="relative grid size-10 shrink-0 place-items-center rounded-full border border-bordure bg-white text-bleu transition hover:bg-gris active:scale-95"
+              className="relative grid size-10 shrink-0 place-items-center rounded-full border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95"
             >
               <Bell className="size-[18px]" aria-hidden />
               {propositionsEnAttente > 0 && (
-                <span className="absolute -top-1 -right-1 grid min-w-4.5 place-items-center rounded-full bg-lime px-1 py-0.5 text-[10px] leading-3 font-bold text-sapin ring-2 ring-white">
+                <span className="absolute -top-1 -right-1 grid min-w-4.5 place-items-center rounded-full bg-adm-erreur px-1 py-0.5 text-[10px] leading-3 font-bold text-white ring-2 ring-white">
                   {propositionsEnAttente}
                 </span>
               )}
@@ -425,13 +427,13 @@ export default function MenuAdmin({
         </div>
 
         {/* Pied de page DÉDIÉ à la console */}
-        <footer className="border-t border-bordure bg-white">
+        <footer className="border-t border-adm-bordure bg-white">
           <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 lg:px-8">
-            <p className="text-[12px] leading-4 text-encre">
+            <p className="text-[12px] leading-4 text-adm-gris">
               © {annee} Webgiverse — Console d'administration
             </p>
-            <p className="flex items-center gap-1.5 text-[12px] leading-4 text-encre">
-              <ShieldCheck className="size-3.5 text-vert" aria-hidden /> Espace réservé à
+            <p className="flex items-center gap-1.5 text-[12px] leading-4 text-adm-gris">
+              <ShieldCheck className="size-3.5 text-primaire" aria-hidden /> Espace réservé à
               l'équipe Webgiverse
             </p>
           </div>
@@ -444,7 +446,7 @@ export default function MenuAdmin({
         aria-hidden
         onClick={() => setMenuOuvert(false)}
         className={cn(
-          "fixed inset-0 z-[60] bg-sapin/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
+          "fixed inset-0 z-[60] bg-adm-sombre/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden",
           menuOuvert ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
@@ -454,17 +456,17 @@ export default function MenuAdmin({
         aria-modal="true"
         aria-label="Menu de la console d'administration"
         className={cn(
-          "fixed inset-y-0 left-0 z-[61] flex w-[282px] max-w-[86vw] flex-col bg-sapin shadow-2xl transition-transform duration-300 ease-out lg:hidden",
+          "fixed inset-y-0 left-0 z-[61] flex w-[282px] max-w-[86vw] flex-col border-r border-adm-bordure bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden",
           menuOuvert ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center justify-between border-b border-white/10 pr-3">
+        <div className="flex items-center justify-between border-b border-adm-bordure pr-3">
           <div className="flex-1">{marque(false)}</div>
           <button
             type="button"
             onClick={() => setMenuOuvert(false)}
             aria-label="Fermer le menu"
-            className="grid size-10 shrink-0 place-items-center rounded-full text-white transition hover:bg-white/10 active:scale-95"
+            className="grid size-10 shrink-0 place-items-center rounded-full text-adm-gris transition hover:bg-adm-fond active:scale-95"
           >
             <X className="size-5" aria-hidden />
           </button>
@@ -479,7 +481,7 @@ export default function MenuAdmin({
           {liensAdmin(false, () => setMenuOuvert(false))}
         </nav>
 
-        <div className="grid gap-3 border-t border-white/10 p-3">
+        <div className="grid gap-3 border-t border-adm-bordure p-3">
           {liensSortie(false, () => setMenuOuvert(false))}
           {pied}
         </div>

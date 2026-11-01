@@ -1,9 +1,9 @@
 // components/admin/graphique-barres.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 21 — Graphique en barres verticales « Spark » de la console
-// admin : barres vert arrondies, valeurs affichées au-dessus, grille
-// légère. 100 % SVG statique rendu côté serveur : aucune librairie,
-// aucun JS client.
+// Lot 22 — Graphique en barres verticales « TailwindAdmin » de la
+// console admin : barres indigo arrondies, valeurs affichées
+// au-dessus, grille légère. 100 % SVG statique rendu côté serveur :
+// aucune librairie, aucun JS client.
 // ─────────────────────────────────────────────────────────────────
 
 type Props = {
@@ -11,11 +11,11 @@ type Props = {
   valeurs: number[];
   /** Étiquette de chaque colonne (ex. « 18 », « 19 »… ou « lun »). */
   labels: string[];
-  /** Couleur des barres (vert de la console par défaut). */
+  /** Couleur des barres (indigo de la console par défaut). */
   couleur?: string;
 };
 
-export function GraphiqueBarres({ valeurs, labels, couleur = "#17854f" }: Props) {
+export function GraphiqueBarres({ valeurs, labels, couleur = "#5d87ff" }: Props) {
   const LARGEUR = 600;
   const HAUTEUR = 230;
   const MARGE_G = 30;
@@ -48,8 +48,8 @@ export function GraphiqueBarres({ valeurs, labels, couleur = "#17854f" }: Props)
       {/* Grille + étiquettes d'axe */}
       {grille.map((g, i) => (
         <g key={i}>
-          <line x1={MARGE_G} x2={LARGEUR - MARGE_D} y1={g.yY} y2={g.yY} stroke="#e5e9f2" strokeWidth="1" />
-          <text x={MARGE_G - 8} y={g.yY + 4} textAnchor="end" fontSize="11" fill="#8a94a6">
+          <line x1={MARGE_G} x2={LARGEUR - MARGE_D} y1={g.yY} y2={g.yY} stroke="#eef2f7" strokeWidth="1" />
+          <text x={MARGE_G - 8} y={g.yY + 4} textAnchor="end" fontSize="11" fill="#99a1af">
             {g.etiq}
           </text>
         </g>
@@ -77,7 +77,7 @@ export function GraphiqueBarres({ valeurs, labels, couleur = "#17854f" }: Props)
                 textAnchor="middle"
                 fontSize="11"
                 fontWeight="600"
-                fill="#0b1b3f"
+                fill="#202936"
               >
                 {v}
               </text>
@@ -87,7 +87,7 @@ export function GraphiqueBarres({ valeurs, labels, couleur = "#17854f" }: Props)
               y={HAUTEUR - 8}
               textAnchor="middle"
               fontSize={labels.length > 10 ? "10" : "11"}
-              fill="#8a94a6"
+              fill="#99a1af"
             >
               {labels[i]}
             </text>

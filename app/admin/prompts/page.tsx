@@ -1,11 +1,13 @@
 // app/admin/prompts/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 21 — Contrôle de la BIBLIOTHÈQUE DE PROMPTS depuis la console
+// Lot 22 — Contrôle de la BIBLIOTHÈQUE DE PROMPTS depuis la console
 // admin :
-//   • 4 tuiles de statistiques (prompts, vues, favoris, catégories) ;
+//   • 4 tuiles de statistiques (prompts, vues, favoris, catégories)
+//     avec pastilles pastel « TailwindAdmin » (indigo, info, corail,
+//     menthe) ;
 //   • tableau complet : catégorie, type, vues, favoris ;
 //   • actions : basculer le badge « Nouveau », supprimer (confirmé).
-// Style Spark : tableau épuré, pastilles, boutons sans dégradé.
+// Tableau épuré, pastilles douces, interrupteurs indigo.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -17,15 +19,16 @@ import {
   basculerPromptNouveauFormulaire,
   supprimerPromptFormulaire,
 } from "@/app/actions/admin";
+import { PASTILLE_TUILE, type Ton } from "@/components/admin/carte-stat-admin";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Prompts — Administration" };
 export const dynamic = "force-dynamic";
 
 const PASTILLE_TYPE: Record<string, string> = {
-  TEXTE: "bg-vert-clair text-vert-fonce",
-  IMAGE: "bg-ciel/15 text-[#00648a]",
-  CODE: "bg-amber-50 text-amber-700",
+  TEXTE: "bg-primaire/10 text-primaire-texte",
+  IMAGE: "bg-adm-info-doux text-[#2b6be0]",
+  CODE: "bg-adm-alerte-doux text-[#b26f00]",
 };
 
 export default async function PagePromptsAdmin() {
@@ -45,11 +48,11 @@ export default async function PagePromptsAdmin() {
 
   const nbFavoris = prompts.reduce((s, p) => s + p._count.favoris, 0);
 
-  const TUILES = [
-    { libelle: "Prompts publiés", valeur: prompts.length, icone: Files },
-    { libelle: "Vues cumulées", valeur: vuesTotales._sum.vues ?? 0, icone: Eye },
-    { libelle: "Favoris enregistrés", valeur: nbFavoris, icone: Heart },
-    { libelle: "Catégories", valeur: nbCategories, icone: FolderOpen },
+  const TUILES: { libelle: string; valeur: number; icone: typeof Files; ton: Ton }[] = [
+    { libelle: "Prompts publiés", valeur: prompts.length, icone: Files, ton: "primaire" },
+    { libelle: "Vues cumulées", valeur: vuesTotales._sum.vues ?? 0, icone: Eye, ton: "info" },
+    { libelle: "Favoris enregistrés", valeur: nbFavoris, icone: Heart, ton: "erreur" },
+    { libelle: "Catégories", valeur: nbCategories, icone: FolderOpen, ton: "succes" },
   ];
 
   return (
@@ -69,12 +72,12 @@ export default async function PagePromptsAdmin() {
             className="animate-apparition-haut flex items-center gap-4 p-5"
             style={{ animationDelay: `${i * 70}ms` }}
           >
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-vert-clair text-vert">
+            <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", PASTILLE_TUILE[t.ton])}>
               <t.icone className="size-5" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block font-titre text-[24px] leading-8 font-bold text-bleu">{t.valeur}</span>
-              <span className="block truncate text-[13px] leading-4 font-semibold text-bleu">{t.libelle}</span>
+              <span className="block font-titre text-[24px] leading-8 font-bold text-adm-sombre">{t.valeur}</span>
+              <span className="block truncate text-[13px] leading-4 font-semibold text-adm-gris">{t.libelle}</span>
             </span>
           </Carte>
         ))}
@@ -96,9 +99,9 @@ export default async function PagePromptsAdmin() {
           </thead>
           <tbody>
             {prompts.map((p) => (
-              <tr key={p.id} className="border-t border-bordure">
+              <tr key={p.id} className="border-t border-bordure transition hover:bg-adm-fond/70">
                 <td className="max-w-80 px-5 py-3.5">
-                  <Link href={`/prompts/${p.slug}`} className="flex items-center gap-2 font-semibold text-bleu hover:text-vert">
+                  <Link href={`/prompts/${p.slug}`} className="flex items-center gap-2 font-semibold text-adm-sombre hover:text-primaire-texte">
                     <span aria-hidden className="text-[16px]">{p.emoji}</span>
                     <span className="truncate">{p.titre}</span>
                   </Link>
@@ -110,7 +113,7 @@ export default async function PagePromptsAdmin() {
                     {p.type.toLowerCase()}
                   </span>
                 </td>
-                <td className="px-3 py-3.5 font-semibold text-vert tabular-nums">{p.vues}</td>
+                <td className="px-3 py-3.5 font-semibold text-primaire-texte tabular-nums">{p.vues}</td>
                 <td className="px-3 py-3.5 text-encre tabular-nums">{p._count.favoris}</td>
                 <td className="px-3 py-3.5">
                   <form action={basculerPromptNouveauFormulaire}>
@@ -122,7 +125,7 @@ export default async function PagePromptsAdmin() {
                       aria-label={`Badge nouveau : ${p.titre}`}
                       className={cn(
                         "relative h-6 w-10 shrink-0 rounded-full transition",
-                        p.nouveau ? "bg-vert" : "bg-bordure",
+                        p.nouveau ? "bg-primaire" : "bg-adm-bordure",
                       )}
                     >
                       <span
