@@ -20,6 +20,7 @@ import {
   supprimerPromptFormulaire,
 } from "@/app/actions/admin";
 import { PASTILLE_TUILE, type Ton } from "@/components/admin/carte-stat-admin";
+import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Prompts — Administration" };
@@ -151,7 +152,14 @@ export default async function PagePromptsAdmin() {
             ))}
             {prompts.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-6 text-encre">Aucun prompt pour l'instant.</td>
+                <td colSpan={7} className="p-0">
+                  <EtatVideAdmin
+                    icone={Files}
+                    ton="info"
+                    titre="Aucun prompt pour l'instant"
+                    description="Ajoute le premier prompt pour alimenter la bibliothèque."
+                  />
+                </td>
               </tr>
             )}
           </tbody>

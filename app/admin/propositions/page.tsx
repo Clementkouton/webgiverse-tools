@@ -7,10 +7,12 @@
 //     d'état douce (ambre / menthe / corail, palette TailwindAdmin).
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
+import { Inbox, History } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
+import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
 import { approuverPropositionFormulaire, refuserPropositionFormulaire } from "@/app/actions/admin";
 import { formatteDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -86,8 +88,13 @@ export default async function PagePropositionsAdmin() {
           </Carte>
         ))}
         {enAttente.length === 0 && (
-          <Carte className="animate-apparition-haut p-6 text-[14px] text-encre">
-            Aucune proposition en attente. Tout est traité 🎉
+          <Carte className="animate-apparition-haut">
+            <EtatVideAdmin
+              icone={Inbox}
+              ton="succes"
+              titre="Aucune proposition en attente"
+              description="Tout est traité 🎉 Les nouvelles propositions de la communauté apparaîtront ici."
+            />
           </Carte>
         )}
       </section>
@@ -122,7 +129,14 @@ export default async function PagePropositionsAdmin() {
               ))}
               {historique.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-6 text-encre">Aucune proposition traitée pour l'instant.</td>
+                  <td colSpan={4} className="p-0">
+                    <EtatVideAdmin
+                      icone={History}
+                      ton="info"
+                      titre="Aucune proposition traitée pour l'instant"
+                      description="Les propositions approuvées ou refusées s'afficheront ici."
+                    />
+                  </td>
                 </tr>
               )}
             </tbody>

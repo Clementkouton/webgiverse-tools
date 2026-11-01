@@ -19,6 +19,7 @@ import {
   supprimerTutoFormulaire,
 } from "@/app/actions/admin";
 import { PASTILLE_TUILE, type Ton } from "@/components/admin/carte-stat-admin";
+import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Tutoriels — Administration" };
@@ -159,7 +160,14 @@ export default async function PageTutorielsAdmin() {
             ))}
             {tutos.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-5 py-6 text-encre">Aucun tutoriel pour l'instant.</td>
+                <td colSpan={7} className="p-0">
+                  <EtatVideAdmin
+                    icone={GraduationCap}
+                    ton="info"
+                    titre="Aucun tutoriel pour l'instant"
+                    description="Crée le premier tutoriel pour alimenter la section Apprendre."
+                  />
+                </td>
               </tr>
             )}
           </tbody>

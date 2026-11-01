@@ -6,12 +6,13 @@
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, SearchX } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
 import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
+import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
 import { LogoOutil } from "@/components/commun/logo-outil";
 import {
   basculerMiseEnAvantFormulaire,
@@ -168,7 +169,12 @@ export default async function PageOutilsAdmin({
           </tbody>
         </table>
         {outils.length === 0 && (
-          <p className="p-6 text-[14px] text-encre">Aucun outil pour ce filtre. Crée-en un avec « + Nouvel outil ».</p>
+          <EtatVideAdmin
+            icone={SearchX}
+            ton="info"
+            titre="Aucun outil pour ce filtre"
+            description="Aucune fiche ne correspond. Crée-en une avec « + Nouvel outil »."
+          />
         )}
       </Carte>
     </div>

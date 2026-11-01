@@ -7,8 +7,10 @@
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MessageSquareOff } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
+import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
 import { supprimerAvisAdminFormulaire } from "@/app/actions/admin";
 import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
 import { formatteDate } from "@/lib/dates";
@@ -92,7 +94,14 @@ export default async function PageAvisAdmin() {
           );
         })}
         {avis.length === 0 && (
-          <Carte className="animate-apparition-haut p-6 text-[14px] text-encre">Aucun avis publié pour l'instant.</Carte>
+          <Carte className="animate-apparition-haut">
+            <EtatVideAdmin
+              icone={MessageSquareOff}
+              ton="info"
+              titre="Aucun avis publié pour l'instant"
+              description="Les avis des membres apparaîtront ici dès le premier retour publié."
+            />
+          </Carte>
         )}
       </div>
     </div>

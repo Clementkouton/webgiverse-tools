@@ -1,14 +1,19 @@
 // app/admin/utilisateurs/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 22 — Liste des membres, style « TailwindAdmin » : tableau sur
+// Lot 23 — Liste des membres, style « TailwindAdmin » : tableau sur
 // carte blanche arrondie (en-tête discret, lignes qui s'illuminent
-// au survol), badge « Admin » en pastille indigo douce et bouton
-// « Rendre admin » en indigo doux.
+// au survol), badge « Admin » en pastille indigo douce, bouton
+// « Rendre admin » en indigo doux, noms cliquables vers la fiche
+// détaillée (/admin/utilisateurs/[id]) et état vide illustré.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
+import Link from "next/link";
+import { UsersRound } from "lucide-react";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
+import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
 import { basculerRoleFormulaire } from "@/app/actions/admin";
 import { formatteDate } from "@/lib/dates";
 
@@ -16,14 +21,18 @@ export const metadata: Metadata = { title: "Utilisateurs — Administration" };
 export const dynamic = "force-dynamic";
 
 export default async function PageUtilisateursAdmin() {
-  const utilisateurs = await prisma.user.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      _count: { select: { favorites: true, avis: true, lists: true, votes: true, conversations: true } },
-    },
-  });
+  const [utilisateurs, session] = await Promise.all([
+    prisma.user.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: { select: { favorites: true, avis: true, lists: true, votes: true, conversations: true } },
+      },
+    }),
+    auth(),
+  ]);
 
   const nbAdmins = utilisateurs.filter((u) => u.role === "ADMIN").length;
+  const monId = session?.user?.id;
 
   return (
     <div>
@@ -36,6 +45,14 @@ export default async function PageUtilisateursAdmin() {
       </div>
 
       <Carte className="animate-apparition-haut mt-6 overflow-x-auto p-0">
+        {utilisateurs.length === 0 ? (
+          <EtatVideAdmin
+            icone={UsersRound}
+            ton="info"
+            titre="Aucun utilisateur inscrit"
+            description="Les membres apparaîtront ici dès la première inscription."
+          />
+        ) : (
         <table className="w-full min-w-200 text-[14px] leading-5">
           <thead className="text-left text-legende text-encre">
             <tr>
@@ -50,7 +67,9 @@ export default async function PageUtilisateursAdmin() {
             {utilisateurs.map((u) => (
               <tr key={u.id} className="border-t border-bordure transition hover:bg-adm-fond/70">
                 <td className="px-5 py-3.5">
-                  <p className="font-semibold text-adm-sombre">{u.name || "Sans nom"}</p>
+                  <Link href={`/admin/utilisateurs/${u.id}`} className="font-semibold text-adm-sombre transition hover:text-primaire-texte">
+                    {u.name || "Sans nom"}
+                  </Link>
                   <p className="text-[13px] text-encre">{u.email}</p>
                 </td>
                 <td className="px-3 py-3.5">
@@ -69,8 +88,10 @@ export default async function PageUtilisateursAdmin() {
                   {u._count.favorites} favoris · {u._count.avis} avis · {u._count.lists} listes · {u._count.votes} votes · {u._count.conversations} conv.
                 </td>
                 <td className="px-5 py-3.5 text-right">
-                  {u.role === "ADMIN" ? (
+                  {u.id === monId ? (
                     <p className="text-[13px] font-semibold text-primaire-texte">C'est ton compte 👋</p>
+                  ) : u.role === "ADMIN" ? (
+                    <p className="text-[13px] text-encre">Rôle déjà attribué</p>
                   ) : (
                     <form action={basculerRoleFormulaire}>
                       <input type="hidden" name="utilisateurId" value={u.id} />
@@ -82,7 +103,7 @@ export default async function PageUtilisateursAdmin() {
             ))}
           </tbody>
         </table>
-        {utilisateurs.length === 0 && <p className="p-6 text-[14px] text-encre">Aucun utilisateur inscrit.</p>}
+        )}
       </Carte>
     </div>
   );
