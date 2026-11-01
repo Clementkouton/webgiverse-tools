@@ -150,7 +150,7 @@ export default async function PageAdmin() {
               <span className="rounded-full bg-lime px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-sapin">
                 Activité
               </span>
-              <span className="text-[12px] leading-4 font-medium text-white/70 capitalize">{dateLonge ?? dateLongue}</span>
+              <span className="text-[12px] leading-4 font-medium text-white/70 capitalize">{dateLongue}</span>
             </p>
             <p className="mt-2.5 font-titre text-[19px] leading-7 font-semibold">
               {inscritsMois > 0
