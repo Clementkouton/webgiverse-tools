@@ -1,9 +1,14 @@
 // app/admin/avis/page.tsx
+// ─────────────────────────────────────────────────────────────────
+// Lot 22 — Modération des avis, style « TailwindAdmin » : cartes
+// blanches arrondies, lien outil en indigo, étoiles ambre du
+// template, pastille « utile » menthe douce et suppression en
+// bouton corail (le rouge reste réservé aux actions destructrices).
+// ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
-import { Badge } from "@/components/ui/badge";
 import { supprimerAvisAdminFormulaire } from "@/app/actions/admin";
 import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
 import { formatteDate } from "@/lib/dates";
@@ -39,33 +44,37 @@ export default async function PageAvisAdmin() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="text-h3 font-semibold">Modérer les avis ({nbTotal})</h2>
-          <p className="mt-1 text-[14px] text-encre">Supprime uniquement les avis inappropriés ou hors-sujet — les avis négatifs honnêtes sont légitimes.</p>
-        </div>
+      <div className="animate-apparition-haut">
+        <h1 className="text-h3 font-semibold">Modérer les avis ({nbTotal})</h1>
+        <p className="mt-1 text-[14px] leading-6 text-encre">
+          Supprime uniquement les avis inappropriés ou hors-sujet — les avis négatifs honnêtes sont légitimes.
+        </p>
       </div>
 
       <div className="mt-6 grid gap-3">
         {avis.map((a) => {
           const utiles = votesParAvis[a.id] ?? 0;
           return (
-          <Carte key={a.id} className="p-5">
+          <Carte key={a.id} className="animate-apparition-haut p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link href={`/outil/${a.outil.slug}`} className="text-[15px] font-semibold text-violet hover:underline">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <Link href={`/outil/${a.outil.slug}`} className="text-[15px] font-semibold text-primaire-texte hover:underline">
                     {a.outil.nom}
                   </Link>
-                  <span className="text-[14px] font-semibold text-amber-500" aria-label={`Note ${a.note} sur 5`}>
+                  <span className="text-[14px] font-semibold text-adm-alerte" aria-label={`Note ${a.note} sur 5`}>
                     {"★".repeat(a.note)}{"☆".repeat(5 - a.note)}
                   </span>
-                  {utiles > 0 && <Badge variante="gratuit">👍 {utiles} utile{utiles > 1 ? "s" : ""}</Badge>}
-                  <Badge>{formatteDate(a.majLe)}</Badge>
+                  {utiles > 0 && (
+                    <span className="inline-flex items-center rounded-full bg-adm-succes-doux px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-[#0f9b85]">
+                      👍 {utiles} utile{utiles > 1 ? "s" : ""}
+                    </span>
+                  )}
+                  <span className="text-[13px] text-adm-gris">{formatteDate(a.majLe)}</span>
                 </div>
                 <p className="mt-2 text-[14px] leading-6 whitespace-pre-line text-encre">{a.contenu}</p>
                 <p className="mt-2 text-[13px] text-encre">
-                  Par <span className="font-semibold text-bleu">{a.utilisateur.name || "Sans nom"}</span> ({a.utilisateur.email})
+                  Par <span className="font-semibold text-adm-sombre">{a.utilisateur.name || "Sans nom"}</span> ({a.utilisateur.email})
                 </p>
               </div>
               <form action={supprimerAvisAdminFormulaire} className="shrink-0">
@@ -83,7 +92,7 @@ export default async function PageAvisAdmin() {
           );
         })}
         {avis.length === 0 && (
-          <Carte className="p-6 text-[14px] text-encre">Aucun avis publié pour l'instant.</Carte>
+          <Carte className="animate-apparition-haut p-6 text-[14px] text-encre">Aucun avis publié pour l'instant.</Carte>
         )}
       </div>
     </div>

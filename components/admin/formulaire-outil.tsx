@@ -62,15 +62,14 @@ export function FormulaireOutil({
 
   const styleErreur = "mt-1 text-[13px] leading-4 text-red-600";
   const boiteCoche =
-    "flex items-center gap-3 rounded-champ border border-bordure bg-white px-4 py-3 text-[14px] leading-5 text-bleu cursor-pointer hover:border-sky-500";
+    "flex items-center gap-3 rounded-champ border border-bordure bg-white px-4 py-3 text-[14px] leading-5 text-bleu cursor-pointer hover:border-primaire";
 
   return (
     <form action={actionFormulaire} noValidate className="grid gap-6">
       {outil && <input type="hidden" name="outilId" value={outil.id} />}
 
       {etat && !etat.ok && (
-        <p role="alert" className="flex items-start gap-2 rounded-carte border border-red-300 bg-red-50 px-4 py-3 text-[14px] font-semibold text-red-700">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+<p role="alert" className="flex items-start gap-2 rounded-carte border border-adm-erreur/40 bg-adm-erreur-doux px-4 py-3 text-[14px] font-semibold text-[#c94f35]">          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
           {etat.message}
         </p>
       )}
@@ -267,7 +266,7 @@ export function FormulaireOutil({
 
       {/* ── Boutons ──────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3">
-        <Bouton type="submit" disabled={enCours}>
+         <Bouton type="submit" variante="indigo" disabled={enCours}>
           {enCours ? "Enregistrement…" : outil ? "Enregistrer les modifications" : "Créer l'outil"}
         </Bouton>
         <Bouton asChild variante="secondaire">

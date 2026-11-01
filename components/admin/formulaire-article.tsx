@@ -47,15 +47,14 @@ export function FormulaireArticle({
 
   const styleErreur = "mt-1 text-[13px] leading-4 text-red-600";
   const selectClasse =
-    "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-sky-500 focus:outline-none";
+    "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-primaire focus:outline-none";
 
   return (
     <form action={actionFormulaire} noValidate className="grid gap-6">
       {article && <input type="hidden" name="articleId" value={article.id} />}
 
       {etat && !etat.ok && (
-        <p role="alert" className="flex items-start gap-2 rounded-carte border border-red-300 bg-red-50 px-4 py-3 text-[14px] font-semibold text-red-700">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+       <p role="alert" className="flex items-start gap-2 rounded-carte border border-adm-erreur/40 bg-adm-erreur-doux px-4 py-3 text-[14px] font-semibold text-[#c94f35]">          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
           {etat.message}
         </p>
       )}
@@ -163,7 +162,7 @@ export function FormulaireArticle({
 
       {/* ── Boutons ──────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3">
-        <Bouton type="submit" disabled={enCours}>
+        <Bouton type="submit" variante="indigo" disabled={enCours}>
           {enCours ? "Enregistrement…" : article ? "Enregistrer les modifications" : "Créer l'article"}
         </Bouton>
         <Bouton asChild variante="secondaire">

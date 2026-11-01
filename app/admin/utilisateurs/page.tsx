@@ -1,8 +1,13 @@
 // app/admin/utilisateurs/page.tsx
+// ─────────────────────────────────────────────────────────────────
+// Lot 22 — Liste des membres, style « TailwindAdmin » : tableau sur
+// carte blanche arrondie (en-tête discret, lignes qui s'illuminent
+// au survol), badge « Admin » en pastille indigo douce et bouton
+// « Rendre admin » en indigo doux.
+// ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
-import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
 import { basculerRoleFormulaire } from "@/app/actions/admin";
 import { formatteDate } from "@/lib/dates";
@@ -22,46 +27,54 @@ export default async function PageUtilisateursAdmin() {
 
   return (
     <div>
-      <div>
-        <h2 className="text-h3 font-semibold">Utilisateurs ({utilisateurs.length})</h2>
-        <p className="mt-1 text-[14px] leading-5 text-encre">
+      <div className="animate-apparition-haut">
+        <h1 className="text-h3 font-semibold">Utilisateurs ({utilisateurs.length})</h1>
+        <p className="mt-1 text-[14px] leading-6 text-encre">
           {nbAdmins} admin{nbAdmins > 1 ? "s" : ""} · Attribue le rôle « Admin » pour donner accès à cet espace.
           Tu ne peux pas modifier ton propre rôle (sécurité).
         </p>
       </div>
 
-      <Carte className="mt-6 overflow-x-auto p-2">
+      <Carte className="animate-apparition-haut mt-6 overflow-x-auto p-0">
         <table className="w-full min-w-200 text-[14px] leading-5">
           <thead className="text-left text-legende text-encre">
             <tr>
-              <th className="p-3">Utilisateur</th>
-              <th className="p-3">Rôle</th>
-              <th className="p-3">Inscrit le</th>
-              <th className="p-3">Activité</th>
-              <th className="p-3">Action</th>
+              <th className="px-5 py-3">Utilisateur</th>
+              <th className="px-3 py-3">Rôle</th>
+              <th className="px-3 py-3">Inscrit le</th>
+              <th className="px-3 py-3">Activité</th>
+              <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
           <tbody>
             {utilisateurs.map((u) => (
-              <tr key={u.id} className="border-t border-bordure">
-                <td className="p-3">
-                  <p className="font-semibold text-bleu">{u.name || "Sans nom"}</p>
+              <tr key={u.id} className="border-t border-bordure transition hover:bg-adm-fond/70">
+                <td className="px-5 py-3.5">
+                  <p className="font-semibold text-adm-sombre">{u.name || "Sans nom"}</p>
                   <p className="text-[13px] text-encre">{u.email}</p>
                 </td>
-                <td className="p-3">
-                  {u.role === "ADMIN" ? <Badge variante="source">Admin</Badge> : <Badge>Utilisateur</Badge>}
+                <td className="px-3 py-3.5">
+                  {u.role === "ADMIN" ? (
+                    <span className="inline-flex rounded-full bg-primaire/10 px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-primaire-texte">
+                      Admin
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-full bg-gris px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-encre">
+                      Utilisateur
+                    </span>
+                  )}
                 </td>
-                <td className="p-3 text-encre">{formatteDate(u.createdAt)}</td>
-                <td className="p-3 text-[13px] text-encre">
+                <td className="px-3 py-3.5 text-encre">{formatteDate(u.createdAt)}</td>
+                <td className="px-3 py-3.5 text-[13px] text-encre">
                   {u._count.favorites} favoris · {u._count.avis} avis · {u._count.lists} listes · {u._count.votes} votes · {u._count.conversations} conv.
                 </td>
-                <td className="p-3">
+                <td className="px-5 py-3.5 text-right">
                   {u.role === "ADMIN" ? (
-                    <p className="text-[13px] font-semibold text-sky-500">C'est ton compte 👋</p>
+                    <p className="text-[13px] font-semibold text-primaire-texte">C'est ton compte 👋</p>
                   ) : (
                     <form action={basculerRoleFormulaire}>
                       <input type="hidden" name="utilisateurId" value={u.id} />
-                      <Bouton taille="sm" variante="secondaire" type="submit">Rendre admin</Bouton>
+                      <Bouton taille="sm" variante="indigoDoux" type="submit">Rendre admin</Bouton>
                     </form>
                   )}
                 </td>
