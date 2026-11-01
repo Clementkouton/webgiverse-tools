@@ -60,11 +60,11 @@ export default async function PageRolePrompts({
       {/* ── Fil d'Ariane ────────────────────────────────────────── */}
       <nav aria-label="Fil d'Ariane" className="mx-auto w-full max-w-7xl px-4 pt-6">
         <ol className="flex flex-wrap items-center gap-1.5 text-[13px] leading-4 text-encre">
-          <li><Link href="/" className="hover:text-violet">Accueil</Link></li>
+          <li><Link href="/" className="hover:text-sky-500">Accueil</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
-          <li><Link href="/prompts" className="hover:text-violet">Prompts</Link></li>
+          <li><Link href="/prompts" className="hover:text-sky-500">Prompts</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
-          <li><Link href="/prompts/roles" className="hover:text-violet">Métiers</Link></li>
+          <li><Link href="/prompts/roles" className="hover:text-sky-500">Métiers</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
           <li className="font-medium text-bleu">{role.nom}</li>
         </ol>
@@ -91,7 +91,7 @@ export default async function PageRolePrompts({
             </p>
             <Link
               href="/prompts/roles"
-              className="mt-4 inline-block text-[14px] font-semibold text-violet hover:underline"
+              className="mt-4 inline-block text-[14px] font-semibold text-sky-500 hover:underline"
             >
               Découvrir les autres métiers →
             </Link>

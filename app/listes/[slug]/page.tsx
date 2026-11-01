@@ -68,7 +68,7 @@ export default async function PageListePublique({ params }: Props) {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-12">
       <header className="mb-10 rounded-carte border border-bordure bg-gris p-6 sm:p-8">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-violet">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-sky-500">
           Liste partagée
         </p>
         <h1 className="font-titre text-h2 text-encre">{liste.nom}</h1>
@@ -100,7 +100,7 @@ export default async function PageListePublique({ params }: Props) {
         </p>
         <Link
           href="/inscription"
-          className="mt-4 inline-block rounded-champ bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
+          className="mt-4 inline-block rounded-champ bg-sky-500-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
         >
           Créer mon compte gratuit
         </Link>

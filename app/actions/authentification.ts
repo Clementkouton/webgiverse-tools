@@ -7,6 +7,7 @@ import { randomBytes } from "crypto";
 import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail, emailBienvenue } from "@/lib/email";
+import { enregistrerParrainage } from "@/lib/parrainage";
 
 export type EtatFormulaire = { erreur?: string; succes?: string; lien?: string } | null;
 
@@ -59,7 +60,14 @@ export async function inscriptionAction(_prec: EtatFormulaire, formData: FormDat
   }
 
   const hash = await bcrypt.hash(motDePasse, 10);
-  await prisma.user.create({ data: { name: nom, email, motDePasse: hash } });
+  const nouveau = await prisma.user.create({ data: { name: nom, email, motDePasse: hash } });
+
+  // 🤝 Lot 20 — parrainage : le nouveau compte est lié au parrain si
+  // l'inscription vient d'un lien ?ref=… (non bloquant en cas d'échec).
+  const ref = String(formData.get("ref") ?? "").trim();
+  if (ref) {
+    await enregistrerParrainage(ref, nouveau.id);
+  }
 
   // Email de bienvenue : envoyé AVANT la connexion automatique, car signIn
   // avec redirectTo interrompt l'exécution (redirection) — tout code placé

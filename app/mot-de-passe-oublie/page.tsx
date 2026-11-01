@@ -45,7 +45,7 @@ export default function PageMotDePasseOublie() {
     <div className="mx-auto w-full max-w-md px-4 py-16">
       <div className="rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-8">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-violet/10 text-violet">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sky-500/10 text-sky-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -81,7 +81,7 @@ export default function PageMotDePasseOublie() {
                 </p>
                 <Link
                   href={lien}
-                  className="block text-center rounded-champ bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
+                  className="block text-center rounded-champ bg-sky-500-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
                 >
                   Définir un nouveau mot de passe
                 </Link>
@@ -90,7 +90,7 @@ export default function PageMotDePasseOublie() {
 
             <Link
               href="/connexion"
-              className="block text-center text-sm font-medium text-violet hover:underline"
+              className="block text-center text-sm font-medium text-sky-500 hover:underline"
             >
               Retour à la connexion
             </Link>
@@ -112,7 +112,7 @@ export default function PageMotDePasseOublie() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@exemple.com"
-                className="w-full rounded-champ border border-bordure bg-gris px-3 py-2 text-sm text-encre outline-none transition focus:border-violet focus:bg-white"
+                  className="w-full rounded-champ border border-bordure bg-gris px-3 py-2 text-sm text-encre outline-none transition focus:border-sky-500 focus:bg-white"
               />
             </div>
 
@@ -125,7 +125,7 @@ export default function PageMotDePasseOublie() {
             <button
               type="submit"
               disabled={charge}
-              className="w-full rounded-champ bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-champ bg-sky-500-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {charge ? "Envoi en cours..." : "Réinitialiser mon mot de passe"}
             </button>
@@ -133,7 +133,7 @@ export default function PageMotDePasseOublie() {
             <p className="text-center text-sm text-encre/70">
               <Link
                 href="/connexion"
-                className="font-medium text-violet hover:underline"
+                  className="font-medium text-sky-500 hover:underline"
               >
                 Retour à la connexion
               </Link>

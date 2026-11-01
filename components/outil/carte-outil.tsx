@@ -78,14 +78,14 @@ function CarteOutilView({ outil }: { outil: OutilCarte }) {
                 </span>
               )}
               {outil.nouveau && (
-                <span className="rounded-full bg-violet px-2 py-0.5 text-xs font-semibold text-white">
+                <span className="rounded-full bg-sky-500 px-2 py-0.5 text-xs font-semibold text-white">
                   Nouveau
                 </span>
               )}
               {verifie && (
                 <span
                   title={`Fiche vérifiée le ${verifie}`}
-                  className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-xs font-medium text-violet"
+                  className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-0.5 text-xs font-medium text-sky-500"
                 >
                   <BadgeCheck className="size-3" aria-hidden />
                   Vérifié le {verifie}

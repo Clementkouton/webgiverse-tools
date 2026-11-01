@@ -307,7 +307,7 @@ export default function MenuAdmin({
               © {annee} Webgiverse — Console d'administration
             </p>
             <p className="flex items-center gap-1.5 text-[12px] leading-4 text-encre">
-              <ShieldCheck className="size-3.5 text-violet" aria-hidden /> Espace réservé à
+              <ShieldCheck className="size-3.5 text-sky-500" aria-hidden /> Espace réservé à
               l'équipe Webgiverse
             </p>
           </div>

@@ -47,8 +47,8 @@ export function BarreOutils({
   const classe = (actif_: boolean) =>
     `rounded-full border px-3.5 py-1.5 text-[13px] leading-4 font-medium transition ${
       actif_
-        ? "border-violet bg-violet text-white"
-        : "border-bordure bg-white text-bleu hover:border-violet hover:text-violet"
+      ? "border-sky-500 bg-sky-500 text-white"
+      : "border-bordure bg-white text-bleu hover:border-sky-500 hover:text-sky-500"
     }`;
 
   const visibles = deplie ? outils : outils.slice(0, VISIBLES);
@@ -77,7 +77,7 @@ export function BarreOutils({
           type="button"
           onClick={() => setDeplie((v) => !v)}
           aria-expanded={deplie}
-          className="inline-flex items-center gap-1 rounded-full border border-dashed border-violet/50 bg-violet/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-violet transition hover:bg-violet/10"
+          className="inline-flex items-center gap-1 rounded-full border border-dashed border-sky-500/50 bg-sky-500/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-sky-500 transition hover:bg-sky-500/10"
         >
           {deplie ? (
             <>

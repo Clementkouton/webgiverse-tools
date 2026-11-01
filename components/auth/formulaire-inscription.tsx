@@ -8,13 +8,21 @@ import { inscriptionAction, connexionGoogleAction } from "@/app/actions/authenti
 const STYLE_CHAMP =
   "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-violet focus:outline-none";
 
-export function FormulaireInscription({ suite = "/dashboard" }: { suite?: string }) {
+export function FormulaireInscription({
+  suite = "/dashboard",
+  refParrain = null,
+}: {
+  suite?: string;
+  refParrain?: string | null;
+}) {
   const [etat, action, enCours] = useActionState(inscriptionAction, null);
 
   return (
     <div className="grid gap-4">
       <form action={action} className="grid gap-3">
         <input type="hidden" name="suite" value={suite} />
+        {/* 🤝 Lot 20 — code du parrain (id) transmis au server action */}
+        {refParrain && <input type="hidden" name="ref" value={refParrain} />}
         <div>
           <label htmlFor="in-nom" className="mb-1.5 block text-[14px] leading-5 font-medium">Nom complet</label>
           <input id="in-nom" name="nom" type="text" required minLength={2} autoComplete="name" className={STYLE_CHAMP} />

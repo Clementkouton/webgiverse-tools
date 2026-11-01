@@ -75,7 +75,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
       {/* ── Héros ───────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             <Play className="size-3.5" aria-hidden /> Tutoriels IA
           </p>
           <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
@@ -86,13 +86,13 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
             sélectionné à la main et se regarde directement sur Webgiverse, sans changer de site.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {stats.total} tutoriels
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {heures}h+ de contenu
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               100 % gratuits à parcourir
             </li>
           </ul>
@@ -101,13 +101,13 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
 
       <div className="mx-auto max-w-7xl px-4 py-10 lg:py-12">
         {/* ── Bandeau d'accès Premium ─────────────────────────────── */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4 sm:px-6">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-sky-500/30 bg-sky-500/5 p-4 sm:px-6">
           <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-violet/10">
+            <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-sky-500/10">
               {premium ? (
-                <Sparkles className="size-4.5 text-violet" aria-hidden />
+                <Sparkles className="size-4.5 text-sky-500" aria-hidden />
               ) : (
-                  <Lock className="size-4.5 text-violet" aria-hidden />
+                  <Lock className="size-4.5 text-sky-500" aria-hidden />
               )}
             </span>
             {premium ? (
@@ -146,7 +146,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
               defaultValue={q}
               placeholder="Rechercher un tuto (ChatGPT, Midjourney, n8n…)"
               aria-label="Rechercher un tutoriel"
-              className="min-h-11 w-full rounded-full border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
+              className="min-h-11 w-full rounded-full border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
             />
           </div>
           <input type="hidden" name="outil" value={outil} />
@@ -237,7 +237,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
             ].map((point) => (
               <li
                 key={point}
-                className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-violet/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-violet"
+                className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-sky-500"
               >
                 <Clock className="size-3.5" aria-hidden /> {point}
               </li>
@@ -249,8 +249,8 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
         <section className="mt-8 rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-violet/10">
-                <Play className="size-5 text-violet" aria-hidden />
+              <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-sky-500/10">
+                <Play className="size-5 text-sky-500" aria-hidden />
               </span>
               <div>
                 <h2 className="font-titre text-[18px] leading-6 font-semibold text-bleu">

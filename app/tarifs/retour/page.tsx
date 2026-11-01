@@ -41,7 +41,7 @@ export default async function PageRetour({
     return (
       <div className="grid min-h-[60vh] place-items-center p-6 text-center">
         {actif ? (
-          <p className="flex items-center gap-2 text-[15px] font-semibold text-violet">
+          <p className="flex items-center gap-2 text-[15px] font-semibold text-sky-500">
             <CheckCircle2 className="size-5" aria-hidden /> Paiement confirmé — tu peux fermer
             cette fenêtre.
           </p>
@@ -59,13 +59,13 @@ export default async function PageRetour({
     <div className="mx-auto max-w-xl px-4 py-16 text-center">
       {actif ? (
         <>
-          <span className="mx-auto grid size-16 place-items-center rounded-full bg-violet/10">
-            <Crown className="size-8 text-violet" aria-hidden />
+          <span className="mx-auto grid size-16 place-items-center rounded-full bg-sky-500/10">
+            <Crown className="size-8 text-sky-500" aria-hidden />
           </span>
           <h1 className="mt-5 text-h2 font-titre font-semibold">Bienvenue en Premium ! 🎉</h1>
           <p className="mt-3 text-[15px] leading-6 text-encre">
             Ton paiement est confirmé et ton plan{" "}
-            <strong className="text-violet">{nomPlan ?? "Premium"}</strong> est actif jusqu&apos;au{" "}
+            <strong className="text-sky-500">{nomPlan ?? "Premium"}</strong> est actif jusqu&apos;au{" "}
             {abonnement
               ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(abonnement.expireLe)
               : ""}
@@ -73,7 +73,7 @@ export default async function PageRetour({
           </p>
           <Link
             href="/dashboard"
-            className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full bg-violet px-7 text-[16px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+            className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full bg-sky-500 px-7 text-[16px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
           >
             Retourner dans mon espace
           </Link>
@@ -81,7 +81,7 @@ export default async function PageRetour({
       ) : (
         <>
           <span className="mx-auto grid size-16 place-items-center rounded-full bg-gris">
-            <CheckCircle2 className="size-8 text-violet" aria-hidden />
+              <CheckCircle2 className="size-8 text-sky-500" aria-hidden />
           </span>
           <h1 className="mt-5 text-h2 font-titre font-semibold">Paiement en cours de vérification</h1>
           <p className="mt-3 text-[15px] leading-6 text-encre">

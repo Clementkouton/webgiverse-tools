@@ -25,7 +25,7 @@ export function CartePrompt({ prompt }: { prompt: CartePromptData }) {
   return (
     <Link
       href={`/prompts/${prompt.slug}`}
-      className="group survol-eleve flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition hover:border-violet"
+      className="group survol-eleve flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition hover:border-sky-500"
     >
       <span className="flex flex-1 flex-col p-4">
         <span className="flex items-center justify-between gap-2">
@@ -36,7 +36,7 @@ export function CartePrompt({ prompt }: { prompt: CartePromptData }) {
           <span aria-hidden className="text-[22px] leading-7">
             {prompt.emoji}
           </span>
-          <h3 className="line-clamp-2 font-titre text-[15px] leading-6 font-semibold text-bleu transition group-hover:text-violet">
+          <h3 className="line-clamp-2 font-titre text-[15px] leading-6 font-semibold text-bleu transition group-hover:text-sky-500">
             {prompt.titre}
           </h3>
         </span>

@@ -44,14 +44,14 @@ export function Comparateur({ outils }: { outils: (CarteOutil & { langues?: stri
         <div className="mt-6 max-w-md">
           <label htmlFor="ajout-outil" className="mb-1.5 block text-[14px] leading-5 font-medium">Ajouter un outil</label>
           <input id="ajout-outil" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher…"
-            className="min-h-11 w-full rounded-champ border border-bordure bg-white px-4 focus:border-violet focus:outline-none" />
+            className="min-h-11 w-full rounded-champ border border-bordure bg-white px-4 focus:border-sky-500 focus:outline-none" />
           {suggestions.length > 0 && (
             <ul className="mt-2 overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
               {suggestions.map((s) => (
                 <li key={s.slug}>
                   <button type="button" onClick={() => ajouter(s.slug)}
                     className="flex min-h-11 w-full items-center gap-2 px-4 text-left text-[15px] leading-5 hover:bg-gris">
-                    <Plus className="size-4 text-violet" aria-hidden /> {s.nom}
+                    <Plus className="size-4 text-sky-500" aria-hidden /> {s.nom}
                   </button>
                 </li>
               ))}
@@ -74,7 +74,7 @@ export function Comparateur({ outils }: { outils: (CarteOutil & { langues?: stri
                     <div className="flex items-start justify-between gap-2">
                       <Link href={`/outil/${o.slug}`} className="flex items-center gap-3 text-left">
                         <LogoOutil nom={o.nom} logo={o.logo} />
-                        <span className="font-titre text-[17px] leading-6 font-semibold hover:text-violet">{o.nom}</span>
+                        <span className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500">{o.nom}</span>
                       </Link>
                       <button type="button" onClick={() => retirer(o.slug)} aria-label={`Retirer ${o.nom}`}
                         className="grid size-9 place-items-center rounded-full text-encre hover:text-red-600">
@@ -101,7 +101,7 @@ export function Comparateur({ outils }: { outils: (CarteOutil & { langues?: stri
                   {outils.map((o) => (
                     <td key={o.slug} className="border-b border-bordure bg-white p-4 text-encre">
                       {libelle === "Lien officiel" ? (
-                        <Link href={`/outil/${o.slug}`} className="font-semibold text-violet hover:underline">Voir la fiche</Link>
+                        <Link href={`/outil/${o.slug}`} className="font-semibold text-sky-500 hover:underline">Voir la fiche</Link>
                       ) : (
                         valeur(o)
                       )}

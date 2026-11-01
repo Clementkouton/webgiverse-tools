@@ -40,7 +40,7 @@ export function FormulaireAnnonceur() {
               maxLength={80}
               autoComplete="name"
               placeholder="ex. Awa Koffi"
-              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
             />
           </label>
 
@@ -52,7 +52,7 @@ export function FormulaireAnnonceur() {
               required
               autoComplete="email"
               placeholder="ex. awa@monoutil.com"
-              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
             />
           </label>
         </div>
@@ -66,7 +66,7 @@ export function FormulaireAnnonceur() {
             minLength={2}
             maxLength={160}
             placeholder="ex. MonOutil IA — monoutil.com"
-            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
           />
         </label>
 
@@ -76,7 +76,7 @@ export function FormulaireAnnonceur() {
             name="formule"
             required
             defaultValue="semaine"
-            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
           >
             <option value="semaine">{FORMULES[0]}</option>
             <option value="mois">{FORMULES[1]}</option>
@@ -92,7 +92,7 @@ export function FormulaireAnnonceur() {
             maxLength={2000}
             rows={5}
             placeholder="Ton audience, ce qui rend l'outil unique, une offre spéciale à afficher…"
-            className="mt-1.5 w-full resize-y rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+            className="mt-1.5 w-full resize-y rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
           />
         </label>
 

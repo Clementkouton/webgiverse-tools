@@ -93,9 +93,9 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(donneesStructurees) }} />
 
       <nav aria-label="Fil d'Ariane" className="mb-6 flex flex-wrap items-center gap-1 text-[14px] leading-5 text-encre">
-        <Link href="/" className="hover:text-violet">Accueil</Link>
+        <Link href="/" className="hover:text-sky-500">Accueil</Link>
         <ChevronRight className="size-3.5" aria-hidden />
-        <Link href="/outils" className="hover:text-violet">Outils IA</Link>
+        <Link href="/outils" className="hover:text-sky-500">Outils IA</Link>
         <ChevronRight className="size-3.5" aria-hidden />
         <span className="text-bleu">{outil.nom}</span>
       </nav>
@@ -132,7 +132,7 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
                   <Link
                     key={c.categorie.slug}
                     href={`/categorie/${c.categorie.slug}`}
-                    className="inline-flex items-center rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[13px] leading-4 font-semibold text-violet transition hover:bg-violet/50 hover:text-white"
+                    className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-semibold text-sky-500 transition hover:bg-sky-500/50 hover:text-white"
                   >
                     #{c.categorie.nom}
                   </Link>
@@ -175,7 +175,7 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
             <ul className="mt-4 grid gap-3">
               {outil.fonctions.map((f) => (
                 <li key={f} className="flex gap-3 text-[16px] leading-6 text-encre">
-                  <Check className="mt-1 size-4 shrink-0 text-violet" aria-hidden /> {f}
+                  <Check className="mt-1 size-4 shrink-0 text-sky-500" aria-hidden /> {f}
                 </li>
               ))}
             </ul>
@@ -219,7 +219,7 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
             {outil.categories.map((c, i) => (
               <span key={c.categorie.slug}>
                 {i > 0 && ", "}
-                <Link href={`/categorie/${c.categorie.slug}`} className="font-semibold text-violet hover:underline">
+                <Link href={`/categorie/${c.categorie.slug}`} className="font-semibold text-sky-500 hover:underline">
                   #{c.categorie.nom}
                 </Link>
               </span>

@@ -18,7 +18,7 @@ const BUDGETS = [
 ];
 
 const STYLE_SELECT =
-  "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-violet focus:outline-none";
+  "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-sky-500 focus:outline-none";
 
 export function FormulaireProfil({
   nomInitial,

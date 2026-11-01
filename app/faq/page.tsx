@@ -78,10 +78,10 @@ export default function PageFaq() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="group rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-violet"
+                className="group rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-sky-500"
               >
-                <l.icone className="size-6 text-violet" aria-hidden />
-                <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold group-hover:text-violet">
+                <l.icone className="size-6 text-sky-500" aria-hidden />
+                <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold group-hover:text-sky-500">
                   {l.titre}
                 </h2>
                 <p className="mt-1 text-[14px] leading-5 text-encre">{l.texte}</p>

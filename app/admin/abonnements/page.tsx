@@ -74,7 +74,7 @@ export default async function PageAdminAbonnements() {
             },
           ].map((stat) => (
             <Carte key={stat.titre} className="flex items-center gap-4 p-5">
-              <span className="grid size-11 shrink-0 place-items-center rounded-champ bg-violet/10 text-violet">
+              <span className="grid size-11 shrink-0 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
                 <stat.icone className="size-5" aria-hidden />
               </span>
               <span>

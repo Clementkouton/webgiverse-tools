@@ -72,20 +72,20 @@ export default async function PageMonAbonnement() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
       <h1 className="flex items-center gap-2 text-h2 font-semibold">
-        <Crown className="size-7 text-violet" aria-hidden /> Mon abonnement
+        <Crown className="size-7 text-sky-500" aria-hidden /> Mon abonnement
       </h1>
 
       {/* ── Statut ─────────────────────────────────────────────────── */}
       <Carte
         id="statut"
         className={`animate-apparition-haut mt-6 p-6 ${
-          actif ? "border-violet/40 bg-violet/5" : ""
+          actif ? "border-sky-500/40 bg-sky-500/5" : ""
         }`}
       >
         {actif && abonnement ? (
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="flex items-center gap-2 text-[15px] leading-5 font-semibold text-violet">
+              <p className="flex items-center gap-2 text-[15px] leading-5 font-semibold text-sky-500">
                 <CheckCircle2 className="size-5" aria-hidden />
                 Premium actif — plan{" "}
                 {PLANS[abonnement.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Pro"}
@@ -112,7 +112,7 @@ export default async function PageMonAbonnement() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="flex items-center gap-2 text-[15px] leading-5 font-semibold">
-                <Sparkles className="size-5 text-violet" aria-hidden /> Plan
+                  <Sparkles className="size-5 text-sky-500" aria-hidden /> Plan
                 Découverte (gratuit)
               </p>
               <p className="mt-1.5 text-[14px] leading-5 text-encre">
@@ -130,7 +130,7 @@ export default async function PageMonAbonnement() {
       {/* ── Choix du plan : les 3 offres ───────────────────────────── */}
       <section id="plans" className="mt-10 scroll-mt-24">
         <div className="text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             <Sparkles className="size-4" aria-hidden /> Choisis ton plan
           </p>
           <h2 className="mt-3 text-h3 font-semibold">
@@ -141,7 +141,7 @@ export default async function PageMonAbonnement() {
             Wave…), cartes Visa / Mastercard et plus. Abonnement prépayé 30
             jours, sans engagement.
           </p>
-          <p className="mx-auto mt-2 flex max-w-2xl items-center justify-center gap-2 text-[13px] leading-5 font-medium text-violet">
+          <p className="mx-auto mt-2 flex max-w-2xl items-center justify-center gap-2 text-[13px] leading-5 font-medium text-sky-500">
             <Mail className="size-4 shrink-0" aria-hidden />
             Paie avec la même adresse e-mail que ton compte Webgiverse : ton
             Premium s&apos;active alors tout seul, en quelques secondes.
@@ -152,7 +152,7 @@ export default async function PageMonAbonnement() {
           {/* ── Plan Découverte (gratuit) ── */}
           <Carte className="animate-apparition-haut delai-1 survol-carte relative flex flex-col p-6">
             <div className="flex items-center gap-2">
-              <span className="grid size-10 place-items-center rounded-champ bg-gris text-violet">
+              <span className="grid size-10 place-items-center rounded-champ bg-gris text-sky-500">
                 <Leaf className="size-5" aria-hidden />
               </span>
               <h3 className="text-h3 font-semibold">{PLAN_DECOUVERTE.nom}</h3>
@@ -174,7 +174,7 @@ export default async function PageMonAbonnement() {
                   className="flex items-start gap-2 text-[14px] leading-5"
                 >
                   <Check
-                    className="mt-0.5 size-4 shrink-0 text-violet"
+                    className="mt-0.5 size-4 shrink-0 text-sky-500"
                     aria-hidden
                   />
                   <span className="text-bleu">{avantage}</span>
@@ -202,14 +202,14 @@ export default async function PageMonAbonnement() {
                 key={plan.cle}
                 className={`animate-apparition-haut survol-carte relative flex flex-col p-6 ${
                   plan.recommande
-                    ? "delai-2 border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)] lg:-translate-y-1"
+                  ? "delai-2 border-sky-500 shadow-[0_10px_40px_rgba(106,59,255,0.18)] lg:-translate-y-1"
                     : index === 1
                       ? "delai-3"
                       : ""
                 }`}
               >
                 {plan.recommande && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white shadow-[0_4px_14px_rgba(106,59,255,0.4)]">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white shadow-[0_4px_14px_rgba(106,59,255,0.4)]">
                     Le plus populaire
                   </span>
                 )}
@@ -219,7 +219,7 @@ export default async function PageMonAbonnement() {
                   </span>
                 )}
                 <div className="flex items-center gap-2">
-                  <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+                  <span className="grid size-10 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
                     {plan.cle === "PRO" ? (
                       <Crown className="size-5" aria-hidden />
                     ) : (
@@ -245,7 +245,7 @@ export default async function PageMonAbonnement() {
                       className="flex items-start gap-2 text-[14px] leading-5"
                     >
                       <Check
-                        className="mt-0.5 size-4 shrink-0 text-violet"
+                        className="mt-0.5 size-4 shrink-0 text-sky-500"
                         aria-hidden
                       />
                       <span className="text-bleu">{avantage}</span>
@@ -263,7 +263,7 @@ export default async function PageMonAbonnement() {
                       libelle={
                         actif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`
                       }
-                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-violet px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-sky-500 px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
                     />
                   )}
                 </div>
@@ -273,7 +273,7 @@ export default async function PageMonAbonnement() {
         </div>
 
         <p className="mx-auto mt-6 flex max-w-2xl items-center justify-center gap-2 text-center text-[13px] leading-5 text-encre">
-          <ShieldCheck className="size-4 shrink-0 text-violet" aria-hidden />
+          <ShieldCheck className="size-4 shrink-0 text-sky-500" aria-hidden />
           Transactions traitées par <strong>Chariow</strong>. Webgiverse ne voit
           jamais tes codes ni numéros de carte.
         </p>
@@ -292,7 +292,7 @@ export default async function PageMonAbonnement() {
               <BoutonConfirmer
                 type="submit"
                 message="Reprendre le plan Premium ? Tu pourras le payer à l'échéance depuis la page Tarifs."
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-violet bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-sky-500 bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris"
               >
                 <PlayCircle className="size-4" aria-hidden /> Reprendre Premium
               </BoutonConfirmer>
@@ -314,7 +314,7 @@ export default async function PageMonAbonnement() {
       {/* ── Historique des paiements ───────────────────────────────── */}
       <section className="mt-10">
         <h2 className="flex items-center gap-2 text-h3 font-semibold">
-          <ReceiptText className="size-5 text-violet" aria-hidden /> Historique
+          <ReceiptText className="size-5 text-sky-500" aria-hidden /> Historique
           de paiements
         </h2>
         {paiements.length === 0 ? (
@@ -325,7 +325,7 @@ export default async function PageMonAbonnement() {
                 {" "}
                 <Link
                   href="#plans"
-                  className="font-semibold text-violet hover:underline"
+                  className="font-semibold text-sky-500 hover:underline"
                 >
                   Découvre les offres Premium →
                 </Link>
@@ -377,7 +377,7 @@ export default async function PageMonAbonnement() {
       {actif && (
         <section className="mt-10">
           <h2 className="flex items-center gap-2 text-h3 font-semibold">
-            <Gift className="size-5 text-violet" aria-hidden /> Tes avantages
+            <Gift className="size-5 text-sky-500" aria-hidden /> Tes avantages
             Premium
           </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -391,7 +391,7 @@ export default async function PageMonAbonnement() {
                 } flex items-start gap-2 p-4`}
               >
                 <CheckCircle2
-                  className="mt-0.5 size-4 shrink-0 text-violet"
+                  className="mt-0.5 size-4 shrink-0 text-sky-500"
                   aria-hidden
                 />
                 <span className="text-[14px] leading-5 text-bleu">

@@ -9,13 +9,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // ───────────────────────────────────────────────────────────────
-  // Header Referrer-Policy (article officiel YouTube — support.google.com/
-  // youtube/answer/171780) : la lecture des vidéos intégrées exige que le
-  // navigateur envoie un Referer au lecteur YouTube, sinon erreur 153.
-  // « strict-origin-when-cross-origin » = politique par défaut des navigateurs,
-  // rendue explicite ici pour garantir que l'origine est toujours transmise.
+  // Redirection des anciennes URL de métiers au singulier
+  // (/prompts/role/consultants) vers la route réelle au pluriel
+  // (/prompts/roles/consultants). 302 temporaire : si un ancien
+  // lien, un signet ou une page indexée utilise le singulier, le
+  // visiteur arrive quand même sur la bonne page au lieu d'un 404.
   // ───────────────────────────────────────────────────────────────
-    async redirects() {
+  async redirects() {
     return [
       {
         source: "/prompts/role/:slug",
@@ -24,7 +24,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  
+  // ───────────────────────────────────────────────────────────────
+  // Header Referrer-Policy (article officiel YouTube — support.google.com/
+  // youtube/answer/171780) : la lecture des vidéos intégrées exige que le
+  // navigateur envoie un Referer au lecteur YouTube, sinon erreur 153.
+  // « strict-origin-when-cross-origin » = politique par défaut des navigateurs,
+  // rendue explicite ici pour garantir que l'origine est toujours transmise.
+  // ───────────────────────────────────────────────────────────────
   async headers() {
     return [
       {

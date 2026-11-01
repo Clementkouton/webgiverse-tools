@@ -151,8 +151,8 @@ function BoutonVote({ slug, compact = false }: { slug: string; compact?: boolean
           title={vote ? "Retirer ma recommandation" : "Recommander cet outil"}
           className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition disabled:opacity-60 ${
             vote
-              ? "border-violet bg-violet/10 text-violet"
-              : "border-bordure bg-white text-encre/70 hover:border-violet hover:text-violet"
+            ? "border-sky-500 bg-sky-500/10 text-sky-500"
+            : "border-bordure bg-white text-encre/70 hover:border-sky-500 hover:text-sky-500"
           }`}
         >
           <Pouce actif={vote} className="h-4 w-4" />
@@ -167,8 +167,8 @@ function BoutonVote({ slug, compact = false }: { slug: string; compact?: boolean
           aria-pressed={vote}
           className={`inline-flex items-center gap-2 rounded-champ border px-4 py-2 text-sm font-medium transition disabled:opacity-60 ${
             vote
-              ? "border-violet bg-violet/10 text-violet"
-              : "border-bordure bg-white text-encre hover:border-violet hover:text-violet"
+            ? "border-sky-500 bg-sky-500/10 text-sky-500"
+            : "border-bordure bg-white text-encre hover:border-sky-500 hover:text-sky-500"
           }`}
         >
           <Pouce actif={vote} className="h-4 w-4" />

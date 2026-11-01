@@ -3,7 +3,7 @@
 // la FAQ, À propos… pour toutes les pages qui n'ont pas leur propre image.
 import { ImageResponse } from "next/og";
 
-export const alt = "Webgiverse Outils IA — l'annuaire francophone des outils IA";
+export const alt = "Webgiverse Tools — l'annuaire francophone des outils IA";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -42,7 +42,7 @@ export default function Image() {
             W
           </div>
           <div style={{ fontSize: 32, fontWeight: 600, opacity: 0.9 }}>
-            Webgiverse Outils IA
+            Webgiverse Tools
           </div>
         </div>
 

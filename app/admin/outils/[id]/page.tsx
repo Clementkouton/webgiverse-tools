@@ -25,7 +25,7 @@ export default async function PageModifierOutil({ params }: { params: Promise<{ 
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/outils" className="inline-flex items-center gap-1 text-[14px] font-semibold text-violet hover:underline">
+      <Link href="/admin/outils" className="inline-flex items-center gap-1 text-[14px] font-semibold text-sky-500 hover:underline">
         <ChevronLeft className="size-4" aria-hidden /> Retour à la liste des outils
       </Link>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -37,7 +37,7 @@ export default async function PageModifierOutil({ params }: { params: Promise<{ 
           href={`/outil/${outil.slug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-violet hover:underline"
+          className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-sky-500 hover:underline"
         >
           Voir la fiche publique <ExternalLink className="size-4" aria-hidden />
         </a>

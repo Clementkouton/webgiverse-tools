@@ -18,7 +18,7 @@ export default async function PageConnexion({
       <p className="mt-2 mb-6 text-encre">
         Connecte-toi pour accéder à ton espace, tes favoris et l'assistant.
       </p>
-      <Link href="/mot-de-passe-oublie" className="text-sm font-medium text-violet hover:underline">
+      <Link href="/mot-de-passe-oublie" className="text-sm font-medium text-sky-500 hover:underline">
   Mot de passe oublié ?
 </Link>
       <FormulaireConnexion suite={suite ?? "/dashboard"} />

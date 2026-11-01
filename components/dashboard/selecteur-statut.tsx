@@ -17,7 +17,7 @@ export function SelecteurStatut({ favoriId, statut }: { favoriId: string; statut
         <button key={o.valeur} type="button" aria-pressed={valeur === o.valeur}
           onClick={() => { setValeur(o.valeur); majStatutFavori(favoriId, o.valeur); }}
           className={`min-h-9 rounded-full border px-3.5 text-[13px] leading-4 font-medium transition ${
-            valeur === o.valeur ? "border-violet bg-violet/10 text-violet" : "border-bordure bg-white text-encre hover:border-violet"}`}>
+            valeur === o.valeur ? "border-sky-500 bg-sky-500/10 text-sky-500" : "border-bordure bg-white text-encre hover:border-sky-500"}`}>
           {o.libelle}
         </button>
       ))}

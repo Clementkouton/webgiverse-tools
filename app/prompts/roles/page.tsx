@@ -22,9 +22,9 @@ export default async function PageRoles() {
     <>
       <nav aria-label="Fil d'Ariane" className="mx-auto w-full max-w-7xl px-4 pt-6">
         <ol className="flex flex-wrap items-center gap-1.5 text-[13px] leading-4 text-encre">
-          <li><Link href="/" className="hover:text-violet">Accueil</Link></li>
+          <li><Link href="/" className="hover:text-sky-500">Accueil</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
-          <li><Link href="/prompts" className="hover:text-violet">Prompts</Link></li>
+          <li><Link href="/prompts" className="hover:text-sky-500">Prompts</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
           <li className="font-medium text-bleu">Métiers</li>
         </ol>
@@ -50,15 +50,15 @@ export default async function PageRoles() {
               <li key={r.slug}>
                 <Link
                   href={`/prompts/roles/${r.slug}`}
-                  className="survol-eleve flex min-h-11 items-center justify-between gap-3 rounded-carte border border-bordure bg-white px-4 py-3 shadow-carte transition hover:border-violet"
+                  className="survol-eleve flex min-h-11 items-center justify-between gap-3 rounded-carte border border-bordure bg-white px-4 py-3 shadow-carte transition hover:border-sky-500"
                 >
-                  <span className="font-titre text-[15px] leading-5 font-semibold text-bleu transition hover:text-violet">
+                  <span className="font-titre text-[15px] leading-5 font-semibold text-bleu transition hover:text-sky-500">
                     {r.nom}
                   </span>
                   <span
                     className={
                       n > 0
-                        ? "rounded-full bg-violet/10 px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-violet"
+                        ? "rounded-full bg-sky-500/10 px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-sky-500"
                         : "rounded-full bg-gris px-2.5 py-0.5 text-[12px] leading-4 font-medium text-encre/60"
                     }
                   >

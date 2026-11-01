@@ -60,7 +60,7 @@ export function FormulaireAuth({ mode }: { mode: "connexion" | "inscription" }) 
           <p className="text-[13px] leading-5 text-encre">Environnement de test — identifiants :</p>
           <input type="password" value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)}
             placeholder="Mot de passe" aria-label="Mot de passe"
-            className="min-h-11 rounded-champ border border-bordure px-4 focus:border-violet focus:outline-none" />
+            className="min-h-11 rounded-champ border border-bordure px-4 focus:border-sky-500 focus:outline-none" />
           <Bouton variante="secondaire" type="submit" disabled={enCours}><LogIn aria-hidden /> Se connecter</Bouton>
         </form>
       )}

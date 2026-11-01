@@ -10,7 +10,7 @@ const badgeVariants = cva(
         defaut: "border-bordure bg-gris text-bleu",
         gratuit: "border-transparent bg-turquoise text-bleu",
         nouveau: "border-transparent bg-neon text-bleu",
-        source: "border-transparent bg-violet/10 text-violet",
+        source: "border-transparent bg-sky-500/10 text-sky-500",
         agent: "border-transparent bg-ciel/15 text-[#00648a]",
         magenta: "border-transparent bg-magenta text-white",
         sombre: "border-white/20 bg-white/10 text-white",

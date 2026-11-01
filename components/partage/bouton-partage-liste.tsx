@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const stylePill =
-  "inline-flex items-center rounded-full border border-bordure bg-white px-3 py-1.5 text-xs font-medium text-encre transition hover:border-violet hover:text-violet";
+  "inline-flex items-center rounded-full border border-bordure bg-white px-3 py-1.5 text-xs font-medium text-encre transition hover:border-sky-500 hover:text-sky-500";
 
 export function LienPartage({ url, texte }: { url: string; texte: string }) {
   const [copie, setCopie] = useState(false);
@@ -52,7 +52,7 @@ export function LienPartage({ url, texte }: { url: string; texte: string }) {
       <button
         type="button"
         onClick={copier}
-        className="inline-flex items-center rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-700"
+        className="inline-flex items-center rounded-full bg-sky-500-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500-700"
       >
         {copie ? "Lien copié !" : "Copier le lien"}
       </button>
@@ -100,7 +100,7 @@ export default function BoutonPartageListe({ listeId }: { listeId: string }) {
         onClick={basculer}
         disabled={charge}
         className={`text-xs font-medium transition disabled:opacity-60 ${
-          publique ? "text-red-600 hover:underline" : "text-violet hover:underline"
+          publique ? "text-red-600 hover:underline" : "text-sky-500 hover:underline"
         }`}
       >
         {charge

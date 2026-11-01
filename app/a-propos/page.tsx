@@ -157,7 +157,7 @@ export default async function PageAPropos() {
         <h1 className="text-h2 font-titre font-semibold text-bleu">
           À propos de <span className="texte-degrade">Webgiverse</span>
         </h1>
-        <p className="mt-3 text-[20px] leading-7 font-semibold text-violet">
+        <p className="mt-3 text-[20px] leading-7 font-semibold text-sky-500">
           Donner une vision claire, fiable et utile de l&apos;écosystème IA — en français.
         </p>
       </header>
@@ -173,8 +173,8 @@ export default async function PageAPropos() {
               key={c.legende}
               className="rounded-carte border border-bordure bg-white p-5 text-center shadow-carte"
             >
-              <span className="mx-auto grid size-11 place-items-center rounded-carte bg-violet/10">
-                <c.icone className="size-5 text-violet" aria-hidden />
+              <span className="mx-auto grid size-11 place-items-center rounded-carte bg-sky-500/10">
+                <c.icone className="size-5 text-sky-500" aria-hidden />
               </span>
               <p className="mt-3 font-titre text-[30px] leading-9 font-bold text-bleu">
                 {c.valeur.toLocaleString("fr-FR")}
@@ -211,10 +211,10 @@ export default async function PageAPropos() {
         </h2>
         <div className="mt-8 grid gap-8 md:grid-cols-3">
           {raisons.map((r) => (
-            <div key={r.numero} className="border-t-2 border-violet pt-5">
+            <div key={r.numero} className="border-t-2 border-sky-500 pt-5">
               <span
                 aria-hidden
-                className="font-titre text-[40px] leading-10 font-bold text-violet"
+                className="font-titre text-[40px] leading-10 font-bold text-sky-500"
               >
                 {r.numero}
               </span>
@@ -241,8 +241,8 @@ export default async function PageAPropos() {
               key={r.titre}
               className="rounded-carte border border-bordure bg-white p-6 shadow-carte"
             >
-              <span className="grid size-11 place-items-center rounded-carte bg-violet/10">
-                <r.icone className="size-5 text-violet" aria-hidden />
+              <span className="grid size-11 place-items-center rounded-carte bg-sky-500/10">
+                <r.icone className="size-5 text-sky-500" aria-hidden />
               </span>
               <h3 className="mt-4 font-titre text-[17px] leading-6 font-semibold text-bleu">
                 {r.titre}
@@ -267,7 +267,7 @@ export default async function PageAPropos() {
               key={e.numero}
               className="rounded-carte border border-bordure bg-white p-6 shadow-carte"
             >
-              <span className="grid size-9 place-items-center rounded-full bg-violet font-titre text-[15px] font-bold text-white">
+              <span className="grid size-9 place-items-center rounded-full bg-sky-500 font-titre text-[15px] font-bold text-white">
                 {e.numero}
               </span>
               <h3 className="mt-4 font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -292,9 +292,9 @@ export default async function PageAPropos() {
             <li key={p.periode} className="relative pb-9 pl-8 last:pb-0">
               <span
                 aria-hidden
-                className="absolute top-1 -left-[9px] size-4 rounded-full border-2 border-violet bg-violet"
+                className="absolute top-1 -left-[9px] size-4 rounded-full border-2 border-sky-500 bg-sky-500"
               />
-              <p className="text-[13px] leading-4 font-bold tracking-wide uppercase text-violet">
+              <p className="text-[13px] leading-4 font-bold tracking-wide uppercase text-sky-500">
                 {p.periode}
               </p>
               <h3 className="mt-1 font-titre text-[18px] leading-6 font-semibold text-bleu">
@@ -313,8 +313,8 @@ export default async function PageAPropos() {
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-violet/10">
-              <Mail className="size-5 text-violet" aria-hidden />
+            <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-sky-500/10">
+              <Mail className="size-5 text-sky-500" aria-hidden />
             </span>
             <div>
               <h2 id="titre-contacts" className="font-titre text-[18px] leading-6 font-semibold text-bleu">
@@ -335,7 +335,7 @@ export default async function PageAPropos() {
             </Link>
             <Link
               href="/annonceurs"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-violet bg-white px-6 text-[15px] leading-5 font-semibold text-bleu transition hover:border-violet-clair hover:bg-gris"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-sky-500 bg-white px-6 text-[15px] leading-5 font-semibold text-bleu transition hover:border-sky-500-clair hover:bg-gris"
             >
               Espace annonceurs
             </Link>

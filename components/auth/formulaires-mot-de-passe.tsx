@@ -10,7 +10,7 @@ import {
 } from "@/app/actions/authentification";
 
 const STYLE_CHAMP =
-  "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-violet focus:outline-none";
+  "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 text-[15px] leading-5 focus:border-sky-500 focus:outline-none";
 
 export function FormulaireMotDePasseOublie() {
   const [etat, action, enCours] = useActionState<EtatFormulaire, FormData>(motDePasseOublieAction, null);
@@ -37,7 +37,7 @@ export function FormulaireMotDePasseOublie() {
       )}
       <Bouton type="submit" disabled={enCours}>{enCours ? "Envoi…" : "Recevoir un lien de réinitialisation"}</Bouton>
       <p className="text-center text-[14px] text-encre">
-        <Link href="/connexion" className="text-violet hover:underline">Retour à la connexion</Link>
+        <Link href="/connexion" className="text-sky-500 hover:underline">Retour à la connexion</Link>
       </p>
     </form>
   );

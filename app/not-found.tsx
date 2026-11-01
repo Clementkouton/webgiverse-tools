@@ -32,7 +32,7 @@ export default function PageIntrouvable() {
           </Link>
           <Link
             href="/outils"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-violet bg-white px-7 text-[16px] leading-5 font-semibold text-bleu transition hover:bg-gris"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-sky-500 bg-white px-7 text-[16px] leading-5 font-semibold text-bleu transition hover:bg-gris"
           >
             <Compass className="size-4" aria-hidden /> Explorer les outils
           </Link>
@@ -42,7 +42,7 @@ export default function PageIntrouvable() {
           Tu pensais qu&apos;une page devrait être ici ?{" "}
           <Link
             href="/contact"
-            className="inline-flex items-center gap-1 font-medium text-violet hover:underline"
+            className="inline-flex items-center gap-1 font-medium text-sky-500 hover:underline"
           >
             <LifeBuoy className="size-3.5" aria-hidden /> Dis-le nous
           </Link>

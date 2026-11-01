@@ -163,8 +163,8 @@ function BoutonFavori({ outilId, slug }: { outilId: string; slug: string }) {
         disabled={charge}
         className={`inline-flex items-center gap-2 rounded-champ border px-4 py-2 text-sm font-medium transition disabled:opacity-60 ${
           favori
-            ? "border-violet bg-violet/10 text-violet"
-            : "border-bordure bg-white text-encre hover:border-violet hover:text-violet"
+          ? "border-sky-500 bg-sky-500/10 text-sky-500"
+          : "border-bordure bg-white text-encre hover:border-sky-500 hover:text-sky-500"
         }`}
       >
         <svg

@@ -52,14 +52,14 @@ export function FormulaireProposition({ categories }: { categories: { id: string
         <div>
           <Etiquette htmlFor="tarif">Tarif *</Etiquette>
           <select id="tarif" {...register("tarif")}
-            className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-violet focus:outline-none">
+            className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-sky-500 focus:outline-none">
             <option value="Gratuit">Gratuit</option><option value="Freemium">Freemium</option><option value="Payant">Payant</option>
           </select>
         </div>
         <div>
           <Etiquette htmlFor="categorieId">Catégorie *</Etiquette>
           <select id="categorieId" {...register("categorieId")}
-            className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-violet focus:outline-none">
+            className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-sky-500 focus:outline-none">
             <option value="">Choisir…</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
           </select>

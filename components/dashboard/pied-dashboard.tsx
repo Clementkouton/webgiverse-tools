@@ -55,7 +55,7 @@ export default function PiedDashboard({ premium = false }: { premium?: boolean }
         >
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 rounded-full bg-bleu px-3 py-1.5 text-[12px] leading-4 font-semibold text-white transition hover:bg-violet active:scale-95"
+            className="inline-flex items-center gap-1.5 rounded-full bg-bleu px-3 py-1.5 text-[12px] leading-4 font-semibold text-white transition hover:bg-sky-500 active:scale-95"
           >
             <ArrowLeft className="size-3.5" aria-hidden /> Retour au site
           </Link>
@@ -63,7 +63,7 @@ export default function PiedDashboard({ premium = false }: { premium?: boolean }
             <Link
               key={lien.href}
               href={lien.href}
-              className="text-[12px] leading-4 font-medium text-encre transition hover:text-violet"
+              className="text-[12px] leading-4 font-medium text-encre transition hover:text-sky-500"
             >
               {lien.label}
             </Link>

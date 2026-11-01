@@ -2,9 +2,10 @@
 // Lot 17 — Bibliothèque de prompts IA : héros avec chiffres réels,
 // bandeau d'accès Premium (lecture + copie réservées aux abonnés
 // Pro / Entreprise), barre de filtres (recherche, catégorie, type,
-// tri), pastilles de catégories et de rôles, grille paginée (16 par
-// page) et section d'introduction. Charte Webgiverse inchangée :
-// accents violets, dégradé de marque sur le mot-clé du titre.
+// tri), onglets « Catégories / Métiers » (correctif : deux filtres
+// bien séparés, style godofprompt), grille paginée (16 par page) et
+// section d'introduction. Charte Webgiverse inchangée : accents
+// violets, dégradé de marque sur le mot-clé du titre.
 import type { Metadata } from "next";
 import type { ComponentProps } from "react";
 import Link from "next/link";
@@ -17,12 +18,13 @@ import {
   compterPromptsParRole,
 } from "@/lib/queries";
 import { CartePrompt } from "@/components/prompts/carte-prompt";
+import { OngletsFiltres } from "@/components/prompts/onglets-filtres";
 import { SelectAuto } from "@/components/tutoriels/select-auto";
 import { Pagination } from "@/components/commun/pagination";
 import { auth } from "@/auth";
 import { premiumActif } from "@/lib/premium";
 import { TRIS_PROMPTS, nomRole } from "@/lib/prompts-utils";
-import { OngletsFiltres } from "@/components/prompts/onglets-filtres";
+
 export const metadata: Metadata = {
   title: "Bibliothèque de prompts IA — catalogue métier | Webgiverse",
   description:
@@ -37,7 +39,7 @@ function val(c: string | string[] | undefined): string {
 }
 
 const PASTILLE =
-  "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-bordure bg-white px-4 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet";
+  "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-bordure bg-white px-4 text-[13px] leading-4 font-medium text-bleu transition hover:border-sky-500 hover:text-sky-500";
 
 export default async function PagePrompts({ searchParams }: { searchParams: Params }) {
   const p = await searchParams;
@@ -73,7 +75,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
       {/* ── Héros ───────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             <TerminalSquare className="size-3.5" aria-hidden /> Bibliothèque de prompts
           </p>
           <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
@@ -84,13 +86,13 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
             catégorie, copie, remplace les variables et lance-toi — sans repartir de zéro.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {stats.total} prompts
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {stats.categories} catégories
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               24 métiers couverts
             </li>
           </ul>
@@ -99,13 +101,13 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
 
       <div className="mx-auto max-w-7xl px-4 py-10 lg:py-12">
         {/* ── Bandeau d'accès Premium ─────────────────────────────── */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4 sm:px-6">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-sky-500/30 bg-sky-500/5 p-4 sm:px-6">
           <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-violet/10">
+            <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-sky-500/10">
               {premium ? (
-                <Sparkles className="size-4.5 text-violet" aria-hidden />
+                <Sparkles className="size-4.5 text-sky-500" aria-hidden />
               ) : (
-                <Lock className="size-4.5 text-violet" aria-hidden />
+                  <Lock className="size-4.5 text-sky-500" aria-hidden />
               )}
             </span>
             {premium ? (
@@ -144,7 +146,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
               defaultValue={q}
               placeholder="Rechercher un prompt (email de vente, plan de cours, image produit…)"
               aria-label="Rechercher un prompt"
-              className="min-h-11 w-full rounded-full border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
+              className="min-h-11 w-full rounded-full border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
             />
           </div>
           <input type="hidden" name="categorie" value={categorie} />
@@ -161,7 +163,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
           </Bouton>
         </form>
 
-                {/* ── Onglets « Catégories / Métiers » ────────────────────── */}
+        {/* ── Onglets « Catégories / Métiers » ────────────────────── */}
         {/* Correctif : les deux familles de filtres étaient collées sans
             repère visuel. Deux onglets (style godofprompt) les séparent
             désormais. L'onglet ouvert au chargement suit le filtre actif
@@ -177,7 +179,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
                 className={
                   !categorie
                     ? "inline-flex min-h-11 items-center rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                    : `${PASTILLE} border-violet bg-violet/5 text-violet`
+                    : `${PASTILLE} border-sky-500 bg-sky-500/5 text-sky-500`
                 }
               >
                 Toutes
@@ -210,7 +212,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
                   <span
                     key={r.slug}
                     aria-current="true"
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-violet bg-violet/10 px-4 text-[13px] leading-4 font-semibold text-violet"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-sky-500 bg-sky-500/10 px-4 text-[13px] leading-4 font-semibold text-sky-500"
                   >
                     {nomRole(r.slug)} <span className="opacity-70">{r.total}</span>
                   </span>
@@ -224,7 +226,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
                   </Link>
                 ),
               )}
-              <Link href="/prompts/roles" className="text-[13px] font-semibold text-violet hover:underline">
+              <Link href="/prompts/roles" className="text-[13px] font-semibold text-sky-500 hover:underline">
                 Tous les métiers →
               </Link>
             </nav>

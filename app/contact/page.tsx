@@ -94,7 +94,7 @@ export default function PageContact() {
       {/* ── Hero : grand titre + promesses ──────────────────────── */}
       <header className="mx-auto max-w-3xl text-center">
         <h1 className="text-h2 font-titre font-semibold text-bleu">Contact</h1>
-        <p className="mt-3 text-[20px] leading-7 font-semibold text-violet">
+        <p className="mt-3 text-[20px] leading-7 font-semibold text-sky-500">
           Parlons-en.
         </p>
         <p className="mt-3 text-[15px] leading-6 text-encre">
@@ -105,8 +105,8 @@ export default function PageContact() {
         <ul className="mt-8 grid gap-5 sm:grid-cols-3">
           {promesses.map((p) => (
             <li key={p.titre} className="flex flex-col items-center text-center">
-              <span className="grid size-11 place-items-center rounded-carte bg-violet/10">
-                <p.icone className="size-5 text-violet" aria-hidden />
+              <span className="grid size-11 place-items-center rounded-carte bg-sky-500/10">
+                <p.icone className="size-5 text-sky-500" aria-hidden />
               </span>
               <p className="mt-2.5 font-titre text-[15px] leading-5 font-semibold text-bleu">
                 {p.titre}
@@ -127,8 +127,8 @@ export default function PageContact() {
         {/* Informations pratiques (1/3) */}
         <aside className="grid content-start gap-4 lg:col-span-2">
           <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
-            <span className="grid size-10 place-items-center rounded-carte bg-violet/10">
-              <Clock className="size-5 text-violet" aria-hidden />
+            <span className="grid size-10 place-items-center rounded-carte bg-sky-500/10">
+              <Clock className="size-5 text-sky-500" aria-hidden />
             </span>
             <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold text-bleu">
               Délai de réponse
@@ -140,8 +140,8 @@ export default function PageContact() {
           </div>
 
           <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
-            <span className="grid size-10 place-items-center rounded-carte bg-violet/10">
-              <LifeBuoy className="size-5 text-violet" aria-hidden />
+            <span className="grid size-10 place-items-center rounded-carte bg-sky-500/10">
+              <LifeBuoy className="size-5 text-sky-500" aria-hidden />
             </span>
             <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold text-bleu">
               Abonnés Entreprise : priorité
@@ -150,7 +150,7 @@ export default function PageContact() {
               Le support prioritaire par e-mail est inclus dans le plan{" "}
               <Link
                 href="/tarifs"
-                className="font-medium text-violet hover:underline"
+                className="font-medium text-sky-500 hover:underline"
               >
                 Entreprise
               </Link>{" "}
@@ -159,8 +159,8 @@ export default function PageContact() {
           </div>
 
           <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
-            <span className="grid size-10 place-items-center rounded-carte bg-violet/10">
-              <ShieldCheck className="size-5 text-violet" aria-hidden />
+            <span className="grid size-10 place-items-center rounded-carte bg-sky-500/10">
+              <ShieldCheck className="size-5 text-sky-500" aria-hidden />
             </span>
             <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold text-bleu">
               Tes données restent chez nous
@@ -189,13 +189,13 @@ export default function PageContact() {
             <Link
               key={d.href}
               href={d.href}
-              className="group flex flex-col rounded-carte border border-bordure bg-white p-6 shadow-carte transition hover:border-violet"
+              className="group flex flex-col rounded-carte border border-bordure bg-white p-6 shadow-carte transition hover:border-sky-500"
             >
               <h3 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
                 {d.titre}
               </h3>
               <p className="mt-2 flex-1 text-[14px] leading-6 text-encre">{d.texte}</p>
-              <span className="mt-4 inline-flex items-center gap-1.5 text-[14px] leading-5 font-semibold text-violet">
+              <span className="mt-4 inline-flex items-center gap-1.5 text-[14px] leading-5 font-semibold text-sky-500">
                 {d.cta}
                 <ArrowRight
                   className="size-4 transition-transform group-hover:translate-x-0.5"
@@ -221,7 +221,7 @@ export default function PageContact() {
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 py-4 text-left font-titre text-[16px] leading-6 font-semibold text-bleu [&::-webkit-details-marker]:hidden">
                 {f.question}
                 <Plus
-                  className="size-4 shrink-0 text-violet transition-transform duration-200 group-open:rotate-45"
+                  className="size-4 shrink-0 text-sky-500 transition-transform duration-200 group-open:rotate-45"
                   aria-hidden
                 />
               </summary>
@@ -234,7 +234,7 @@ export default function PageContact() {
       {/* ── Rappel : le formulaire reste le chemin le plus rapide ─ */}
       <p className="mesure mx-auto mt-10 text-center text-[14px] leading-6 text-encre">
         Pas trouvé ta réponse ?{" "}
-        <Link href="#formulaire" className="font-semibold text-violet hover:underline">
+        <Link href="#formulaire" className="font-semibold text-sky-500 hover:underline">
           Remonte au formulaire
         </Link>{" "}
         : ton message arrive directement dans la boîte de l&apos;équipe.

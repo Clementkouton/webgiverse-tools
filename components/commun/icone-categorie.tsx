@@ -8,5 +8,5 @@ const ICONES: Record<string, LucideIcon> = {
 
 export function IconeCategorie({ nom, className }: { nom?: string | null; className?: string }) {
   const Icone = ICONES[nom ?? ""] ?? Bot;
-  return <Icone className={className ?? "size-6 text-violet"} aria-hidden />;
+  return <Icone className={className ?? "size-6 text-sky-500"} aria-hidden />;
 }

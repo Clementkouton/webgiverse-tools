@@ -62,7 +62,7 @@ export function FormulaireOutil({
 
   const styleErreur = "mt-1 text-[13px] leading-4 text-red-600";
   const boiteCoche =
-    "flex items-center gap-3 rounded-champ border border-bordure bg-white px-4 py-3 text-[14px] leading-5 text-bleu cursor-pointer hover:border-violet";
+    "flex items-center gap-3 rounded-champ border border-bordure bg-white px-4 py-3 text-[14px] leading-5 text-bleu cursor-pointer hover:border-sky-500";
 
   return (
     <form action={actionFormulaire} noValidate className="grid gap-6">
@@ -138,7 +138,7 @@ export function FormulaireOutil({
               id="type"
               name="type"
               defaultValue={outil?.type ?? "OUTIL"}
-              className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-violet focus:outline-none"
+              className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-sky-500 focus:outline-none"
             >
               <option value="OUTIL">Outil</option>
               <option value="AGENT">Agent IA</option>
@@ -150,7 +150,7 @@ export function FormulaireOutil({
               id="niveau"
               name="niveau"
               defaultValue={outil?.niveau ?? "Débutant"}
-              className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-violet focus:outline-none"
+              className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-sky-500 focus:outline-none"
             >
               <option value="Débutant">Débutant</option>
               <option value="Intermédiaire">Intermédiaire</option>
@@ -251,7 +251,7 @@ export function FormulaireOutil({
               id="statut"
               name="statut"
               defaultValue={outil?.statut ?? "PUBLIE"}
-              className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-violet focus:outline-none"
+              className="min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-sky-500 focus:outline-none"
             >
               <option value="PUBLIE">Publié (visible sur le site)</option>
               <option value="BROUILLON">Brouillon (invisible)</option>

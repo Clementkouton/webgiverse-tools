@@ -26,7 +26,7 @@ export default async function PagePopulaires() {
         </p>
         <Link
           href="/outils"
-          className="mt-4 inline-block text-sm font-medium text-violet hover:underline"
+          className="mt-4 inline-block text-sm font-medium text-sky-500 hover:underline"
         >
           Voir tous les outils →
         </Link>

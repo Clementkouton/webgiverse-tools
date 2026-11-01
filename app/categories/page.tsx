@@ -28,7 +28,7 @@ export default async function PageCategories() {
       {/* ── Héros ───────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             Annuaire Webgiverse
           </p>
           <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
@@ -39,13 +39,13 @@ export default async function PageCategories() {
             des fiches testées et vérifiées à la main par l&apos;équipe.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {categories.length} catégories
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {totalOutils.toLocaleString("fr-FR")} fiches testées
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               100 % en français
             </li>
           </ul>
@@ -59,17 +59,17 @@ export default async function PageCategories() {
             <Link
               key={c.slug}
               href={`/categorie/${c.slug}`}
-              className="group flex flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-violet"
+              className="group flex flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-sky-500"
             >
-              <span className="grid size-11 place-items-center rounded-carte bg-violet/10">
-                <IconeCategorie nom={c.icone} className="size-5 text-violet" />
+              <span className="grid size-11 place-items-center rounded-carte bg-sky-500/10">
+                <IconeCategorie nom={c.icone} className="size-5 text-sky-500" />
               </span>
               <h2 className="mt-3 font-titre text-[17px] leading-6 font-semibold">{c.nom}</h2>
               <p className="mt-1 text-[13px] leading-5 text-encre">
                 {c._count.outils} outil{c._count.outils > 1 ? "s" : ""} testé
                 {c._count.outils > 1 ? "s" : ""}
               </p>
-              <span className="mt-3 inline-flex items-center gap-1.5 text-[13px] leading-4 font-semibold text-violet">
+              <span className="mt-3 inline-flex items-center gap-1.5 text-[13px] leading-4 font-semibold text-sky-500">
                 Voir les outils
                 <ArrowRight
                   className="size-4 transition-transform group-hover:translate-x-0.5"
@@ -84,8 +84,8 @@ export default async function PageCategories() {
         <section className="mt-12 rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-violet/10">
-                <Sparkles className="size-5 text-violet" aria-hidden />
+              <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-sky-500/10">
+                <Sparkles className="size-5 text-sky-500" aria-hidden />
               </span>
               <div>
                 <h2 className="font-titre text-[18px] leading-6 font-semibold text-bleu">

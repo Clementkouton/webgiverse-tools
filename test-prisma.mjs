@@ -6,7 +6,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 console.log("");
-console.log("=== DIAGNOSTIC PRISMA — Webgiverse Outils IA ===");
+console.log("=== DIAGNOSTIC PRISMA — Webgiverse Tools ===");
 console.log("");
 
 let toutOk = true;

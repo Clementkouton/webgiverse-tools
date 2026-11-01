@@ -56,7 +56,7 @@ export function OngletsFiltres({
           className={
             actif === "categories"
               ? `${BASE_ONGLET} bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]`
-              : `${BASE_ONGLET} text-bleu hover:bg-gris hover:text-violet`
+              : `${BASE_ONGLET} text-bleu hover:bg-gris hover:text-sky-500`
           }
         >
           <LayoutGrid className="size-4" aria-hidden /> Catégories
@@ -70,7 +70,7 @@ export function OngletsFiltres({
           className={
             actif === "metiers"
               ? `${BASE_ONGLET} bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]`
-              : `${BASE_ONGLET} text-bleu hover:bg-gris hover:text-violet`
+              : `${BASE_ONGLET} text-bleu hover:bg-gris hover:text-sky-500`
           }
         >
           <Briefcase className="size-4" aria-hidden /> Métiers

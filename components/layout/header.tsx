@@ -72,23 +72,23 @@ export function Header() {
   const classeLien = (actif: boolean) =>
     `rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium transition ${
       actif
-        ? "bg-violet/10 text-violet"
-        : "text-bleu hover:bg-violet/10 hover:text-violet"
+      ? "bg-sky-500/10 text-sky-500"
+      : "text-bleu hover:bg-sky-500/10 hover:text-sky-500"
     }`;
 
   return (
-    <header className="verre sticky top-0 z-50 border-b border-bordure">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-3 lg:h-[72px]">
+    <header className="verre justify-between sticky top-0 z-50 border-b border-bordure">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-3 lg:h-18">
         <LienLogo />
 
         {/* Navigation desktop */}
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
-          <details className="group relative">
+        <nav className="hidden items-center justify-between gap-1 lg:flex" aria-label="Navigation principale">
+          <details className="group relative  items-center justify-center">
             <summary
               className={`flex min-h-11 cursor-pointer list-none items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium transition [&::-webkit-details-marker]:hidden ${
                 annuaireActif
-                  ? "bg-violet/10 text-violet"
-                  : "text-bleu hover:bg-violet/10 hover:text-violet"
+                ? "bg-sky-500/10 text-sky-500"
+                : "text-bleu hover:bg-sky-500/10 hover:text-sky-500"
               }`}
             >
               Annuaire
@@ -97,7 +97,7 @@ export function Header() {
             <div className="absolute top-full left-0 z-20 mt-1 grid w-56 gap-0.5 rounded-carte border border-bordure bg-white p-2 shadow-carte">
               {LIENS_ANNUAIRE.map((l) => (
                 <Link key={l.href} href={l.href}
-                  className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-violet">
+                  className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-sky-500">
                   {l.label}
                 </Link>
               ))}
@@ -112,8 +112,8 @@ export function Header() {
           <Link href="/tarifs" aria-current={premiumActif ? "page" : undefined}
             className={
               premiumActif
-                ? "inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                : "inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-violet transition hover:bg-violet hover:text-white"
+                ? "inline-flex items-center gap-1.5 rounded-full bg-sky-500 px-4 py-2.5 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                : "inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-sky-500 transition hover:bg-sky-500 hover:text-white"
             }>
             <Sparkles className="size-4" aria-hidden /> Premium
           </Link>
@@ -123,7 +123,7 @@ export function Header() {
           <Bouton taille="sm" asChild>
             <Link href={hrefEspace}>{libelleEspace}</Link>
           </Bouton>
-          <button className="grid size-11 place-items-center rounded-full text-bleu hover:bg-violet/10 lg:hidden"
+          <button className="grid size-11 place-items-center rounded-full text-bleu hover:bg-sky-500/10 lg:hidden"
             aria-expanded={menuOuvert} aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
             onClick={() => setMenuOuvert((v) => !v)}>
             {menuOuvert ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -143,25 +143,25 @@ export function Header() {
             {LIENS_ANNUAIRE.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} onClick={() => setMenuOuvert(false)}
-                  className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-violet">{l.label}</Link>
+                  className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-sky-500">{l.label}</Link>
               </li>
             ))}
             <li aria-hidden className="my-2 border-t border-bordure" />
             <li>
               <Link href="/prompts" onClick={() => setMenuOuvert(false)}
-                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris">
+                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris">
                 Prompts IA
               </Link>
             </li>
             <li>
               <Link href="/tutoriels" onClick={() => setMenuOuvert(false)}
-                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-violet">
+                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-sky-500">
                 Tutoriels
               </Link>
             </li>
             <li>
               <Link href="/tarifs" onClick={() => setMenuOuvert(false)}
-                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris">
+                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris">
                 <Sparkles className="size-4" aria-hidden /> Passer Premium
               </Link>
             </li>

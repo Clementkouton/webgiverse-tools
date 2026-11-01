@@ -45,7 +45,7 @@ function plage(page: number, total: number): (number | "…")[] {
 }
 
 const PASTILLE =
-  "inline-flex min-h-11 items-center gap-1 rounded-full border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu transition hover:border-violet hover:text-violet focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet";
+  "inline-flex min-h-11 items-center gap-1 rounded-full border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu transition hover:border-sky-500 hover:text-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500";
 const DESACTIVEE =
   "inline-flex min-h-11 items-center gap-1 rounded-full border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu opacity-40";
 

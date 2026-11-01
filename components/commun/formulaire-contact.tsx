@@ -6,7 +6,7 @@
 // (app/actions/contact.ts) via useActionState — le pattern de
 // FormulaireNewsletter.
 // Lot 9 — couleurs de la charte d'origine rétablies : champs à focus
-// violet (focus:border-violet, comme partout sur le site) et bouton
+// violet (focus:border-sky-500, comme partout sur le site) et bouton
 // d'envoi avec le dégradé de marque via le composant Bouton (primaire).
 // Design UI inchangé, polices inchangées.
 
@@ -49,7 +49,7 @@ export function FormulaireContact() {
               maxLength={80}
               autoComplete="name"
               placeholder="ex. Awa Koffi"
-              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
             />
           </label>
 
@@ -61,7 +61,7 @@ export function FormulaireContact() {
               required
               autoComplete="email"
               placeholder="ex. awa@email.com"
-              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+              className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
             />
           </label>
         </div>
@@ -72,7 +72,7 @@ export function FormulaireContact() {
             name="sujet"
             required
             defaultValue={SUJETS[0]}
-            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+            className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
           >
             {SUJETS.map((s) => (
               <option key={s} value={s}>
@@ -91,7 +91,7 @@ export function FormulaireContact() {
             maxLength={3000}
             rows={6}
             placeholder="Décris ta demande le plus précisément possible (outil concerné, ce qui s'est passé…)."
-            className="mt-1.5 w-full resize-y rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-violet"
+            className="mt-1.5 w-full resize-y rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
           />
         </label>
 

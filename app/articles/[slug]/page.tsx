@@ -32,7 +32,7 @@ export default async function PageArticle({ params }: { params: Promise<{ slug: 
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 lg:py-16">
-      <Link href={retour.href} className="inline-flex items-center gap-1 text-[14px] font-semibold text-violet hover:underline">
+      <Link href={retour.href} className="inline-flex items-center gap-1 text-[14px] font-semibold text-sky-500 hover:underline">
         <ChevronLeft className="size-4" aria-hidden /> {retour.libelle}
       </Link>
 
@@ -62,7 +62,7 @@ export default async function PageArticle({ params }: { params: Promise<{ slug: 
 
       <footer className="mt-12 rounded-carte border border-bordure bg-gris p-6 text-center">
         <p className="text-[15px] font-semibold text-bleu">Envie de découvrir les meilleurs outils IA ?</p>
-        <Link href="/outils" className="mt-2 inline-block text-[15px] font-semibold text-violet hover:underline">
+        <Link href="/outils" className="mt-2 inline-block text-[15px] font-semibold text-sky-500 hover:underline">
           Explorer l'annuaire →
         </Link>
       </footer>

@@ -17,7 +17,7 @@ export function CarteTuto({ tuto }: { tuto: Tuto }) {
   return (
     <Link
       href={`/tutoriels/${tuto.slug}`}
-      className="group survol-eleve flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition hover:border-violet"
+      className="group survol-eleve flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition hover:border-sky-500"
     >
       {/* ── Miniature 16:9 ─────────────────────────────────────── */}
       <span className="relative block aspect-video w-full overflow-hidden bg-bleu">
@@ -50,12 +50,12 @@ export function CarteTuto({ tuto }: { tuto: Tuto }) {
         <span>
           <Badge variante={niveau.variante}>{niveau.libelle}</Badge>
         </span>
-        <h3 className="mt-2 line-clamp-2 font-titre text-[15px] leading-6 font-semibold text-bleu transition group-hover:text-violet">
+        <h3 className="mt-2 line-clamp-2 font-titre text-[15px] leading-6 font-semibold text-bleu transition group-hover:text-sky-500">
           {tuto.titre}
         </h3>
         <span className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
           {tuto.outils.slice(0, 3).map((o) => (
-            <span key={o} className="text-[12px] leading-4 font-medium text-violet">
+            <span key={o} className="text-[12px] leading-4 font-medium text-sky-500">
               #{o}
             </span>
           ))}

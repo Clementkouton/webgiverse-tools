@@ -57,7 +57,7 @@ export default async function PageUtilisateursAdmin() {
                 </td>
                 <td className="p-3">
                   {u.role === "ADMIN" ? (
-                    <p className="text-[13px] font-semibold text-violet">C'est ton compte 👋</p>
+                    <p className="text-[13px] font-semibold text-sky-500">C'est ton compte 👋</p>
                   ) : (
                     <form action={basculerRoleFormulaire}>
                       <input type="hidden" name="utilisateurId" value={u.id} />

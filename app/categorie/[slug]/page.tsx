@@ -48,7 +48,7 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
       {/* ── Héros de catégorie (style Aixploria) ───────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             <IconeCategorie nom={categorie.icone} className="size-4" />
             Catégorie Webgiverse
           </p>
@@ -60,13 +60,13 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
             (tarifs, liens, fonctionnalités) avant d&apos;entrer dans l&apos;annuaire.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {total} outil{total > 1 ? "s" : ""} testé{total > 1 ? "s" : ""}
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               Fiches vérifiées manuellement
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               100 % en français
             </li>
           </ul>
@@ -84,8 +84,8 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
                   aria-current={c.slug === slug ? "page" : undefined}
                   className={
                     c.slug === slug
-                      ? "inline-flex min-h-9 items-center gap-2 rounded-full border border-violet bg-violet px-4 text-[14px] leading-4 font-semibold text-white"
-                      : "inline-flex min-h-9 items-center gap-2 rounded-full border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+                      ? "inline-flex min-h-9 items-center gap-2 rounded-full border border-sky-500 bg-sky-500 px-4 text-[14px] leading-4 font-semibold text-white"
+                      : "inline-flex min-h-9 items-center gap-2 rounded-full border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-sky-500 hover:text-sky-500"
                   }
                 >
                   {c.nom}
@@ -110,7 +110,7 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
               <p className="mt-8 text-center">
                 <Link
                   href={`/outils?categorie=${slug}`}
-                  className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline"
+                  className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
                 >
                   Voir les {total} outils {categorie.nom.toLowerCase()} dans l&apos;annuaire
                   <ArrowRight className="size-4" aria-hidden />
@@ -121,7 +121,7 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
         ) : (
           <div className="rounded-carte border border-bordure bg-white p-10 text-center shadow-carte">
             <p className="text-encre">Aucun outil dans cette catégorie pour l&apos;instant.</p>
-            <Link href="/proposer" className="mt-2 inline-block font-semibold text-violet hover:underline">
+              <Link href="/proposer" className="mt-2 inline-block font-semibold text-sky-500 hover:underline">
               Proposer un outil
             </Link>
           </div>
@@ -131,8 +131,8 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
         <section className="mt-12 rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-violet/10">
-                <Sparkles className="size-5 text-violet" aria-hidden />
+              <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-sky-500/10">
+                <Sparkles className="size-5 text-sky-500" aria-hidden />
               </span>
               <div>
                 <h2 className="font-titre text-[18px] leading-6 font-semibold text-bleu">

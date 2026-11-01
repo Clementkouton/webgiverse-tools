@@ -33,7 +33,7 @@ export async function SectionPlans() {
       <div className="mx-auto max-w-7xl px-4">
         {/* En-tête de la section */}
         <div className="mx-auto max-w-2xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             <Crown className="size-4" aria-hidden /> Webgiverse Premium
           </p>
           <h2 id="titre-premium-accueil" className="mt-4 text-[26px] leading-8 font-semibold sm:text-h2">
@@ -50,7 +50,7 @@ export async function SectionPlans() {
           {/* Plan Découverte (gratuit) */}
           <Carte className="flex flex-col p-6">
             <div className="flex items-center gap-2">
-              <span className="grid size-10 place-items-center rounded-champ bg-gris text-violet">
+              <span className="grid size-10 place-items-center rounded-champ bg-gris text-sky-500">
                 <Leaf className="size-5" aria-hidden />
               </span>
               <h3 className="text-h3 font-semibold">{PLAN_DECOUVERTE.nom}</h3>
@@ -63,14 +63,14 @@ export async function SectionPlans() {
             <ul className="mt-5 grid flex-1 gap-2.5">
               {PLAN_DECOUVERTE.avantages.map((avantage) => (
                 <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
-                  <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                  <Check className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
                   <span className="text-bleu">{avantage}</span>
                 </li>
               ))}
             </ul>
             <Link
               href="/outils"
-              className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-violet bg-white px-6 text-[16px] leading-5 font-semibold text-bleu transition hover:border-violet-clair hover:bg-gris"
+              className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-sky-500 bg-white px-6 text-[16px] leading-5 font-semibold text-bleu transition hover:border-sky-500-clair hover:bg-gris"
             >
               Explorer l&apos;annuaire <ArrowRight className="size-4" aria-hidden />
             </Link>
@@ -94,16 +94,16 @@ export async function SectionPlans() {
               <Carte
                 key={plan.cle}
                 className={`relative flex flex-col p-6 ${
-                  plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
+                  plan.recommande ? "border-sky-500 shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
                 }`}
               >
                 {plan.recommande && (
-                  <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                  <span className="absolute -top-3 left-6 rounded-full bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white">
                     Le plus populaire
                   </span>
                 )}
                 <div className="flex items-center gap-2">
-                  <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+                  <span className="grid size-10 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
                     <Crown className="size-5" aria-hidden />
                   </span>
                   <h3 className="text-h3 font-semibold">{plan.nom}</h3>
@@ -116,7 +116,7 @@ export async function SectionPlans() {
                 <ul className="mt-5 grid flex-1 gap-2.5">
                   {plan.avantages.map((avantage) => (
                     <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
-                      <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                      <Check className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
                       <span className="text-bleu">{avantage}</span>
                     </li>
                   ))}
@@ -158,13 +158,13 @@ export async function SectionPlans() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-center">
           <Link
             href="/tarifs"
-            className="inline-flex min-h-11 items-center gap-1.5 text-[15px] leading-5 font-semibold text-violet hover:underline"
+            className="inline-flex min-h-11 items-center gap-1.5 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
           >
             Voir le détail des plans et gérer mon abonnement{" "}
             <ArrowRight className="size-4" aria-hidden />
           </Link>
           <span className="inline-flex items-center gap-1.5 text-[13px] leading-5 text-encre">
-            <ShieldCheck className="size-4 text-violet" aria-hidden />
+            <ShieldCheck className="size-4 text-sky-500" aria-hidden />
             Sans engagement : tu arrêtes quand tu veux.
           </span>
         </div>

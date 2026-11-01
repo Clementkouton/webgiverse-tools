@@ -29,6 +29,7 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { activerAbonnement } from "@/lib/abonnements";
+import { recompenserParrain } from "@/lib/parrainage";
 import { PLANS, type ClePlan } from "@/lib/plans";
 import { envoyerEmail, emailPaiementConfirme } from "@/lib/email";
 
@@ -370,6 +371,11 @@ export async function POST(requete: Request) {
 
     // Active ou prolonge l'abonnement (prolonge depuis l'échéance déjà payée).
     await activerAbonnement({ utilisateurId: utilisateur.id, plan, paiementId: paiement.id });
+
+    // 🤝 Lot 20 — si ce client a été parrainé, son parrain reçoit
+    // 1 MOIS OFFERT (extension de son abonnement). Idempotent et non
+    // bloquant : une erreur de parrainage n'annule jamais la vente.
+    await recompenserParrain(utilisateur.id);
     // Email de confirmation : récapitulatif plan + montant. Envoyé une seule
     // fois (les contrôles d'idempotence ci-dessus ont déjà filtré les replays
     // Chariow et les doubles événements successful.sale / license.issued).

@@ -18,7 +18,7 @@ export default async function PageNouvelOutil() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/outils" className="inline-flex items-center gap-1 text-[14px] font-semibold text-violet hover:underline">
+      <Link href="/admin/outils" className="inline-flex items-center gap-1 text-[14px] font-semibold text-sky-500 hover:underline">
         <ChevronLeft className="size-4" aria-hidden /> Retour à la liste des outils
       </Link>
       <h2 className="mt-3 text-h3 font-semibold">Ajouter un outil</h2>

@@ -18,7 +18,7 @@ function RenduTexte({ texte }: { texte: string }) {
         const correspond = m.match(/^\*\*([^*]+)\*\*(?:\s*\(slug\s*:\s*([a-z0-9-]+)\))?$/);
         if (correspond) {
           return correspond[2] ? (
-            <Link key={i} href={`/outil/${correspond[2]}`} className="font-semibold text-violet underline-offset-2 hover:underline">
+            <Link key={i} href={`/outil/${correspond[2]}`} className="font-semibold text-sky-500 underline-offset-2 hover:underline">
               {correspond[1]}
             </Link>
           ) : (
@@ -95,7 +95,7 @@ export function ChatAssistant() {
     return (
       <>
         <Carte className="p-8 text-center">
-          <Sparkles className="mx-auto size-8 text-violet" aria-hidden />
+          <Sparkles className="mx-auto size-8 text-sky-500" aria-hidden />
           <h2 className="mt-3 text-h3 font-semibold">Le mode conversation est réservé aux membres</h2>
           <p className="mesure mx-auto mt-2 text-encre">
             Connecte-toi pour discuter avec l'assistant — 20 messages par jour inclus.
@@ -135,7 +135,7 @@ export function ChatAssistant() {
         <label htmlFor="chat-saisie" className="sr-only">Ton message</label>
         <input id="chat-saisie" value={texte} onChange={(e) => setTexte(e.target.value)}
           placeholder="Décris ton besoin…" maxLength={4000} disabled={enCours}
-          className="min-h-12 flex-1 rounded-full border border-bordure bg-white px-5 text-[16px] leading-6 focus:border-violet focus:outline-none disabled:opacity-60" />
+          className="min-h-12 flex-1 rounded-full border border-bordure bg-white px-5 text-[16px] leading-6 focus:border-sky-500 focus:outline-none disabled:opacity-60" />
         <Bouton type="submit" disabled={enCours || !texte.trim()} aria-label="Envoyer">
           <ArrowUp aria-hidden />
         </Bouton>

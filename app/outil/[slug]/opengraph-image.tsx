@@ -5,7 +5,7 @@
 import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/prisma";
 
-export const alt = "Fiche outil IA — Webgiverse";
+export const alt = "Fiche outil IA — Webgiverse Tools";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const revalidate = 3600; // même durée de cache que la fiche
@@ -64,7 +64,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             W
           </div>
           <div style={{ fontSize: 28, fontWeight: 600, opacity: 0.9 }}>
-            Webgiverse Outils IA
+            Webgiverse Tools
           </div>
         </div>
 

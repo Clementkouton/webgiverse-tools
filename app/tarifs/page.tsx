@@ -39,7 +39,7 @@ import {
 import { FAQ_TARIFS } from "@/content/faq-tarifs";
 
 export const metadata: Metadata = {
-  title: "Premium — Tarifs — Webgiverse Outils IA",
+  title: "Premium — Tarifs — Webgiverse Tools",
   description:
     "Plan Découverte gratuit, Pro à $2,99/mois, Entreprise à $7,99/mois : comparez les plans en détail, payez par Mobile Money ou carte bancaire, activation automatique, sans engagement.",
 };
@@ -90,10 +90,10 @@ function CelluleComparatifVue({
   miseEnAvant?: boolean;
 }) {
   return (
-    <td className={`px-4 py-3 text-center ${miseEnAvant ? "bg-violet/5" : ""}`}>
+    <td className={`px-4 py-3 text-center ${miseEnAvant ? "bg-sky-500/5" : ""}`}>
       {typeof valeur === "boolean" ? (
         valeur ? (
-          <Check className="mx-auto size-4 text-violet" aria-label="Inclus" />
+          <Check className="mx-auto size-4 text-sky-500" aria-label="Inclus" />
         ) : (
           <Minus className="mx-auto size-4 text-bleu/40" aria-label="Non inclus" />
         )
@@ -129,7 +129,7 @@ export default async function PageTarifs() {
       />
 
       <header className="mx-auto max-w-2xl text-center">
-        <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+        <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
           <Sparkles className="size-4" aria-hidden /> Webgiverse Premium
         </p>
         <h1 className="mt-4 text-h2 font-titre font-semibold">Tire le meilleur de l&apos;annuaire</h1>
@@ -138,7 +138,7 @@ export default async function PageTarifs() {
           exclusifs. Paiement sécurisé via Chariow : Mobile Money (MTN, Moov, Orange, Wave…) et
           cartes Visa / Mastercard — tu peux payer depuis n&apos;importe quel pays.
         </p>
-        <p className="mt-3 flex items-center justify-center gap-2 text-[13px] leading-5 font-medium text-violet">
+        <p className="mt-3 flex items-center justify-center gap-2 text-[13px] leading-5 font-medium text-sky-500">
           <Mail className="size-4 shrink-0" aria-hidden />
           Paie avec la même adresse e-mail que ton compte Webgiverse : ton Premium
           s&apos;active tout seul, en quelques secondes.
@@ -146,8 +146,8 @@ export default async function PageTarifs() {
       </header>
 
       {abonnementActif && (
-        <Carte className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-between gap-3 border-violet/40 bg-violet/5 p-5">
-          <p className="flex items-center gap-2 text-[15px] leading-5 font-semibold text-violet">
+        <Carte className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-between gap-3 border-sky-500/40 bg-sky-500/5 p-5">
+          <p className="flex items-center gap-2 text-[15px] leading-5 font-semibold text-sky-500">
             <Crown className="size-5" aria-hidden />
             Tu es Premium ({nomPlanActif}) jusqu&apos;au{" "}
             {formatDateLongue.format(abonnementActif.expireLe)}
@@ -162,7 +162,7 @@ export default async function PageTarifs() {
         {/* Plan Découverte (gratuit) */}
         <Carte className="flex flex-col p-6">
           <div className="flex items-center gap-2">
-            <span className="grid size-10 place-items-center rounded-champ bg-gris text-violet">
+            <span className="grid size-10 place-items-center rounded-champ bg-gris text-sky-500">
               <Leaf className="size-5" aria-hidden />
             </span>
             <h2 className="text-h3 font-semibold">{PLAN_DECOUVERTE.nom}</h2>
@@ -175,7 +175,7 @@ export default async function PageTarifs() {
           <ul className="mt-5 grid flex-1 gap-2.5">
             {PLAN_DECOUVERTE.avantages.map((avantage) => (
               <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
-                <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                <Check className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
                 <span className="text-bleu">{avantage}</span>
               </li>
             ))}
@@ -220,18 +220,18 @@ export default async function PageTarifs() {
             <Carte
               key={plan.cle}
               className={`relative flex flex-col p-6 ${
-                plan.recommande ? "border-violet shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
+                plan.recommande ? "border-sky-500 shadow-[0_10px_40px_rgba(106,59,255,0.18)]" : ""
               }`}
             >
               {/* Lot 7 : le badge marketing ne s'affiche que pour les prospects —
                   un client déjà Premium n'a plus besoin d'être « converti ». */}
               {plan.recommande && !abonnementActif && (
-                <span className="absolute -top-3 left-6 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                <span className="absolute -top-3 left-6 rounded-full bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white">
                   Le plus populaire
                 </span>
               )}
               <div className="flex items-center gap-2">
-                <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+                <span className="grid size-10 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
                   <Crown className="size-5" aria-hidden />
                 </span>
                 <h2 className="text-h3 font-semibold">{plan.nom}</h2>
@@ -244,7 +244,7 @@ export default async function PageTarifs() {
               <ul className="mt-5 grid flex-1 gap-2.5">
                 {plan.avantages.map((avantage) => (
                   <li key={avantage} className="flex items-start gap-2 text-[14px] leading-5">
-                    <Check className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                    <Check className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
                     <span className="text-bleu">{avantage}</span>
                   </li>
                 ))}
@@ -266,7 +266,7 @@ export default async function PageTarifs() {
                 <BoutonPaiement
                   clePlan={plan.cle}
                   libelle={bascule ? `Basculer vers ${plan.nom}` : `Choisir ${plan.nom}`}
-                  className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-violet px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-sky-500 px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
                 />
               ) : urlCheckout ? (
                 /* 4a) Connecté, intégré pas prêt → ancien lien Chariow (secours) */
@@ -315,7 +315,7 @@ export default async function PageTarifs() {
                 <th scope="col" className="px-4 py-3 text-center font-titre font-semibold">
                   Découverte
                 </th>
-                <th scope="col" className="bg-violet/5 px-4 py-3 text-center font-titre font-semibold text-violet">
+                <th scope="col" className="bg-sky-500/5 px-4 py-3 text-center font-titre font-semibold text-sky-500">
                   Pro
                 </th>
                 <th scope="col" className="px-4 py-3 text-center font-titre font-semibold">
@@ -346,7 +346,7 @@ export default async function PageTarifs() {
         </h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <Carte className="p-5">
-            <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+            <span className="grid size-10 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
               <CalendarX className="size-5" aria-hidden />
             </span>
             <h3 className="mt-3 font-titre text-[16px] leading-6 font-semibold">Sans engagement</h3>
@@ -356,7 +356,7 @@ export default async function PageTarifs() {
             </p>
           </Carte>
           <Carte className="p-5">
-            <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+            <span className="grid size-10 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
               <Zap className="size-5" aria-hidden />
             </span>
             <h3 className="mt-3 font-titre text-[16px] leading-6 font-semibold">Activation automatique</h3>
@@ -366,7 +366,7 @@ export default async function PageTarifs() {
             </p>
           </Carte>
           <Carte className="p-5">
-            <span className="grid size-10 place-items-center rounded-champ bg-violet/10 text-violet">
+            <span className="grid size-10 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
               <LifeBuoy className="size-5" aria-hidden />
             </span>
             <h3 className="mt-3 font-titre text-[16px] leading-6 font-semibold">Un humain derrière</h3>
@@ -385,7 +385,7 @@ export default async function PageTarifs() {
         </h2>
         <p className="mesure mx-auto mt-2 text-center text-encre">
           Les réponses courtes. Une autre question ?{" "}
-          <Link href="/contact" className="font-semibold text-violet hover:underline">
+          <Link href="/contact" className="font-semibold text-sky-500 hover:underline">
             Écris-nous
           </Link>
           .

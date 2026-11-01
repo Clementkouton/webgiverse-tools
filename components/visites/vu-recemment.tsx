@@ -56,7 +56,7 @@ export default function VuRecemment({
           <button
             type="button"
             onClick={effacer}
-            className="text-[13px] leading-4 text-encre transition hover:text-violet"
+            className="text-[13px] leading-4 text-encre transition hover:text-sky-500"
           >
             Effacer
           </button>
@@ -66,7 +66,7 @@ export default function VuRecemment({
             <Link
               key={o.slug}
               href={`/outil/${o.slug}`}
-              className="flex items-center gap-3 rounded-carte border border-bordure bg-white p-3.5 shadow-carte transition hover:border-violet"
+              className="flex items-center gap-3 rounded-carte border border-bordure bg-white p-3.5 shadow-carte transition hover:border-sky-500"
             >
               {o.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element

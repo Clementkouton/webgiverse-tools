@@ -5,9 +5,9 @@
     /* texte principal, titres, footer */
     --color-encre: #43507a;
     /* texte secondaire (AA sur blanc) */
-    --color-violet: #6a3bff;
+    --color-sky-500: #007FFF;
     /* marque, liens, actifs */
-    --color-violet-clair: #8f6bff;
+    --color-sky-500-clair: #008BFF;
     --color-ciel: #00d1ff;
     /* secondaire, dégradés */
     --color-ciel-fonce: #0091c2;
@@ -55,7 +55,7 @@
     }
     /* Focus clavier toujours visible */
      :focus-visible {
-        outline: 2px solid var(--color-violet);
+        outline: 2px solid var(--color-sky-500);
         outline-offset: 2px;
         border-radius: 4px;
     }
@@ -81,14 +81,14 @@
 @layer utilities {
     /* Dégradé de marque pour titres (variante foncée → contraste AA) */
     .texte-degrade {
-        background-image: linear-gradient(100deg, var(--color-violet) 15%, var(--color-ciel-fonce) 90%);
+        background-image: linear-gradient(100deg, var(--color-sky-500) 15%, var(--color-ciel-fonce) 90%);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
     }
     /* Variante pour fond bleu profond */
     .texte-degrade-clair {
-        background-image: linear-gradient(100deg, var(--color-violet-clair) 10%, var(--color-ciel) 90%);
+        background-image: linear-gradient(100deg, var(--color-sky-500-clair) 10%, var(--color-ciel) 90%);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -304,7 +304,7 @@
 .survol-carte:focus-visible {
     transform: translateY(-4px);
     box-shadow: 0 14px 34px rgba(11, 27, 63, 0.12);
-    border-color: var(--color-violet);
+    border-color: var(--color-sky-500);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -312,7 +312,7 @@
     .survol-carte:hover {
         transform: translateY(-4px);
         box-shadow: 0 14px 34px rgba(11, 27, 63, 0.12);
-        border-color: var(--color-violet);
+        border-color: var(--color-sky-500);
     }
 }
 
@@ -352,7 +352,7 @@
     height: 0;
     width: 3px;
     border-radius: 999px;
-    background: var(--color-violet);
+    background: var(--color-sky-500);
     transform: translateY(-50%);
     transition: height 0.25s ease;
 }

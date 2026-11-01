@@ -86,7 +86,7 @@ export default function PopupConnexion({
         </button>
 
         <div className="mb-6">
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-violet/10 text-violet">
+          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-sky-500/10 text-sky-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

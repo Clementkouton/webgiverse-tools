@@ -47,7 +47,7 @@ export function FormulaireArticle({
 
   const styleErreur = "mt-1 text-[13px] leading-4 text-red-600";
   const selectClasse =
-    "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-violet focus:outline-none";
+    "min-h-11 w-full rounded-champ border border-bordure bg-white px-3 focus:border-sky-500 focus:outline-none";
 
   return (
     <form action={actionFormulaire} noValidate className="grid gap-6">

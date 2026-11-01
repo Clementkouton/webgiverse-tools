@@ -11,7 +11,7 @@ export function FormulaireNewsletter() {
       <form action={action} className="mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row">
         <label htmlFor="email-newsletter" className="sr-only">Adresse e-mail</label>
         <input id="email-newsletter" name="email" type="email" required placeholder="ton@email.com"
-          className="min-h-12 flex-1 rounded-full border border-bordure bg-white px-5 text-[16px] leading-6 focus:border-violet focus:outline-none" />
+          className="min-h-12 flex-1 rounded-full border border-bordure bg-white px-5 text-[16px] leading-6 focus:border-sky-500 focus:outline-none" />
         <Bouton type="submit" disabled={enCours}>{enCours ? "Envoi…" : "S'abonner"}</Bouton>
       </form>
       {etat.message && (

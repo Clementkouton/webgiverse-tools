@@ -1,7 +1,7 @@
 // lib/prompts-utils.ts
 // ─────────────────────────────────────────────────────────────────
 // Lot 17 — Bibliothèque de prompts IA. Données statiques françaises :
-// rôles (pages /prompts/role/[slug]), libellés des types et modèles
+// rôles (pages /prompts/roles/[slug]), libellés des types et modèles
 // compatibles par type de prompt. Aucune donnée métier ici : les
 // catégories et les prompts vivent en base (Prisma).
 // ─────────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ export const ROLES: RolePrompt[] = [
   { slug: "traders", nom: "Traders" },
 ];
 
-/** Retrouve un rôle par son slug (pour les pages /prompts/role/[slug]). */
+/** Retrouve un rôle par son slug (pour les pages /prompts/roles/[slug]). */
 export function roleParSlug(slug: string): RolePrompt | undefined {
   return ROLES.find((r) => r.slug === slug);
 }

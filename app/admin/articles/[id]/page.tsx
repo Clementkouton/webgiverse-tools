@@ -17,7 +17,7 @@ export default async function PageModifierArticle({ params }: { params: Promise<
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/articles" className="inline-flex items-center gap-1 text-[14px] font-semibold text-violet hover:underline">
+      <Link href="/admin/articles" className="inline-flex items-center gap-1 text-[14px] font-semibold text-sky-500 hover:underline">
         <ChevronLeft className="size-4" aria-hidden /> Retour aux articles
       </Link>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -30,7 +30,7 @@ export default async function PageModifierArticle({ params }: { params: Promise<
             href={`/articles/${article.slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-violet hover:underline"
+            className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-sky-500 hover:underline"
           >
             Voir l'article publié <ExternalLink className="size-4" aria-hidden />
           </a>

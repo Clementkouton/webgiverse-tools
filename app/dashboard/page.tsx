@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Compass,
   Crown,
+  Flame,
   History,
   LayoutDashboard,
   ListChecks,
@@ -63,6 +64,11 @@ import { CarteStatistique } from "@/components/dashboard/carte-statistique";
 import { GraphiqueActivite } from "@/components/dashboard/graphique-activite";
 import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
 import { urlMiniature, formaterDuree, NIVEAUX } from "@/lib/tutos-utils";
+// Lot 20 — engagement & rétention
+import { calculerOnboarding, calculerStreak } from "@/lib/engagement";
+import { synchroniserNotificationsTutos } from "@/lib/notifications";
+import { ChecklistOnboarding } from "@/components/dashboard/checklist-onboarding";
+import { CarteRappelsATester } from "@/components/dashboard/carte-rappels-a-tester";
 
 export const metadata: Metadata = { title: "Mon espace" };
 
@@ -185,6 +191,21 @@ export default async function PageDashboard({
     ? Math.min(100, Math.round((score / seuilSuivant) * 100))
     : 100;
 
+  // ── Lot 20 — activité des 60 derniers jours (streak + graphique) ──
+  const debutStreak = new Date();
+  debutStreak.setHours(0, 0, 0, 0);
+  debutStreak.setDate(debutStreak.getDate() - 59);
+  let activitesRecents: { creeLe: Date }[] = [];
+  try {
+    activitesRecents = await prisma.activiteUtilisateur.findMany({
+      where: { utilisateurId: userId, creeLe: { gte: debutStreak } },
+      select: { creeLe: true },
+    });
+  } catch {
+    /* journal indisponible : graphique à zéro, streak à 0 */
+  }
+  const streak = calculerStreak(activitesRecents.map((a) => a.creeLe));
+
   // ── Abonnement (chargé une seule fois pour l'en-tête ET l'onglet Aperçu) ──
   const prismaAbonnement = (prisma as any).abonnement;
   const abonnementEnTete = prismaAbonnement?.findUnique
@@ -209,12 +230,16 @@ export default async function PageDashboard({
   const badges: { titre: string; description: string; obtenu: boolean; icone: LucideIcon }[] = [
     { titre: "Premier favori", description: "1 outil en favori", obtenu: nbFavoris >= 1, icone: Star },
     { titre: "Collectionneur", description: "5 favoris", obtenu: nbFavoris >= 5, icone: Star },
+    { titre: "Collectionneur pro", description: "10 favoris", obtenu: nbFavoris >= 10, icone: Star },
     { titre: "Testeur actif", description: "3 outils en cours", obtenu: nbEnCours >= 3, icone: Loader },
     { titre: "Fidèle au poste", description: "3 outils adoptés", obtenu: nbAdoptes >= 3, icone: CheckCircle2 },
     { titre: "Premier avis", description: "1 avis publié", obtenu: nbAvis >= 1, icone: MessageSquareQuote },
     { titre: "Grand critique", description: "5 avis publiés", obtenu: nbAvis >= 5, icone: MessageSquareQuote },
     { titre: "Organisateur", description: "1 liste créée", obtenu: nbListes >= 1, icone: ListChecks },
     { titre: "Voix qui compte", description: "5 votes donnés", obtenu: nbVotes >= 5, icone: ThumbsUp },
+    // Lot 20 — nouveaux badges de rétention
+    { titre: "Apprenant assidu", description: "5 tutoriels terminés", obtenu: nbTutosTermines >= 5, icone: MonitorPlay },
+    { titre: "Série en feu", description: "7 jours d'affilée", obtenu: streak >= 7, icone: Flame },
   ];
 
   // ── En-tête commun (greeting + niveau) ───────────────
@@ -341,19 +366,12 @@ export default async function PageDashboard({
 
     // ── Données du tableau de bord (style Metis) — toutes défensives :
     //    si une table est absente ou vide, l'aperçu reste affichable. ──
+    // (Lot 20 : les activités des 60 derniers jours sont déjà chargées
+    // dans l'en-tête commun pour le streak — on filtre ici la semaine.)
     const debutSemaine = new Date();
     debutSemaine.setHours(0, 0, 0, 0);
     debutSemaine.setDate(debutSemaine.getDate() - 6);
-
-    let activites7j: { creeLe: Date }[] = [];
-    try {
-      activites7j = await prisma.activiteUtilisateur.findMany({
-        where: { utilisateurId: userId, creeLe: { gte: debutSemaine } },
-        select: { creeLe: true },
-      });
-    } catch {
-      /* journal indisponible : le graphique affichera une ligne à zéro */
-    }
+    const activites7j = activitesRecents.filter((a) => a.creeLe >= debutSemaine);
     const jours = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(debutSemaine);
       d.setDate(debutSemaine.getDate() + i);
@@ -370,6 +388,42 @@ export default async function PageDashboard({
         .replace(".", ""),
     );
     const totalActivite = valeursActivite.reduce((somme, v) => somme + v, 0);
+
+    // ── Lot 20 — checklist d'onboarding (jauge de complétion) ──
+    const nbRecommandations = await prisma.recommendation
+      .count({ where: { userId } })
+      .catch(() => 0);
+    const onboarding = calculerOnboarding({
+      objectif: utilisateur?.objectif ?? null,
+      niveau: utilisateur?.niveau ?? null,
+      budget: utilisateur?.budget ?? null,
+      nbFavoris,
+      nbAvis,
+      nbTutosTermines,
+      nbRecommandations,
+      nbListes,
+    });
+
+    // ── Lot 20 — rappels « À tester » : favoris restés en attente
+    //    depuis 30 jours ou plus (on relance la découverte) ──
+    const ilYa30Jours = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const enAttenteLongtemps = await prisma.favorite
+      .findMany({
+        where: { userId, statut: "A_TESTER", createdAt: { lt: ilYa30Jours } },
+        orderBy: { createdAt: "asc" },
+        take: 5,
+        select: { createdAt: true, tool: { select: { nom: true, slug: true } } },
+      })
+      .catch(() => []);
+    const outilsEnAttente = enAttenteLongtemps.map((f) => ({
+      nom: f.tool.nom,
+      slug: f.tool.slug,
+      jours: Math.max(30, Math.floor((Date.now() - f.createdAt.getTime()) / (24 * 60 * 60 * 1000))),
+    }));
+
+    // 🔔 Lot 20 — détecte les nouveaux tutoriels correspondant aux
+    // catégories des outils en favori et crée les notifications.
+    await synchroniserNotificationsTutos(userId);
 
     const nbATester = await prisma.favorite.count({
       where: { userId, statut: "A_TESTER" },
@@ -424,6 +478,49 @@ export default async function PageDashboard({
 
     contenu = (
       <>
+        {/* ── Lot 20 — Checklist d'onboarding (jauge de complétion) ── */}
+        <div className="mt-8">
+          <ChecklistOnboarding onboarding={onboarding} />
+        </div>
+
+        {/* ── Lot 20 — Rangée de badges SOUS les stat cards ────────── */}
+        <Carte className="animate-apparition-haut delai-1 mt-6 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Tes médailles</h2>
+            <Link
+              href="/dashboard?onglet=activite"
+              className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
+            >
+              {badges.filter((b) => b.obtenu).length} / {badges.length} débloquées →
+            </Link>
+          </div>
+          <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+            {badges.map((b) => (
+              <div
+                key={b.titre}
+                title={b.description}
+                className={`flex w-32 shrink-0 flex-col items-center gap-1.5 rounded-carte border p-3.5 text-center transition ${
+                  b.obtenu
+                    ? "border-transparent bg-[linear-gradient(140deg,rgba(106,59,255,0.12),rgba(0,209,255,0.10))] shadow-[0_4px_14px_rgba(106,59,255,0.18)]"
+                    : "border-bordure bg-gris/60 opacity-60"
+                }`}
+              >
+                <span
+                  className={`grid size-10 place-items-center rounded-full text-[18px] ${
+                    b.obtenu
+                      ? "bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-white"
+                      : "bg-white text-encre"
+                  }`}
+                >
+                  {b.obtenu ? <b.icone className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
+                </span>
+                <p className="font-titre text-[12px] leading-4 font-semibold text-bleu">{b.titre}</p>
+                <p className="text-[11px] leading-3.5 text-encre">{b.description}</p>
+              </div>
+            ))}
+          </div>
+        </Carte>
+
         {/* ── Cartes statistiques (style Metis) ───────────────────── */}
         <section aria-label="Mes statistiques" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <CarteStatistique
@@ -486,7 +583,18 @@ export default async function PageDashboard({
           <Carte className="animate-apparition-haut p-6 lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Mon activité</h2>
-              <Badge variante="defaut">7 derniers jours</Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Lot 20 — 🔥 streak : jours consécutifs d'activité */}
+                {streak > 0 && (
+                  <span
+                    title={`${streak} jour${streak > 1 ? "s" : ""} consécutif${streak > 1 ? "s" : ""} d'activité`}
+                    className="inline-flex items-center gap-1 rounded-full bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] px-2.5 py-0.5 text-[12px] leading-4 font-bold text-white"
+                  >
+                    🔥 {streak} jour{streak > 1 ? "s" : ""} d'affilée
+                  </span>
+                )}
+                <Badge variante="defaut">7 derniers jours</Badge>
+              </div>
             </div>
             <p className="mt-1 text-[13px] leading-4 text-encre">
               {totalActivite > 0
@@ -522,6 +630,11 @@ export default async function PageDashboard({
             )}
           </Carte>
         </section>
+
+        {/* ── Lot 20 — Rappels « À tester » (30 jours et plus) ────── */}
+        <div className="mt-6">
+          <CarteRappelsATester outils={outilsEnAttente} />
+        </div>
 
         {/* ── Derniers favoris (tableau style Metis) + Tutoriels ──── */}
         <section className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -765,35 +878,6 @@ export default async function PageDashboard({
                 </Link>
               </Bouton>
             )}
-          </div>
-        </Carte>
-
-        {/* Badges / gamification */}
-        <Carte className="animate-apparition-haut delai-3 mt-8 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-h3 font-semibold">Tes badges</h2>
-            <Badge variante="source">Niveau : {palier.nom}</Badge>
-          </div>
-          <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-            {badges.map((b) => (
-              <div
-                key={b.titre}
-                title={b.description}
-                className={`flex w-36 shrink-0 flex-col items-center gap-2 rounded-carte border p-4 text-center ${
-                  b.obtenu ? "border-sky-500 bg-sky-500/5" : "border-bordure bg-gris/60 opacity-60"
-                }`}
-              >
-                <span
-                  className={`grid size-10 place-items-center rounded-full ${
-                    b.obtenu ? "bg-sky-500 text-white" : "bg-white text-encre"
-                  }`}
-                >
-                  {b.obtenu ? <b.icone className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
-                </span>
-                <p className="font-titre text-[13px] leading-4 font-semibold">{b.titre}</p>
-                <p className="text-[11px] leading-4 text-encre">{b.description}</p>
-              </div>
-            ))}
           </div>
         </Carte>
 

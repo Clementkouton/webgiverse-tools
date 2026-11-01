@@ -22,7 +22,7 @@ const BUDGETS = [
 const CarteChoix = ({ selectionne, children, ...props }: React.ComponentProps<"button"> & { selectionne: boolean }) => (
   <button {...props} aria-pressed={selectionne}
     className={`min-h-11 rounded-carte border p-4 text-left transition ${
-      selectionne ? "border-violet bg-violet/5 shadow-carte" : "border-bordure bg-white hover:border-violet"}`}>
+      selectionne ? "border-sky-500 bg-sky-500/5 shadow-carte" : "border-bordure bg-white hover:border-sky-500"}`}>
     {children}
   </button>
 );

@@ -161,7 +161,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
   const filtreActif = Boolean(q || type || categorie || gratuit || openSource);
 
   const classeChamp =
-    "mt-1 w-full rounded-champ border border-bordure bg-gris px-3 py-2 text-sm text-encre outline-none transition focus:border-violet focus:bg-white";
+    "mt-1 w-full rounded-champ border border-bordure bg-gris px-3 py-2 text-sm text-encre outline-none transition focus:border-sky-500 focus:bg-white";
   const classeEtiquette =
     "text-xs font-semibold uppercase tracking-wide text-gray-500";
 
@@ -238,7 +238,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
                 name="gratuit"
                 value="1"
                 defaultChecked={gratuit}
-                className="h-4 w-4 accent-violet"
+                className="h-4 w-4 accent-sky-500"
               />
               Gratuit
             </label>
@@ -249,7 +249,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
                 name="openSource"
                 value="1"
                 defaultChecked={openSource}
-                className="h-4 w-4 accent-violet"
+                className="h-4 w-4 accent-sky-500"
               />
               Open source
             </label>
@@ -258,7 +258,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              className="rounded-champ bg-violet px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              className="rounded-champ bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
             >
               Filtrer
             </button>
@@ -266,7 +266,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
             {filtreActif && (
               <Link
                 href="/outils"
-                className="text-sm font-medium text-violet underline-offset-2 hover:underline"
+                className="text-sm font-medium text-sky-500 underline-offset-2 hover:underline"
               >
                 Réinitialiser
               </Link>
@@ -296,7 +296,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
           </p>
           <Link
             href="/outils"
-            className="mt-4 inline-block rounded-champ bg-violet px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+            className="mt-4 inline-block rounded-champ bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
           >
             Voir tous les outils
           </Link>

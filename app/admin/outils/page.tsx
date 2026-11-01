@@ -74,7 +74,7 @@ export default async function PageOutilsAdmin({
             href={f.valeur ? `/admin/outils?statut=${f.valeur}` : "/admin/outils"}
             className={cn(
               "rounded-full px-4 py-2 text-[14px] leading-5 font-semibold",
-              statut === f.valeur ? "bg-violet text-white" : "bg-white text-encre hover:text-bleu"
+              statut === f.valeur ? "bg-sky-500 text-white" : "bg-white text-encre hover:text-bleu"
             )}
           >
             {f.libelle}
@@ -100,7 +100,7 @@ export default async function PageOutilsAdmin({
                   <div className="flex items-center gap-3">
                     <LogoOutil nom={o.nom} logo={o.logo} />
                     <div className="min-w-0">
-                      <Link href={`/outil/${o.slug}`} className="font-semibold text-violet hover:underline">
+                      <Link href={`/outil/${o.slug}`} className="font-semibold text-sky-500 hover:underline">
                         {o.nom}
                       </Link>
                       <p className="truncate text-[12px] text-encre">

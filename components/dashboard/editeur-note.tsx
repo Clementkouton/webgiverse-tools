@@ -15,7 +15,7 @@
 //   enregistre la note sans quitter le clavier
 // ─────────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
-import { Check, Loader2, NotebookPen, Save } from "lucide-react";
+import { Check, Loader2, Lock, NotebookPen, Save } from "lucide-react";
 import { ZoneTexte } from "@/components/ui/champ";
 import { Bouton } from "@/components/ui/bouton";
 import { majNote } from "@/app/actions/favoris";
@@ -47,9 +47,14 @@ export function EditeurNote({ favoriId, note }: { favoriId: string; note: string
 
   return (
     <div className="rounded-champ border border-bordure bg-gris/40 p-3 transition focus-within:border-violet">
-      <p className="mb-2 flex items-center gap-1.5 text-[12px] leading-4 font-semibold uppercase tracking-wide text-encre">
+      <p className="mb-2 flex flex-wrap items-center gap-1.5 text-[12px] leading-4 font-semibold uppercase tracking-wide text-encre">
         <NotebookPen className="size-3.5 text-violet" aria-hidden />
         Ma note personnelle
+        {/* Lot 20 — le statut PRIVÉ est explicite : c'est ton brouillon,
+            différent des avis publics visibles par toute la communauté. */}
+        <span className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold normal-case text-violet">
+          <Lock className="size-2.5" aria-hidden /> Privée — visible de toi seul
+        </span>
       </p>
 
       <ZoneTexte

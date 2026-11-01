@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://webgiverse.com";
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://webgiverse-tools.vercel.app";
   const [outils, categories] = await Promise.all([
     prisma.tool.findMany({ where: { statut: "PUBLIE" }, select: { slug: true, updatedAt: true } }),
     prisma.category.findMany({ select: { slug: true } }),

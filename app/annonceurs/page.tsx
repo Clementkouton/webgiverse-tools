@@ -104,17 +104,17 @@ export default async function PageAnnonceurs() {
           <dl className="mt-10 flex flex-wrap justify-center gap-8 sm:gap-14">
             <div className="text-center">
               <dt className="sr-only">Outils référencés</dt>
-              <dd className="font-titre text-[32px] leading-10 font-bold text-violet">{outils}</dd>
+              <dd className="font-titre text-[32px] leading-10 font-bold text-sky-500">{outils}</dd>
               <dd className="text-legende text-encre">outils référencés</dd>
             </div>
             <div className="text-center">
               <dt className="sr-only">Catégories</dt>
-              <dd className="font-titre text-[32px] leading-10 font-bold text-violet">{categories}</dd>
+              <dd className="font-titre text-[32px] leading-10 font-bold text-sky-500">{categories}</dd>
               <dd className="text-legende text-encre">catégories</dd>
             </div>
             <div className="text-center">
               <dt className="sr-only">Membres inscrits</dt>
-              <dd className="font-titre text-[32px] leading-10 font-bold text-violet">{membres}</dd>
+              <dd className="font-titre text-[32px] leading-10 font-bold text-sky-500">{membres}</dd>
               <dd className="text-legende text-encre">membres inscrits</dd>
             </div>
           </dl>
@@ -128,7 +128,7 @@ export default async function PageAnnonceurs() {
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {atouts.map((a) => (
               <Carte key={a.titre} className="p-6">
-                <a.icone className="size-7 text-violet" aria-hidden />
+                <a.icone className="size-7 text-sky-500" aria-hidden />
                 <h3 className="mt-3 font-titre text-[17px] leading-6 font-semibold">{a.titre}</h3>
                 <p className="mt-2 text-[14px] leading-6 text-encre">{a.texte}</p>
               </Carte>
@@ -146,19 +146,19 @@ export default async function PageAnnonceurs() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {formules.map((f) => (
-              <Carte key={f.nom} className={`flex flex-col p-6 ${f.recommande ? "border-violet ring-1 ring-violet" : ""}`}>
+              <Carte key={f.nom} className={`flex flex-col p-6 ${f.recommande ? "border-sky-500 ring-1 ring-sky-500" : ""}`}>
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-titre text-h3 font-semibold">{f.nom}</h3>
                   {f.recommande && <Badge variante="source">Le plus choisi</Badge>}
                 </div>
                 <p className="mt-3">
-                  <span className="font-titre text-[40px] leading-10 font-bold text-violet">{f.prix}</span>
+                  <span className="font-titre text-[40px] leading-10 font-bold text-sky-500">{f.prix}</span>
                   <span className="ml-1 text-[14px] text-encre">{f.periode}</span>
                 </p>
                 <ul className="mt-5 grid gap-3">
                   {f.avantages.map((av) => (
                     <li key={av} className="flex gap-3 text-[15px] leading-6 text-encre">
-                      <Check className="mt-1 size-4 shrink-0 text-violet" aria-hidden /> {av}
+                      <Check className="mt-1 size-4 shrink-0 text-sky-500" aria-hidden /> {av}
                     </li>
                   ))}
                 </ul>
@@ -179,7 +179,7 @@ export default async function PageAnnonceurs() {
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {etapes.map((e) => (
               <Carte key={e.titre} className="p-6">
-                <h3 className="font-titre text-[17px] leading-6 font-semibold text-violet">{e.titre}</h3>
+                <h3 className="font-titre text-[17px] leading-6 font-semibold text-sky-500">{e.titre}</h3>
                 <p className="mt-2 text-[14px] leading-6 text-encre">{e.texte}</p>
               </Carte>
             ))}
@@ -191,7 +191,7 @@ export default async function PageAnnonceurs() {
       <section id="demande" className="bg-white py-14 lg:py-18">
         <div className="mx-auto max-w-2xl px-4">
           <div className="mb-6 flex items-center gap-3">
-            <Users className="size-6 text-violet" aria-hidden />
+            <Users className="size-6 text-sky-500" aria-hidden />
             <h2 className="text-[26px] leading-8 font-semibold sm:text-h2">Réserver mon emplacement</h2>
           </div>
           <FormulaireAnnonceur />

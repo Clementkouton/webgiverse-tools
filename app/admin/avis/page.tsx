@@ -24,6 +24,19 @@ export default async function PageAvisAdmin() {
     prisma.avis.count(),
   ]);
 
+  // Lot 20 — votes « Utile » reçus par avis (lecture défensive : la
+  // table existe depuis le Lot 20a, on n'affiche rien si absente).
+  const delegueVotesAvis = (prisma as any).voteAvis;
+  const votesParAvis: Record<string, number> = delegueVotesAvis?.groupBy
+    ? await delegueVotesAvis
+        .groupBy({ by: ["avisId"], _count: { avisId: true } })
+        .then(
+          (lignes: { avisId: string; _count: { avisId: number } }[]) =>
+            Object.fromEntries(lignes.map((l) => [l.avisId, l._count.avisId])),
+        )
+        .catch(() => ({}))
+    : {};
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -34,7 +47,9 @@ export default async function PageAvisAdmin() {
       </div>
 
       <div className="mt-6 grid gap-3">
-        {avis.map((a) => (
+        {avis.map((a) => {
+          const utiles = votesParAvis[a.id] ?? 0;
+          return (
           <Carte key={a.id} className="p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
@@ -45,6 +60,7 @@ export default async function PageAvisAdmin() {
                   <span className="text-[14px] font-semibold text-amber-500" aria-label={`Note ${a.note} sur 5`}>
                     {"★".repeat(a.note)}{"☆".repeat(5 - a.note)}
                   </span>
+                  {utiles > 0 && <Badge variante="gratuit">👍 {utiles} utile{utiles > 1 ? "s" : ""}</Badge>}
                   <Badge>{formatteDate(a.majLe)}</Badge>
                 </div>
                 <p className="mt-2 text-[14px] leading-6 whitespace-pre-line text-encre">{a.contenu}</p>
@@ -64,7 +80,8 @@ export default async function PageAvisAdmin() {
               </form>
             </div>
           </Carte>
-        ))}
+          );
+        })}
         {avis.length === 0 && (
           <Carte className="p-6 text-[14px] text-encre">Aucun avis publié pour l'instant.</Carte>
         )}

@@ -28,14 +28,14 @@ export function VerificationRetour() {
   return (
     <div className="mt-6 flex flex-col items-center gap-3">
       <p className="flex items-center gap-2 text-[15px] leading-6 text-encre">
-        <Loader2 className="size-4 animate-spin text-violet" aria-hidden />
+        <Loader2 className="size-4 animate-spin text-sky-500" aria-hidden />
         {essaies < MAX_ESSAIS
           ? "Vérification de ton paiement en cours…"
           : "La confirmation peut prendre jusqu'à une minute."}
       </p>
       <Link
         href="/dashboard/abonnement"
-        className="inline-flex min-h-11 items-center justify-center rounded-full bg-violet px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+        className="inline-flex min-h-11 items-center justify-center rounded-full bg-sky-500 px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
       >
         Vérifier dans mon tableau de bord
       </Link>

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function PageNouvelArticle() {
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/articles" className="inline-flex items-center gap-1 text-[14px] font-semibold text-violet hover:underline">
+      <Link href="/admin/articles" className="inline-flex items-center gap-1 text-[14px] font-semibold text-sky-500 hover:underline">
         <ChevronLeft className="size-4" aria-hidden /> Retour aux articles
       </Link>
       <h2 className="mt-3 text-h3 font-semibold">Rédiger un nouvel article</h2>
