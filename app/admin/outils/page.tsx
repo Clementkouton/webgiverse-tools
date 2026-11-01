@@ -29,14 +29,19 @@ const FILTRES = [
 export default async function PageOutilsAdmin({
   searchParams,
 }: {
-  searchParams: Promise<{ statut?: string; cree?: string; maj?: string }>;
+  searchParams: Promise<{ statut?: string; cree?: string; maj?: string; q?: string }>;
 }) {
-  const { statut = "", cree, maj } = await searchParams;
+  const { statut = "", cree, maj, q = "" } = await searchParams;
 
-  const where =
+  const filtreStatut =
     statut === "PUBLIE" || statut === "BROUILLON" || statut === "ARCHIVE"
       ? { statut: statut as "PUBLIE" | "BROUILLON" | "ARCHIVE" }
       : {};
+  // Lot 21 — recherche par nom (champ de recherche de la topbar admin)
+  const filtreRecherche = q.trim()
+    ? { nom: { contains: q.trim(), mode: "insensitive" as const } }
+    : {};
+  const where = { ...filtreStatut, ...filtreRecherche };
   const [outils, nbTotal] = await Promise.all([
     prisma.tool.findMany({
       where,
@@ -52,13 +57,19 @@ export default async function PageOutilsAdmin({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-h3 font-semibold">Outils ({nbTotal})</h2>
+          <h2 className="text-h3 font-semibold">Outils ({outils.length}{q.trim() ? ` résultat${outils.length > 1 ? "s" : ""}` : `/${nbTotal}`})</h2>
           <p className="mt-1 text-[14px] text-encre">Modifie les fiches, publie ou archive, mets en avant, supprime.</p>
         </div>
-        <Bouton asChild taille="sm">
+        <Bouton asChild taille="sm" variante="vert">
           <Link href="/admin/outils/nouveau">+ Nouvel outil</Link>
         </Bouton>
       </div>
+
+      {q.trim() && (
+        <p role="status" className="mt-4 rounded-carte border border-vert/30 bg-vert-clair px-4 py-3 text-[14px] font-semibold text-vert-fonce">
+          Recherche : {outils.length} outil{outils.length > 1 ? "s" : ""} pour « {q.trim()} » — <Link href="/admin/outils" className="underline">réinitialiser</Link>
+        </p>
+      )}
 
       {(cree || maj) && (
         <p role="status" className="mt-4 rounded-carte border border-[#00845c]/30 bg-[#00845c]/10 px-4 py-3 text-[14px] font-semibold text-[#00553a]">

@@ -377,3 +377,45 @@ export async function basculerRoleFormulaire(donnees: FormData) {
   });
   revalidatePath("/admin/utilisateurs");
 }
+
+// ─────────────────────────────────────────────────────────────────────
+//  Lot 21 — Tutoriels : contrôle depuis la console admin
+//  (bascule du badge « Nouveau » + suppression définitive)
+// ─────────────────────────────────────────────────────────────────────
+
+export async function basculerTutoNouveauFormulaire(donnees: FormData) {
+  await exigerAdmin();
+  const id = z.string().min(1).parse(donnees.get("tutoId"));
+  const tuto = await prisma.tuto.findUnique({ where: { id } });
+  if (!tuto) return;
+  await prisma.tuto.update({ where: { id }, data: { nouveau: !tuto.nouveau } });
+  revalidatePath("/admin/tutoriels"); revalidatePath("/tutoriels");
+}
+
+export async function supprimerTutoFormulaire(donnees: FormData) {
+  await exigerAdmin();
+  const id = z.string().min(1).parse(donnees.get("tutoId"));
+  await prisma.tuto.delete({ where: { id } });
+  revalidatePath("/admin/tutoriels"); revalidatePath("/tutoriels");
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  Lot 21 — Prompts : contrôle depuis la console admin
+//  (bascule du badge « Nouveau » + suppression définitive)
+// ─────────────────────────────────────────────────────────────────────
+
+export async function basculerPromptNouveauFormulaire(donnees: FormData) {
+  await exigerAdmin();
+  const id = z.string().min(1).parse(donnees.get("promptId"));
+  const prompt = await prisma.prompt.findUnique({ where: { id } });
+  if (!prompt) return;
+  await prisma.prompt.update({ where: { id }, data: { nouveau: !prompt.nouveau } });
+  revalidatePath("/admin/prompts"); revalidatePath("/prompts");
+}
+
+export async function supprimerPromptFormulaire(donnees: FormData) {
+  await exigerAdmin();
+  const id = z.string().min(1).parse(donnees.get("promptId"));
+  await prisma.prompt.delete({ where: { id } });
+  revalidatePath("/admin/prompts"); revalidatePath("/prompts");
+}

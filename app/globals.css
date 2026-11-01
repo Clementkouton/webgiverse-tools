@@ -21,6 +21,19 @@
     --color-magenta: #ff3dff;
     /* accent rare : 1 seul usage par écran */
     --color-bordure: #dbe4f7;
+    /* ── Console admin « Spark » (uniquement /admin) ───────────── */
+    --color-sapin: #0f2e21;
+    /* barre latérale vert très foncé */
+    --color-foret: #1c4a33;
+    /* bandeau d'annonce, hovers sombres */
+    --color-vert: #17854f;
+    /* boutons pleins (sans dégradé), liens, actifs */
+    --color-vert-fonce: #116b3f;
+    /* survol du bouton plein */
+    --color-vert-clair: #e3f3ea;
+    /* tuiles d'icônes, fonds doux */
+    --color-lime: #b6e355;
+    /* accents lumineux, badges, décorations */
     /* ── Typographie ────────────────────────────────────────────── */
     --font-titre: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
     --font-texte: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -246,12 +259,7 @@
 }
 
 
-/* ── Lot 16 — entrée orchestrée des héros (une seule fois, au chargement) ──
-   Un seul moment animé par page, discret et bref : les enfants du bandeau
-   « hero-verre » montent en cascade (0,4 s de décalage maximum). C'est le
-   SEUL mouvement non déclenché par l'utilisateur sur ces pages. Les
-   personnes en mode « mouvement réduit » voient la page immédiatement
-   (bloc prefers-reduced-motion dans @layer base). */
+/* ── Lot 16 — entrée orchestrée des héros (une seule fois, au chargement) ── */
 
 .hero-verre>div>* {
     animation: monter-apparaitre 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -283,17 +291,6 @@
 
 
 /* ── Élévation au survol (cartes cliquables) ───────────────────── */
-
-
-/* Lot 16 — .survol-eleve et .survol-carte partagent le même réglage :
-   - courbe d'entrée cubic-bezier(0.22, 1, 0.36, 1) sur le déplacement
-     (le mouvement semble « décidé » au lieu de mou),
-   - ombre et bordure plus lentes, listées explicitement (jamais
-     transition: all),
-   - le survol n'est activé qu'avec une vraie souris/stylet : sur
-     tactile, un tap ne déclenche plus l'élévation,
-   - le focus clavier reçoit le même retour visuel que le survol
-     (règle d'équivalence survol/focus). */
 
 .survol-eleve,
 .survol-carte {
@@ -364,10 +361,6 @@
 
 /* ══════════════════════════════════════════════════════════════════
    NOMS D'UTILITAIRES UTILISÉS PAR LE DASHBOARD ET LA CONSOLE ADMIN.
-   (Le code utilise animate-apparition-haut, animate-flottant,
-   animate-tiret, survol-carte et barre-progression : ces classes
-   étaient absentes, toutes les animations étaient donc silencieusement
-   désactivées. Elles respectent prefers-reduced-motion comme les autres.)
    ══════════════════════════════════════════════════════════════════ */
 
 
@@ -406,14 +399,6 @@
     transform: translateY(-50%);
     animation: tiret 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-
-
-/* Élévation au survol — variante « carte » du dashboard */
-
-
-/* Élévation au survol — variante « carte » du dashboard : depuis le
-   Lot 16, .survol-carte partage la définition commune de .survol-eleve
-   (voir plus haut) : même courbe, mêmes délais, même équivalence focus. */
 
 
 /* Barre de progression du niveau : se remplit à l'apparition */
