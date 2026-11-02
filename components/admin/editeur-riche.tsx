@@ -1,16 +1,18 @@
 // components/admin/editeur-riche.tsx
 "use client";
 // ─────────────────────────────────────────────────────────────────
-// Lot 23 — ÉDITEUR RICHE (WYSIWYG) pour la Description des articles,
-// calqué sur la maquette fournie : barre d'outils au-dessus de la
-// zone de saisie (gras, italique, souligné, barré, titres, listes,
-// citation, alignements, lien, image, tableau, annuler/rétablir,
-// effacer le format), compteur de mots, champ caché synchronisé
-// (name="contenu") envoyé avec le formulaire.
-//   • compatible avec l'ancien contenu « texte brut » : au montage,
-//     un texte sans balises est converti en paragraphes ;
-//   • aucune dépendance externe (contentEditable + execCommand) ;
-//   • le HTML est assaini côté serveur (lib/html.ts) à l'enregistrement.
+// Lot 24 — ÉDITEUR RICHE (WYSIWYG) pour la Description des articles.
+// Nouveautés demandées :
+//   • 🎨 COULEUR DU TEXTE + 🖍 COULEUR DE FOND (surlignage) dans la
+//     barre d'outils — sélecteur natif <input type="color">, appliqué
+//     sur la sélection via execCommand (styleWithCSS → <span style>).
+//   • Bascule « Source HTML » (</>) pour voir/coller du code HTML
+//     (utile pour importer un article généré par une IA).
+//   • Le contenu chargé est NORMALISÉ (lib/html.ts) : les anciens
+//     articles échappés (&lt;p&gt;) ou collés depuis un export IA
+//     s'affichent mis en forme, plus JAMAIS en balises visibles.
+//   • Aucune dépendance externe (contentEditable + execCommand) ;
+//     le HTML est assaini côté serveur à l'enregistrement.
 // ─────────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -18,14 +20,17 @@ import {
   AlignLeft,
   AlignRight,
   Bold,
+  Code2,
   Eraser,
   Heading2,
   Heading3,
+  Highlighter,
   ImagePlus,
   Italic,
   Link2,
   List,
   ListOrdered,
+  Palette,
   Quote,
   Redo2,
   Strikethrough,
@@ -68,7 +73,7 @@ export function EditeurRiche({
   placeholder = "Écris ton article ici…",
   onChange,
 }: {
-  /** Contenu actuel : HTML ou ancien texte brut. */
+  /** Contenu actuel : HTML, HTML échappé ou ancien texte brut. */
   valeurInitiale?: string;
   placeholder?: string;
   onChange?: (html: string, texte: string) => void;
@@ -78,8 +83,22 @@ export function EditeurRiche({
   const [stats, setStats] = useState({ mots: 0, caracteres: 0 });
   const [actifs, setActifs] = useState<EtatActifs>(ACTIFS_VIDES);
 
+  // Couleurs (sélecteurs de la barre d'outils)
+  const [couleurTexte, setCouleurTexte] = useState("#1e293b");
+  const [couleurFond, setCouleurFond] = useState("#fef08a");
+
+  // Mode « source HTML » : la zone WYSIWYG reste montée (cachée par
+  // CSS) pour ne pas perdre son contenu ni la ref.
+  const [modeSource, setModeSource] = useState(false);
+  const [source, setSource] = useState("");
+
+  // Sélection sauvegardée à l'ouverture d'une palette de couleurs
+  // (le focus quitte la zone → on la restaure avant d'appliquer).
+  const selectionSauvegardee = useRef<Range | null>(null);
+
   /** Lit l'état courant (boutons surlignés) depuis la sélection. */
   const majActifs = useCallback(() => {
+    if (modeSource) return;
     try {
       const bloc = String(document.queryCommandValue("formatBlock") ?? "").toLowerCase();
       setActifs({
@@ -101,9 +120,9 @@ export function EditeurRiche({
     } catch {
       setActifs(ACTIFS_VIDES);
     }
-  }, []);
+  }, [modeSource]);
 
-  /** Synchronise le champ caché + le compteur. */
+  /** Synchronise le champ caché + le compteur depuis la zone WYSIWYG. */
   const synchroniser = useCallback(() => {
     const zone = zoneRef.current;
     if (!zone) return;
@@ -118,7 +137,9 @@ export function EditeurRiche({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onChange]);
 
-  // Montage : charge le contenu initial (HTML ou ancien texte brut)
+  // Montage : charge le contenu initial (HTML normalisé, ou ancien
+  // texte brut converti en paragraphes). normaliserHtml() décode les
+  // balises échappées : elles ne s'affichent plus comme du texte.
   useEffect(() => {
     const zone = zoneRef.current;
     if (!zone) return;
@@ -144,6 +165,38 @@ export function EditeurRiche({
     (commande: string, valeur?: string) => {
       zoneRef.current?.focus();
       document.execCommand(commande, false, valeur);
+      synchroniser();
+      majActifs();
+    },
+    [synchroniser, majActifs],
+  );
+
+  /** Mémorise la sélection courante si elle est dans la zone. */
+  const sauverSelection = useCallback(() => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && zoneRef.current?.contains(sel.anchorNode)) {
+      selectionSauvegardee.current = sel.getRangeAt(0).cloneRange();
+    }
+  }, []);
+
+  /** Applique une couleur (texte ou fond) sur la sélection restaurée. */
+  const execCouleur = useCallback(
+    (commande: "foreColor" | "hiliteColor", valeur: string) => {
+      const zone = zoneRef.current;
+      if (!zone) return;
+      zone.focus();
+      const sel = window.getSelection();
+      if (selectionSauvegardee.current && sel) {
+        sel.removeAllRanges();
+        sel.addRange(selectionSauvegardee.current);
+      }
+      // styleWithCSS → produit <span style="color:…"> (et non <font>)
+      document.execCommand("styleWithCSS", false, "true");
+      const fait = document.execCommand(commande, false, valeur);
+      if (!fait && commande === "hiliteColor") {
+        document.execCommand("backColor", false, valeur);
+      }
+      document.execCommand("styleWithCSS", false, "false");
       synchroniser();
       majActifs();
     },
@@ -191,6 +244,34 @@ export function EditeurRiche({
     insererHtml(`<table><tbody>${corps}</tbody></table><p><br></p>`);
   };
 
+  /** Bascule WYSIWYG ↔ source HTML sans remonter le composant. */
+  const basculerSource = () => {
+    const zone = zoneRef.current;
+    if (!modeSource) {
+      // Passage en source : on copie le HTML courant
+      setSource(zone?.innerHTML ?? html);
+      setModeSource(true);
+    } else {
+      // Retour au WYSIWYG : on applique la source saisie
+      if (zone) zone.innerHTML = source;
+      setModeSource(false);
+      synchroniser();
+      majActifs();
+    }
+  };
+
+  /** Édition directe de la source : le champ caché suit en direct. */
+  const changerSource = (valeur: string) => {
+    setSource(valeur);
+    setHtml(valeur);
+    const texte = valeur.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+    setStats({
+      mots: texte ? texte.split(/\s+/).filter(Boolean).length : 0,
+      caracteres: texte.length,
+    });
+    onChange?.(valeur, texte);
+  };
+
   // ── Barre d'outils ────────────────────────────────────────────────
   function BoutonOutil({
     icone: Icone,
@@ -229,6 +310,43 @@ export function EditeurRiche({
     return <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-adm-bordure" />;
   }
 
+  /** Sélecteur de couleur compact (palette native du navigateur). */
+  function ChoixCouleur({
+    titre,
+    icone: Icone,
+    valeur,
+    onChoisir,
+  }: {
+    titre: string;
+    icone: LucideIcon;
+    valeur: string;
+    onChoisir: (couleur: string) => void;
+  }) {
+    return (
+      <label
+        title={titre}
+        className="relative grid size-8 shrink-0 cursor-pointer place-items-center rounded-champ text-adm-gris transition hover:bg-white hover:text-primaire-texte"
+      >
+        <Icone className="pointer-events-none size-4" aria-hidden />
+        {/* petit indicateur rond = couleur actuellement choisie */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-0.5 size-1.5 rounded-full border border-white shadow-sm"
+          style={{ backgroundColor: valeur }}
+        />
+        <input
+          type="color"
+          aria-label={titre}
+          value={valeur}
+          onMouseDown={sauverSelection}
+          onTouchStart={sauverSelection}
+          onChange={(e) => onChoisir(e.target.value)}
+          className="absolute inset-0 size-full cursor-pointer opacity-0"
+        />
+      </label>
+    );
+  }
+
   return (
     <div className="rounded-carte border border-bordure bg-white transition focus-within:border-primaire">
       {/* Barre d'outils (comme la maquette) */}
@@ -249,6 +367,26 @@ export function EditeurRiche({
         <BoutonOutil icone={Underline} titre="Souligné" actif={actifs.souligne} onClick={() => exec("underline")} />
         <BoutonOutil icone={Strikethrough} titre="Barré" actif={actifs.barre} onClick={() => exec("strikeThrough")} />
         <Separateur />
+        {/* ── Couleurs : texte + fond (demande utilisateur) ── */}
+        <ChoixCouleur
+          titre="Couleur du texte"
+          icone={Palette}
+          valeur={couleurTexte}
+          onChoisir={(c) => {
+            setCouleurTexte(c);
+            execCouleur("foreColor", c);
+          }}
+        />
+        <ChoixCouleur
+          titre="Couleur de fond (surlignage)"
+          icone={Highlighter}
+          valeur={couleurFond}
+          onChoisir={(c) => {
+            setCouleurFond(c);
+            execCouleur("hiliteColor", c);
+          }}
+        />
+        <Separateur />
         <BoutonOutil icone={List} titre="Liste à puces" actif={actifs.puces} onClick={() => exec("insertUnorderedList")} />
         <BoutonOutil icone={ListOrdered} titre="Liste numérotée" actif={actifs.numeros} onClick={() => exec("insertOrderedList")} />
         <BoutonOutil icone={Quote} titre="Citation" actif={actifs.citation} onClick={() => exec("formatBlock", "BLOCKQUOTE")} />
@@ -262,30 +400,51 @@ export function EditeurRiche({
         <BoutonOutil icone={Table} titre="Insérer un tableau" onClick={ajouterTableau} />
         <Separateur />
         <BoutonOutil icone={Eraser} titre="Effacer la mise en forme" onClick={() => { exec("removeFormat"); exec("unlink"); }} />
+        <BoutonOutil
+          icone={Code2}
+          titre={modeSource ? "Revenir à l'aperçu mis en forme" : "Modifier le code HTML"}
+          actif={modeSource}
+          onClick={basculerSource}
+        />
       </div>
 
-      {/* Zone d'édition */}
-      <div
-        ref={zoneRef}
-        contentEditable
-        suppressContentEditableWarning
-        role="textbox"
-        aria-multiline="true"
-        aria-label="Contenu de l'article"
-        data-placeholder={placeholder}
-        onInput={synchroniser}
-        onBlur={synchroniser}
-        onKeyUp={majActifs}
-        onMouseUp={majActifs}
-        className="editeur-riche-zone min-h-72 max-h-[520px] overflow-y-auto px-4 py-3.5 text-[15px] leading-7 text-bleu focus:outline-none empty:before:text-adm-gris-clair empty:before:content-[attr(data-placeholder)]"
-      />
+      {/* Zone d'édition WYSIWYG (restée montée, cachée en mode source) */}
+      <div className={modeSource ? "hidden" : undefined}>
+        <div
+          ref={zoneRef}
+          contentEditable
+          suppressContentEditableWarning
+          role="textbox"
+          aria-multiline="true"
+          aria-label="Contenu de l'article"
+          data-placeholder={placeholder}
+          onInput={synchroniser}
+          onBlur={synchroniser}
+          onKeyUp={majActifs}
+          onMouseUp={majActifs}
+          className="editeur-riche-zone contenu-article min-h-72 max-h-[520px] overflow-y-auto px-4 py-3.5 text-[15px] leading-7 text-bleu focus:outline-none empty:before:text-adm-gris-clair empty:before:content-[attr(data-placeholder)]"
+        />
+      </div>
+
+      {/* Mode source HTML */}
+      {modeSource && (
+        <textarea
+          value={source}
+          onChange={(e) => changerSource(e.target.value)}
+          aria-label="Code HTML de l'article"
+          spellCheck={false}
+          className="min-h-72 max-h-[520px] w-full resize-y overflow-y-auto bg-[#0f172a] px-4 py-3.5 font-mono text-[13px] leading-6 text-[#e2e8f0] focus:outline-none"
+          placeholder="<p>Colle ou modifie le HTML ici…</p>"
+        />
+      )}
 
       {/* Compteur */}
       <div className="flex items-center justify-between border-t border-adm-bordure px-4 py-2 text-[12px] leading-4 text-adm-gris">
         <span>
           {stats.mots} mot{stats.mots > 1 ? "s" : ""} · {stats.caracteres} caractère{stats.caracteres > 1 ? "s" : ""}
+          {modeSource && " (mode HTML)"}
         </span>
-        <span className="hidden sm:block">Gras, titres, listes, liens, images et tableaux s'affichent tels quels sur le site.</span>
+        <span className="hidden sm:block">Mise en forme, couleurs, liens, images et tableaux s'affichent à l'identique sur le site.</span>
       </div>
 
       {/* Champ caché envoyé au serveur avec le formulaire */}
@@ -293,3 +452,62 @@ export function EditeurRiche({
     </div>
   );
 }
+
+Le grand malentendu
+Depuis trois ans, deux camps s'affrontent. D'un côté, ceux qui annoncent la fin du travail humain. De l'autre, ceux qui jurent que rien ne changera. Les deux ont tort — et les données commencent enfin à le prouver.
+
+La réalité est plus subtile : l'IA ne détruit pas les emplois, elle déplace les tâches. Et ce déplacement, mal anticipé, fait plus de dégâts qu'une suppression franche.
+
+Ce que les études montrent réellement
+https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80
+
+Crédit photo : Unsplash — Luke Chesser
+
+Les études convergent sur un point : environ 30 % du temps de travail dans les métiers de bureau est consacré à des tâches répétitives et textuelles. Rédaction de comptes rendus, tri de mails, saisie de données, mise en forme de documents, réponses standardisées.
+
+Ce sont exactement les tâches que l'IA générative traite bien. Pas le métier — les tâches.
+
+Conséquence directe : un employé qui passait 30 % de sa journée sur ces tâches peut désormais les déléguer. S'il est bien accompagné, il réinvestit ce temps dans ce qui a de la valeur : relation client, décision, création, résolution de problèmes complexes. S'il ne l'est pas, il se sent menacé — et souvent, il l'est, non par la technologie, mais par une organisation qui n'a pas su redistribuer le temps libéré.
+
+Le vrai risque n'est pas l'automatisation. C'est l'automatisation sans transition.
+
+Les trois profils face à l'IA
+https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80
+
+Crédit photo : Unsplash — Annie Spratt
+
+En observant les équipes qui s'en sortent, on distingue trois profils :
+
+1. Ceux qui délèguent intelligemment
+Ils ont compris une chose : l'IA est un exécutant, pas un décideur. Ils lui confient le premier jet, la synthèse, la recherche brute — et gardent la main sur le jugement, la vérification, la décision finale. Leur productivité grimpe de 20 à 40 % sans baisse de qualité.
+
+2. Ceux qui subissent
+Ils utilisent l'IA parce qu'on le leur impose, sans formation, sans cadre, sans temps dédié. Résultat : ils corrigent les erreurs du modèle, perdent confiance, et finissent par produire moins bien qu'avant. C'est le scénario le plus fréquent — et le plus coûteux.
+
+3. Ceux qui refusent
+Ils continuent comme avant, convaincus que c'est une mode. Ils tiennent encore, souvent parce que leur expertise est rare. Mais l'écart se creuse chaque mois avec le premier groupe.
+
+Les métiers qui bougent le plus
+https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80
+
+Crédit photo : Unsplash — Helloquence
+
+Sans surprise, les métiers les plus exposés sont ceux dont le cœur est la production de texte standardisé : rédaction web généraliste, support client de premier niveau, traduction littérale, saisie, comptabilité de base.
+
+Mais attention : "exposé" ne veut pas dire "condamné". Cela signifie que la valeur ajoutée se déplace. Le rédacteur web qui produisait 10 articles génériques par jour doit désormais produire 3 articles experts, sourcés, avec un angle. Le support qui répondait à 200 tickets standard en traite 50 complexes et laisse l'IA gérer le reste.
+
+Les métiers qui gagnent, eux, sont ceux qui exigent du jugement, de la relation, de la responsabilité : soignants, artisans, enseignants, managers, ingénieurs, créatifs — à condition qu'ils apprennent à travailler avec l'outil.
+
+Ce que les entreprises devraient faire (et ne font pas)
+https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80
+
+Crédit photo : Unsplash — Jason Goodman
+
+Trois mesures simples changeraient tout :
+
+Former, vraiment. Pas une démo d'une heure. Un accompagnement continu, avec des cas concrets du métier, et du temps dédié pour expérimenter. Une équipe formée utilise l'IA trois fois mieux qu'une équipe laissée à elle-même.
+
+Mesurer avant d'étendre. Un outil qui ne fait pas gagner de temps mesurable en trois mois doit être réévalué. La plupart des déploiements n'ont aucun indicateur de succès — ce qui rend impossible de savoir s'ils fonctionnent.
+
+Protéger la vérification. Toute production assistée par IA doit passer par un contrôle humain sur le factuel, le chiffré et l'engageant. Ce n'est pas de la défiance envers la technologie, c'est de la rigueur professionnelle.
+

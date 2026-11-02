@@ -78,7 +78,7 @@ export function Header() {
 
   return (
     <header className="verre justify-between sticky top-0 z-50 border-b border-bordure">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-3 lg:h-18">
+      <div className="mx-auto flex h-16  items-center gap-2 px-4 sm:gap-3 lg:h-18">
         <LienLogo />
 
         {/* Navigation desktop */}

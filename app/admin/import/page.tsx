@@ -8,6 +8,12 @@
 // textes coupés, champ fichier débordant, tableau squeezed avec double
 // scrollbar. En une colonne, chaque bloc respire, quelle que soit la
 // taille d'écran (et plus aucune coupure de texte).
+// Lot 23c — correctif MOBILE : sur téléphone toute la page était
+// décalée/coupée à droite (textes tronqués, boutons hors écran).
+// Cause : un enfant au contenu « nowrap » regonflait le pigeon de
+// grille au-delà de l'écran. Correctif : [&>*]:min-w-0 sur la grille
+// — chaque carte peut rétrécir et gère son propre débordement interne
+// (le tableau des colonnes défile horizontalement DANS sa carte).
 //   • 3 onglets : Outils / Tutoriels / Prompts (chips, ?onglet=…) ;
 //   • modèle CSV téléchargeable pour chaque type (public/imports/) ;
 //   • tableau des colonnes attendues (requis ou optionnel), fluide ;
@@ -185,7 +191,10 @@ export default async function PageImportAdmin({
       </div>
 
       {/* ── Tout en PLEINE LARGEUR, empilé (plus de grille 3/5-2/5) ─── */}
-      <div className="mt-4 grid gap-5">
+      {/* [&>*]:min-w-0 : sans lui, un contenu « nowrap » (ex. lignes
+          truncate du formulaire) regonfle le pigeon à ~606 px et la
+          page déborde/coupe sur mobile (corrigé Lot 23c). */}
+      <div className="mt-4 grid gap-5 [&>*]:min-w-0">
         {/* ── Formulaire d'import ─────────────────────────────────────── */}
         <Carte className="animate-apparition-haut delai-2">
           <ImportCsv

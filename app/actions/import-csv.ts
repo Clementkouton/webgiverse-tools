@@ -11,6 +11,10 @@
 // déjà existante est ignorée ; avec l'option, elle est mise à jour —
 // et seules les COLONNES présentes dans le fichier écrasent l'ancien
 // contenu (une colonne absente conserve sa valeur).
+// Lot 23c — lecture des fichiers : UTF-8 strict puis repli
+// Windows-1252 (les CSV d'Excel FR ne sont presque jamais en UTF-8,
+// les accents arrivaient en « DÃ©butant ») + erreursTotal dans le
+// rapport quand plus de 30 lignes sont rejetées.
 // ─────────────────────────────────────────────────────────────────
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
@@ -36,6 +40,8 @@ export type EtatImport = {
   categoriesCreees?: number;
   /** Erreurs ligne par ligne (30 affichées max). */
   erreurs?: string[];
+  /** Nombre RÉEL de lignes rejetées (quand > 30, le rapport le dit). */
+  erreursTotal?: number;
 } | null;
 
 const MAX_LIGNES = 500;
@@ -56,7 +62,17 @@ async function lireSource(donnees: FormData): Promise<string | null> {
   const fichier = donnees.get("fichier");
   if (fichier instanceof File && fichier.size > 0) {
     if (fichier.size > MAX_OCTETS) return null;
-    return await fichier.text();
+    // Excel FR exporte souvent en Windows-1252 (ANSI), pas en UTF-8 :
+    // sans ce repli, « Débutant » devenait « DÃ©butant » et les
+    // catégories/slugs arrivaient tout moisis. On tente l'UTF-8 strict
+    // (fatal: true échoue au 1er octet invalide) puis on retombe sur
+    // Windows-1252, qui couvre tous les caractères français.
+    const tampon = await fichier.arrayBuffer();
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(tampon);
+    } catch {
+      return new TextDecoder("windows-1252").decode(tampon);
+    }
   }
   const colle = donnees.get("csvTexte");
   if (typeof colle === "string" && colle.trim()) return colle;
@@ -137,7 +153,10 @@ function etatErreur(message: string): EtatImport {
 
 /** Contrôles communs aux 3 imports (auth faite avant). Renvoie soit le CSV, soit une erreur. */
 function verifierCsv(source: string | null): ReturnType<typeof parserCsv> | EtatImport {
-  if (source === null) return etatErreur("Fichier trop volumineux (2 Mo max) ou aucune source fournie.");
+  if (source === null)
+    return etatErreur(
+      "Aucun contenu à importer : fichier absent, trop volumineux (2 Mo max) ou zone « coller » vide."
+    );
   const csv = parserCsv(source);
   if (!csv) return etatErreur("Fichier illisible : vérifie que la 1re ligne contient bien les en-têtes séparés par « ; » ou « , ».");
   if (csv.total === 0) return etatErreur("Aucune ligne de données trouvée (il n'y a que les en-têtes).");
@@ -294,6 +313,7 @@ export async function importerOutilsAction(_etat: EtatImport, donnees: FormData)
     majes,
     ignores,
     erreurs: erreurs.slice(0, 30),
+    erreursTotal: erreurs.length,
   };
 }
 
@@ -396,6 +416,7 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
     majes,
     ignores,
     erreurs: erreurs.slice(0, 30),
+    erreursTotal: erreurs.length,
   };
 }
 
@@ -562,5 +583,6 @@ export async function importerPromptsAction(_etat: EtatImport, donnees: FormData
     ignores,
     categoriesCreees,
     erreurs: erreurs.slice(0, 30),
+    erreursTotal: erreurs.length,
   };
 }

@@ -1,18 +1,23 @@
 // components/admin/import-csv.tsx
 "use client";
 // ─────────────────────────────────────────────────────────────────
-// Lot 23b — Formulaire d'import CSV refondu (outils / tutoriels /
-// prompts). Corrige les anomalies d'affichage de la 1re version :
-//   • plus AUCUNE largeur figée : tout est fluide et passe à la
-//     ligne — plus aucun texte coupé (« détecté auto… », « Aucun
-//     fichi… », « elles sont i… ») ;
-//   • le champ fichier natif (incompressible, « Aucun fichier
-//     choisi » moche, débordait de la carte) est remplacé par une
-//     zone de dépôt : clic OU glisser-déposer, nom du fichier
-//     affiché après le choix ;
-//   • le hint passe sous le bouton au lieu d'être tronqué à côté ;
-//   • le rapport d'import passe les textes longs à la ligne
-//     (break-words) au lieu de déborder.
+// Lot 23c — Correctif MOBILE : la page débordait horizontalement sur
+// téléphone (textes coupés au bord droit, aucune molette possible).
+// Cause racine trouvée au navigateur : les 2 lignes « truncate »
+// (white-space: nowrap) de la zone de dépôt donnaient au <label> une
+// largeur intrinsèque de ~556 px ; remontant de grille en grille
+// (formulaire → carte → grille de page), le pigeon forçait TOUTE la
+// page à 606 px sur un écran de 390 px — et overflow-x-clip
+// masquait le débordement au lieu de le faire défiler.
+// Corrections :
+//   • min-w-0 sur le label (il peut enfin rétrécir) + flex-wrap :
+//     sur mobile le bouton « Parcourir… » passe sous le texte ;
+//   • le hint « ou glisse-le ici… » REVIENT à la ligne (plus de
+//     truncate) ; seul le nom du fichier reste tronqué (…) ;
+//   • [&>*]:min-w-0 sur la grille du formulaire : aucun enfant ne
+//     peut plus regonfler le pigeon, quelle que soit sa teneur ;
+//   • textarea 16 px sur mobile (iOS zoome automatiquement dès que
+//     un champ fait moins de 16 px), 13 px monospace dès sm.
 // Deux sources possibles : un fichier .csv OU un collage direct.
 // Option « mettre à jour les éléments existants (même slug) ».
 // ─────────────────────────────────────────────────────────────────
@@ -67,7 +72,7 @@ export function ImportCsv({
   }, [enCours, etat]);
 
   return (
-    <form action={actionFormulaire} className="grid gap-5 p-6">
+    <form action={actionFormulaire} className="grid gap-5 p-6 [&>*]:min-w-0">
       <div>
         <h3 className="font-titre text-[16px] leading-6 font-semibold">Fichier CSV</h3>
         <p className="mt-1 text-[13px] leading-5 text-encre">
@@ -77,6 +82,10 @@ export function ImportCsv({
       </div>
 
       {/* ── Choix du fichier (clic ou glisser-déposer) ───────────────── */}
+      {/* min-w-0 OBLIGATOIRE : sans lui, la largeur intrinsèque des
+          lignes « truncate » regonfle toute la page sur mobile (cf.
+          l'en-tête du fichier). flex-wrap : « Parcourir… » passe sous
+          le texte quand la ligne devient trop étroite. */}
       <label
         onDragOver={(e) => {
           e.preventDefault();
@@ -96,7 +105,7 @@ export function ImportCsv({
           }
         }}
         className={cn(
-          "flex cursor-pointer items-center gap-3 rounded-carte border-2 border-dashed px-4 py-4 transition",
+          "flex min-w-0 cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 rounded-carte border-2 border-dashed px-4 py-4 transition",
           survol
             ? "border-primaire bg-primaire/10"
             : "border-adm-bordure bg-adm-fond/60 hover:border-primaire/60 hover:bg-primaire/5",
@@ -105,17 +114,17 @@ export function ImportCsv({
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primaire/10 text-primaire-texte">
           <FileSpreadsheet className="size-5" aria-hidden />
         </span>
-        <span className="min-w-0 flex-1">
+        <span className="min-w-0 flex-1 basis-48">
           <span className="block truncate text-[14px] leading-5 font-semibold text-adm-sombre">
             {nomFichier ?? "Clique pour choisir un fichier .csv"}
           </span>
-          <span className="block truncate text-[12px] leading-4 text-adm-gris">
+          <span className="mt-0.5 block text-[12px] leading-4 text-adm-gris">
             {nomFichier
               ? "Fichier prêt — clique pour en changer"
               : "ou glisse-le ici — Excel, Google Sheets (export CSV), Numbers…"}
           </span>
         </span>
-        <span className="shrink-0 rounded-full bg-primaire px-4 py-2 text-[13px] leading-4 font-semibold text-white">
+        <span className="ml-auto shrink-0 rounded-full bg-primaire px-4 py-2 text-[13px] leading-4 font-semibold text-white">
           Parcourir…
         </span>
         <input
@@ -136,7 +145,7 @@ export function ImportCsv({
           name="csvTexte"
           rows={5}
           placeholder={"nom;url;description\nMon outil;https://exemple.com;Un outil génial pour…"}
-          className="font-monospace text-[13px]"
+          className="font-monospace text-[16px] sm:text-[13px]"
         />
       </div>
 
@@ -183,7 +192,11 @@ export function ImportCsv({
           {etat.erreurs && etat.erreurs.length > 0 && (
             <div className="min-w-0">
               <p className="text-[13px] font-bold text-[#c94f35]">
-                {etat.erreurs.length} ligne(s) rejetée(s) :
+                {etat.erreursTotal ?? etat.erreurs.length} ligne(s) rejetée(s)
+                {etat.erreursTotal != null && etat.erreursTotal > etat.erreurs.length
+                  ? ` — ${etat.erreurs.length} première(s) affichée(s)`
+                  : ""}
+                :
               </p>
               <ul className="mt-1.5 max-h-56 overflow-y-auto rounded-champ border border-adm-erreur/30 bg-white px-3 py-2 text-[12px] leading-5 text-[#c94f35]">
                 {etat.erreurs.map((erreur, i) => (

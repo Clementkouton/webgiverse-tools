@@ -29,7 +29,7 @@ export default async function PageBlog() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 lg:py-16">
+    <div className="mx-auto max-w-7xl px-4 py-12 lg:py-16">
       <header className="mx-auto max-w-2xl text-center">
         <p className="text-[13px] font-semibold tracking-wide text-sky-500 uppercase">Webgiverse</p>
         <h1 className="mt-2 text-h2 font-titre font-semibold">Le blog</h1>

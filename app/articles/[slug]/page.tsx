@@ -6,7 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { formatteDate } from "@/lib/dates";
-import { nettoyerHtml, sembleHtml } from "@/lib/html"
+import { preparerHtmlPourAffichage, sembleHtml } from "@/lib/html";
 
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,13 @@ export default async function PageArticle({ params }: { params: Promise<{ slug: 
   // Les brouillons ne sont pas visibles sur le site public.
   if (!article || article.statut !== "PUBLIE") notFound();
 
-  const estHtml = sembleHtml(article.contenu);
+  // Lot 24 — le contenu est normalisé (balises échappées décodées,
+  // coquille <!DOCTYPE>/<html>/<head> des exports IA retirée) puis
+  // assaini (scripts, styles globaux, onclick… supprimés) AVANT
+  // affichage. Les anciens articles « texte brut » gardent le rendu
+  // par paragraphes.
+  const contenuHtml = preparerHtmlPourAffichage(article.contenu);
+  const estHtml = sembleHtml(contenuHtml);
   const retour = article.type === "ACTUALITE" ? { href: "/actualites", libelle: "Toutes les actualités" } : { href: "/blog", libelle: "Retour au blog" };
   const paragraphes: string[] = article.contenu.split("\n").map((p: string) => p.trim()).filter(Boolean);
 
@@ -57,11 +63,21 @@ export default async function PageArticle({ params }: { params: Promise<{ slug: 
         <img src={article.image} alt="" className="mt-8 w-full rounded-carte border border-bordure object-cover" />
       )}
 
-      <div className="mt-8 grid gap-5 text-[16px] leading-7 text-bleu">
-        {paragraphes.map((paragraphe, i) => (
-          <p key={i}>{paragraphe}</p>
-        ))}
-      </div>
+      {estHtml ? (
+        // HTML riche (éditeur ou import IA) : rendu TEL QUEL — c'était
+        // le bug : le HTML s'affichait en code brut car React échappe
+        // tout texte inséré comme nœud texte.
+        <div
+          className="contenu-article mt-8"
+          dangerouslySetInnerHTML={{ __html: contenuHtml }}
+        />
+      ) : (
+        <div className="mt-8 grid gap-5 text-[16px] leading-7 text-bleu">
+          {paragraphes.map((paragraphe, i) => (
+            <p key={i}>{paragraphe}</p>
+          ))}
+        </div>
+      )}
 
       <footer className="mt-12 rounded-carte border border-bordure bg-gris p-6 text-center">
         <p className="text-[15px] font-semibold text-bleu">Envie de découvrir les meilleurs outils IA ?</p>
