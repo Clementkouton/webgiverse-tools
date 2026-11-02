@@ -7,6 +7,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { slugifier } from "@/lib/utils";
 import { schemaOutilAdmin, schemaArticleAdmin } from "@/lib/schemas";
+import { nettoyerHtml } from "@/lib/html";
+
 
 async function exigerAdmin() {
   const session = await auth();
@@ -260,7 +262,10 @@ function construireDonneesArticle(champs: ChampsArticle) {
     extrait: champs.extrait,
     image: champs.image && champs.image.length > 0 ? champs.image : null,
     auteur: champs.auteur && champs.auteur.length > 0 ? champs.auteur : "L'équipe Webgiverse",
-    contenu: champs.contenu,
+    // par :
+    // Lot 23 — le contenu arrive de l'éditeur riche : on retire tout ce
+    // qui ne doit jamais être affiché (scripts, attributs onclick…).
+    contenu: nettoyerHtml(champs.contenu),
   };
 }
 

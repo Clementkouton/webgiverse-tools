@@ -1,0 +1,7 @@
+titre;contenu;description;type;modeles;categorie;sousCategorie;roles;conseils;utilisation;emoji;ordre;nouveau;vues;slug
+Expert marketing;"Agis comme un expert en marketing digital avec 15 ans d'expérience.
+Mon produit : [PRODUIT].
+Mon audience : [AUDIENCE].
+Donne-moi un plan marketing sur 30 jours, avec des actions concrètes semaine par semaine.";Un plan marketing de 30 jours clé en main, semaine par semaine.;TEXTE;ChatGPT|Claude;marketing;Réseaux sociaux;entrepreneurs|marketeurs;Précise ton secteur, ton budget et ta cible.;Remplace [PRODUIT] et [AUDIENCE] avant d'envoyer.;🚀;1;1;420;expert-marketing
+Titres accrocheurs;"Propose 10 titres accrocheurs pour un article de blog sur le sujet suivant : [SUJET].
+Varie les styles : question, chiffre, promesse, curiosité.";Génère 10 titres de blog qui donnent envie de cliquer.;TEXTE;ChatGPT|Gemini;blogging;Rédaction;redacteurs;Précise le ton voulu (sérieux, fun, provocateur…).;Remplace [SUJET] par ton sujet.;✍️;2;0;215;

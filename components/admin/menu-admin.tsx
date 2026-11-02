@@ -24,6 +24,8 @@ import {
   Bell,
   CreditCard,
   Gauge,
+  FileUp,
+  Gift,
   Inbox,
   LayoutDashboard,
   Menu,
@@ -79,6 +81,7 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
       { href: "/admin/tutoriels", libelle: "Tutoriels", icone: MonitorPlay },
       { href: "/admin/prompts", libelle: "Prompts", icone: TerminalSquare },
       { href: "/admin/articles", libelle: "Articles", icone: Newspaper },
+      { href: "/admin/import", libelle: "Import CSV", icone: FileUp },
     ],
   },
   {
@@ -93,6 +96,7 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
     titre: "Monétisation",
     liens: [
       { href: "/admin/abonnements", libelle: "Abonnements", icone: CreditCard },
+      { href: "/admin/parrainages", libelle: "Parrainages", icone: Gift },
     ],
   },
 ];

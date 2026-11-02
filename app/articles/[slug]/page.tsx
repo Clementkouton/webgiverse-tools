@@ -6,6 +6,8 @@ import { ChevronLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { formatteDate } from "@/lib/dates";
+import { nettoyerHtml, sembleHtml } from "@/lib/html"
+
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +29,7 @@ export default async function PageArticle({ params }: { params: Promise<{ slug: 
   // Les brouillons ne sont pas visibles sur le site public.
   if (!article || article.statut !== "PUBLIE") notFound();
 
+  const estHtml = sembleHtml(article.contenu);
   const retour = article.type === "ACTUALITE" ? { href: "/actualites", libelle: "Toutes les actualités" } : { href: "/blog", libelle: "Retour au blog" };
   const paragraphes: string[] = article.contenu.split("\n").map((p: string) => p.trim()).filter(Boolean);
 

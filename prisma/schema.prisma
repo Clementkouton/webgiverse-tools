@@ -123,6 +123,35 @@ model User {
   parraineParId  String?
   parrainePar    User?    @relation("Parrainage", fields: [parraineParId], references: [id], onDelete: SetNull)
   filleuls       User[]   @relation("Parrainage")
+  // Lot 23 — table de parrainage (le lien parrain → filleul + sa récompense)
+  parrainages    Parrainage[] @relation("ParrainagesRecus")
+  parrainageFilleul Parrainage? @relation("ParrainagesDonnes")
+}
+
+// ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────
+// Une ligne = un filleul lié à un parrain (filleulId unique : on ne
+// peut être parrainé qu'une seule fois). EN_ATTENTE à l'inscription ;
+// RECOMPENSE quand le filleul paie (abonnement du parrain prolongé de
+// 30 jours). ANNULE = lien cassé manuellement par l'admin (anti-fraude).
+enum StatutParrainage {
+  EN_ATTENTE
+  RECOMPENSE
+  ANNULE
+}
+
+model Parrainage {
+  id           String           @id @default(cuid())
+  parrainId    String
+  filleulId    String           @unique
+  statut       StatutParrainage @default(EN_ATTENTE)
+  recompenseLe DateTime?
+  creeLe       DateTime         @default(now())
+  majLe        DateTime         @updatedAt
+  parrain User  @relation("ParrainagesRecus", fields: [parrainId], references: [id], onDelete: Cascade)
+  filleul User  @relation("ParrainagesDonnes", fields: [filleulId], references: [id], onDelete: Cascade)
+
+  @@index([parrainId])
+  @@index([statut, creeLe])
 }
 
 model Account {

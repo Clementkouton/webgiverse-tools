@@ -1,0 +1,3 @@
+nom;url;description;type;tarif;tarifMin;gratuit;openSource;niveau;langues;objectifs;fonctions;casUsage;categories;logo;statut;misEnAvant;slug
+ChatGPT;https://chat.openai.com;Assistant conversationnel d'OpenAI qui rédige, code, analyse des documents et répond à tout.;OUTIL;Freemium — Plus à 20 $/mois;20;1;0;Débutant;Français|Anglais;Rédiger plus vite|Coder|Analyser des documents;Rédaction|Code|Analyse de fichiers;Support client|Blog|Newsletter;productivite;;PUBLIE;1;chatgpt
+Gamma;https://gamma.app;Crée des présentations et des documents élégants en quelques secondes grâce à l'IA.;OUTIL;Freemium — Plus à 8 $/mois;8;1;0;Débutant;Français|Anglais;Créer des slides|Créer des documents;Présentations|Sites web;Pitch deck|Cours|Reportage;productivite;;PUBLIE;0;gamma
