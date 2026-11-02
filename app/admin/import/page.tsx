@@ -1,11 +1,16 @@
 // app/admin/import/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 23 — IMPORT EN MASSE depuis la console admin : au lieu de
+// Lot 23b — IMPORT EN MASSE depuis la console admin : au lieu de
 // créer les outils / tutoriels / prompts UN PAR UN, tu déposes un
 // fichier CSV (des centaines de lignes d'un coup).
+// Lot 23b : mise en page REFONDUE — tout est empilé en pleine largeur.
+// L'ancienne grille 3/5 + 2/5 écrasait la carte de gauche (~500 px) :
+// textes coupés, champ fichier débordant, tableau squeezed avec double
+// scrollbar. En une colonne, chaque bloc respire, quelle que soit la
+// taille d'écran (et plus aucune coupure de texte).
 //   • 3 onglets : Outils / Tutoriels / Prompts (chips, ?onglet=…) ;
 //   • modèle CSV téléchargeable pour chaque type (public/imports/) ;
-//   • tableau des colonnes attendues (requis ou optionnel) ;
+//   • tableau des colonnes attendues (requis ou optionnel), fluide ;
 //   • formulaire d'import (fichier ou collage) + rapport détaillé.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
@@ -179,9 +184,10 @@ export default async function PageImportAdmin({
         </a>
       </div>
 
-      <div className="mt-4 grid gap-5 xl:grid-cols-5">
+      {/* ── Tout en PLEINE LARGEUR, empilé (plus de grille 3/5-2/5) ─── */}
+      <div className="mt-4 grid gap-5">
         {/* ── Formulaire d'import ─────────────────────────────────────── */}
-        <Carte className="animate-apparition-haut delai-2 xl:col-span-3">
+        <Carte className="animate-apparition-haut delai-2">
           <ImportCsv
             action={
               actif.cle === "outils"
@@ -195,58 +201,57 @@ export default async function PageImportAdmin({
           />
         </Carte>
 
-        {/* ── Documentation des colonnes ──────────────────────────────── */}
-        <div className="grid content-start gap-5 xl:col-span-2">
-          <Carte className="animate-apparition-haut delai-3 overflow-hidden p-0">
-            <div className="flex items-center gap-2 border-b border-adm-bordure px-5 py-3.5">
-              <FileSpreadsheet className="size-4 text-primaire" aria-hidden />
-              <h3 className="font-titre text-[15px] leading-5 font-semibold">
-                Colonnes acceptées — {actif.libelle}
-              </h3>
-            </div>
-            <div className="max-h-[480px] overflow-y-auto">
-              <table className="w-full text-[13px] leading-5">
-                <thead className="sticky top-0 bg-white text-left text-legende text-encre">
-                  <tr>
-                    <th className="px-5 py-2.5">Colonne</th>
-                    <th className="px-3 py-2.5">Règle</th>
-                    <th className="px-5 py-2.5">Exemple</th>
+        {/* ── Documentation des colonnes (tableau fluide pleine largeur) ── */}
+        <Carte className="animate-apparition-haut delai-3 overflow-hidden p-0">
+          <div className="flex items-center gap-2 border-b border-adm-bordure px-5 py-3.5">
+            <FileSpreadsheet className="size-4 text-primaire" aria-hidden />
+            <h3 className="font-titre text-[15px] leading-5 font-semibold">
+              Colonnes acceptées — {actif.libelle}
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] text-[13px] leading-5">
+              <thead className="text-left text-legende text-encre">
+                <tr>
+                  <th className="w-56 px-5 py-3">Colonne</th>
+                  <th className="px-3 py-3">Règle</th>
+                  <th className="w-80 px-5 py-3">Exemple</th>
+                </tr>
+              </thead>
+              <tbody>
+                {actif.colonnes.map((c) => (
+                  <tr key={c.nom} className="border-t border-bordure align-top">
+                    <td className="px-5 py-3">
+                      <code className="rounded bg-gris px-1.5 py-0.5 text-[12px] font-bold text-adm-sombre">{c.nom}</code>
+                      {c.requis && (
+                        <span className="ml-1.5 inline-flex rounded-full bg-adm-erreur-doux px-1.5 py-0.5 text-[10px] leading-3 font-bold text-[#c94f35]">
+                          requis
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-encre">{c.note}</td>
+                    <td className="max-w-80 px-5 py-3 text-adm-gris">
+                      <span className="block truncate" title={c.exemple}>{c.exemple}</span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {actif.colonnes.map((c) => (
-                    <tr key={c.nom} className="border-t border-bordure align-top">
-                      <td className="px-5 py-3">
-                        <code className="rounded bg-gris px-1.5 py-0.5 text-[12px] font-bold text-adm-sombre">{c.nom}</code>
-                        {c.requis && (
-                          <span className="ml-1.5 inline-flex rounded-full bg-adm-erreur-doux px-1.5 py-0.5 text-[10px] leading-3 font-bold text-[#c94f35]">
-                            requis
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-encre">{c.note}</td>
-                      <td className="max-w-40 px-5 py-3 text-adm-gris">
-                        <span className="block truncate" title={c.exemple}>{c.exemple}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Carte>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Carte>
 
-          <Carte className="animate-apparition-haut delai-3 p-5">
-            <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
-              <Info className="mt-0.5 size-4 shrink-0 text-primaire" aria-hidden />
-              <span>
-                <strong className="font-semibold text-adm-sombre">Astuces :</strong> le nom des
-                colonnes ignore majuscules, accents et espaces (« Tarif Min » = <code>tarifmin</code>) ;
-                les colonnes en trop sont ignorées ; les cellules qui contiennent un « ; » ou des
-                sauts de ligne doivent être mises entre guillemets doubles.
-              </span>
-            </p>
-          </Carte>
-        </div>
+        {/* ── Astuces ─────────────────────────────────────────────────── */}
+        <Carte className="animate-apparition-haut delai-3 p-5">
+          <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
+            <Info className="mt-0.5 size-4 shrink-0 text-primaire" aria-hidden />
+            <span>
+              <strong className="font-semibold text-adm-sombre">Astuces :</strong> le nom des
+              colonnes ignore majuscules, accents et espaces (« Tarif Min » = <code>tarifmin</code>) ;
+              les colonnes en trop sont ignorées ; les cellules qui contiennent un « ; » ou des
+              sauts de ligne doivent être mises entre guillemets doubles.
+            </span>
+          </p>
+        </Carte>
       </div>
     </div>
   );

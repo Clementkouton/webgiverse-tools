@@ -1,13 +1,22 @@
 // components/admin/import-csv.tsx
 "use client";
 // ─────────────────────────────────────────────────────────────────
-// Lot 23 — Formulaire d'import CSV réutilisable (outils / tutoriels /
-// prompts). Deux sources possibles : un fichier .csv OU un collage
-// direct du texte. Option « mettre à jour les éléments existants
-// (même slug) ». Le rapport affiche créés / mis à jour / ignorés et
-// les erreurs ligne par ligne.
+// Lot 23b — Formulaire d'import CSV refondu (outils / tutoriels /
+// prompts). Corrige les anomalies d'affichage de la 1re version :
+//   • plus AUCUNE largeur figée : tout est fluide et passe à la
+//     ligne — plus aucun texte coupé (« détecté auto… », « Aucun
+//     fichi… », « elles sont i… ») ;
+//   • le champ fichier natif (incompressible, « Aucun fichier
+//     choisi » moche, débordait de la carte) est remplacé par une
+//     zone de dépôt : clic OU glisser-déposer, nom du fichier
+//     affiché après le choix ;
+//   • le hint passe sous le bouton au lieu d'être tronqué à côté ;
+//   • le rapport d'import passe les textes longs à la ligne
+//     (break-words) au lieu de déborder.
+// Deux sources possibles : un fichier .csv OU un collage direct.
+// Option « mettre à jour les éléments existants (même slug) ».
 // ─────────────────────────────────────────────────────────────────
-import { useActionState } from "react";
+import { useEffect, useActionState, useRef, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -15,6 +24,7 @@ import {
   LoaderCircle,
   Upload,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Bouton } from "@/components/ui/bouton";
 import { Etiquette, ZoneTexte } from "@/components/ui/champ";
 import type { EtatImport } from "@/app/actions/import-csv";
@@ -41,6 +51,20 @@ export function ImportCsv({
   cible: string;
 }) {
   const [etat, actionFormulaire, enCours] = useActionState(action, null);
+  const [nomFichier, setNomFichier] = useState<string | null>(null);
+  const [survol, setSurvol] = useState(false);
+  const champFichier = useRef<HTMLInputElement>(null);
+  const etaitEnCours = useRef(false);
+
+  // Import réussi → on vide le champ fichier ET son affichage, quelle
+  // que soit la façon dont React réinitialise le formulaire.
+  useEffect(() => {
+    if (etaitEnCours.current && !enCours && etat?.ok) {
+      if (champFichier.current) champFichier.current.value = "";
+      setNomFichier(null);
+    }
+    etaitEnCours.current = enCours;
+  }, [enCours, etat]);
 
   return (
     <form action={actionFormulaire} className="grid gap-5 p-6">
@@ -52,20 +76,56 @@ export function ImportCsv({
         </p>
       </div>
 
-      {/* ── Choix du fichier ─────────────────────────────────────────── */}
-      <label className="flex cursor-pointer items-center gap-3 rounded-carte border border-dashed border-adm-bordure bg-adm-fond/60 px-4 py-4 transition hover:border-primaire/60 hover:bg-primaire/5">
+      {/* ── Choix du fichier (clic ou glisser-déposer) ───────────────── */}
+      <label
+        onDragOver={(e) => {
+          e.preventDefault();
+          setSurvol(true);
+        }}
+        onDragLeave={() => setSurvol(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setSurvol(false);
+          const fichier = e.dataTransfer.files?.[0];
+          if (fichier && champFichier.current) {
+            // Le drop natif ne remplit pas l'input : on le remplit à la main
+            const transfert = new DataTransfer();
+            transfert.items.add(fichier);
+            champFichier.current.files = transfert.files;
+            setNomFichier(fichier.name);
+          }
+        }}
+        className={cn(
+          "flex cursor-pointer items-center gap-3 rounded-carte border-2 border-dashed px-4 py-4 transition",
+          survol
+            ? "border-primaire bg-primaire/10"
+            : "border-adm-bordure bg-adm-fond/60 hover:border-primaire/60 hover:bg-primaire/5",
+        )}
+      >
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primaire/10 text-primaire-texte">
           <FileSpreadsheet className="size-5" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[14px] leading-5 font-semibold text-adm-sombre">
-            Clique pour choisir un fichier .csv
+          <span className="block truncate text-[14px] leading-5 font-semibold text-adm-sombre">
+            {nomFichier ?? "Clique pour choisir un fichier .csv"}
           </span>
           <span className="block truncate text-[12px] leading-4 text-adm-gris">
-            Excel, Google Sheets (export CSV), Numbers…
+            {nomFichier
+              ? "Fichier prêt — clique pour en changer"
+              : "ou glisse-le ici — Excel, Google Sheets (export CSV), Numbers…"}
           </span>
         </span>
-        <input type="file" name="fichier" accept=".csv,.txt,text/csv,text/plain" className="shrink-0 text-[13px] text-adm-gris file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-primaire file:px-4 file:py-2 file:text-[13px] file:font-semibold file:text-white" />
+        <span className="shrink-0 rounded-full bg-primaire px-4 py-2 text-[13px] leading-4 font-semibold text-white">
+          Parcourir…
+        </span>
+        <input
+          ref={champFichier}
+          type="file"
+          name="fichier"
+          accept=".csv,.txt,text/csv,text/plain"
+          onChange={(e) => setNomFichier(e.target.files?.[0]?.name ?? null)}
+          className="sr-only"
+        />
       </label>
 
       {/* ── Ou collage direct ────────────────────────────────────────── */}
@@ -87,7 +147,7 @@ export function ImportCsv({
           name="maj"
           className="mt-0.5 size-4 shrink-0 accent-[#5d87ff]"
         />
-        <span className="text-[13px] leading-5 text-encre">
+        <span className="min-w-0 text-[13px] leading-5 text-encre">
           <strong className="font-semibold text-adm-sombre">Mettre à jour les {cible} existants</strong>{" "}
           (même slug) au lieu de les ignorer. Chaque colonne présente dans le CSV écrase
           l'ancienne valeur ; les colonnes absentes du fichier conservent l'ancienne valeur.
@@ -98,7 +158,7 @@ export function ImportCsv({
       {etat && !etat.ok && (
         <p
           role="alert"
-          className="flex items-start gap-2 rounded-carte border border-adm-erreur/40 bg-adm-erreur-doux px-4 py-3 text-[14px] font-semibold text-[#c94f35]"
+          className="flex items-start gap-2 break-words rounded-carte border border-adm-erreur/40 bg-adm-erreur-doux px-4 py-3 text-[14px] font-semibold text-[#c94f35]"
         >
           <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
           {etat.message}
@@ -107,7 +167,7 @@ export function ImportCsv({
 
       {/* ── Rapport du dernier import ────────────────────────────────── */}
       {etat && etat.ok && (
-        <div className="grid gap-3 rounded-carte border border-adm-succes/40 bg-adm-succes-doux px-4 py-4">
+        <div className="grid gap-3 break-words rounded-carte border border-adm-succes/40 bg-adm-succes-doux px-4 py-4">
           <p className="flex items-start gap-2 text-[14px] leading-5 font-bold text-[#0b8a78]">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" aria-hidden />
             {etat.message}
@@ -121,13 +181,13 @@ export function ImportCsv({
             )}
           </div>
           {etat.erreurs && etat.erreurs.length > 0 && (
-            <div>
+            <div className="min-w-0">
               <p className="text-[13px] font-bold text-[#c94f35]">
                 {etat.erreurs.length} ligne(s) rejetée(s) :
               </p>
               <ul className="mt-1.5 max-h-56 overflow-y-auto rounded-champ border border-adm-erreur/30 bg-white px-3 py-2 text-[12px] leading-5 text-[#c94f35]">
                 {etat.erreurs.map((erreur, i) => (
-                  <li key={i} className="border-b border-bordure/60 py-1 last:border-0">
+                  <li key={i} className="border-b border-bordure/60 py-1 break-words last:border-0">
                     {erreur}
                   </li>
                 ))}
@@ -137,8 +197,8 @@ export function ImportCsv({
         </div>
       )}
 
-      {/* ── Bouton ───────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
+      {/* ── Bouton + hint (le hint passe à la ligne, jamais tronqué) ─── */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         <Bouton type="submit" variante="indigo" disabled={enCours}>
           {enCours ? (
             <>
@@ -150,7 +210,7 @@ export function ImportCsv({
             </>
           )}
         </Bouton>
-        <span className="text-[12px] leading-4 text-adm-gris">
+        <span className="min-w-0 text-[12px] leading-4 text-adm-gris">
           Une ligne invalide ne bloque jamais les autres : elles sont listées dans le rapport.
         </span>
       </div>

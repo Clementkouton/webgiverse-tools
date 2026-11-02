@@ -45,8 +45,17 @@ function decouperLignes(texte: string, separateur: string): string[][] {
       continue;
     }
 
+    // Guillemet OUVRANT : seulement en DÉBUT de cellule (RFC 4180).
+    // Avant (Lot 23) tout guillemet basculait en mode « entre
+    // guillemets » : un guillemet non apparié au milieu d'une
+    // description avalait la fin de la ligne, voire les lignes
+    // suivantes → lignes fantômes à l'import.
     if (c === '"') {
-      entreGuillemets = true;
+      if (cellule === "") {
+        entreGuillemets = true;
+      } else {
+        cellule += c; // guillemet au milieu d'un texte = littéral
+      }
     } else if (c === separateur) {
       ligne.push(cellule);
       cellule = "";

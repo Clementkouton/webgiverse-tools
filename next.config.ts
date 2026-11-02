@@ -46,8 +46,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "www.google.com", pathname: "/s2/favicons*" },
     ],
   },
-  experimental: {
+    experimental: {
     serverActions: {
+      // Par défaut Next.js plafonne les Server Actions à 1 Mo : un CSV
+      // de 1 à 2 Mo échouait avec « Body exceeded 1 MB limit ».
+      bodySizeLimit: "4mb",
       allowedOrigins: [
         "localhost:3000",
         "webgiverse-tools.vercel.app",
