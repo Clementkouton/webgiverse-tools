@@ -481,3 +481,185 @@ export function parserDescriptionRaffinee(valeur: unknown): DescriptionRaffinee 
   if (chapitres.length === 0 && ressources.length === 0 && paragraphes.length === 0) return null;
   return { chapitres, ressources, paragraphes };
 }
+
+/* ════════════════════════════════════════════════════════════════
+   5) IMPORT CSV (Lot 29) — colonne « descriptionRaffinee » de
+      /admin/import?onglet=tutoriels
+   ════════════════════════════════════════════════════════════════ */
+
+/** Valeur stockable dans la colonne Json `Tuto.descriptionRaffinee`. */
+export type ValeurDescriptionRaffinee = DescriptionRaffinee | { vide: true };
+
+export type ResultatDescriptionCsv =
+  | { ok: true; /** null = aucune modification à écrire (cellules vides). */
+      valeur: ValeurDescriptionRaffinee | null }
+  | { ok: false; erreur: string };
+
+/** Cellules CSV brutes des 4 colonnes de description (après trim de l'appelant). */
+export type CellulesDescriptionCsv = {
+  json: string;
+  chapitres: string;
+  ressources: string;
+  paragraphes: string;
+};
+
+const REGEX_CHAPITRE_CSV = /^((?:\d{1,2}:)?\d{1,2}:\d{2})\s+(.+)$/;
+const MAX_CHAPITRES_CSV = 100;
+const MAX_RESSOURCES_CSV = 50;
+const MAX_PARAGRAPHES_CSV = 20;
+const MAX_CAR_PARAGRAPHE_CSV = 4000;
+
+/** « 00:00 Intro | 02:35 Installer l'outil » → chapitres. */
+function parserChapitresCsv(valeur: string): { ok: true; chapitres: ChapitreYoutube[] } | { ok: false; erreur: string } {
+  const chapitres: ChapitreYoutube[] = [];
+  for (const brut of valeur.split("|").map((s) => s.trim()).filter(Boolean)) {
+    const m = brut.match(REGEX_CHAPITRE_CSV);
+    if (!m) {
+      return {
+        ok: false,
+        erreur: `chapitre illisible (« ${brut.slice(0, 60)} » — format attendu « mm:ss Titre » ou « hh:mm:ss Titre »)`,
+      };
+    }
+    chapitres.push({ temps: m[1]!, titre: m[2]!.trim().slice(0, 160) });
+  }
+  return { ok: true, chapitres: chapitres.slice(0, MAX_CHAPITRES_CSV) };
+}
+
+/** « https://a.com | Guide officiel : https://docs.fr » → ressources. */
+function parserRessourcesCsv(valeur: string): { ok: true; ressources: RessourceYoutube[] } | { ok: false; erreur: string } {
+  const ressources: RessourceYoutube[] = [];
+  for (const brut of valeur.split("|").map((s) => s.trim()).filter(Boolean)) {
+    const debutUrl = brut.search(/https?:\/\//);
+    if (debutUrl === -1) {
+      return { ok: false, erreur: `ressource sans URL (« ${brut.slice(0, 60)} »)` };
+    }
+    const label = brut.slice(0, debutUrl).replace(/[\s:;,\-–—]+$/, "").trim() || null;
+    const urlBrute = brut.slice(debutUrl).trim();
+    let url: string;
+    try {
+      const u = new URL(urlBrute);
+      if (u.protocol !== "http:" && u.protocol !== "https:") throw new Error("protocole");
+      url = u.toString();
+    } catch {
+      return { ok: false, erreur: `URL de ressource invalide (« ${urlBrute.slice(0, 60)} »)` };
+    }
+    ressources.push({ label, url });
+  }
+  return { ok: true, ressources: ressources.slice(0, MAX_RESSOURCES_CSV) };
+}
+
+/** Texte libre : paragraphes séparés par « || » (le « | » simple reste
+ * utilisable à l'intérieur d'un paragraphe). Tolérant : pas d'erreur. */
+function parserParagraphesCsv(valeur: string): string[] {
+  return valeur
+    .split("||")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .slice(0, MAX_PARAGRAPHES_CSV)
+    .map((p) => p.slice(0, MAX_CAR_PARAGRAPHE_CSV));
+}
+
+/**
+ * Normalise une valeur JSON provenant de la cellule
+ * « descriptionRaffinee » (exactement la structure produite par le
+ * scraper) : entrées invalides filtrées, tout vide → { vide: true }.
+ */
+function normaliserDescriptionJson(j: unknown): ValeurDescriptionRaffinee | null {
+  // Un tableau (ou une valeur simple) est une erreur de manipulation :
+  // on refuse plutôt que de le réduire silencieusement à { vide: true }.
+  if (!j || typeof j !== "object" || Array.isArray(j)) return null;
+  const v = j as Record<string, unknown>;
+  if (v.vide === true) return { vide: true };
+  const chapitres = Array.isArray(v.chapitres)
+    ? v.chapitres.filter(estChapitre).slice(0, MAX_CHAPITRES_CSV)
+    : [];
+  const ressources = Array.isArray(v.ressources)
+    ? v.ressources.filter(estRessource).slice(0, MAX_RESSOURCES_CSV)
+    : [];
+  const paragraphes = Array.isArray(v.paragraphes)
+    ? v.paragraphes
+        .filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+        .slice(0, MAX_PARAGRAPHES_CSV)
+        .map((p) => p.slice(0, MAX_CAR_PARAGRAPHE_CSV))
+    : [];
+  if (chapitres.length === 0 && ressources.length === 0 && paragraphes.length === 0) {
+    return { vide: true };
+  }
+  return { chapitres, ressources, paragraphes };
+}
+
+/**
+ * Construit la valeur de `Tuto.descriptionRaffinee` depuis les cellules
+ * CSV d'une ligne d'import tutoriel (Lot 29).
+ *
+ * Deux syntaxes acceptées :
+ *   1. `descriptionRaffinee` : JSON complet (structure du scraper) ou
+ *      le mot-clé « vide » — REMPLACE toute la description existante ;
+ *   2. `chapitres` / `ressources` / `paragraphes` : syntaxe lisible —
+ *      chaque colonne fournie (cellule non vide) remplace SA partie,
+ *      les autres sont conservées à partir de la description existante
+ *      (`existante` = valeur Json lue en base, mode mise à jour).
+ *
+ * Toutes les cellules vides → `{ ok: true, valeur: null }` : la
+ * description existante n'est JAMAIS écrasée par une cellule oubliée.
+ */
+export function parserDescriptionRaffineeCsv(
+  cellules: CellulesDescriptionCsv,
+  existante: unknown = null,
+): ResultatDescriptionCsv {
+  const json = cellules.json.trim();
+
+  // ── 1) JSON complet (ou mot-clé « vide ») : remplacement intégral ──
+  if (json) {
+    if (/^(vide|rien|-)$/i.test(json)) return { ok: true, valeur: { vide: true } };
+    let j: unknown;
+    try {
+      j = JSON.parse(json);
+    } catch {
+      return { ok: false, erreur: "JSON invalide dans la colonne « descriptionRaffinee »" };
+    }
+    const normalise = normaliserDescriptionJson(j);
+    if (!normalise) {
+      return {
+        ok: false,
+        erreur: "« descriptionRaffinee » doit être un objet JSON (chapitres, ressources, paragraphes)",
+      };
+    }
+    return { ok: true, valeur: normalise };
+  }
+
+  const chapitresBrut = cellules.chapitres.trim();
+  const ressourcesBrut = cellules.ressources.trim();
+  const paragraphesBrut = cellules.paragraphes.trim();
+
+  // ── 2) Toutes les cellules vides → inchangé (protection anti-perte) ─
+  if (!chapitresBrut && !ressourcesBrut && !paragraphesBrut) {
+    return { ok: true, valeur: null };
+  }
+
+  // Base = description déjà en base (mode mise à jour) : les parties
+  // non fournies sont conservées.
+  const base: DescriptionRaffinee =
+    parserDescriptionRaffinee(existante) ?? { chapitres: [], ressources: [], paragraphes: [] };
+
+  let chapitres = base.chapitres;
+  if (chapitresBrut) {
+    const r = parserChapitresCsv(chapitresBrut);
+    if (!r.ok) return { ok: false, erreur: r.erreur };
+    chapitres = r.chapitres;
+  }
+
+  let ressources = base.ressources;
+  if (ressourcesBrut) {
+    const r = parserRessourcesCsv(ressourcesBrut);
+    if (!r.ok) return { ok: false, erreur: r.erreur };
+    ressources = r.ressources;
+  }
+
+  const paragraphes = paragraphesBrut ? parserParagraphesCsv(paragraphesBrut) : base.paragraphes;
+
+  if (chapitres.length === 0 && ressources.length === 0 && paragraphes.length === 0) {
+    return { ok: true, valeur: null };
+  }
+  return { ok: true, valeur: { chapitres, ressources, paragraphes } };
+}

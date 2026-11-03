@@ -17,9 +17,11 @@
 // rapport quand plus de 30 lignes sont rejetées.
 // ─────────────────────────────────────────────────────────────────
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { slugifier } from "@/lib/utils";
+import { parserDescriptionRaffineeCsv } from "@/lib/description-youtube";
 import {
   parserCsv,
   lit,
@@ -320,6 +322,14 @@ export async function importerOutilsAction(_etat: EtatImport, donnees: FormData)
 // ─────────────────────────────────────────────────────────────────────
 //  Import des TUTORIELS
 // ─────────────────────────────────────────────────────────────────────
+// Lot 29 — 4 colonnes de description YouTube raffinée acceptées :
+//   • descriptionRaffinee : JSON complet (structure du scraper) ou le
+//     mot-clé « vide » → remplace TOUTE la description ;
+//   • chapitres / ressources / paragraphes : syntaxe lisible, chaque
+//     colonne fournie ne remplace que SA partie (le reste est conservé
+//     depuis la description déjà en base).
+//   Cellules vides = description existante conservée : une colonne
+//   oubliée ne peut JAMAIS effacer des données.
 
 export async function importerTutorielsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
   await exigerAdmin();
@@ -364,11 +374,28 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
         continue;
       }
 
+      // Lot 29 — description raffinée : JSON (« descriptionRaffinee »)
+      // ou 3 colonnes lisibles. En mise à jour, la ligne déjà en base
+      // fournit la base de fusion (parties non fournies conservées).
+      const desc = parserDescriptionRaffineeCsv(
+        {
+          json: lit(l, "descriptionRaffinee"),
+          chapitres: lit(l, "chapitres"),
+          ressources: lit(l, "ressources"),
+          paragraphes: lit(l, "paragraphes"),
+        },
+      );
+      if (!desc.ok) {
+        erreurs.push(`Ligne ${numero} : ${desc.erreur} — ${titre}.`);
+        continue;
+      }
+
       if (existant) {
         const champs: Partial<{
           youtubeId: string | null; miniature: string | null; dureeMin: number;
           niveau: "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE"; outils: string[];
           ordre: number; vues: number; nouveau: boolean;
+          descriptionRaffinee: Prisma.InputJsonValue;
         }> = {};
         if (col("youtubeid")) champs.youtubeId = youtubeId || null;
         if (col("miniature")) champs.miniature = lit(l, "miniature").trim() || null;
@@ -378,6 +405,9 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
         if (col("ordre")) champs.ordre = entier(lit(l, "ordre"), 0);
         if (col("vues")) champs.vues = entier(lit(l, "vues"), 0);
         if (col("nouveau")) champs.nouveau = booleen(lit(l, "nouveau"));
+        if (desc) {
+          champs.descriptionRaffinee = desc as unknown as Prisma.InputJsonValue;
+        }
 
         await prisma.tuto.update({
           where: { id: existant.id },
@@ -397,6 +427,9 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
             ordre: entier(lit(l, "ordre"), 0),
             vues: entier(lit(l, "vues"), 0),
             nouveau: booleen(lit(l, "nouveau")),
+            ...(desc
+              ? { descriptionRaffinee: desc as unknown as Prisma.InputJsonValue }
+              : {}),
           },
         });
         slugsPris.add(slug);

@@ -79,6 +79,26 @@ const COLONNES_TUTORIELS: Colonne[] = [
   { nom: "vues", note: "Compteur de vues initial.", exemple: "1250" },
   { nom: "miniature", note: "URL d'une miniature perso (sinon miniature YouTube).", exemple: "https://…/mini.jpg" },
   { nom: "slug", note: "Adresse /tutoriels/… (sinon généré du titre).", exemple: "maitriser-chatgpt" },
+  {
+    nom: "chapitres",
+    note: "Description YouTube — chapitres « mm:ss Titre » (ou hh:mm:ss), séparés par « | ». Ne remplace que les chapitres ; cellule vide = inchangé.",
+    exemple: "00:00 Introduction|02:30 Premier prompt|12:00 Astuces",
+  },
+  {
+    nom: "ressources",
+    note: "Liens externes séparés par « | », libellé optionnel avant l'URL (« Label : URL »). Ne remplace que les ressources ; cellule vide = inchangé.",
+    exemple: "https://chat.openai.com|Guide officiel : https://help.openai.com",
+  },
+  {
+    nom: "paragraphes",
+    note: "Texte libre de la description, paragraphes séparés par « || ». Ne remplace que les paragraphes ; cellule vide = inchangé.",
+    exemple: "Bienvenue dans ce tutoriel.||Pense à liker la vidéo.",
+  },
+  {
+    nom: "descriptionRaffinee",
+    note: "AVANCÉ — le tout en UN JSON (structure exacte du scraper : chapitres, ressources, paragraphes) → remplace TOUTE la description. Mot-clé « vide » = marquer sans contenu. Prioritaire sur les 3 colonnes ci-dessus ; cellule vide = inchangé.",
+    exemple: '{"chapitres":[{"temps":"00:00","titre":"Intro"}],"ressources":[{"label":null,"url":"https://…"}],"paragraphes":["…"]}',
+  },
 ];
 
 const COLONNES_PROMPTS: Colonne[] = [
