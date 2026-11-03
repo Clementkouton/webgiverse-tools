@@ -49,14 +49,18 @@ export type EtatImport = {
 const MAX_LIGNES = 500;
 const MAX_OCTETS = 2_000_000; // 2 Mo
 
-async function exigerAdmin() {
+/** Vérifie la session admin. Renvoie un booléen au lieu de lever une
+ *  exception : l'action répond alors un état sérialisable que
+ *  useActionState affiche proprement dans le rapport d'import (une
+ *  exception donnerait une page d'erreur générique côté client). */
+async function exigerAdmin(): Promise<boolean> {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("Accès réservé aux administrateurs.");
+  if (!session?.user?.id) return false;
   const moi = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { role: true },
   });
-  if (moi?.role !== "ADMIN") throw new Error("Accès réservé aux administrateurs.");
+  return moi?.role === "ADMIN";
 }
 
 /** Récupère le texte CSV : fichier envoyé, sinon zone « coller ». */
@@ -171,7 +175,7 @@ function verifierCsv(source: string | null): ReturnType<typeof parserCsv> | Etat
 // ─────────────────────────────────────────────────────────────────────
 
 export async function importerOutilsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
-  await exigerAdmin();
+  if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
 
   const analyse = verifierCsv(await lireSource(donnees));
   if (!analyse || !("lignes" in analyse)) return analyse;
@@ -332,7 +336,7 @@ export async function importerOutilsAction(_etat: EtatImport, donnees: FormData)
 //   oubliée ne peut JAMAIS effacer des données.
 
 export async function importerTutorielsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
-  await exigerAdmin();
+  if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
 
   const analyse = verifierCsv(await lireSource(donnees));
   if (!analyse || !("lignes" in analyse)) return analyse;
@@ -458,7 +462,7 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
 // ─────────────────────────────────────────────────────────────────────
 
 export async function importerPromptsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
-  await exigerAdmin();
+  if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
 
   const analyse = verifierCsv(await lireSource(donnees));
   if (!analyse || !("lignes" in analyse)) return analyse;
