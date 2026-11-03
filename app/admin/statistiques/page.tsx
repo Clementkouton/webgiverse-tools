@@ -149,7 +149,7 @@ export default async function PageStatistiquesAdmin() {
       <section className="animate-apparition-haut mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <CarteStatAdmin
           href="/admin/outils" libelle="Outils" icone={Wrench} ton="primaire"
-          valeur={sommeOutils.toLocaleString("fr-FR")} contexte="Nombre de fiches outils"
+          valeur={(sommeOutils._sum.vues ?? 0).toLocaleString("fr-FR")} contexte="Nombre de fiches outils"
         />
         <CarteStatAdmin
           href="/admin/articles" libelle="Vues articles" icone={Newspaper} ton="info"

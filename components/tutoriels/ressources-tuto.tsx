@@ -24,6 +24,36 @@ function domaineDe(url: string): string {
   }
 }
 
+/** Groupe de capture OBLIGATOIRE : split conserve les séparateurs →
+ * alternance fiable texte / URL dans les paragraphes. */
+const REGEX_URL = /(https?:\/\/[^\s<>()\[\]{}"']+)/g;
+
+/** Rend un paragraphe en transformant chaque URL en vrai lien <a>
+ * (les descriptions YouTube citent des ressources au fil du texte). */
+function ParagrapheAvecLiens({ texte }: { texte: string }) {
+  const segments = texte.split(REGEX_URL);
+  if (segments.length === 1) return <>{texte}</>;
+  return (
+    <>
+      {segments.map((segment, i) =>
+        i % 2 === 1 ? (
+          <a
+            key={i}
+            href={segment}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="break-all font-medium text-sky-600 underline decoration-sky-300 underline-offset-2 transition hover:text-sky-500 hover:decoration-sky-500"
+          >
+            {segment}
+          </a>
+        ) : (
+          <span key={i}>{segment}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 export function RessourcesTuto({ description }: Props) {
   const { chapitres, ressources, paragraphes } = description;
   if (chapitres.length === 0 && ressources.length === 0 && paragraphes.length === 0) return null;
@@ -104,7 +134,7 @@ export function RessourcesTuto({ description }: Props) {
           <div className="mt-2.5 grid gap-2.5">
             {paragraphes.map((p, i) => (
               <p key={i} className="text-[14px] leading-6 text-encre">
-                {p}
+                <ParagrapheAvecLiens texte={p} />
               </p>
             ))}
           </div>

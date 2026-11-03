@@ -5,9 +5,10 @@
 // de bruit (hashtags, « abonne-toi », liens sociaux, séparateurs…)
 // et parfois des pépites : liens de ressources (docs, outils, Colab),
 // chapitres horodatés, explications. Ce module :
-//   1. RÉCUPÈRE la description brute (page watch, puis API interne
-//      InnerTube en repli) — utilisé par la route admin et par le
-//      script local `scripts/recuperer-descriptions-youtube.ts` ;
+//   1. RÉCUPÈRE la description brute — endpoint interne /next (voie
+//      fiable depuis les IP de serveurs), puis page watch, puis API
+//      interne InnerTube en repli — utilisé par la route admin et par
+//      le script local `scripts/recuperer-descriptions-youtube.ts` ;
 //   2. RAFFINE la description : isole les CHAPITRES (horodatés),
 //      les RESSOURCES (liens externes utiles, sans liens sociaux ni
 //      paramètres de tracking) et les PARAGRAPHES utiles (sans
@@ -96,6 +97,87 @@ export function descriptionDepuisPlayer(
   return null;
 }
 
+/** Stratégie 0 — endpoint interne /next (données de la page watch).
+ * Contrairement au player, /next n'est PAS soumis au mur anti-bot
+ * « Sign in to confirm you're not a bot » : c'est la voie fiable
+ * depuis les IP de serveurs (Vercel, CI…). La description arrive
+ * sous forme d'objet « attributedDescription » : le champ content
+ * contient le texte AFFICHÉ (liens tronqués « https://exemple… »)
+ * et commandRuns porte les URLs RÉELLES (souvent enveloppées dans
+ * youtube.com/redirect?q=…) → on reconstruit le texte brut complet. */
+type DescriptionAttribuee = {
+  content: string;
+  commandRuns?: Array<{
+    startIndex: number;
+    length: number;
+    onTap?: { innertubeCommand?: { urlEndpoint?: { url?: string } } };
+  }>;
+};
+
+/** Replace chaque texte d'URL tronqué par l'URL complète décodée. */
+function reconstruireUrlsAttribuees(ad: DescriptionAttribuee): string {
+  let contenu = ad.content;
+  const runs = [...(ad.commandRuns ?? [])]
+    .filter((cr) => cr.onTap?.innertubeCommand?.urlEndpoint?.url)
+    .sort((a, b) => b.startIndex - a.startIndex); // arrière → indices stables
+  for (const cr of runs) {
+    const enveloppe = cr.onTap!.innertubeCommand!.urlEndpoint!.url as string;
+    let reel = enveloppe;
+    if (enveloppe.includes("youtube.com/redirect")) {
+      try {
+        const q = new URL(enveloppe).searchParams.get("q");
+        if (q) reel = q;
+      } catch {
+        // enveloppe illisible → on garde le texte affiché tel quel
+      }
+    }
+    if (!/^https?:\/\//i.test(reel)) continue;
+    contenu = contenu.slice(0, cr.startIndex) + reel + contenu.slice(cr.startIndex + cr.length);
+  }
+  return contenu;
+}
+
+async function viaNext(youtubeId: string): Promise<string | null> {
+  const corps = {
+    context: { client: { clientName: "WEB", clientVersion: "2.20241126.01.00", hl: "fr", gl: "FR" } },
+    videoId: youtubeId,
+    contentCheckOk: true,
+    racyCheckOk: true,
+  };
+  const reponse = await fetch("https://www.youtube.com/youtubei/v1/next?prettyPrint=false", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent": UA_NAVIGATEUR,
+      "Accept-Language": "fr-FR,fr;q=0.9",
+      Origin: "https://www.youtube.com",
+      Referer: `https://www.youtube.com/watch?v=${youtubeId}`,
+      "X-YouTube-Client-Name": "1",
+      "X-YouTube-Client-Version": "2.20241126.01.00",
+    },
+    body: JSON.stringify(corps),
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!reponse.ok) return null;
+  const donnees = (await reponse.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!donnees) return null;
+  // Recherche récursive de l'objet attributedDescription (son
+  // emplacement varie selon les versions de la réponse).
+  let trouve: DescriptionAttribuee | null = null;
+  const visiter = (noeud: unknown): void => {
+    if (!noeud || typeof noeud !== "object" || trouve) return;
+    const n = noeud as Record<string, unknown>;
+    const ad = n.attributedDescription as DescriptionAttribuee | undefined;
+    if (ad && typeof ad.content === "string" && ad.content.trim()) {
+      trouve = ad;
+      return;
+    }
+    for (const v of Object.values(n)) visiter(v);
+  };
+  visiter(donnees);
+  return trouve ? reconstruireUrlsAttribuees(trouve) : null;
+}
+
 /** Stratégie 1 — page watch classique (fonctionne depuis une IP résidentielle). */
 async function viaPageWatch(youtubeId: string): Promise<string | null> {
   const reponse = await fetch(
@@ -181,6 +263,7 @@ async function viaInnerTube(youtubeId: string, client: ClientInnerTube): Promise
  */
 export async function recupererDescriptionBrute(youtubeId: string): Promise<string | null> {
   const etapes: Array<() => Promise<string | null>> = [
+    () => viaNext(youtubeId), // voie fiable depuis les IP de serveurs
     () => viaPageWatch(youtubeId),
     ...CLIENTS_INNERTUBE.map((client) => () => viaInnerTube(youtubeId, client)),
   ];
