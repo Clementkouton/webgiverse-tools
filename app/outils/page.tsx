@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { journaliserRecherche } from "@/lib/requetes-recherche";
 import CarteOutilView from "@/components/outil/carte-outil";
 import { Pagination } from "@/components/commun/pagination";
 
@@ -94,6 +95,13 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
   const pages = Math.max(1, Math.ceil(total / PAR_PAGE));
   const pageBrute = Math.trunc(Number(texte(params.page)) || 1);
   const page = Math.min(pages, Math.max(1, pageBrute));
+
+  /* ---------- Lot 26 : journal de la recherche (page 1 uniquement) ---------- */
+  /* Termes tapés dans le moteur + nb de résultats → page admin
+     « Recherches » (top des termes, recherches sans résultat…). */
+  if (q && page === 1) {
+    await journaliserRecherche(q, total);
+  }
 
   /* ---------- Requête principale ---------- */
 
