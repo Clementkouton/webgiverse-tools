@@ -7,19 +7,35 @@
 //     le mois dernier et mini-courbe des 7 derniers jours ;
 //   • graphique en barres des inscriptions (14 jours) + anneau
 //     « Membres par plan ».
+// Lot 26 — PILOTAGE & DONNÉES :
+//   • rangée « Pilotage du jour » : KPI temps réel (inscrits
+//     aujourd'hui, avis à modérer, Premium actifs, revenus du mois) ;
+//   • alertes visuelles : liens morts détectés (avec vérification en
+//     1 clic) et brouillons d'articles oubliés (30 jours) ;
+//   • raccourcis vers les nouvelles pages Recherches et Segments.
 // Aucun tableau ici : chaque contenu a sa page dans le menu
 // (Outils, Tutoriels, Prompts, Articles, Propositions, Avis,
 // Utilisateurs, Abonnements). Aucune librairie ajoutée.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Crown, MessageSquareQuote, Sparkles, Users, Wrench } from "lucide-react";
+import {
+  ArrowRight,
+  Crown,
+  FileWarning,
+  Link2Off,
+  MessageSquareQuote,
+  Sparkles,
+  Users,
+  Wrench,
+} from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
 import { CarteStatAdmin } from "@/components/admin/carte-stat-admin";
 import { GraphiqueBarres } from "@/components/admin/graphique-barres";
 import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
+import { BoutonVerifierLiens } from "@/components/admin/bouton-verifier-liens";
 
 export const metadata: Metadata = { title: "Administration" };
 export const dynamic = "force-dynamic";
@@ -41,9 +57,18 @@ function parJour(dates: Date[], debut: Date, nb: number): number[] {
   });
 }
 
+/** Libellé humain d'un code de vérification de lien. */
+function libelleCodeLien(code: number | null): string {
+  if (code === null) return "Jamais vérifié";
+  if (code === 0) return "Injoignable";
+  return `HTTP ${code}`;
+}
+
 export default async function PageAdmin() {
   // ── Bornes de temps ─────────────────────────────────────────────
   const maintenant = new Date();
+  const debutJour = new Date();
+  debutJour.setHours(0, 0, 0, 0);
   const debutMois = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
   const debutMoisPrec = new Date(maintenant.getFullYear(), maintenant.getMonth() - 1, 1);
   const debut7j = new Date();
@@ -51,6 +76,9 @@ export default async function PageAdmin() {
   debut7j.setDate(debut7j.getDate() - 6);
   const debut14j = new Date(debut7j);
   debut14j.setDate(debut7j.getDate() - 7);
+  const ilYa24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const ilYa30j = new Date(maintenant);
+  ilYa30j.setDate(ilYa30j.getDate() - 30);
 
   // ── Compteurs ───────────────────────────────────────────────────
   const [
@@ -91,6 +119,35 @@ export default async function PageAdmin() {
     }),
   ]);
 
+  // ── Lot 26 — pilotage du jour + alertes ─────────────────────────
+  const whereLienMort = {
+    statut: "PUBLIE" as const,
+    OR: [{ statutLien: { gte: 400 } }, { statutLien: 0 }],
+  };
+  const [
+    inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts,
+    liensMorts, nbJamaisVerifies, nbBrouillonsAnciens, brouillonsAnciens,
+  ] = await Promise.all([
+    prisma.user.count({ where: { createdAt: { gte: debutJour } } }),
+    prisma.avis.count({ where: { creeLe: { gte: ilYa24h } } }),
+    prisma.messageContact.count({ where: { traite: false } }),
+    prisma.tool.count({ where: whereLienMort }),
+    prisma.tool.findMany({
+      where: whereLienMort,
+      orderBy: [{ lienVerifieLe: { sort: "desc", nulls: "last" } }],
+      select: { id: true, nom: true, statutLien: true, lienVerifieLe: true },
+      take: 5,
+    }),
+    prisma.tool.count({ where: { statut: "PUBLIE", statutLien: null } }),
+    prisma.article.count({ where: { statut: "BROUILLON", majLe: { lt: ilYa30j } } }),
+    prisma.article.findMany({
+      where: { statut: "BROUILLON", majLe: { lt: ilYa30j } },
+      orderBy: { majLe: "asc" },
+      select: { id: true, titre: true, majLe: true },
+      take: 5,
+    }),
+  ]);
+
   // Lot 20 — votes « Utile » (lecture défensive, jamais bloquante).
   const delegueVotesAvis = (prisma as any).voteAvis;
   const nbVotesUtile: number = delegueVotesAvis?.count
@@ -120,10 +177,16 @@ export default async function PageAdmin() {
   // ── Tendances vs le mois dernier ────────────────────────────────
   const revenusCur = revenusMois._sum.montant ?? 0;
   const revenusPrec = revenusMoisPrec._sum.montant ?? 0;
+  const revenusFormates = `${(revenusCur / 100).toFixed(2)} $`;
 
   const formateurJour = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
   const periode = `${formateurJour.format(debutMois)} – ${formateurJour.format(maintenant)} ${maintenant.getFullYear()}`;
   const dateLongue = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" }).format(maintenant);
+  const formateurDate = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
+
+  /** Âge en jours d'une date (pour les brouillons oubliés). */
+  const ageJours = (date: Date) =>
+    Math.max(0, Math.floor((maintenant.getTime() - new Date(date).getTime()) / 86_400_000));
 
   return (
     <div>
@@ -169,56 +232,213 @@ export default async function PageAdmin() {
         </div>
       </div>
 
-      {/* ── 4 cartes statistiques avec tendance + sparkline ─────────── */}
-      <section aria-label="Statistiques essentielles" className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <CarteStatAdmin
-          href="/admin/utilisateurs"
-          libelle="Utilisateurs"
-          valeur={nbUtilisateurs}
-          icone={Users}
-          ton="primaire"
-          tendance={tendance(inscritsMois, inscritsMoisPrec)}
-          contexte={`${inscritsMois} inscription${inscritsMois > 1 ? "s" : ""} ce mois`}
-          donnees={joursInscrits}
-          delay={0}
-        />
-        <CarteStatAdmin
-          href="/admin/outils"
-          libelle="Outils publiés"
-          valeur={nbOutilsPublies}
-          icone={Wrench}
-          ton="succes"
-          tendance={tendance(outilsMois, outilsMoisPrec)}
-          contexte={`${nbOutilsTotal} fiches au total`}
-          donnees={joursOutils}
-          delay={70}
-        />
-        <CarteStatAdmin
-          href="/admin/avis"
-          libelle="Avis publiés"
-          valeur={nbAvis}
-          icone={MessageSquareQuote}
-          ton="alerte"
-          tendance={tendance(avisMois, avisMoisPrec)}
-          contexte={`${nbVotesUtile} vote${nbVotesUtile > 1 ? "s" : ""} « Utile »`}
-          donnees={joursAvis}
-          delay={140}
-        />
-        <CarteStatAdmin
-          href="/admin/abonnements"
-          libelle="Abonnés Premium"
-          valeur={nbPremium}
-          icone={Crown}
-          ton="info"
-          tendance={tendance(revenusCur, revenusPrec)}
-          contexte="tendance des revenus du mois"
-          donnees={joursRevenus.length > 0 ? joursRevenus : joursPremium}
-          delay={210}
-        />
+      {/* ── Lot 26 — Pilotage du jour (KPI temps réel) ──────────────── */}
+      <section aria-label="Pilotage du jour" className="animate-apparition-haut delai-1 mt-5">
+        <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
+          Pilotage du jour
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <CarteStatAdmin
+            href="/admin/utilisateurs"
+            libelle="Inscrits aujourd'hui"
+            valeur={inscritsAujourdhui}
+            icone={Users}
+            ton="primaire"
+            contexte={`${inscritsMois} inscription${inscritsMois > 1 ? "s" : ""} ce mois-ci`}
+          />
+          <CarteStatAdmin
+            href="/admin/moderation"
+            libelle="À modérer"
+            valeur={avis24h + messagesNonTraites}
+            icone={MessageSquareQuote}
+            ton="alerte"
+            contexte={`${avis24h} avis (24 h) · ${messagesNonTraites} message${messagesNonTraites > 1 ? "s" : ""} de contact`}
+          />
+          <CarteStatAdmin
+            href="/admin/abonnements"
+            libelle="Premium actifs"
+            valeur={nbPremium}
+            icone={Crown}
+            ton="info"
+            contexte={`${nbPro} Pro · ${nbEntreprise} Entreprise`}
+          />
+          <CarteStatAdmin
+            href="/admin/abonnements"
+            libelle="Revenus du mois"
+            valeur={revenusFormates}
+            icone={Wrench}
+            ton="succes"
+            contexte={`tendance ${tendance(revenusCur, revenusPrec) >= 0 ? "+" : ""}${tendance(revenusCur, revenusPrec)} % vs le mois dernier`}
+          />
+        </div>
       </section>
 
-      {/* ── Graphiques : inscriptions 14 jours + membres par plan ──── */}
-      <section className="mt-5 grid gap-4 lg:grid-cols-3">
+      {/* ── 4 cartes statistiques avec tendance + sparkline ─────────── */}
+      <section aria-label="Statistiques essentielles" className="animate-apparition-haut delai-2 mt-6">
+        <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
+          Ce mois-ci
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <CarteStatAdmin
+            href="/admin/utilisateurs"
+            libelle="Utilisateurs"
+            valeur={nbUtilisateurs}
+            icone={Users}
+            ton="primaire"
+            tendance={tendance(inscritsMois, inscritsMoisPrec)}
+            contexte={`${inscritsMois} inscription${inscritsMois > 1 ? "s" : ""} ce mois`}
+            donnees={joursInscrits}
+            delay={0}
+          />
+          <CarteStatAdmin
+            href="/admin/outils"
+            libelle="Outils publiés"
+            valeur={nbOutilsPublies}
+            icone={Wrench}
+            ton="succes"
+            tendance={tendance(outilsMois, outilsMoisPrec)}
+            contexte={`${nbOutilsTotal} fiches au total`}
+            donnees={joursOutils}
+            delay={70}
+          />
+          <CarteStatAdmin
+            href="/admin/avis"
+            libelle="Avis publiés"
+            valeur={nbAvis}
+            icone={MessageSquareQuote}
+            ton="alerte"
+            tendance={tendance(avisMois, avisMoisPrec)}
+            contexte={`${nbVotesUtile} vote${nbVotesUtile > 1 ? "s" : ""} « Utile »`}
+            donnees={joursAvis}
+            delay={140}
+          />
+          <CarteStatAdmin
+            href="/admin/abonnements"
+            libelle="Abonnés Premium"
+            valeur={nbPremium}
+            icone={Crown}
+            ton="info"
+            tendance={tendance(revenusCur, revenusPrec)}
+            contexte="tendance des revenus du mois"
+            donnees={joursRevenus.length > 0 ? joursRevenus : joursPremium}
+            delay={210}
+          />
+        </div>
+      </section>
+
+      {/* ── Lot 26 — Alertes visuelles ──────────────────────────────── */}
+      <section aria-label="Alertes" className="animate-apparition-haut delai-2 mt-6 grid gap-4 lg:grid-cols-2">
+        {/* Liens morts détectés */}
+        <Carte className={`p-6 ${nbLiensMorts > 0 ? "border-[#f3c3b5] bg-[#fdf6f4]" : ""}`}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span
+                className={`grid size-11 shrink-0 place-items-center rounded-xl ${
+                  nbLiensMorts > 0 ? "bg-adm-erreur-doux text-[#c94f35]" : "bg-adm-succes-doux text-[#0f9b85]"
+                }`}
+              >
+                <Link2Off className="size-5" aria-hidden />
+              </span>
+              <div>
+                <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
+                  Liens morts détectés
+                </h3>
+                <p className="text-[13px] leading-4 text-adm-gris">
+                  {nbLiensMorts > 0
+                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe vers un site en défaut`
+                    : nbJamaisVerifies > 0
+                      ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
+                      : "Aucun lien mort : tous les liens vérifiés répondent"}
+                </p>
+              </div>
+            </div>
+            <BoutonVerifierLiens />
+          </div>
+
+          {nbLiensMorts > 0 && (
+            <ul className="mt-4 grid gap-2">
+              {liensMorts.map((outil) => (
+                <li key={outil.id}>
+                  <Link
+                    href={`/admin/outils/${outil.id}`}
+                    className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#e0917a]"
+                  >
+                    <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre group-hover:text-[#c94f35]">
+                      {outil.nom}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="rounded-full bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
+                        {libelleCodeLien(outil.statutLien)}
+                      </span>
+                      {outil.lienVerifieLe && (
+                        <span className="text-[11px] text-adm-gris-clair">
+                          {formateurDate.format(new Date(outil.lienVerifieLe))}
+                        </span>
+                      )}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {nbLiensMorts > liensMorts.length && (
+                <li className="px-1 text-[12px] text-adm-gris">
+                  + {nbLiensMorts - liensMorts.length} autre{nbLiensMorts - liensMorts.length > 1 ? "s" : ""} fiche{nbLiensMorts - liensMorts.length > 1 ? "s" : ""} en défaut
+                </li>
+              )}
+            </ul>
+          )}
+        </Carte>
+
+        {/* Brouillons oubliés */}
+        <Carte className={`p-6 ${nbBrouillonsAnciens > 0 ? "border-[#efdda8] bg-[#fdfaf1]" : ""}`}>
+          <div className="flex items-center gap-3">
+            <span
+              className={`grid size-11 shrink-0 place-items-center rounded-xl ${
+                nbBrouillonsAnciens > 0 ? "bg-adm-alerte-doux text-[#b26f00]" : "bg-adm-succes-doux text-[#0f9b85]"
+              }`}
+            >
+              <FileWarning className="size-5" aria-hidden />
+            </span>
+            <div>
+              <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
+                Brouillons oubliés
+              </h3>
+              <p className="text-[13px] leading-4 text-adm-gris">
+                {nbBrouillonsAnciens > 0
+                  ? `${nbBrouillonsAnciens} brouillon${nbBrouillonsAnciens > 1 ? "s" : ""} d'article sans modification depuis 30 jours`
+                  : "Aucun brouillon ancien : tout est à jour"}
+              </p>
+            </div>
+          </div>
+
+          {nbBrouillonsAnciens > 0 && (
+            <ul className="mt-4 grid gap-2">
+              {brouillonsAnciens.map((article) => (
+                <li key={article.id}>
+                  <Link
+                    href={`/admin/articles/${article.id}`}
+                    className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#dfb95c]"
+                  >
+                    <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre group-hover:text-[#b26f00]">
+                      {article.titre}
+                    </span>
+                    <span className="shrink-0 text-[11px] leading-4 font-semibold text-[#b26f00]">
+                      inactif depuis {ageJours(article.majLe)} j
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {nbBrouillonsAnciens > brouillonsAnciens.length && (
+                <li className="px-1 text-[12px] text-adm-gris">
+                  + {nbBrouillonsAnciens - brouillonsAnciens.length} autre{nbBrouillonsAnciens - brouillonsAnciens.length > 1 ? "s" : ""} brouillon{nbBrouillonsAnciens - brouillonsAnciens.length > 1 ? "s" : ""}
+                </li>
+              )}
+            </ul>
+          )}
+        </Carte>
+      </section>
+
+      {/* ── Graphiques : inscriptions 14 jours + raccourcis + plans ── */}
+      <section className="mt-6 grid gap-4 lg:grid-cols-3">
         <Carte className="animate-apparition-haut p-6 lg:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -236,7 +456,7 @@ export default async function PageAdmin() {
           </div>
         </Carte>
 
-        {/* Lot 25 — raccourcis vers les nouvelles pages */}
+        {/* Raccourcis — Lot 26 : + Recherches & Segments */}
         <Carte className="animate-apparition-haut delai-1 p-6">
           <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
             Raccourcis
@@ -244,6 +464,8 @@ export default async function PageAdmin() {
           <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
             {[
               { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
+              { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },
+              { href: "/admin/segments", libelle: "Segments", texte: "Filtres prêts à l'emploi + export CSV" },
               { href: "/admin/statistiques", libelle: "Statistiques", texte: "Vues par outil, article et prompt" },
               { href: "/admin/journal", libelle: "Journal d'audit", texte: "Qui a fait quoi, quand" },
               { href: "/admin/sauvegarde", libelle: "Sauvegarde", texte: "Exporter la base en JSON / CSV" },

@@ -262,6 +262,11 @@ model Tool {
   verifieLe   DateTime?
   statut      ToolStatus       @default(PUBLIE)
   vues        Int              @default(0) // Lot 25 — compteur d'affichages de la fiche
+  // Lot 26 — vérification automatique du lien du site officiel :
+  // statutLien = dernier code HTTP observé (0 = injoignable / timeout,
+  // 2xx-3xx = lien vivant, ≥ 400 = lien mort). null = jamais vérifié.
+  statutLien    Int?
+  lienVerifieLe DateTime?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   categories  ToolCategory[]
@@ -592,4 +597,20 @@ model JournalAdmin {
 
   @@index([creeLe])
   @@index([action])
+}
+
+// Lot 26 — requêtes tapées dans le moteur de recherche du catalogue
+// (/outils?q=…). Alimente la page admin « Recherches » : top des
+// termes, requêtes SANS résultat (« or à exploiter » : contenu que les
+// visiteurs cherchent et que le catalogue n'a pas) et volume sur
+// 30 jours. Aucune donnée personnelle : terme + nb de résultats.
+model RequeteRecherche {
+  id          String   @id @default(cuid())
+  terme       String // terme normalisé (minuscules, espaces réduits)
+  nbResultats Int      @default(0) // nombre d'outils trouvés au moment de la recherche
+  creeLe      DateTime @default(now())
+
+  @@index([terme])
+  @@index([creeLe])
+  @@index([nbResultats])
 }

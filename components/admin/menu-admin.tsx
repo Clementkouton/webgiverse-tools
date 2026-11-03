@@ -25,6 +25,7 @@ import {
   Bell,
   CreditCard,
   Database,
+  Filter,
   Gauge,
   FileUp,
   Gift,
@@ -80,6 +81,8 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
     liens: [
       { href: "/admin", libelle: "Tableau de bord", icone: Gauge, exacte: true },
       { href: "/admin/statistiques", libelle: "Statistiques", icone: BarChart3 },
+      { href: "/admin/recherches", libelle: "Recherches", icone: Search },
+      { href: "/admin/segments", libelle: "Segments", icone: Filter },
     ],
   },
   {
