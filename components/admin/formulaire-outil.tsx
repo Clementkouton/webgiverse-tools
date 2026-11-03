@@ -2,7 +2,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Sparkles } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { Carte } from "@/components/ui/carte";
 import { Champ, Etiquette, ZoneTexte } from "@/components/ui/champ";
@@ -60,6 +60,33 @@ export function FormulaireOutil({
   const [slug, setSlug] = useState(outil?.slug ?? "");
   const [slugModifie, setSlugModifie] = useState(Boolean(outil));
 
+  // Lot 25 — description contrôlée + assistant IA (génère la fiche en 1 clic)
+  const [url, setUrl] = useState(outil?.url ?? "");
+  const [description, setDescription] = useState(outil?.description ?? "");
+  const [iaEnCours, setIaEnCours] = useState(false);
+  const [iaErreur, setIaErreur] = useState("");
+
+  /** Demande une description d'outil à l'IA (nom + URL + tarif). */
+  async function genererDescriptionIA() {
+    if (iaEnCours) return;
+    setIaErreur("");
+    setIaEnCours(true);
+    try {
+      const reponse = await fetch("/api/admin/ia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tache: "description-outil", texte: `${nom} — ${url}`.trim(), contexte: `Annuaire d'outils IA francophone Webgiverse.` }),
+      });
+      const donnees = await reponse.json();
+      if (!reponse.ok || !donnees?.ok) throw new Error(String(donnees?.erreur ?? "L'assistant IA n'a pas répondu."));
+      setDescription(String(donnees.resultat).slice(0, 600));
+    } catch (e) {
+      setIaErreur(e instanceof Error ? e.message : "L'assistant IA n'a pas répondu.");
+    } finally {
+      setIaEnCours(false);
+    }
+  }
+
   const styleErreur = "mt-1 text-[13px] leading-4 text-red-600";
   const boiteCoche =
     "flex items-center gap-3 rounded-champ border border-bordure bg-white px-4 py-3 text-[14px] leading-5 text-bleu cursor-pointer hover:border-primaire";
@@ -114,7 +141,7 @@ export function FormulaireOutil({
 
         <div>
           <Etiquette htmlFor="url">URL officielle *</Etiquette>
-          <Champ id="url" name="url" type="url" defaultValue={outil?.url} placeholder="https://…" aria-invalid={Boolean(etat?.erreurs?.url)} />
+          <Champ id="url" name="url" type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" aria-invalid={Boolean(etat?.erreurs?.url)} />
           {etat?.erreurs?.url && <p className={styleErreur}>{etat.erreurs.url}</p>}
         </div>
 
@@ -125,8 +152,25 @@ export function FormulaireOutil({
         </div>
 
         <div>
-          <Etiquette htmlFor="description">Description * (30 à 600 caractères)</Etiquette>
-          <ZoneTexte id="description" name="description" rows={4} defaultValue={outil?.description} placeholder="En deux phrases, à quoi sert cet outil ?" aria-invalid={Boolean(etat?.erreurs?.description)} />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Etiquette htmlFor="description">Description * (30 à 600 caractères)</Etiquette>
+            <Bouton
+              type="button"
+              variante="indigoDoux"
+              onClick={genererDescriptionIA}
+              disabled={iaEnCours || nom.trim().length < 2 || url.trim().length < 8}
+              title="Générer la description avec l'IA à partir du nom et de l'URL"
+            >
+              <Sparkles className="size-4" aria-hidden />
+              {iaEnCours ? "L'IA rédige…" : "Générer avec l'IA"}
+            </Bouton>
+          </div>
+          {iaErreur && (
+            <p role="alert" className="rounded-champ border border-adm-erreur/40 bg-adm-erreur-doux px-3 py-2 text-[13px] font-semibold text-[#c94f35]">
+              {iaErreur}
+            </p>
+          )}
+          <ZoneTexte id="description" name="description" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="En deux phrases, à quoi sert cet outil ? Ou clique sur « Générer avec l'IA »." aria-invalid={Boolean(etat?.erreurs?.description)} />
           {etat?.erreurs?.description && <p className={styleErreur}>{etat.erreurs.description}</p>}
         </div>
 

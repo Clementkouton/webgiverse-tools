@@ -21,13 +21,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowLeft,
+  BarChart3,
   Bell,
   CreditCard,
+  Database,
   Gauge,
   FileUp,
   Gift,
+  History,
   Inbox,
   LayoutDashboard,
+  ListChecks,
   Menu,
   MessageSquareQuote,
   MonitorPlay,
@@ -46,12 +50,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
+import { ClocheAdmin, type NotificationAdmin } from "@/components/admin/cloche-admin";
 
 type Props = {
   prenom: string;
   image: string | null;
-  /** Nombre de propositions d'outils en attente (cloche + badge menu). */
+  /** Nombre de propositions d'outils en attente (badge du menu). */
   propositionsEnAttente: number;
+  /** Lot 25 — notifications réelles calculées par le layout (cloche). */
+  notifications: NotificationAdmin[];
   /** Contenu serveur (ex. bouton de déconnexion) affiché en bas du menu. */
   pied?: React.ReactNode;
   children: React.ReactNode;
@@ -72,6 +79,7 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
     titre: "Pilotage",
     liens: [
       { href: "/admin", libelle: "Tableau de bord", icone: Gauge, exacte: true },
+      { href: "/admin/statistiques", libelle: "Statistiques", icone: BarChart3 },
     ],
   },
   {
@@ -87,7 +95,8 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
   {
     titre: "Modération",
     liens: [
-      { href: "/admin/propositions", libelle: "Propositions", icone: Inbox, notification: true },
+      { href: "/admin/moderation", libelle: "Modération", icone: ListChecks, notification: true },
+      { href: "/admin/propositions", libelle: "Propositions", icone: Inbox },
       { href: "/admin/avis", libelle: "Avis", icone: MessageSquareQuote },
       { href: "/admin/utilisateurs", libelle: "Utilisateurs", icone: Users },
     ],
@@ -97,6 +106,13 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
     liens: [
       { href: "/admin/abonnements", libelle: "Abonnements", icone: CreditCard },
       { href: "/admin/parrainages", libelle: "Parrainages", icone: Gift },
+    ],
+  },
+  {
+    titre: "Système",
+    liens: [
+      { href: "/admin/journal", libelle: "Journal d'audit", icone: History },
+      { href: "/admin/sauvegarde", libelle: "Sauvegarde", icone: Database },
     ],
   },
 ];
@@ -110,6 +126,7 @@ export default function MenuAdmin({
   prenom,
   image,
   propositionsEnAttente,
+  notifications,
   pied,
   children,
 }: Props) {
@@ -317,7 +334,7 @@ export default function MenuAdmin({
         )}
       >
         {marque(reduit)}
-        {identite(reduit)}
+        
 
         <nav
           aria-label="Menu de la console d'administration"
@@ -407,19 +424,8 @@ export default function MenuAdmin({
               <Plus className="size-4" aria-hidden /> Outil
             </Link>
 
-            {/* Cloche des propositions à modérer */}
-            <Link
-              href="/admin/propositions"
-              aria-label={`Propositions d'outils à modérer${propositionsEnAttente > 0 ? ` : ${propositionsEnAttente} en attente` : ""}`}
-              className="relative grid size-10 shrink-0 place-items-center rounded-full border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95"
-            >
-              <Bell className="size-[18px]" aria-hidden />
-              {propositionsEnAttente > 0 && (
-                <span className="absolute -top-1 -right-1 grid min-w-4.5 place-items-center rounded-full bg-adm-erreur px-1 py-0.5 text-[10px] leading-3 font-bold text-white ring-2 ring-white">
-                  {propositionsEnAttente}
-                </span>
-              )}
-            </Link>
+            {/* Lot 25 — cloche branchée sur les vrais événements */}
+            <ClocheAdmin notifications={notifications} />
 
             {/* Avatar */}
             <span className="shrink-0 [&>*]:cursor-pointer">{avatar}</span>

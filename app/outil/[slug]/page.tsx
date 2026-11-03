@@ -44,6 +44,13 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const outil = await obtenirOutil(slug);
   if (!outil) notFound();
+
+  // Lot 25 — compteur d'audience : +1 vue à chaque affichage de fiche
+  try {
+    await prisma.tool.update({ where: { id: outil.id }, data: { vues: { increment: 1 } } });
+  } catch {
+    /* le compteur ne doit jamais empêcher l'affichage */
+  }
   const alternatives = await outilsAlternatifs(
     outil.id, outil.categories.map((c) => c.categorie.slug)
   );

@@ -29,6 +29,13 @@ export default async function PageArticle({ params }: { params: Promise<{ slug: 
   // Les brouillons ne sont pas visibles sur le site public.
   if (!article || article.statut !== "PUBLIE") notFound();
 
+  // Lot 25 — compteur d'audience : +1 vue à chaque lecture
+  try {
+    await prisma.article.update({ where: { id: article.id }, data: { vues: { increment: 1 } } });
+  } catch {
+    /* le compteur ne doit jamais empêcher l'affichage */
+  }
+
   // Lot 24 — le contenu est normalisé (balises échappées décodées,
   // coquille <!DOCTYPE>/<html>/<head> des exports IA retirée) puis
   // assaini (scripts, styles globaux, onclick… supprimés) AVANT

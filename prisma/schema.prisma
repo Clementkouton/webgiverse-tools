@@ -195,6 +195,7 @@ model Article {
   auteur   String        @default("L'équipe Webgiverse")
   statut   ArticleStatut @default(BROUILLON)
   publieLe DateTime?
+  vues     Int           @default(0) // Lot 25 — compteur d'affichages de l'article
   creeLe   DateTime      @default(now())
   majLe    DateTime      @updatedAt
 
@@ -260,6 +261,7 @@ model Tool {
   misEnAvant  Boolean          @default(false)
   verifieLe   DateTime?
   statut      ToolStatus       @default(PUBLIE)
+  vues        Int              @default(0) // Lot 25 — compteur d'affichages de la fiche
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   categories  ToolCategory[]
@@ -576,4 +578,18 @@ model ProgressionTuto {
 
   @@unique([userId, tutoId])
   @@index([tutoId])
+}
+// Lot 25 — Journal d'audit de la console admin : chaque action sensible
+// (création, édition, suppression, bascule) y est tracée automatiquement.
+model JournalAdmin {
+  id       String   @id @default(cuid())
+  adminId  String
+  adminNom String?
+  action   String // "OUTIL_CREE", "ARTICLE_SUPPRIME", "PROPOSITION_APPROUVEE"…
+  cible    String // libellé lisible : « Article : Mon titre », « Outil : ChatGPT »
+  details  String?
+  creeLe   DateTime @default(now())
+
+  @@index([creeLe])
+  @@index([action])
 }

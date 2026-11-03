@@ -13,7 +13,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, ImageOff, ImageIcon } from "lucide-react";
+import { AlertCircle, CheckCircle2, ImageOff, ImageIcon, Sparkles } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { Carte } from "@/components/ui/carte";
 import { Champ, Etiquette, ZoneTexte } from "@/components/ui/champ";
@@ -63,6 +63,33 @@ export function FormulaireArticle({
   const [image, setImage] = useState(article?.image ?? "");
   const [imageCasse, setImageCasse] = useState(false);
 
+  // Lot 25 — résumé contrôlé + assistant IA (extrait généré en 1 clic)
+  const [extrait, setExtrait] = useState(article?.extrait ?? "");
+  const [contenuTexte, setContenuTexte] = useState(""); // texte de l'éditeur riche
+  const [iaEnCours, setIaEnCours] = useState(false);
+  const [iaErreur, setIaErreur] = useState("");
+
+  /** Demande un résumé à l'IA à partir du titre et du contenu. */
+  async function proposerResumeIA() {
+    if (iaEnCours) return;
+    setIaErreur("");
+    setIaEnCours(true);
+    try {
+      const reponse = await fetch("/api/admin/ia", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tache: "extrait", texte: `${titre}\n\n${contenuTexte || extrait}`.trim() }),
+      });
+      const donnees = await reponse.json();
+      if (!reponse.ok || !donnees?.ok) throw new Error(String(donnees?.erreur ?? "L'assistant IA n'a pas répondu."));
+      setExtrait(String(donnees.resultat).slice(0, 300));
+    } catch (e) {
+      setIaErreur(e instanceof Error ? e.message : "L'assistant IA n'a pas répondu.");
+    } finally {
+      setIaEnCours(false);
+    }
+  }
+
   return (
     <form action={actionFormulaire} noValidate className="grid gap-6 lg:grid-cols-3">
       {article && <input type="hidden" name="articleId" value={article.id} />}
@@ -107,7 +134,11 @@ export function FormulaireArticle({
               Mets ton texte en forme : il sera affiché à l'identique sur le site. 50 caractères minimum.
             </p>
           </div>
-          <EditeurRiche valeurInitiale={article?.contenu ?? ""} placeholder="Premier paragraphe de ton article…" />
+          <EditeurRiche
+            valeurInitiale={article?.contenu ?? ""}
+            placeholder="Premier paragraphe de ton article…"
+            onChange={(_html, texte) => setContenuTexte(texte)}
+          />
           {etat?.erreurs?.contenu && <p className={styleErreur}>{etat.erreurs.contenu}</p>}
         </Carte>
 
@@ -196,16 +227,36 @@ export function FormulaireArticle({
 
         {/* ── Résumé ───────────────────────────────────────────────── */}
         <Carte className="grid gap-3 p-6">
-          <h3 className="font-titre text-[16px] leading-6 font-semibold">Résumé *</h3>
-          <p className="-mt-2 text-[12px] leading-4 text-encre">
-            20 à 300 caractères — affiché dans les listes d'articles.
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="font-titre text-[16px] leading-6 font-semibold">Résumé *</h3>
+              <p className="mt-0.5 text-[12px] leading-4 text-encre">
+                20 à 300 caractères — affiché dans les listes d'articles.
+              </p>
+            </div>
+            <Bouton
+              type="button"
+              variante="indigoDoux"
+              onClick={proposerResumeIA}
+              disabled={iaEnCours || (titre.trim().length < 4 && contenuTexte.trim().length < 20)}
+              title="Générer un résumé avec l'IA à partir du titre et du contenu"
+            >
+              <Sparkles className="size-4" aria-hidden />
+              {iaEnCours ? "L'IA rédige…" : "Proposer un résumé (IA)"}
+            </Bouton>
+          </div>
+          {iaErreur && (
+            <p role="alert" className="rounded-champ border border-adm-erreur/40 bg-adm-erreur-doux px-3 py-2 text-[13px] font-semibold text-[#c94f35]">
+              {iaErreur}
+            </p>
+          )}
           <ZoneTexte
             id="extrait"
             name="extrait"
             rows={3}
-            defaultValue={article?.extrait}
-            placeholder="Une ou deux phrases qui donnent envie de lire la suite."
+            value={extrait}
+            onChange={(e) => setExtrait(e.target.value)}
+            placeholder="Une ou deux phrases qui donnent envie de lire la suite — ou clique sur « Proposer un résumé (IA) »."
             aria-invalid={Boolean(etat?.erreurs?.extrait)}
           />
           {etat?.erreurs?.extrait && <p className={styleErreur}>{etat.erreurs.extrait}</p>}

@@ -236,6 +236,33 @@ export default async function PageAdmin() {
           </div>
         </Carte>
 
+        {/* Lot 25 — raccourcis vers les nouvelles pages */}
+        <Carte className="animate-apparition-haut delai-1 p-6">
+          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+            Raccourcis
+          </h2>
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+            {[
+              { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
+              { href: "/admin/statistiques", libelle: "Statistiques", texte: "Vues par outil, article et prompt" },
+              { href: "/admin/journal", libelle: "Journal d'audit", texte: "Qui a fait quoi, quand" },
+              { href: "/admin/sauvegarde", libelle: "Sauvegarde", texte: "Exporter la base en JSON / CSV" },
+            ].map((r) => (
+              <Link
+                key={r.href}
+                href={r.href}
+                className="group flex items-center justify-between gap-3 rounded-champ border border-bordure bg-white px-4 py-3 transition hover:border-primaire hover:bg-primaire/5"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[14px] font-semibold text-adm-sombre group-hover:text-primaire-texte">{r.libelle}</span>
+                  <span className="block truncate text-[12px] text-encre">{r.texte}</span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-adm-gris-clair transition group-hover:translate-x-0.5 group-hover:text-primaire" aria-hidden />
+              </Link>
+            ))}
+          </div>
+        </Carte>
+
         <Carte className="animate-apparition-haut delai-1 p-6">
           <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
             Membres par plan

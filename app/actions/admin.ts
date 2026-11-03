@@ -7,7 +7,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { slugifier } from "@/lib/utils";
 import { schemaOutilAdmin, schemaArticleAdmin } from "@/lib/schemas";
-import { nettoyerHtml } from "@/lib/html";
+import { preparerHtmlPourAffichage } from "@/lib/html";
+import { tracerActionAdmin } from "@/lib/journal-admin"; // Lot 25 — audit
 
 
 async function exigerAdmin() {
@@ -50,13 +51,18 @@ export async function approuverPropositionFormulaire(donnees: FormData) {
     },
   });
   await prisma.toolSubmission.update({ where: { id }, data: { statut: "APPROUVE", toolId: outil.id } });
+  await tracerActionAdmin({ action: "PROPOSITION_APPROUVEE", cible: `Outil : ${proposition.nom}`, details: `Fiche publiée : /outil/${slug}` });
   revalidatePath("/admin"); revalidatePath("/outils"); revalidatePath("/");
 }
 
 export async function refuserPropositionFormulaire(donnees: FormData) {
   await exigerAdmin();
   const id = z.string().min(1).parse(donnees.get("propositionId"));
+  const proposition = await prisma.toolSubmission.findUnique({ where: { id } });
   await prisma.toolSubmission.update({ where: { id }, data: { statut: "REFUSE" } });
+  if (proposition) {
+    await tracerActionAdmin({ action: "PROPOSITION_REFUSEE", cible: `Proposition : ${proposition.nom}` });
+  }
   revalidatePath("/admin");
 }
 
@@ -161,6 +167,7 @@ export async function creerOutilAction(_etatPrecedent: EtatOutil, donnees: FormD
 
   const donneesOutil = construireDonneesOutil(donnees, validation.donnees);
   await prisma.tool.create({ data: { ...donneesOutil, slug } });
+  await tracerActionAdmin({ action: "OUTIL_CREE", cible: `Outil : ${validation.donnees.nom}`, details: `slug : ${slug}` });
 
   revalidatePath("/admin"); revalidatePath("/admin/outils"); revalidatePath("/outils"); revalidatePath("/");
   redirect("/admin/outils?cree=1");
@@ -185,6 +192,7 @@ export async function majOutilAction(_etatPrecedent: EtatOutil, donnees: FormDat
 
   const donneesOutil = construireDonneesOutil(donnees, validation.donnees);
   await prisma.tool.update({ where: { id: outilId }, data: donneesOutil });
+  await tracerActionAdmin({ action: "OUTIL_MODIFIE", cible: `Outil : ${validation.donnees.nom}`, details: `slug : ${validation.donnees.slug}` });
 
   revalidatePath("/admin"); revalidatePath("/admin/outils"); revalidatePath("/outils"); revalidatePath("/");
   revalidatePath(`/outil/${validation.donnees.slug}`);
@@ -195,8 +203,12 @@ export async function majOutilAction(_etatPrecedent: EtatOutil, donnees: FormDat
 export async function supprimerOutilFormulaire(donnees: FormData) {
   await exigerAdmin();
   const id = z.string().min(1).parse(donnees.get("outilId"));
+  const outil = await prisma.tool.findUnique({ where: { id }, select: { nom: true } });
   await prisma.toolSubmission.updateMany({ where: { toolId: id }, data: { toolId: null } });
   await prisma.tool.delete({ where: { id } });
+  if (outil) {
+    await tracerActionAdmin({ action: "OUTIL_SUPPRIME", cible: `Outil : ${outil.nom}` });
+  }
   revalidatePath("/admin"); revalidatePath("/admin/outils"); revalidatePath("/outils"); revalidatePath("/");
 }
 
@@ -205,10 +217,12 @@ export async function basculerPublicationFormulaire(donnees: FormData) {
   const id = z.string().min(1).parse(donnees.get("outilId"));
   const outil = await prisma.tool.findUnique({ where: { id } });
   if (!outil) return;
+  const ancienStatut = outil.statut;
   await prisma.tool.update({
     where: { id },
     data: { statut: outil.statut === "PUBLIE" ? "ARCHIVE" : "PUBLIE" },
   });
+  await tracerActionAdmin({ action: "OUTIL_STATUT", cible: `Outil : ${outil.nom}`, details: `statut : ${ancienStatut} → ${outil.statut === "PUBLIE" ? "ARCHIVE" : "PUBLIE"}` });
   revalidatePath("/admin"); revalidatePath("/admin/outils"); revalidatePath("/outils");
 }
 
@@ -218,6 +232,7 @@ export async function basculerMiseEnAvantFormulaire(donnees: FormData) {
   const outil = await prisma.tool.findUnique({ where: { id } });
   if (!outil) return;
   await prisma.tool.update({ where: { id }, data: { misEnAvant: !outil.misEnAvant } });
+  await tracerActionAdmin({ action: "OUTIL_MISE_EN_AVANT", cible: `Outil : ${outil.nom}`, details: `mise en avant : ${outil.misEnAvant ? "retirée" : "activée"}` });
   revalidatePath("/admin"); revalidatePath("/admin/outils"); revalidatePath("/");
 }
 
@@ -265,7 +280,7 @@ function construireDonneesArticle(champs: ChampsArticle) {
     // par :
     // Lot 23 — le contenu arrive de l'éditeur riche : on retire tout ce
     // qui ne doit jamais être affiché (scripts, attributs onclick…).
-    contenu: nettoyerHtml(champs.contenu),
+    contenu: preparerHtmlPourAffichage(champs.contenu), // Lot 24/25 — normalise + assainit
   };
 }
 
@@ -286,6 +301,7 @@ export async function creerArticleAction(_etatPrecedent: EtatArticle, donnees: F
   await prisma.article.create({
     data: { ...donneesArticle, publieLe: donneesArticle.statut === "PUBLIE" ? new Date() : null },
   });
+  await tracerActionAdmin({ action: "ARTICLE_CREE", cible: `Article : ${donneesArticle.titre}`, details: `slug : ${donneesArticle.slug} · statut : ${donneesArticle.statut}` });
 
   revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
   redirect("/admin/articles?cree=1");
@@ -321,6 +337,7 @@ export async function majArticleAction(_etatPrecedent: EtatArticle, donnees: For
         donneesArticle.statut === "PUBLIE" ? (existant.publieLe ?? new Date()) : null,
     },
   });
+  await tracerActionAdmin({ action: "ARTICLE_MODIFIE", cible: `Article : ${donneesArticle.titre}`, details: `statut : ${existant.statut} → ${donneesArticle.statut}` });
 
   revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
   revalidatePath(`/articles/${donneesArticle.slug}`);
@@ -331,7 +348,11 @@ export async function majArticleAction(_etatPrecedent: EtatArticle, donnees: For
 export async function supprimerArticleFormulaire(donnees: FormData) {
   await exigerAdmin();
   const id = z.string().min(1).parse(donnees.get("articleId"));
+  const article = await prisma.article.findUnique({ where: { id }, select: { titre: true } });
   await prisma.article.delete({ where: { id } });
+  if (article) {
+    await tracerActionAdmin({ action: "ARTICLE_SUPPRIME", cible: `Article : ${article.titre}` });
+  }
   revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
 }
 
@@ -350,6 +371,7 @@ export async function basculerPublicationArticleFormulaire(donnees: FormData) {
       publieLe: nouveauStatut === "PUBLIE" ? (article.publieLe ?? new Date()) : null,
     },
   });
+  await tracerActionAdmin({ action: "ARTICLE_STATUT", cible: `Article : ${article.titre}`, details: `statut : ${article.statut} → ${nouveauStatut}` });
   revalidatePath("/admin/articles"); revalidatePath("/actualites"); revalidatePath("/blog");
 }
 
@@ -360,7 +382,11 @@ export async function basculerPublicationArticleFormulaire(donnees: FormData) {
 export async function supprimerAvisAdminFormulaire(donnees: FormData) {
   await exigerAdmin();
   const id = z.string().min(1).parse(donnees.get("avisId"));
+  const avis = await prisma.avis.findUnique({ where: { id }, include: { outil: { select: { nom: true } } } });
   await prisma.avis.delete({ where: { id } });
+  if (avis) {
+    await tracerActionAdmin({ action: "AVIS_SUPPRIME", cible: `Avis de ${avis.outil.nom}`, details: `note ${avis.note}/5 — « ${avis.contenu.slice(0, 120)} »` });
+  }
   revalidatePath("/admin/avis"); revalidatePath("/admin"); revalidatePath("/outils");
 }
 
@@ -380,6 +406,7 @@ export async function basculerRoleFormulaire(donnees: FormData) {
     where: { id },
     data: { role: cible.role === "ADMIN" ? "USER" : "ADMIN" },
   });
+  await tracerActionAdmin({ action: "ROLE_UTILISATEUR", cible: `Utilisateur : ${cible.name ?? cible.email}`, details: `rôle : ${cible.role} → ${cible.role === "ADMIN" ? "USER" : "ADMIN"}` });
   revalidatePath("/admin/utilisateurs");
 }
 
@@ -400,7 +427,11 @@ export async function basculerTutoNouveauFormulaire(donnees: FormData) {
 export async function supprimerTutoFormulaire(donnees: FormData) {
   await exigerAdmin();
   const id = z.string().min(1).parse(donnees.get("tutoId"));
+  const tuto = await prisma.tuto.findUnique({ where: { id }, select: { titre: true } });
   await prisma.tuto.delete({ where: { id } });
+  if (tuto) {
+    await tracerActionAdmin({ action: "TUTO_SUPPRIME", cible: `Tutoriel : ${tuto.titre}` });
+  }
   revalidatePath("/admin/tutoriels"); revalidatePath("/tutoriels");
 }
 
@@ -421,6 +452,10 @@ export async function basculerPromptNouveauFormulaire(donnees: FormData) {
 export async function supprimerPromptFormulaire(donnees: FormData) {
   await exigerAdmin();
   const id = z.string().min(1).parse(donnees.get("promptId"));
+  const prompt = await prisma.prompt.findUnique({ where: { id }, select: { titre: true } });
   await prisma.prompt.delete({ where: { id } });
+  if (prompt) {
+    await tracerActionAdmin({ action: "PROMPT_SUPPRIME", cible: `Prompt : ${prompt.titre}` });
+  }
   revalidatePath("/admin/prompts"); revalidatePath("/prompts");
 }
