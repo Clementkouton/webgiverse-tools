@@ -12,7 +12,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, Clock, Crown, Eye, Lock, LogIn, Play, Sparkles } from "lucide-react";
+import { CalendarDays, ChevronRight, ClipboardList, Clock, Crown, Eye, Gauge, Lock, LogIn, Play, Sparkles } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { premiumActif } from "@/lib/premium";
@@ -69,7 +69,11 @@ export default async function PageTuto({ params }: { params: Params }) {
 
   const suivants = await tutosSuivants(tuto.id, tuto.outils);
   const niveau = NIVEAUX[tuto.niveau];
-  const ajouteLe = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(tuto.creeLe);
+  const ajouteLeCourt = new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(tuto.creeLe);
 
   return (
     <>
@@ -191,42 +195,48 @@ export default async function PageTuto({ params }: { params: Params }) {
             })()}
           </div>
 
-          {/* ── Colonne latérale : fiche résumé ────────────────────── */}
-          <aside>
-            <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
-              <h2 className="font-titre text-[15px] leading-5 font-semibold text-bleu">
-                Ce tutoriel en résumé
-              </h2>
-              <dl className="mt-3 space-y-3 text-[14px] leading-5">
-                <div className="flex items-center justify-between gap-3">
-                  <dt className="text-encre">Niveau</dt>
-                  <dd><Badge variante={niveau.variante}>{niveau.libelle}</Badge></dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt className="text-encre">Durée</dt>
-                  <dd className="font-medium text-bleu">{formaterDuree(tuto.dureeMin)}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt className="text-encre">Vues</dt>
-                  <dd className="font-medium text-bleu">{tuto.vues.toLocaleString("fr-FR")}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <dt className="text-encre">Ajouté le</dt>
-                  <dd className="font-medium text-bleu">{ajouteLe}</dd>
-                </div>
+          {/* ── Colonne latérale : fiche résumé (design tuiles) ────── */}
+          <aside className="self-start lg:sticky lg:top-24">
+            <div className="overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
+              <div className="border-b border-bordure bg-gris/60 px-5 py-4">
+                <h2 className="flex items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
+                  <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+                    <ClipboardList className="size-4" />
+                  </span>
+                  Ce tutoriel en résumé
+                </h2>
+              </div>
+              <dl className="grid grid-cols-2 gap-2.5 p-5">
+                {[
+                  { icone: Gauge, label: "Niveau", contenu: <Badge variante={niveau.variante}>{niveau.libelle}</Badge> },
+                  { icone: Clock, label: "Durée", contenu: <span className="font-titre text-[15px] leading-5 font-bold text-bleu">{formaterDuree(tuto.dureeMin)}</span> },
+                  { icone: Eye, label: "Vues", contenu: <span className="font-titre text-[15px] leading-5 font-bold text-bleu">{tuto.vues.toLocaleString("fr-FR")}</span> },
+                  { icone: CalendarDays, label: "Ajouté le", contenu: <span className="font-titre text-[13px] leading-5 font-bold text-bleu">{ajouteLeCourt}</span> },
+                ].map(({ icone: Icone, label, contenu }) => (
+                  <div key={label} className="rounded-champ border border-bordure bg-gris/50 p-3">
+                    <dt className="flex items-center gap-1.5 text-[10.5px] leading-3.5 font-bold uppercase tracking-wider text-encre/70">
+                      <Icone className="size-3.5 text-violet" aria-hidden /> {label}
+                    </dt>
+                    <dd className="mt-1.5">{contenu}</dd>
+                  </div>
+                ))}
               </dl>
               {!premium && (
-                <div className="mt-4 rounded-carte border border-sky-500/30 bg-sky-500/5 p-3">
-                  <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
-                    <Crown className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
-                    <span>
-                      L&apos;abonnement <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> débloque
-                      tous les tutoriels + les favoris illimités et l&apos;assistant IA sans quota.
-                    </span>
-                  </p>
-                  <Bouton asChild taille="sm" className="mt-3 w-full">
-                    <Link href="/tarifs">Voir les tarifs</Link>
-                  </Bouton>
+                <div className="mx-5 mb-5 rounded-carte bg-[linear-gradient(135deg,#6a3bff,#0091c2)] p-px">
+                  <div className="rounded-[15px] bg-white px-4 py-4">
+                    <p className="flex items-start gap-2.5 text-[13px] leading-5 text-encre">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+                        <Crown className="size-4" />
+                      </span>
+                      <span>
+                        Pour <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> : tous les
+                        tutoriels, les favoris illimités et l&apos;assistant IA sans quota.
+                      </span>
+                    </p>
+                    <Bouton asChild taille="sm" className="mt-3 w-full">
+                      <Link href="/tarifs">Voir les tarifs</Link>
+                    </Bouton>
+                  </div>
                 </div>
               )}
             </div>

@@ -284,7 +284,7 @@ export async function recupererDescriptionBrute(youtubeId: string): Promise<stri
 
 /** Lignes qui n'apportent rien : appels à l'abonnement, réseaux sociaux, dons, promo… */
 const BRUIT =
-  /abonn[eé]e?s?\b|s'abonner|subscribe|souscrivre|cloche|bell icon|merci (d'avoir|pour)|pouce (bleu|vert)|j'aime la vid[ée]o|partage (cette |la )?vid[ée]o|laisse(r)? un comm|un commentaire|newsletter|instagram|tiktok|twitter|facebook|linkedin|snapchat|telegram|whatsapp|discord|patreon|utip|streamlabs|paypal|ko-?fi|buymeacoffee|tipeee|twitch|devenir membre|join this channel|membership|sponsor|partenariat|code promo|\bpromo\b|r[ée]duction|%\s*(de|off)|\bonlyfans\b/i;
+  /abonne\w*|s'abonner|subscribe|souscrivre|cloche|bell icon|merci (d'avoir|pour)|pouce (bleu|vert)|j'aime la vid[ée]o|partage (cette |la )?vid[ée]o|laisse(r)? un comm|un commentaire|newsletter|instagram|tiktok|twitter|facebook|linkedin|snapchat|telegram|whatsapp|discord|patreon|utip|streamlabs|paypal|ko-?fi|buymeacoffee|tipeee|twitch|devenir membre|join this channel|membership|sponsor|partenariat|questions?\s+en\s+commentaire|un like\b|@\w+\s*[:：]?\s*$|code promo|\bpromo\b|r[ée]duction|%\s*(de|off)|\bonlyfans\b/i;
 
 /** Domaines sociaux / dons / agrégateurs de liens = jamais une « ressource » de pratique. */
 const DOMAINES_BRUIT =
