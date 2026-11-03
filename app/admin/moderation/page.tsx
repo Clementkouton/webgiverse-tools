@@ -200,52 +200,6 @@ export default async function PageModerationAdmin() {
         </div>
       </section>
 
-      {/* ══ 3. Derniers avis déposés ═════════════════════════════════ */}
-      <section className="mt-8">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-adm-sombre">
-            <MessageSquareQuote className="size-4.5 text-primaire" aria-hidden /> Derniers avis déposés
-          </h2>
-          <Link href="/admin/avis" className="text-[13px] font-semibold text-primaire-texte hover:underline">
-            Tous les avis →
-          </Link>
-        </div>
-
-        <div className="mt-3 grid gap-3">
-          {avis.length === 0 ? (
-            <EtatVideAdmin icone={MessageSquareQuote} titre="Aucun avis pour le moment" description="Les avis des utilisateurs apparaîtront ici dès les premiers dépôts." />
-          ) : (
-            avis.map((a) => (
-              <Carte key={a.id} className="animate-apparition-haut p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="flex items-center gap-0.5" aria-label={`Note : ${a.note} sur 5`}>
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <span key={i} className={i < a.note ? "text-[#ffae20]" : "text-adm-bordure"} aria-hidden>★</span>
-                        ))}
-                      </span>
-                      <Link href={`/outil/${a.outil.slug}`} className="font-titre text-[15px] leading-6 font-semibold hover:underline">
-                        {a.outil.nom}
-                      </Link>
-                      <span className="text-[12px] text-adm-gris-clair">
-                        par {a.utilisateur.name ?? a.utilisateur.email} · {formatteDate(a.creeLe)}
-                      </span>
-                    </div>
-                    <p className="mt-1.5 max-w-2xl whitespace-pre-line text-[14px] leading-6 text-encre">{a.contenu}</p>
-                  </div>
-                  <form action={supprimerAvisAdminFormulaire} className="shrink-0">
-                    <input type="hidden" name="avisId" value={a.id} />
-                    <Bouton type="submit" variante="secondaire" aria-label="Supprimer cet avis">
-                      <Trash2 className="size-4" aria-hidden /> Supprimer
-                    </Bouton>
-                  </form>
-                </div>
-              </Carte>
-            ))
-          )}
-        </div>
-      </section>
     </div>
   );
 }
