@@ -21,6 +21,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
+  Captions as CaptionIcon,
   Crown,
   FileWarning,
   Link2Off,
@@ -30,12 +31,14 @@ import {
   Wrench,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Carte } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
 import { CarteStatAdmin } from "@/components/admin/carte-stat-admin";
 import { GraphiqueBarres } from "@/components/admin/graphique-barres";
 import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
 import { BoutonVerifierLiens } from "@/components/admin/bouton-verifier-liens";
+import { BoutonRecupererDescriptions } from "@/components/admin/bouton-recuperer-descriptions";
 
 export const metadata: Metadata = { title: "Administration" };
 export const dynamic = "force-dynamic";
@@ -61,7 +64,6 @@ function parJour(dates: Date[], debut: Date, nb: number): number[] {
 function libelleCodeLien(code: number | null): string {
   if (code === null) return "Jamais vérifié";
   if (code === 0) return "Injoignable";
-  if (code === -1) return "Protégé (anti-bot)"; // Lot 27
   return `HTTP ${code}`;
 }
 
@@ -127,7 +129,7 @@ export default async function PageAdmin() {
   };
   const [
     inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts,
-    liensMorts, nbJamaisVerifies, nbProteges, nbBrouillonsAnciens, brouillonsAnciens,
+    liensMorts, nbJamaisVerifies, nbBrouillonsAnciens, brouillonsAnciens,
   ] = await Promise.all([
     prisma.user.count({ where: { createdAt: { gte: debutJour } } }),
     prisma.avis.count({ where: { creeLe: { gte: ilYa24h } } }),
@@ -136,12 +138,10 @@ export default async function PageAdmin() {
     prisma.tool.findMany({
       where: whereLienMort,
       orderBy: [{ lienVerifieLe: { sort: "desc", nulls: "last" } }],
-      select: { id: true, nom: true, lienVerifieLe: true },
+      select: { id: true, nom: true, statutLien: true, lienVerifieLe: true },
       take: 5,
     }),
     prisma.tool.count({ where: { statut: "PUBLIE", statutLien: null } }),
-    // Lot 27 — fiches derrière une protection anti-robots (statutLien = -1)
-    prisma.tool.count({ where: { statut: "PUBLIE", statutLien: -1 } }),
     prisma.article.count({ where: { statut: "BROUILLON", majLe: { lt: ilYa30j } } }),
     prisma.article.findMany({
       where: { statut: "BROUILLON", majLe: { lt: ilYa30j } },
@@ -149,6 +149,22 @@ export default async function PageAdmin() {
       select: { id: true, titre: true, majLe: true },
       take: 5,
     }),
+  ]);
+
+  // Lot 28 — tutoriels attendant leur description YouTube raffinée
+  // (lecture défensive : colonne absente → 0, la page reste affichable).
+  const [nbTutosSansDescription, tutosSansDescription] = await Promise.all([
+    prisma.tuto
+      .count({ where: { youtubeId: { not: null }, descriptionRaffinee: { equals: Prisma.AnyNull } } })
+      .catch(() => 0),
+    prisma.tuto
+      .findMany({
+        where: { youtubeId: { not: null }, descriptionRaffinee: { equals: Prisma.AnyNull } },
+        orderBy: { ordre: "asc" },
+        select: { id: true, titre: true },
+        take: 5,
+      })
+      .catch(() => []),
   ]);
 
   // Lot 20 — votes « Utile » (lecture défensive, jamais bloquante).
@@ -348,12 +364,10 @@ export default async function PageAdmin() {
                 </h3>
                 <p className="text-[13px] leading-4 text-adm-gris">
                   {nbLiensMorts > 0
-                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe${nbLiensMorts > 1 ? "nt" : ""} vers un site en défaut`
-                    : nbProteges > 0
-                      ? `Aucun lien mort — ${nbProteges} fiche${nbProteges > 1 ? "s" : ""} derrière une protection anti-bot (non vérifiables)`
-                      : nbJamaisVerifies > 0
-                        ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
-                        : "Aucun lien mort : tous les liens vérifiés répondent"}
+                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe vers un site en défaut`
+                    : nbJamaisVerifies > 0
+                      ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
+                      : "Aucun lien mort : tous les liens vérifiés répondent"}
                 </p>
               </div>
             </div>
@@ -373,7 +387,7 @@ export default async function PageAdmin() {
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
                       <span className="rounded-full bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
-                        Lien en défaut
+                        {libelleCodeLien(outil.statutLien)}
                       </span>
                       {outil.lienVerifieLe && (
                         <span className="text-[11px] text-adm-gris-clair">
@@ -440,6 +454,56 @@ export default async function PageAdmin() {
             </ul>
           )}
         </Carte>
+
+        {/* Lot 28 — Descriptions YouTube des tutoriels (raffinées) */}
+        <Carte className="p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span
+                className={`grid size-11 shrink-0 place-items-center rounded-xl ${nbTutosSansDescription > 0 ? "bg-adm-info-doux text-[#3b6fc9]" : "bg-adm-succes-doux text-[#0f9b85]"
+                  }`}
+              >
+                <CaptionIcon className="size-5" aria-hidden />
+              </span>
+              <div>
+                <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
+                  Descriptions YouTube
+                </h3>
+                <p className="max-w-md text-[13px] leading-4 text-adm-gris">
+                  {nbTutosSansDescription > 0
+                    ? `${nbTutosSansDescription} tutoriel${nbTutosSansDescription > 1 ? "s" : ""} attend${nbTutosSansDescription > 1 ? "ent" : ""} sa description raffinée (chapitres + ressources utiles)`
+                    : "Toutes les vidéos ont leur description raffinée, affichée sous chaque tutoriel"}
+                </p>
+              </div>
+            </div>
+            <BoutonRecupererDescriptions />
+          </div>
+
+          {nbTutosSansDescription > 0 && (
+            <ul className="mt-4 grid gap-2">
+              {tutosSansDescription.map((tuto) => (
+                <li key={tuto.id}>
+                  <Link
+                    href="/admin/tutoriels"
+                    className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#9db8e8]"
+                  >
+                    <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre group-hover:text-[#3b6fc9]">
+                      {tuto.titre}
+                    </span>
+                    <span className="shrink-0 text-[11px] leading-4 font-semibold text-[#3b6fc9]">
+                      sans description
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {nbTutosSansDescription > tutosSansDescription.length && (
+                <li className="px-1 text-[12px] text-adm-gris">
+                  + {nbTutosSansDescription - tutosSansDescription.length} autre{nbTutosSansDescription - tutosSansDescription.length > 1 ? "s" : ""}
+                </li>
+              )}
+            </ul>
+          )}
+        </Carte>
       </section>
 
       {/* ── Graphiques : inscriptions 14 jours + raccourcis + plans ── */}
@@ -466,9 +530,7 @@ export default async function PageAdmin() {
           <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
             Raccourcis
           </h2>
-          {/* Une seule colonne : à 3 tuiles par ligne, les libellés
-              (« Journal d'audit »…) ne tiennent pas dans 1/3 de page. */}
-          <div className="mt-4  grid gap-2 min-w-min-2xl sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
             {[
               { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
               { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },

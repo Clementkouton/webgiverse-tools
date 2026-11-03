@@ -21,9 +21,11 @@ import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { BoutonProgression } from "@/components/tutoriels/bouton-progression";
+import { RessourcesTuto } from "@/components/tutoriels/ressources-tuto";
 import { PLANS } from "@/lib/plans";
 import { LecteurYoutube } from "@/components/tutoriels/lecteur-youtube";
 import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
+import { parserDescriptionRaffinee } from "@/lib/description-youtube";
 
 type Params = Promise<{ slug: string }>;
 
@@ -169,15 +171,24 @@ export default async function PageTuto({ params }: { params: Params }) {
               ))}
             </div>
 
-            {/* ── Progression personnelle (Lot 19) ─────────────────── */}
+            {/* ── Progression personnelle (Lot 19) — réservée aux
+                abonnés Premium actifs depuis le Lot 28 ────────── */}
             <div className="mt-4">
               <BoutonProgression
                 tutoId={tuto.id}
                 statutInitial={statutInitial}
                 connecte={connecte}
+                premium={premium}
                 hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
               />
             </div>
+
+            {/* ── Chapitres & ressources (Lot 28) : description
+                YouTube raffinée, juste sous la progression ───── */}
+            {(() => {
+              const description = parserDescriptionRaffinee(tuto.descriptionRaffinee);
+              return description ? <RessourcesTuto description={description} /> : null;
+            })()}
           </div>
 
           {/* ── Colonne latérale : fiche résumé ────────────────────── */}

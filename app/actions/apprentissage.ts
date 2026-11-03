@@ -31,6 +31,7 @@ export type RaisonApprentissage =
   | "non-connecte"
   | "invalide"
   | "limite" // plan Découverte : quota atteint
+  | "premium" // Lot 28 — suivi de progression réservé aux abonnés Pro / Entreprise
   | "base" // base de données non à jour (tables absentes)
   | "client" // client Prisma non régénéré (modèles nouveaux inconnus)
   | "indisponible"; // erreur passagère
@@ -164,6 +165,14 @@ export async function majProgressionTuto(
     .object({ tutoId: z.string().min(1).max(64), statut: z.enum(STATUTS_TUTO) })
     .safeParse({ tutoId, statut });
   if (!analyse.success) return { ok: false, raison: "invalide" };
+
+  // Lot 28 — le suivi de progression accompagne la LECTURE des
+  // vidéos, réservée aux abonnés Premium actifs (Pro / Entreprise).
+  // Contrôle côté serveur : un appel d'action forgé est refusé ici
+  // même s'il n'est pas affiché côté client.
+  if (!(await premiumActif(userId))) {
+    return { ok: false, raison: "premium" };
+  }
 
   try {
     await prisma.progressionTuto.upsert({
