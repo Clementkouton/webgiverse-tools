@@ -108,14 +108,14 @@ export default async function PageStatistiquesAdmin() {
   }) {
     const maxV = Math.max(...items.map((i) => i.vues), 1);
     return (
-      <Carte className="p-5">
+      <Carte className="overflow-hidden p-5">
         <h3 className="font-titre text-[15px] leading-6 font-semibold text-adm-sombre">{titre}</h3>
         <div className="mt-3 grid gap-2.5">
           {items.length === 0 && (
             <p className="text-[13px] leading-5 text-encre">Aucune vue enregistrée pour l'instant — les compteurs démarrent dès la mise en ligne.</p>
           )}
           {items.map((item, i) => (
-            <div key={item.slug}>
+            <div key={item.slug} className="min-w-0">
               <div className="flex items-baseline justify-between gap-2">
                 <Link href={`${hrefBase}/${item.slug}`} className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre hover:text-primaire-texte hover:underline">
                   <span className="mr-1.5 inline-block w-4 text-right text-[11px] font-bold text-adm-gris-clair">{i + 1}.</span>
@@ -148,8 +148,8 @@ export default async function PageStatistiquesAdmin() {
       {/* ── Totaux de vues ───────────────────────────────────────────── */}
       <section className="animate-apparition-haut mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <CarteStatAdmin
-          href="/admin/outils" libelle="Vues outils" icone={Wrench} ton="primaire"
-          valeur={(sommeOutils._sum.vues ?? 0).toLocaleString("fr-FR")} contexte="Cumul des fiches outils"
+          href="/admin/outils" libelle="Outils" icone={Wrench} ton="primaire"
+          valeur={sommeOutils.toLocaleString("fr-FR")} contexte="Nombre de fiches outils"
         />
         <CarteStatAdmin
           href="/admin/articles" libelle="Vues articles" icone={Newspaper} ton="info"

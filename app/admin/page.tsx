@@ -61,6 +61,7 @@ function parJour(dates: Date[], debut: Date, nb: number): number[] {
 function libelleCodeLien(code: number | null): string {
   if (code === null) return "Jamais vérifié";
   if (code === 0) return "Injoignable";
+  if (code === -1) return "Protégé (anti-bot)"; // Lot 27
   return `HTTP ${code}`;
 }
 
@@ -126,7 +127,7 @@ export default async function PageAdmin() {
   };
   const [
     inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts,
-    liensMorts, nbJamaisVerifies, nbBrouillonsAnciens, brouillonsAnciens,
+    liensMorts, nbJamaisVerifies, nbProteges, nbBrouillonsAnciens, brouillonsAnciens,
   ] = await Promise.all([
     prisma.user.count({ where: { createdAt: { gte: debutJour } } }),
     prisma.avis.count({ where: { creeLe: { gte: ilYa24h } } }),
@@ -135,10 +136,12 @@ export default async function PageAdmin() {
     prisma.tool.findMany({
       where: whereLienMort,
       orderBy: [{ lienVerifieLe: { sort: "desc", nulls: "last" } }],
-      select: { id: true, nom: true, statutLien: true, lienVerifieLe: true },
+      select: { id: true, nom: true, lienVerifieLe: true },
       take: 5,
     }),
     prisma.tool.count({ where: { statut: "PUBLIE", statutLien: null } }),
+    // Lot 27 — fiches derrière une protection anti-robots (statutLien = -1)
+    prisma.tool.count({ where: { statut: "PUBLIE", statutLien: -1 } }),
     prisma.article.count({ where: { statut: "BROUILLON", majLe: { lt: ilYa30j } } }),
     prisma.article.findMany({
       where: { statut: "BROUILLON", majLe: { lt: ilYa30j } },
@@ -345,10 +348,12 @@ export default async function PageAdmin() {
                 </h3>
                 <p className="text-[13px] leading-4 text-adm-gris">
                   {nbLiensMorts > 0
-                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe vers un site en défaut`
-                    : nbJamaisVerifies > 0
-                      ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
-                      : "Aucun lien mort : tous les liens vérifiés répondent"}
+                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe${nbLiensMorts > 1 ? "nt" : ""} vers un site en défaut`
+                    : nbProteges > 0
+                      ? `Aucun lien mort — ${nbProteges} fiche${nbProteges > 1 ? "s" : ""} derrière une protection anti-bot (non vérifiables)`
+                      : nbJamaisVerifies > 0
+                        ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
+                        : "Aucun lien mort : tous les liens vérifiés répondent"}
                 </p>
               </div>
             </div>
@@ -368,7 +373,7 @@ export default async function PageAdmin() {
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
                       <span className="rounded-full bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
-                        {libelleCodeLien(outil.statutLien)}
+                        Lien en défaut
                       </span>
                       {outil.lienVerifieLe && (
                         <span className="text-[11px] text-adm-gris-clair">
@@ -461,7 +466,9 @@ export default async function PageAdmin() {
           <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
             Raccourcis
           </h2>
-          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+          {/* Une seule colonne : à 3 tuiles par ligne, les libellés
+              (« Journal d'audit »…) ne tiennent pas dans 1/3 de page. */}
+          <div className="mt-4  grid gap-2 min-w-min-2xl sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
             {[
               { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
               { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },

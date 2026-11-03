@@ -27,6 +27,9 @@ export const dynamic = "force-dynamic";
 const FENETRE_JOURS = 30;
 
 export default async function PageRecherchesAdmin() {
+  // Le client Prisma actuellement généré ne déclare pas encore ce modèle.
+  const requeteRecherche = (prisma as any).requeteRecherche;
+
   const ilYa30j = new Date();
   ilYa30j.setDate(ilYa30j.getDate() - (FENETRE_JOURS - 1));
   ilYa30j.setHours(0, 0, 0, 0);
@@ -35,14 +38,14 @@ export default async function PageRecherchesAdmin() {
     total30j, sansResultat30j, termesUniques,
     topRequetes, requetesVides, recherches30j,
   ] = await Promise.all([
-    prisma.requeteRecherche.count({ where: { creeLe: { gte: ilYa30j } } }),
-    prisma.requeteRecherche.count({ where: { creeLe: { gte: ilYa30j }, nbResultats: 0 } }),
-    prisma.requeteRecherche.findMany({
+    requeteRecherche.count({ where: { creeLe: { gte: ilYa30j } } }),
+    requeteRecherche.count({ where: { creeLe: { gte: ilYa30j }, nbResultats: 0 } }),
+    requeteRecherche.findMany({
       where: { creeLe: { gte: ilYa30j } },
       distinct: ["terme"],
       select: { terme: true },
     }),
-    prisma.requeteRecherche.groupBy({
+    requeteRecherche.groupBy({
       by: ["terme"],
       where: { creeLe: { gte: ilYa30j } },
       _count: { terme: true },
@@ -50,14 +53,14 @@ export default async function PageRecherchesAdmin() {
       orderBy: { _count: { terme: "desc" } },
       take: 15,
     }),
-    prisma.requeteRecherche.groupBy({
+    requeteRecherche.groupBy({
       by: ["terme"],
       where: { creeLe: { gte: ilYa30j }, nbResultats: 0 },
       _count: { terme: true },
       orderBy: { _count: { terme: "desc" } },
       take: 12,
     }),
-    prisma.requeteRecherche.findMany({
+    requeteRecherche.findMany({
       where: { creeLe: { gte: ilYa30j } },
       select: { creeLe: true },
     }),
@@ -80,7 +83,10 @@ export default async function PageRecherchesAdmin() {
   const tauxSansResultat =
     total30j > 0 ? Math.round((sansResultat30j / total30j) * 100) : 0;
   const topTerme = topRequetes[0]?.terme ?? "—";
-  const maxTop = Math.max(...topRequetes.map((t) => t._count.terme), 1);
+  const maxTop = Math.max(
+    ...topRequetes.map((t: { _count: { terme: number } }) => t._count.terme),
+    1,
+  );
 
   return (
     <div>
@@ -154,8 +160,8 @@ export default async function PageRecherchesAdmin() {
                 catalogue s'accumulent ici dès les premières visites.
               </p>
             )}
-            {topRequetes.map((t, i) => (
-              <div key={t.terme}>
+            {topRequetes.map((t: { terme: string; _count: { terme: number }; _avg: { nbResultats: number | null } }, i: number) => (
+              <div key={t.terme} className="min-w-0">
                 <div className="flex items-baseline justify-between gap-2">
                   <Link
                     href={`/outils?q=${encodeURIComponent(t.terme)}`}
@@ -207,10 +213,10 @@ export default async function PageRecherchesAdmin() {
                 cherchent. Continue à surveiller cette liste chaque semaine.
               </p>
             )}
-            {requetesVides.map((t) => (
+            {requetesVides.map((t: { terme: string; _count: { terme: number } }) => (
               <div
                 key={t.terme}
-                className="flex items-center justify-between gap-3 rounded-champ border border-[#efdda8] bg-white px-3.5 py-2.5"
+                className="flex min-w-0 items-center justify-between gap-3 rounded-champ border border-[#efdda8] bg-white px-3.5 py-2.5"
               >
                 <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre">
                   {t.terme}
