@@ -151,7 +151,7 @@ export default async function PageAPropos() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-12">
+    <div className="mx-40 w-full max-w-7xl px-4 py-12">
       {/* ── Hero ────────────────────────────────────────────────── */}
       <header className="mx-auto max-w-3xl text-center">
         <h1 className="text-h2 font-titre font-semibold text-bleu">

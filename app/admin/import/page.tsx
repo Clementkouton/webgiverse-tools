@@ -164,7 +164,7 @@ export default async function PageImportAdmin({
   const actif = ONGLETS.find((o) => o.cle === onglet) ?? ONGLETS[0]!;
 
   return (
-    <div>
+    <div className="mx-auto px-4 pb-10 sm:px-6 lg:px-8">
       <div className="animate-apparition-haut">
         <h1 className="text-h3 font-semibold">Import CSV</h1>
         <p className="mt-1 text-[14px] leading-6 text-encre">

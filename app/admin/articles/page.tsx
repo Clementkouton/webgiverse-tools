@@ -57,9 +57,9 @@ export default async function PageArticlesAdmin({
   ]);
 
   return (
-    <div>
+    <div className="mx-auto px-4 pb-10 sm:px-6 lg:px-8">
       <div className="animate-apparition-haut flex flex-wrap items-center justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-h3 font-semibold">Articles ({nbTotal})</h1>
           <p className="mt-1 text-[14px] leading-6 text-encre">Rédige les actualités du site et les articles du blog.</p>
         </div>

@@ -471,7 +471,20 @@ function estRessource(v: unknown): v is RessourceYoutube {
  */
 export function parserDescriptionRaffinee(valeur: unknown): DescriptionRaffinee | null {
   if (!valeur || typeof valeur !== "object") return null;
-  const v = valeur as Record<string, unknown>;
+  let v = valeur as Record<string, unknown>;
+  // Lot 34 — réparation défensive des anciens imports : l'enveloppe
+  // { ok: true, valeur: { chapitres… } } (bug d'écriture, désormais
+  // corrigé) est dépliée une fois pour retrouver la structure attendue.
+  if (
+    !Array.isArray(v.chapitres) &&
+    !Array.isArray(v.ressources) &&
+    !Array.isArray(v.paragraphes) &&
+    v.valeur &&
+    typeof v.valeur === "object" &&
+    !Array.isArray(v.valeur)
+  ) {
+    v = v.valeur as Record<string, unknown>;
+  }
   if (v.vide === true) return null;
   const chapitres = Array.isArray(v.chapitres) ? v.chapitres.filter(estChapitre) : [];
   const ressources = Array.isArray(v.ressources) ? v.ressources.filter(estRessource) : [];

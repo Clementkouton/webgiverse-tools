@@ -459,3 +459,66 @@ export async function supprimerPromptFormulaire(donnees: FormData) {
   }
   revalidatePath("/admin/prompts"); revalidatePath("/prompts");
 }
+// ─────────────────────────────────────────────────────────────────────
+//  Lot 34 — SUPPRESSION EN MASSE depuis les listes admin
+//  (/admin/tutoriels, /admin/outils, /admin/prompts) : l'utilisateur
+//  coche des lignes (40, 150, 200…) puis supprime tout en un appel.
+//  Les relations sont nettoyées par les cascades de la base
+//  (progressions, favoris, avis, votes, catégories liées) ; les
+//  propositions d'outils sont détachées, comme en suppression unitaire.
+// ─────────────────────────────────────────────────────────────────────
+
+export type ResultatSuppressionMasse = {
+  ok: boolean;
+  message: string;
+  supprimes: number;
+};
+
+/** Nettoie la liste d'identifiants reçue du client (dédoublonnée, 500 max). */
+function idsValides(ids: unknown): string[] {
+  if (!Array.isArray(ids)) return [];
+  return [
+    ...new Set(
+      ids
+        .filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+        .map((id) => id.trim()),
+    ),
+  ].slice(0, 500);
+}
+
+/** Suppression en masse de TUTORIELS (progressions supprimées en cascade). */
+export async function supprimerTutorielsMasseAction(ids: string[]): Promise<ResultatSuppressionMasse> {
+  await exigerAdmin();
+  const uniques = idsValides(ids);
+  if (uniques.length === 0) return { ok: false, message: "Aucun tutoriel sélectionné.", supprimes: 0 };
+  const resultat = await prisma.tuto.deleteMany({ where: { id: { in: uniques } } });
+  if (resultat.count === 0) return { ok: false, message: "Tutoriels introuvables (déjà supprimés ?).", supprimes: 0 };
+  await tracerActionAdmin({ action: "TUTOS_SUPPRIMES", cible: `${resultat.count} tutoriel(s)`, details: "suppression en masse depuis /admin/tutoriels" });
+  revalidatePath("/admin"); revalidatePath("/admin/tutoriels"); revalidatePath("/tutoriels"); revalidatePath("/");
+  return { ok: true, message: `${resultat.count} tutoriel(s) supprimé(s) définitivement.`, supprimes: resultat.count };
+}
+
+/** Suppression en masse d'OUTILS (favoris, avis, votes, catégories liées en cascade). */
+export async function supprimerOutilsMasseAction(ids: string[]): Promise<ResultatSuppressionMasse> {
+  await exigerAdmin();
+  const uniques = idsValides(ids);
+  if (uniques.length === 0) return { ok: false, message: "Aucun outil sélectionné.", supprimes: 0 };
+  await prisma.toolSubmission.updateMany({ where: { toolId: { in: uniques } }, data: { toolId: null } });
+  const resultat = await prisma.tool.deleteMany({ where: { id: { in: uniques } } });
+  if (resultat.count === 0) return { ok: false, message: "Outils introuvables (déjà supprimés ?).", supprimes: 0 };
+  await tracerActionAdmin({ action: "OUTILS_SUPPRIMES", cible: `${resultat.count} outil(s)`, details: "suppression en masse depuis /admin/outils" });
+  revalidatePath("/admin"); revalidatePath("/admin/outils"); revalidatePath("/outils"); revalidatePath("/");
+  return { ok: true, message: `${resultat.count} outil(s) supprimé(s) définitivement.`, supprimes: resultat.count };
+}
+
+/** Suppression en masse de PROMPTS (favoris supprimés en cascade). */
+export async function supprimerPromptsMasseAction(ids: string[]): Promise<ResultatSuppressionMasse> {
+  await exigerAdmin();
+  const uniques = idsValides(ids);
+  if (uniques.length === 0) return { ok: false, message: "Aucun prompt sélectionné.", supprimes: 0 };
+  const resultat = await prisma.prompt.deleteMany({ where: { id: { in: uniques } } });
+  if (resultat.count === 0) return { ok: false, message: "Prompts introuvables (déjà supprimés ?).", supprimes: 0 };
+  await tracerActionAdmin({ action: "PROMPTS_SUPPRIMES", cible: `${resultat.count} prompt(s)`, details: "suppression en masse depuis /admin/prompts" });
+  revalidatePath("/admin"); revalidatePath("/admin/prompts"); revalidatePath("/prompts"); revalidatePath("/");
+  return { ok: true, message: `${resultat.count} prompt(s) supprimé(s) définitivement.`, supprimes: resultat.count };
+}

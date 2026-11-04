@@ -208,7 +208,7 @@ export default async function PageAdmin() {
     Math.max(0, Math.floor((maintenant.getTime() - new Date(date).getTime()) / 86_400_000));
 
   return (
-    <div>
+    <div className="mx-auto px-4 pb-10 sm:px-6 lg:px-8">
       {/* ── En-tête + période ───────────────────────────────────────── */}
       <div className="animate-apparition-haut flex flex-wrap items-end justify-between gap-3">
         <div>

@@ -79,7 +79,7 @@ export default async function PageModerationAdmin() {
   const totalATraiter = nbPropositions + nbMessages;
 
   return (
-    <div>
+    <div className="mx-auto px-4 pb-10 sm:px-6 lg:px-8">
       <div className="animate-apparition-haut flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-h3 font-semibold">Modération</h1>

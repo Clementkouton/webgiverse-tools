@@ -11,6 +11,10 @@
 // déjà existante est ignorée ; avec l'option, elle est mise à jour —
 // et seules les COLONNES présentes dans le fichier écrasent l'ancien
 // contenu (une colonne absente conserve sa valeur).
+// Lot 34 — CORRECTIF d'affichage : la description raffinée est désormais
+// écrite avec sa STRUCTURE (desc.valeur), plus l'enveloppe { ok, valeur }
+// qui rendait la section « Chapitres & ressources » invisible. La
+// description existante sert à nouveau de base de fusion (2e argument).
 // Lot 23c — lecture des fichiers : UTF-8 strict puis repli
 // Windows-1252 (les CSV d'Excel FR ne sont presque jamais en UTF-8,
 // les accents arrivaient en « DÃ©butant ») + erreursTotal dans le
@@ -388,6 +392,7 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
           ressources: lit(l, "ressources"),
           paragraphes: lit(l, "paragraphes"),
         },
+        existant?.descriptionRaffinee ?? null,
       );
       if (!desc.ok) {
         erreurs.push(`Ligne ${numero} : ${desc.erreur} — ${titre}.`);
@@ -409,8 +414,11 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
         if (col("ordre")) champs.ordre = entier(lit(l, "ordre"), 0);
         if (col("vues")) champs.vues = entier(lit(l, "vues"), 0);
         if (col("nouveau")) champs.nouveau = booleen(lit(l, "nouveau"));
-        if (desc) {
-          champs.descriptionRaffinee = desc as unknown as Prisma.InputJsonValue;
+        // Lot 34 — on écrit la STRUCTURE (chapitres/ressources/paragraphes),
+        // pas l'enveloppe de résultat { ok, valeur } : c'est cette enveloppe
+        // qui empêchait l'affichage « Chapitres & ressources ».
+        if (desc.valeur) {
+          champs.descriptionRaffinee = desc.valeur as unknown as Prisma.InputJsonValue;
         }
 
         await prisma.tuto.update({
@@ -431,8 +439,8 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
             ordre: entier(lit(l, "ordre"), 0),
             vues: entier(lit(l, "vues"), 0),
             nouveau: booleen(lit(l, "nouveau")),
-            ...(desc
-              ? { descriptionRaffinee: desc as unknown as Prisma.InputJsonValue }
+            ...(desc.valeur
+              ? { descriptionRaffinee: desc.valeur as unknown as Prisma.InputJsonValue }
               : {}),
           },
         });
