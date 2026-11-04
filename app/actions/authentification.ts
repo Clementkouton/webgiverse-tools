@@ -21,18 +21,6 @@ export async function connexionAction(_prec: EtatFormulaire, formData: FormData)
 
   if (!email || !motDePasse) return { erreur: "Renseigne ton e-mail et ton mot de passe." };
 
-  // Lot 35 — un compte suspendu / banni reçoit un message dédié
-  // (au lieu du générique « identifiants incorrects »).
-  const compte = await prisma.user
-    .findUnique({ where: { email }, select: { statut: true } })
-    .catch(() => null);
-  if (compte?.statut === "SUSPENDU") {
-    return { erreur: "Ton compte est actuellement suspendu. Contacte-nous via la page Contact pour en savoir plus." };
-  }
-  if (compte?.statut === "BANNI") {
-    return { erreur: "Ton compte a été banni de Webgiverse." };
-  }
-
   try {
     await signIn("credentials", { email, password: motDePasse, redirectTo: suite });
   } catch (erreur) {

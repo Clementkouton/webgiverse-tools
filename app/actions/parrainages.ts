@@ -76,16 +76,15 @@ async function membresARelancer() {
       // pas de parrainage récompensé (aucun filleul Premium)
       filleulsParraines: { none: { statut: "RECOMPENSE" } },
     },
-    select: { id: true, name: true, email: true, createdAt: true, relanceParrainageLe: true },
+    select: { id: true, name: true, email: true, createdAt: true },
     orderBy: { createdAt: "desc" },
     take: 500,
   });
   // On laisse au moins 3 jours après l'inscription avant de relancer,
-  // et on place en tête ceux jamais relancés.
+  // avant toute relance.
   const ilYa3Jours = new Date(Date.now() - 3 * 86_400_000);
   return utilisateurs
-    .filter((u) => u.createdAt < ilYa3Jours)
-    .sort((a, b) => Number(Boolean(a.relanceParrainageLe)) - Number(Boolean(b.relanceParrainageLe)));
+    .filter((u) => u.createdAt < ilYa3Jours);
 }
 
 async function envoyerRelance(utilisateur: { id: string; name: string | null; email: string }) {
@@ -96,10 +95,6 @@ async function envoyerRelance(utilisateur: { id: string; name: string | null; em
     a: utilisateur.email,
     sujet: "Ton code de parrainage Webgiverse — +14 jours Premium par filleul",
     html: emailRelanceParrainage({ nom: utilisateur.name ?? "", lienInvitation: lien, jours: 14 }),
-  });
-  await prisma.user.update({
-    where: { id: utilisateur.id },
-    data: { relanceParrainageLe: new Date() },
   });
 }
 
