@@ -10,18 +10,23 @@ const STYLE_CHAMP =
 
 export function FormulaireInscription({
   suite = "/dashboard",
-  refParrain = null,
+  refParrain,
 }: {
   suite?: string;
-  refParrain?: string | null;
+  refParrain?: string;
 }) {
   const [etat, action, enCours] = useActionState(inscriptionAction, null);
 
   return (
     <div className="grid gap-4">
+      {refParrain && (
+        <p className="rounded-champ border border-violet/30 bg-violet/5 px-3 py-2 text-[13px] leading-4 font-semibold text-violet">
+          🎁 Invité par le code <span className="font-mono">{refParrain}</span> — ton parrain
+          recevra sa récompense dès ton Premium.
+        </p>
+      )}
       <form action={action} className="grid gap-3">
         <input type="hidden" name="suite" value={suite} />
-        {/* 🤝 Lot 20 — code du parrain (id) transmis au server action */}
         {refParrain && <input type="hidden" name="ref" value={refParrain} />}
         <div>
           <label htmlFor="in-nom" className="mb-1.5 block text-[14px] leading-5 font-medium">Nom complet</label>
@@ -51,6 +56,7 @@ export function FormulaireInscription({
 
       <form action={connexionGoogleAction}>
         <input type="hidden" name="suite" value={suite} />
+        {refParrain && <input type="hidden" name="ref" value={refParrain} />}
         <Bouton type="submit" variante="secondaire" className="w-full">S'inscrire avec Google</Bouton>
       </form>
 

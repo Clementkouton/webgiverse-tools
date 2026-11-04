@@ -31,9 +31,11 @@ import {
   Gift,
   History,
   Inbox,
+  Mail,
   LayoutDashboard,
   ListChecks,
   Menu,
+  Megaphone,
   MessageSquareQuote,
   MonitorPlay,
   Newspaper,
@@ -44,6 +46,7 @@ import {
   ShieldCheck,
   Sparkles,
   TerminalSquare,
+  TicketPercent,
   Users,
   Wrench,
   X,
@@ -109,6 +112,9 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
     liens: [
       { href: "/admin/abonnements", libelle: "Abonnements", icone: CreditCard },
       { href: "/admin/parrainages", libelle: "Parrainages", icone: Gift },
+      { href: "/admin/sponsors", libelle: "Sponsors", icone: Megaphone },
+      { href: "/admin/codes-promo", libelle: "Codes promo", icone: TicketPercent },
+      { href: "/admin/newsletter", libelle: "Newsletter", icone: Mail },
     ],
   },
   {
@@ -333,7 +339,7 @@ export default function MenuAdmin({
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-adm-bordure bg-white transition-[width] duration-300 lg:flex",
-          reduit ? "w-[76px]" : "w-[240px]",
+          reduit ? "w-[76px]" : "w-[268px]",
         )}
       >
         {marque(reduit)}
@@ -364,12 +370,12 @@ export default function MenuAdmin({
       <div
         className={cn(
           "flex min-h-dvh w-full flex-col overflow-x-clip bg-adm-fond transition-[padding] duration-300",
-          reduit ? "lg:pl-[76px]" : "lg:pl-[240px]",
+          reduit ? "lg:pl-[76px]" : "lg:pl-[268px]",
         )}
       >
         {/* ═══ Topbar TailwindAdmin (toutes tailles) ═══ */}
         <header className="sticky top-0 z-40 border-b border-adm-bordure bg-white/95 backdrop-blur">
-          <div className="mx-auto flex h-16  items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
+          <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
             {/* Menu mobile */}
             <button
               type="button"
@@ -421,17 +427,17 @@ export default function MenuAdmin({
 
             {/* Bouton indigo « + Outil » (sans dégradé) */}
             <Link
-              href="/admin/import"
+              href="/admin/outils/nouveau"
               className="hidden h-10 shrink-0 items-center gap-1.5 rounded-full bg-primaire px-4 text-[14px] font-semibold text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)] transition hover:bg-primaire-fonce active:scale-[0.98] md:inline-flex"
             >
-              <Plus className="size-4 font-bold text-white" aria-hidden /> Ajouter
+              <Plus className="size-4" aria-hidden /> Outil
             </Link>
 
             {/* Lot 25 — cloche branchée sur les vrais événements */}
             <ClocheAdmin notifications={notifications} />
 
             {/* Avatar */}
-            <span className="shrink-0 *:cursor-pointer">{avatar}</span>
+            <span className="shrink-0 [&>*]:cursor-pointer">{avatar}</span>
           </div>
         </header>
 

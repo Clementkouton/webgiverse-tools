@@ -137,11 +137,11 @@ export async function lireUtilisateursSegment(
 
   if (cle === "parrains-actifs") {
     const parrains = await prisma.user.findMany({
-      where: { parrainages: { some: { statut: "RECOMPENSE" } } },
+      where: { filleulsParraines: { some: { statut: "RECOMPENSE" } } },
       orderBy: { createdAt: "asc" },
       select: {
         id: true, name: true, email: true, createdAt: true,
-        _count: { select: { parrainages: { where: { statut: "RECOMPENSE" } } } },
+        _count: { select: { filleulsParraines: { where: { statut: "RECOMPENSE" } } } },
         abonnement: { select: { plan: true, statut: true, expireLe: true } },
       },
     });
@@ -158,7 +158,7 @@ export async function lireUtilisateursSegment(
         p.abonnement && p.abonnement.statut === "ACTIF" && p.abonnement.expireLe > maintenant
           ? p.abonnement.expireLe
           : null,
-      filleulsRecompenses: p._count.parrainages,
+      filleulsRecompenses: p._count.filleulsParraines,
     }));
   }
 
@@ -215,7 +215,7 @@ export async function compterTousLesSegments(): Promise<Record<CleSegment, numbe
         },
       },
     }),
-    prisma.user.count({ where: { parrainages: { some: { statut: "RECOMPENSE" } } } }),
+    prisma.user.count({ where: { filleulsParraines: { some: { statut: "RECOMPENSE" } } } }),
     prisma.user.count({ where: { createdAt: { gte: ilYa7j } } }),
   ]);
 

@@ -20,8 +20,8 @@ export default async function PageInscription({
             🤝 Tu as été invité sur Webgiverse !
           </p>
           <p className="mt-1 text-[12px] leading-4 text-encre">
-            Crée ton compte : ton parrain recevra 1 mois offert quand tu
-            souscriras un abonnement Premium. Merci de soutenir la communauté !
+            Crée ton compte : ton parrain recevra 14 jours Premium quand tu
+            souscriras un abonnement. Merci de soutenir la communauté !
           </p>
         </div>
       )}
@@ -29,7 +29,7 @@ export default async function PageInscription({
       <p className="mt-2 mb-6 text-encre">
         Sauvegarde tes outils préférés, crée des listes et discute avec l'assistant.
       </p>
-      <FormulaireInscription suite={suite ?? "/dashboard"} refParrain={ref ?? null} />
+      <FormulaireInscription suite={suite ?? "/dashboard"} refParrain={ref ?? undefined} />
     </main>
   );
 }

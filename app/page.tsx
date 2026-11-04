@@ -23,6 +23,7 @@ import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { BoutonCopier } from "@/components/commun/bouton-copier";
 import { FormulaireNewsletter } from "@/components/commun/formulaire-newsletter";
 import { SectionPlans } from "@/components/tarifs/section-plans";
+import { BandeauSponsor } from "@/components/public/bandeau-sponsor";
 import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
 import { TEMOIGNAGES } from "@/content/temoignages";
 import { compterStats, listerCategories, outilsMisEnAvant, listerOutils, listerTutos, compterTutoStats } from "@/lib/queries";
@@ -129,19 +130,19 @@ export default async function Accueil() {
                 <dt className="sr-only">{c.libelle}</dt>
                 {/* Lot 15 : en mode dégradé (base injoignable) on affiche
                     un tiret au lieu d'un trompeur « 0 ». */}
-                <dd className="font-titre text-[32px] leading-10 font-bold text-sky-500">{c.valeur === 0 ? "—" : c.valeur}</dd>
+                <dd className="font-titre text-[32px] leading-10 font-bold text-violet">{c.valeur === 0 ? "—" : c.valeur}</dd>
                 <dd className="text-legende text-encre">{c.libelle}</dd>
               </div>
             ))}
           </dl>
           <ul className="mt-6 flex flex-wrap justify-center gap-2">
-            <li className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               Sélection 100 % manuelle
             </li>
-            <li className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               Fiches mises à jour en continu
             </li>
-            <li className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+            <li className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               100 % expliqué en français
             </li>
           </ul>
@@ -150,6 +151,10 @@ export default async function Accueil() {
 
       <VuRecemment />
 
+      {/* ── Slot sponsorisé « À la une » (Lot 35) — s'affiche uniquement
+          quand un sponsor est actif, sinon zéro rendu. ────────── */}
+      <BandeauSponsor emplacement="ACCUEIL" />
+
       {/* ── Parcourir par catégorie (pastilles, comme Aixploria) ─
           Lot 15 : section masquée si la base n'a pas répondu. */}
       {categories.length > 0 && (
@@ -157,7 +162,7 @@ export default async function Accueil() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <TitreSection>Parcourir par catégorie</TitreSection>
-              <Link href="/categories" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
+            <Link href="/categories" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
               Toutes les catégories <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -165,7 +170,7 @@ export default async function Accueil() {
             {categories.map((c) => (
               <li key={c.slug}>
                 <Link href={`/categorie/${c.slug}`}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-full border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-sky-500 hover:text-sky-500">
+                  className="inline-flex min-h-9 items-center gap-2 rounded-full border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet">
                   {c.nom}
                   <span className="text-[12px] leading-4 font-semibold text-encre">{c._count.outils}</span>
                 </Link>
@@ -198,7 +203,7 @@ export default async function Accueil() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex items-end justify-between gap-4">
             <TitreSection>Nouveautés</TitreSection>
-              <Link href="/outils" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
+            <Link href="/outils" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
               Tout voir <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -219,7 +224,7 @@ export default async function Accueil() {
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="relative overflow-hidden rounded-carte bg-bleu p-6 shadow-carte sm:p-10">
-              <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-sky-500/30 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-violet/30 blur-3xl" />
             <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full bg-ciel/20 blur-3xl" />
             <div className="relative">
               <div className="flex flex-wrap items-end justify-between gap-4">
@@ -312,7 +317,7 @@ export default async function Accueil() {
                   </div>
                   <p className="mt-3 flex-1 text-[15px] leading-6 text-encre">« {t.texte} »</p>
                   <div className="mt-4 flex items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sky-500/10 font-titre text-[14px] font-bold text-sky-500">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-violet/10 font-titre text-[14px] font-bold text-violet">
                       {initiales}
                     </div>
                     <div className="min-w-0">
@@ -342,7 +347,7 @@ export default async function Accueil() {
                 <h3 className="font-titre text-[17px] leading-6 font-semibold">{a.titre}</h3>
                 <p className="mt-2 text-legende text-encre">Source : {a.source}</p>
                 <a href={a.url} target="_blank" rel="noopener noreferrer"
-                  className="mt-auto inline-flex min-h-11 items-center gap-1 pt-3 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
+                  className="mt-auto inline-flex min-h-11 items-center gap-1 pt-3 text-[15px] leading-5 font-semibold text-violet hover:underline">
                   Lire la source <ExternalLink className="size-4" aria-hidden />
                 </a>
               </Carte>
@@ -358,10 +363,10 @@ export default async function Accueil() {
           <TitreSection>Derniers articles du blog</TitreSection>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {ARTICLES.map((a) => (
-              <Link key={a.titre} href="/blog" className="group flex flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-sky-500">
-                <h3 className="font-titre text-[17px] leading-6 font-semibold group-hover:text-sky-500">{a.titre}</h3>
+              <Link key={a.titre} href="/blog" className="group flex flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-violet">
+                <h3 className="font-titre text-[17px] leading-6 font-semibold group-hover:text-violet">{a.titre}</h3>
                 <p className="mesure mt-2 text-[14px] leading-5 text-encre">{a.extrait}</p>
-                <span className="mt-auto pt-4 text-[14px] leading-5 font-semibold text-sky-500">Bientôt disponible</span>
+                <span className="mt-auto pt-4 text-[14px] leading-5 font-semibold text-violet">Bientôt disponible</span>
               </Link>
             ))}
           </div>
@@ -376,7 +381,7 @@ export default async function Accueil() {
             {FAQ.map((f) => <ItemAccordeon key={f.question} question={f.question} reponse={f.reponse} />)}
           </Accordeon>
           <div className="mt-6 text-center">
-            <Link href="/faq" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
+            <Link href="/faq" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
               Voir toutes les questions <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>

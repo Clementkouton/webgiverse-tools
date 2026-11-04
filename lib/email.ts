@@ -218,3 +218,95 @@ export function emailPaiementConfirme(details: {
   `;
   return gabaritBase(contenu);
 }
+
+/* ---------------------------------------------------------
+   7. Lot 35 — Récompense de parrainage (envoyée au parrain
+      dès qu'un filleul passe Premium)
+   --------------------------------------------------------- */
+export function emailRecompenseParrain(details: {
+  nomParrain?: string | null;
+  nomFilleul: string;
+  jours: number;
+  expireLe: Date;
+}) {
+  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const contenu = `
+    <h2 style="margin:0 0 16px; font-size:18px; color:#111827;">
+      🎉 +${details.jours} jours Premium offerts !
+    </h2>
+    <p style="margin:0 0 16px;">Bonjour ${details.nomParrain ?? ""},</p>
+    <p style="margin:0 0 16px;">
+      Excellente nouvelle : <strong>${echapperHtml(details.nomFilleul)}</strong> vient de
+      rejoindre Premium grâce à ton invitation. Ta récompense est créditée
+      automatiquement.
+    </p>
+    <p style="margin:0 0 24px; background-color:#f9fafb; border-radius:8px; padding:12px 16px;">
+      <strong>Ton Premium est prolongé jusqu'au
+      ${new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(details.expireLe)}.</strong>
+    </p>
+    <p style="margin:0 0 24px; text-align:center;">
+      <a href="${base}/dashboard/parrainage"
+        style="display:inline-block; background-color:#7c3aed; color:#ffffff;
+        text-decoration:none; padding:12px 28px; border-radius:8px; font-weight:bold;">
+        Voir mes filleuls et mon code
+      </a>
+    </p>
+    <p style="margin:0;">
+      Continue à partager ton code : chaque filleul qui passe Premium t'offre
+      encore ${details.jours} jours !<br/>L'équipe Webgiverse
+    </p>
+  `;
+  return gabaritBase(contenu);
+}
+
+/* ---------------------------------------------------------
+   8. Lot 35 — Relance de parrainage (envoyée par l'admin)
+   --------------------------------------------------------- */
+export function emailRelanceParrainage(details: {
+  nom: string;
+  lienInvitation: string;
+  jours: number;
+}) {
+  const contenu = `
+    <h2 style="margin:0 0 16px; font-size:18px; color:#111827;">
+      Ton code de parrainage t'attend !
+    </h2>
+    <p style="margin:0 0 16px;">Bonjour ${details.nom ? echapperHtml(details.nom) : ""},</p>
+    <p style="margin:0 0 16px;">
+      Ton code d'invitation Webgiverse est actif : chaque ami qui s'inscrit avec
+      ton lien devient ton filleul, et dès qu'il passe Premium tu reçois
+      <strong>${details.jours} jours de Premium offerts</strong>.
+    </p>
+    <p style="margin:0 0 24px; text-align:center;">
+      <a href="${details.lienInvitation}"
+        style="display:inline-block; background-color:#7c3aed; color:#ffffff;
+        text-decoration:none; padding:12px 28px; border-radius:8px; font-weight:bold;">
+        Partager mon lien d'invitation
+      </a>
+    </p>
+    <p style="margin:0 0 8px;">
+      Ton lien à copier-partager :<br/>
+      <a href="${details.lienInvitation}" style="color:#7c3aed; word-break:break-all;">${details.lienInvitation}</a>
+    </p>
+    <p style="margin:0;">
+      À très vite,<br/>L'équipe Webgiverse
+    </p>
+  `;
+  return gabaritBase(contenu);
+}
+
+/* ---------------------------------------------------------
+   9. Lot 35 — Gabarit des campagnes de newsletter composées
+      dans l'admin (même structure que la veille hebdo).
+   --------------------------------------------------------- */
+export function gabaritCampagneNewsletter(sujet: string, corpsHtml: string) {
+  return gabaritBase(corpsHtml || `<h2>${echapperHtml(sujet)}</h2><p>Bonjour,</p>`);
+}
+
+/** Échappe les caractères HTML dans les contenus dynamiques des e-mails. */
+export function echapperHtml(texte: string): string {
+  return texte
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}

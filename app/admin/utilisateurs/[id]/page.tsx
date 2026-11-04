@@ -1,285 +1,328 @@
 // app/admin/utilisateurs/[id]/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 23 — Fiche membre détaillée, style « TailwindAdmin » :
-//   • identité (avatar, nom, e-mail, rôle, date d'inscription) et
-//     action « Rendre admin » (sauf son propre compte) ;
-//   • 5 tuiles d'activité sur pastilles pastel (favoris, avis,
-//     votes, listes, conversations) ;
-//   • abonnement Premium (plan, statut en pastille douce, dates),
-//     paiements récents (5 derniers) et avis publiés récents.
-// Les tableaux vides laissent la place à un état vide illustré.
+// Lot 35 — Fiche membre : identité, diagnostic d'inscription,
+// abonnement, parrainage, paiements, ACTIVITÉ, et l'outillage admin :
+//   • notes internes privées (historique : litige, Premium offert…) ;
+//   • impersonation « Se connecter en tant que… » ;
+//   • suspension / bannissement avec motif (révocable).
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ChevronLeft,
-  Crown,
-  FolderOpen,
-  Heart,
-  MessageSquare,
-  MessagesSquare,
-  ReceiptText,
-  ThumbsUp,
-} from "lucide-react";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
+import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
-import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
-import { PASTILLE_TUILE, type Ton } from "@/components/admin/carte-stat-admin";
 import { basculerRoleFormulaire } from "@/app/actions/admin";
-import { PLANS, formatePrix } from "@/lib/plans";
+import {
+  suspendreMembreFormulaire,
+  bannirMembreFormulaire,
+  reactiverMembreFormulaire,
+  impersonerFormulaire,
+  ajouterNoteFormulaire,
+  supprimerNoteFormulaire,
+} from "@/app/actions/gestion-utilisateurs";
 import { formatteDate } from "@/lib/dates";
-import { cn } from "@/lib/utils";
+import { formatePrix } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Fiche membre — Administration" };
 export const dynamic = "force-dynamic";
 
-const formatteurDate = new Intl.DateTimeFormat("fr-FR", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
-/** Pastille d'état douce — mêmes teintes que Propositions/Abonnements. */
-const PASTILLE_STATUT: Record<string, string> = {
-  actif: "bg-adm-succes-doux text-[#0b8a78]",
-  attente: "bg-adm-alerte-doux text-[#b26f00]",
-  echoue: "bg-adm-erreur-doux text-[#c94f35]",
-  neutre: "bg-gris text-encre",
-};
-
-function Pastille({ ton, children }: { ton: string; children: React.ReactNode }) {
-  return (
-    <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE_STATUT[ton])}>
-      {children}
-    </span>
-  );
-}
-
-export default async function PageDetailUtilisateur({ params }: { params: Promise<{ id: string }> }) {
+export default async function PageFicheMembre({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
-
-  const utilisateur = await prisma.user.findUnique({
+  const membre = await prisma.user.findUnique({
     where: { id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      role: true,
-      createdAt: true,
-      _count: { select: { favorites: true, avis: true, lists: true, votes: true, conversations: true } },
+    include: {
+      _count: { select: { favorites: true, avis: true, lists: true, votes: true, conversations: true, activites: true } },
       abonnement: true,
+      paiements: { orderBy: { creeLe: "desc" }, take: 8 },
+      filleulDe: { include: { parrain: { select: { id: true, name: true, email: true } } } },
+      filleulsParraines: {
+        include: { filleul: { select: { id: true, name: true, email: true } } },
+        orderBy: { creeLe: "desc" },
+      },
+      notesRecues: {
+        include: { auteur: { select: { name: true, email: true } } },
+        orderBy: { creeLe: "desc" },
+      },
     },
   });
-  if (!utilisateur) notFound();
+  if (!membre) notFound();
 
-  const [avis, paiements, session] = await Promise.all([
-    prisma.avis.findMany({
-      where: { utilisateurId: id },
-      orderBy: { majLe: "desc" },
-      take: 5,
-      include: { outil: { select: { nom: true, slug: true } } },
-    }),
-    prisma.paiement.findMany({
-      where: { utilisateurId: id },
-      orderBy: { creeLe: "desc" },
-      take: 5,
-    }),
-    auth(),
-  ]);
-
-  const estMoi = session?.user?.id === utilisateur.id;
-  const initiale = (utilisateur.name ?? utilisateur.email ?? "?").charAt(0).toUpperCase();
-
-  const abonnement = utilisateur.abonnement;
   const maintenant = new Date();
-  const aboActif = abonnement && abonnement.statut === "ACTIF" && abonnement.expireLe > maintenant && !abonnement.annuleLe;
+  const premium =
+    membre.abonnement?.statut === "ACTIF" && membre.abonnement.expireLe > maintenant;
 
-  const tuiles: { libelle: string; valeur: number; icone: typeof Heart; ton: Ton }[] = [
-    { libelle: "Favoris", valeur: utilisateur._count.favorites, icone: Heart, ton: "succes" },
-    { libelle: "Avis publiés", valeur: utilisateur._count.avis, icone: MessageSquare, ton: "primaire" },
-    { libelle: "Votes", valeur: utilisateur._count.votes, icone: ThumbsUp, ton: "info" },
-    { libelle: "Listes", valeur: utilisateur._count.lists, icone: FolderOpen, ton: "alerte" },
-    { libelle: "Conversations", valeur: utilisateur._count.conversations, icone: MessagesSquare, ton: "primaire" },
+  const stats = [
+    { libelle: "Favoris", valeur: membre._count.favorites },
+    { libelle: "Avis", valeur: membre._count.avis },
+    { libelle: "Listes", valeur: membre._count.lists },
+    { libelle: "Votes", valeur: membre._count.votes },
+    { libelle: "Conversations", valeur: membre._count.conversations },
+    { libelle: "Activités", valeur: membre._count.activites },
   ];
 
   return (
-    <div>
-      <Link href="/admin/utilisateurs" className="animate-apparition-haut inline-flex items-center gap-1 text-[14px] font-semibold text-primaire-texte hover:underline">
-        <ChevronLeft className="size-4" aria-hidden /> Retour aux utilisateurs
-      </Link>
-
-      {/* ── Identité ─────────────────────────────────────────────────── */}
-      <Carte className="animate-apparition-haut mt-3 flex flex-wrap items-center justify-between gap-4 p-6">
-        <div className="flex min-w-0 items-center gap-4">
-          {utilisateur.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={utilisateur.image} alt="" className="size-14 shrink-0 rounded-full object-cover" />
-          ) : (
-            <span className="grid size-14 shrink-0 place-items-center rounded-full bg-primaire font-titre text-[22px] font-bold text-white">
-              {initiale}
-            </span>
-          )}
-          <div className="min-w-0">
-            <h1 className="truncate font-titre text-[20px] leading-7 font-semibold text-adm-sombre">
-              {utilisateur.name || "Sans nom"}
-            </h1>
-            <p className="truncate text-[14px] text-encre">{utilisateur.email}</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] leading-4">
-              {utilisateur.role === "ADMIN" ? (
-                <span className="inline-flex rounded-full bg-primaire/10 px-2.5 py-0.5 font-semibold text-primaire-texte">Admin</span>
-              ) : (
-                <span className="inline-flex rounded-full bg-gris px-2.5 py-0.5 font-semibold text-encre">Utilisateur</span>
-              )}
-              {estMoi && <span className="font-semibold text-primaire-texte">C'est ton compte 👋</span>}
-              <span className="text-adm-gris">Inscrit le {formatteDate(utilisateur.createdAt)}</span>
-            </div>
+    <div className="grid gap-6">
+      {/* ── En-tête : identité + statut ──────────────────────────── */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <Link href="/admin/utilisateurs" className="text-[13px] font-semibold text-violet hover:underline">
+            ← Toutes les fiches
+          </Link>
+          <h2 className="mt-2 text-h3 font-semibold">{membre.name || "Sans nom"}</h2>
+          <p className="text-[14px] text-encre">{membre.email}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {membre.role === "ADMIN" ? <Badge variante="source">Admin</Badge> : <Badge>Utilisateur</Badge>}
+            {membre.statut === "ACTIF" && (
+              <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">Actif</Badge>
+            )}
+            {membre.statut === "SUSPENDU" && (
+              <Badge className="border-red-200 bg-red-50 text-red-700">Suspendu</Badge>
+            )}
+            {membre.statut === "BANNI" && (
+              <Badge className="border-red-300 bg-red-600 text-white">Banni</Badge>
+            )}
+            {premium ? (
+              <Badge variante="nouveau">
+                Premium {membre.abonnement?.plan === "ENTREPRISE" ? "Entreprise" : "Pro"} — jusqu&apos;au{" "}
+                {formatteDate(membre.abonnement?.expireLe)}
+              </Badge>
+            ) : (
+              <Badge>Découverte</Badge>
+            )}
           </div>
+          {membre.statut !== "ACTIF" && membre.motifCompte && (
+            <p className="mt-2 rounded-champ border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+              Motif : {membre.motifCompte} — depuis le {formatteDate(membre.suspenduLe)}
+            </p>
+          )}
         </div>
-        {!estMoi && utilisateur.role !== "ADMIN" && (
-          <form action={basculerRoleFormulaire} className="shrink-0">
-            <input type="hidden" name="utilisateurId" value={utilisateur.id} />
-            <Bouton taille="sm" variante="indigoDoux" type="submit">Rendre admin</Bouton>
-          </form>
-        )}
-      </Carte>
 
-      {/* ── Activité ─────────────────────────────────────────────────── */}
-      <div className="animate-apparition-haut mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {tuiles.map((t) => (
-          <Carte key={t.libelle} className="flex items-center gap-4 p-5">
-            <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", PASTILLE_TUILE[t.ton])}>
-              <t.icone className="size-5" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-titre text-[24px] leading-8 font-bold text-adm-sombre">{t.valeur}</span>
-              <span className="block truncate text-[13px] leading-4 font-semibold text-adm-gris">{t.libelle}</span>
-            </span>
-          </Carte>
-        ))}
+        {/* Actions principales */}
+        <div className="flex flex-wrap items-start gap-2">
+          {membre.role !== "ADMIN" && (
+            <form action={impersonerFormulaire}>
+              <input type="hidden" name="utilisateurId" value={membre.id} />
+              <Bouton taille="sm" variante="secondaire" type="submit">
+                👁 Se connecter en tant que…
+              </Bouton>
+            </form>
+          )}
+          {membre.statut !== "ACTIF" ? (
+            <form action={reactiverMembreFormulaire}>
+              <input type="hidden" name="utilisateurId" value={membre.id} />
+              <Bouton taille="sm" variante="primaire" type="submit">✅ Réactiver le compte</Bouton>
+            </form>
+          ) : (
+            membre.role !== "ADMIN" && (
+              <details className="rounded-champ border border-bordure bg-white px-3 py-2 text-[13px]">
+                <summary className="cursor-pointer select-none font-semibold text-rouge">
+                  ⏸ Suspendre / bannir
+                </summary>
+                <div className="mt-2 grid w-72 gap-2">
+                  <form action={suspendreMembreFormulaire} className="grid gap-2">
+                    <input type="hidden" name="utilisateurId" value={membre.id} />
+                    <input
+                      name="motif"
+                      required
+                      minLength={3}
+                      placeholder="Motif (litige, abus…)"
+                      className="w-full rounded-champ border border-bordure bg-white px-2 py-1.5 text-[13px] text-bleu outline-none focus:border-violet"
+                    />
+                    <div className="flex items-center gap-2">
+                      <select name="duree" className="min-h-9 flex-1 rounded-champ border border-bordure bg-white px-2 text-[13px] text-bleu">
+                        <option value="">Illimitée</option>
+                        <option value="1">24 h</option>
+                        <option value="7">7 jours</option>
+                        <option value="30">30 jours</option>
+                      </select>
+                      <Bouton taille="sm" variante="danger" type="submit">Suspendre</Bouton>
+                    </div>
+                  </form>
+                  <form action={bannirMembreFormulaire} className="grid gap-2">
+                    <input type="hidden" name="utilisateurId" value={membre.id} />
+                    <input
+                      name="motif"
+                      required
+                      minLength={3}
+                      placeholder="Motif du bannissement"
+                      className="w-full rounded-champ border border-bordure bg-white px-2 py-1.5 text-[13px] text-bleu outline-none focus:border-violet"
+                    />
+                    <Bouton taille="sm" variante="danger" type="submit" className="w-full">
+                      🚫 Bannir définitivement
+                    </Bouton>
+                  </form>
+                </div>
+              </details>
+            )
+          )}
+          {membre.role === "ADMIN" ? (
+            <p className="text-[13px] font-semibold text-violet">C&apos;est ton compte 👋</p>
+          ) : (
+            <form action={basculerRoleFormulaire}>
+              <input type="hidden" name="utilisateurId" value={membre.id} />
+              <Bouton taille="sm" variante="secondaire" type="submit">Rendre admin</Bouton>
+            </form>
+          )}
+        </div>
       </div>
 
-      {/* ── Abonnement ───────────────────────────────────────────────── */}
-      <section className="animate-apparition-haut mt-10">
-        <h2 className="font-titre text-[17px] leading-6 font-semibold text-adm-sombre">Abonnement Premium</h2>
-        {abonnement ? (
-          <Carte className="mt-4 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", PASTILLE_TUILE["alerte"])}>
-                  <Crown className="size-5" aria-hidden />
-                </span>
-                <div>
-                  <p className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
-                    {PLANS[abonnement.plan as "PRO" | "ENTREPRISE"]?.nom ?? abonnement.plan}
-                  </p>
-                  <p className="text-[13px] text-encre">
-                    Depuis le {formatteDate(abonnement.debutLe)} · expire le {formatteDate(abonnement.expireLe)}
-                  </p>
-                </div>
-              </div>
-              {aboActif ? (
-                <Pastille ton="actif">Actif</Pastille>
-              ) : abonnement.annuleLe ? (
-                <Pastille ton="neutre">Arrêté</Pastille>
-              ) : (
-                <Pastille ton="attente">Expiré</Pastille>
-              )}
+      {/* ── Diagnostic d'inscription + statistiques ───────────────── */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Carte className="p-5">
+          <h3 className="font-titre text-[16px] font-semibold">Diagnostic d&apos;inscription</h3>
+          <dl className="mt-3 grid gap-1.5 text-[13px] leading-5">
+            <div className="flex justify-between gap-3">
+              <dt className="text-encre">Objectif</dt>
+              <dd className="text-right font-semibold">{membre.objectif || "—"}</dd>
             </div>
-          </Carte>
-        ) : (
-          <Carte className="mt-4">
-            <EtatVideAdmin
-              icone={Crown}
-              ton="alerte"
-              titre="Aucun abonnement"
-              description="Ce membre n'a pas souscrit à l'offre Premium (ou le schéma Abonnement n'est pas encore installé)."
-            />
-          </Carte>
-        )}
-      </section>
-
-      {/* ── Paiements récents ────────────────────────────────────────── */}
-      <section className="animate-apparition-haut mt-10">
-        <h2 className="font-titre text-[17px] leading-6 font-semibold text-adm-sombre">
-          Paiements récents <span className="font-normal text-encre">({paiements.length})</span>
-        </h2>
-        <Carte className="mt-4 overflow-x-auto p-0">
-          {paiements.length === 0 ? (
-            <EtatVideAdmin
-              icone={ReceiptText}
-              ton="info"
-              titre="Aucun paiement"
-              description="Les paiements de ce membre (simulation ou Moneroo) apparaîtront ici."
-            />
-          ) : (
-            <table className="w-full min-w-150 text-left text-[14px] leading-5">
-              <thead className="text-left text-legende text-encre">
-                <tr>
-                  <th className="px-5 py-3">Date</th>
-                  <th className="px-3 py-3">Plan</th>
-                  <th className="px-3 py-3">Montant</th>
-                  <th className="px-5 py-3 text-right">Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paiements.map((p) => (
-                  <tr key={p.id} className="border-t border-bordure transition hover:bg-adm-fond/70">
-                    <td className="px-5 py-3.5 text-encre">{formatteurDate.format(p.creeLe)}</td>
-                    <td className="px-3 py-3.5 text-encre">{PLANS[p.plan as "PRO" | "ENTREPRISE"]?.nom ?? p.plan}</td>
-                    <td className="px-3 py-3.5 font-semibold text-adm-sombre">{formatePrix(p.montant)}</td>
-                    <td className="px-5 py-3.5 text-right">
-                      {p.statut === "PAYE" ? (
-                        <Pastille ton="actif">Payé</Pastille>
-                      ) : p.statut === "ECHOUE" ? (
-                        <Pastille ton="echoue">Échoué</Pastille>
-                      ) : (
-                        <Pastille ton="attente">En attente</Pastille>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+            <div className="flex justify-between gap-3">
+              <dt className="text-encre">Niveau</dt>
+              <dd className="text-right font-semibold">{membre.niveau || "—"}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-encre">Budget</dt>
+              <dd className="text-right font-semibold">{membre.budget || "—"}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-encre">Inscrit le</dt>
+              <dd className="text-right font-semibold">{formatteDate(membre.createdAt)}</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-encre">Code parrain</dt>
+              <dd className="text-right font-mono text-[12px] font-semibold">{membre.codeParrain ?? "—"}</dd>
+            </div>
+          </dl>
         </Carte>
-      </section>
 
-      {/* ── Avis récents ─────────────────────────────────────────────── */}
-      <section className="animate-apparition-haut mt-10">
-        <h2 className="font-titre text-[17px] leading-6 font-semibold text-adm-sombre">
-          Derniers avis publiés <span className="font-normal text-encre">(5 plus récents)</span>
-        </h2>
-        {avis.length === 0 ? (
-          <Carte className="mt-4">
-            <EtatVideAdmin
-              icone={MessageSquare}
-              ton="info"
-              titre="Aucun avis publié"
-              description="Ce membre n'a pas encore partagé d'avis sur un outil."
-            />
-          </Carte>
-        ) : (
-          <div className="mt-4 grid gap-3">
-            {avis.map((a) => (
-              <Carte key={a.id} className="p-5">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <Link href={`/outil/${a.outil.slug}`} className="text-[15px] font-semibold text-primaire-texte hover:underline">
-                    {a.outil.nom}
-                  </Link>
-                  <span className="text-[14px] font-semibold text-adm-alerte" aria-label={`Note ${a.note} sur 5`}>
-                    {"★".repeat(a.note)}{"☆".repeat(5 - a.note)}
-                  </span>
-                  <span className="text-[13px] text-adm-gris">{formatteDate(a.majLe)}</span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-[14px] leading-6 whitespace-pre-line text-encre">{a.contenu}</p>
-              </Carte>
+        <Carte className="p-5">
+          <h3 className="font-titre text-[16px] font-semibold">Activité</h3>
+          <ul className="mt-3 grid grid-cols-2 gap-2 text-[13px]">
+            {stats.map((s) => (
+              <li key={s.libelle} className="rounded-champ bg-gris px-3 py-2">
+                <span className="font-titre text-[18px] font-bold text-violet">{s.valeur}</span>
+                <br />
+                <span className="text-encre">{s.libelle}</span>
+              </li>
+            ))}
+          </ul>
+        </Carte>
+
+        <Carte className="p-5">
+          <h3 className="font-titre text-[16px] font-semibold">Parrainage</h3>
+          <div className="mt-3 grid gap-2 text-[13px] leading-5">
+            <p>
+              <span className="text-encre">Parrain : </span>
+              {membre.filleulDe ? (
+                <Link href={`/admin/utilisateurs/${membre.filleulDe.parrain.id}`} className="font-semibold text-violet hover:underline">
+                  {membre.filleulDe.parrain.name || membre.filleulDe.parrain.email}
+                </Link>
+              ) : (
+                <span className="font-semibold">—</span>
+              )}
+            </p>
+            <p>
+              <span className="text-encre">Filleuls : </span>
+              <strong>{membre.filleulsParraines.length}</strong>
+              {" "}
+              ({membre.filleulsParraines.filter((p) => p.statut === "RECOMPENSE").length} récompensé(s))
+            </p>
+            {membre.filleulsParraines.slice(0, 5).map((p) => (
+              <p key={p.id} className="rounded-champ bg-gris px-3 py-1.5">
+                {p.filleul.name || p.filleul.email} —{" "}
+                {p.statut === "RECOMPENSE" ? "Premium (récompense envoyée)" : "en attente"}
+              </p>
             ))}
           </div>
-        )}
-      </section>
+        </Carte>
+      </div>
+
+      {/* ── Paiements ─────────────────────────────────────────────── */}
+      <Carte className="overflow-x-auto p-2">
+        <h3 className="p-3 font-titre text-[16px] font-semibold">Paiements récents</h3>
+        <table className="w-full min-w-120 text-[14px] leading-5">
+          <thead className="text-left text-legende text-encre">
+            <tr>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Plan</th>
+              <th className="px-3 py-2">Montant</th>
+              <th className="px-3 py-2">Canal</th>
+              <th className="px-3 py-2">Code promo</th>
+              <th className="px-3 py-2">Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {membre.paiements.map((p) => (
+              <tr key={p.id} className="border-t border-bordure">
+                <td className="px-3 py-2 text-encre">{formatteDate(p.creeLe)}</td>
+                <td className="px-3 py-2 font-semibold">{p.plan}</td>
+                <td className="px-3 py-2">{formatePrix(p.montant)}</td>
+                <td className="px-3 py-2 text-encre">{p.simulation ? "Test" : p.canal ?? "—"}</td>
+                <td className="px-3 py-2 font-mono text-[13px]">{p.codePromo ?? "—"}</td>
+                <td className="px-3 py-2">{p.statut}</td>
+              </tr>
+            ))}
+            {membre.paiements.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-4 text-encre">Aucun paiement enregistré.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Carte>
+
+      {/* ── Notes internes (historique privé) ─────────────────────── */}
+      <Carte className="p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="font-titre text-[16px] font-semibold">Notes internes ({membre.notesRecues.length})</h3>
+            <p className="text-[13px] text-encre">
+              Historique privé de l&apos;équipe — litige, Premium offert, abus… Jamais visible par le membre.
+            </p>
+          </div>
+        </div>
+
+        <form action={ajouterNoteFormulaire} className="mt-4 grid gap-2">
+          <input type="hidden" name="utilisateurId" value={membre.id} />
+          <textarea
+            name="contenu"
+            required
+            minLength={3}
+            maxLength={2000}
+            rows={3}
+            placeholder="Ex. : remboursement accordé le 12/03, Premium offert 1 mois suite au litige #4482…"
+            className="w-full rounded-champ border border-bordure bg-white px-3 py-2 text-[14px] leading-5 text-bleu outline-none focus:border-violet"
+          />
+          <div>
+            <Bouton taille="sm" type="submit">Ajouter la note</Bouton>
+          </div>
+        </form>
+
+        <ul className="mt-4 grid gap-2">
+          {membre.notesRecues.map((note) => (
+            <li key={note.id} className="flex items-start justify-between gap-3 rounded-champ bg-gris px-4 py-3">
+              <div className="min-w-0">
+                <p className="whitespace-pre-wrap text-[14px] leading-5">{note.contenu}</p>
+                <p className="mt-1 text-[12px] leading-4 text-encre">
+                  {note.auteur.name || note.auteur.email} — {formatteDate(note.creeLe)}
+                </p>
+              </div>
+              <form action={supprimerNoteFormulaire}>
+                <input type="hidden" name="noteId" value={note.id} />
+                <Bouton taille="sm" variante="danger" type="submit">Supprimer</Bouton>
+              </form>
+            </li>
+          ))}
+          {membre.notesRecues.length === 0 && (
+            <li className="text-[13px] text-encre">Aucune note pour l&apos;instant.</li>
+          )}
+        </ul>
+      </Carte>
     </div>
   );
 }

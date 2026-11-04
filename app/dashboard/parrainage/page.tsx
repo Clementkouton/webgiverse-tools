@@ -1,159 +1,167 @@
 // app/dashboard/parrainage/page.tsx
-// Lot 20 — 🤝 Programme de parrainage : « 1 mois offert ».
-//   • Le membre récupère SON lien https://…/inscription?ref=<son id>
-//     (bouton copier) et le partage.
-//   • Un filleul qui s'inscrit avec ce lien crée un parrainage
-//     « en attente » ; quand il souscrit un abonnement payant, le
-//     parrain reçoit automatiquement 1 mois offert (extension de son
-//     accès) + une notification.
-// Page serveur : statistiques + liste des filleuls, défensive si la
-// table Parrainage n'existe pas encore (db push à faire).
-
+// ─────────────────────────────────────────────────────────────────
+// Lot 35 — « Parrainage » (espace membre) : code d'invitation
+// personnel + lien à partager, explication de la récompense
+// (14 jours Premium par filleul Premium), suivi des filleuls et
+// rattachement tardif via un code.
+// ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
-import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { Gift, Users } from "lucide-react";
 import { auth } from "@/auth";
-import { statsParrainage } from "@/lib/parrainage";
+import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
-import { BoutonCopierLien } from "@/components/dashboard/bouton-copier-lien";
-import { Gift, Handshake, Hourglass, PartyPopper } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Bouton } from "@/components/ui/bouton";
+import { BoutonCopier } from "@/components/commun/bouton-copier";
+import { assurerCodeParrain } from "@/lib/parrainages";
+import { formatteDate } from "@/lib/dates";
+import { FormulaireRattachement } from "@/components/dashboard/parrainage-client";
 
-export const metadata: Metadata = { title: "Parrainage — Webgiverse" };
-
+export const metadata: Metadata = {
+  title: "Parrainage — Webgiverse Outils IA",
+};
 export const dynamic = "force-dynamic";
-
-const formateurDate = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
 export default async function PageParrainage() {
   const session = await auth();
-  if (!session?.user?.id) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <Carte className="p-8 text-center">
-          <p className="text-encre">Connecte-toi pour accéder à ton lien de parrainage.</p>
-          <Link
-            href="/connexion?suite=/dashboard/parrainage"
-            className="mt-4 inline-block font-semibold text-violet hover:underline"
-          >
-            Se connecter
-          </Link>
-        </Carte>
-      </main>
-    );
+  if (!session?.user?.id) redirect("/connexion?suite=/dashboard/parrainage");
+
+  // Garde douce : si la migration n'a pas encore été appliquée,
+  // la page s'affiche sans crash.
+  let code: string | null = null;
+  let filleuls: {
+    id: string;
+    statut: string;
+    joursOfferts: number;
+    creeLe: Date;
+    filleul: { id: string; name: string | null; email: string };
+  }[] = [];
+  try {
+    code = await assurerCodeParrain(session.user.id);
+    filleuls = await prisma.parrainage.findMany({
+      where: { parrainId: session.user.id },
+      include: { filleul: { select: { id: true, name: true, email: true } } },
+      orderBy: { creeLe: "desc" },
+    });
+  } catch {
+    code = null;
   }
 
-  // URL du site (production : webgiverse-tools.vercel.app, local : localhost…)
-  const entetes = await headers();
-  const hote = entetes.get("x-forwarded-host") ?? entetes.get("host") ?? "webgiverse-tools.vercel.app";
-  const protocole = hote.startsWith("localhost") || hote.startsWith("127.0.0.1") ? "http" : "https";
-  const lienParrainage = `${protocole}://${hote}/inscription?ref=${session.user.id}`;
-
-  const stats = await statsParrainage(session.user.id);
+  const base = process.env.NEXT_PUBLIC_APP_URL || "https://webgiverse-tools.vercel.app";
+  const lien = code ? `${base}/inscription?ref=${code}` : "";
+  const recompenses = filleuls.filter((f) => f.statut === "RECOMPENSE");
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-8 lg:py-10">
-      {/* ── En-tête ─────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-8">
-        <div aria-hidden className="animate-flottant pointer-events-none absolute -right-12 -top-12 size-44 rounded-full bg-ciel/20 blur-3xl" />
-        <p className="relative flex items-center gap-2 text-legende text-white/70">
-          <Handshake className="size-4 text-ciel" aria-hidden /> Programme de parrainage
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
+      {/* ── Héros parrainage ─────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-10">
+        <div
+          aria-hidden
+          className="animate-flottant-lent pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-ciel/25 blur-3xl"
+        />
+        <p className="relative inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold">
+          <Gift className="size-4 text-ciel" aria-hidden /> Parrainage Webgiverse
         </p>
-        <h1 className="relative mt-2 font-titre text-[22px] leading-7 font-bold sm:text-[26px] sm:leading-8">
-          1 mois offert pour chaque filleul Premium 🎁
+        <h1 className="relative mt-4 font-titre text-[26px] leading-8 font-bold sm:text-h2">
+          Gagne <span className="text-ciel">14 jours Premium</span> par filleul
         </h1>
-        <p className="relative mt-2 max-w-xl text-[14px] leading-6 text-white/80">
-          Partage ton lien : quand quelqu'un crée son compte avec, il est lié à toi.
-          Dès qu'il souscrit un abonnement Premium, ton propre accès est prolongé
-          de 30 jours automatiquement.
+        <p className="relative mt-2 max-w-2xl text-[15px] leading-6 text-white/75">
+          Partage ton lien : quand ton filleul passe Premium, ses 14 jours de récompense sont
+          crédités automatiquement sur ton compte (prolongés après ton abonnement actuel si tu
+          es déjà Premium). Ton filleul ne perd rien.
         </p>
       </div>
 
-      {/* ── Ton lien ────────────────────────────────────────────── */}
-      <Carte className="animate-apparition-haut mt-6 p-6">
-        <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Ton lien de parrainage</h2>
-        <p className="mt-0.5 mb-4 text-[13px] leading-4 text-encre">
-          Envoie-le à tes amis, colle-le dans tes groupes, tes newsletters… Le
-          compte créé avec ce lien sera ton filleul pour toujours.
-        </p>
-        <BoutonCopierLien lien={lienParrainage} />
-      </Carte>
+      {code ? (
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {/* Code + lien */}
+          <Carte className="p-5">
+            <h2 className="font-titre text-[16px] font-semibold">Ton code d&apos;invitation</h2>
+            <p className="mt-3 rounded-champ border border-violet/30 bg-violet/5 px-4 py-3 text-center font-mono text-[24px] font-bold tracking-wider text-violet">
+              {code}
+            </p>
+            <div className="mt-4">
+              <p className="mb-2 text-[13px] font-semibold text-bleu">Ton lien à partager</p>
+              <BoutonCopier texte={lien} libelle="Copier mon lien d'invitation" />
+              <p className="mt-2 break-all text-[12px] leading-4 text-encre">{lien}</p>
+            </div>
+          </Carte>
 
-      {/* ── Statistiques ────────────────────────────────────────── */}
-      <section aria-label="Tes statistiques de parrainage" className="mt-6 grid gap-4 sm:grid-cols-3">
-        <Carte className="animate-apparition-haut delai-1 p-5">
-          <p className="flex items-center gap-1.5 text-[12px] leading-4 font-bold uppercase tracking-wide text-encre/70">
-            <Gift className="size-3.5 text-violet" aria-hidden /> Filleuls inscrits
-          </p>
-          <p className="mt-2 font-titre text-[26px] leading-8 font-bold text-bleu">{stats.total}</p>
+          {/* Comment ça marche */}
+          <Carte className="p-5">
+            <h2 className="font-titre text-[16px] font-semibold">Comment ça marche ?</h2>
+            <ol className="mt-3 grid gap-3 text-[14px] leading-6 text-encre">
+              <li>
+                <strong>1.</strong> Tu partages ton lien (WhatsApp, e-mail, réseaux…).
+              </li>
+              <li>
+                <strong>2.</strong> Ton filleul crée son compte gratuitement via ton lien — il
+                apparaît ci-dessous.
+              </li>
+              <li>
+                <strong>3.</strong> Dès qu&apos;il souscrit un plan Premium, +14 jours Premium
+                sont crédités automatiquement sur ton compte et tu reçois un e-mail.{" "}
+                <Link href="/tarifs" className="font-semibold text-violet hover:underline">
+                  Voir les plans →
+                </Link>
+              </li>
+            </ol>
+          </Carte>
+        </div>
+      ) : (
+        <Carte className="mt-6 p-5 text-[14px] text-encre">
+          La fonctionnalité parrainage n&apos;est pas encore active : la mise à jour de la base
+          (db push) doit d&apos;abord être appliquée. Reviens dans un instant.
         </Carte>
-        <Carte className="animate-apparition-haut delai-2 p-5">
-          <p className="flex items-center gap-1.5 text-[12px] leading-4 font-bold uppercase tracking-wide text-encre/70">
-            <PartyPopper className="size-3.5 text-emerald-600" aria-hidden /> Mois offerts gagnés
-          </p>
-          <p className="mt-2 font-titre text-[26px] leading-8 font-bold text-bleu">{stats.recompenses}</p>
-        </Carte>
-        <Carte className="animate-apparition-haut delai-3 p-5">
-          <p className="flex items-center gap-1.5 text-[12px] leading-4 font-bold uppercase tracking-wide text-encre/70">
-            <Hourglass className="size-3.5 text-amber-600" aria-hidden /> En attente d'abonnement
-          </p>
-          <p className="mt-2 font-titre text-[26px] leading-8 font-bold text-bleu">{stats.enAttente}</p>
-        </Carte>
-      </section>
+      )}
 
-      {/* ── Comment ça marche ──────────────────────────────────── */}
-      <Carte className="mt-6 p-6">
-        <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Comment ça marche ?</h2>
-        <ol className="mt-3 grid gap-2 text-[13px] leading-5 text-encre">
-          {[
-            "Tu copies ton lien ci-dessus et tu le partages.",
-            "Ton ami crée son compte GRATUIT via le lien — il apparaît dans « Filleuls inscrits ».",
-            "Il souscrit un abonnement Premium (Pro ou Entreprise).",
-            "Boom 🎉 : ton accès est prolongé de 30 jours, sans rien faire, et tu reçois une notification.",
-          ].map((etape, i) => (
-            <li key={i} className="flex items-start gap-2.5">
-              <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-[11px] font-bold text-white">
-                {i + 1}
-              </span>
-              <span>{etape}</span>
-            </li>
-          ))}
-        </ol>
-      </Carte>
-
-      {/* ── Liste des filleuls ─────────────────────────────────── */}
-      <Carte className="mt-6 p-6">
-        <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Tes filleuls</h2>
-        {stats.filleuls.length === 0 ? (
-          <p className="mt-3 text-[13px] leading-5 text-encre">
-            Aucun filleul pour l'instant. Partage ton lien pour commencer 🚀
-          </p>
-        ) : (
+      {/* ── Mes filleuls ─────────────────────────────────────────── */}
+      {code && (
+        <Carte className="mt-4 p-5">
+          <h2 className="flex items-center gap-2 font-titre text-[16px] font-semibold">
+            <Users className="size-4 text-violet" aria-hidden /> Mes filleuls ({filleuls.length})
+          </h2>
           <ul className="mt-3 grid gap-2">
-            {stats.filleuls.map((f, i) => (
-              <li
-                key={`${f.nom}-${i}`}
-                className="flex flex-wrap items-center gap-2 rounded-champ border border-bordure bg-white px-3 py-2.5"
-              >
-                <span className="min-w-0 flex-1 truncate text-[13px] leading-4 font-semibold text-bleu">
-                  {f.nom}
-                </span>
-                <span className="text-[11px] leading-4 text-encre/60">
-                  Inscrit le {formateurDate.format(f.creeLe)}
-                </span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] leading-4 font-bold ${
-                    f.statut === "RECOMPENSE"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {f.statut === "RECOMPENSE" ? "🎁 1 mois offert versé" : "En attente d'abonnement"}
-                </span>
+            {filleuls.map((f) => (
+              <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-champ bg-gris px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-bleu">
+                    {f.filleul.name || "Sans nom"}
+                  </p>
+                  <p className="truncate text-[13px] text-encre">
+                    Inscrit le {formatteDate(f.creeLe)}
+                  </p>
+                </div>
+                {f.statut === "RECOMPENSE" ? (
+                  <Badge variante="nouveau">
+                    🎉 Premium — +{f.joursOfferts} jours crédités
+                  </Badge>
+                ) : (
+                  <Badge>En attente de Premium</Badge>
+                )}
               </li>
             ))}
+            {filleuls.length === 0 && (
+              <li className="text-[14px] text-encre">
+                Personne encore — partage ton lien pour lancer ton premier parrainage !
+              </li>
+            )}
           </ul>
-        )}
-      </Carte>
-    </main>
+          {recompenses.length > 0 && (
+            <p className="mt-3 text-[13px] leading-5 text-encre">
+              🎁 {recompenses.length} filleul(s) Premium = {recompenses.reduce((s, r) => s + r.joursOfferts, 0)}{" "}
+              jours de Premium offerts au total.
+            </p>
+          )}
+        </Carte>
+      )}
+
+      {/* ── Rattachement tardif ──────────────────────────────────── */}
+      {code && (
+        <FormulaireRattachement />
+      )}
+    </div>
   );
 }

@@ -7,7 +7,7 @@ import { randomBytes } from "crypto";
 import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail, emailBienvenue } from "@/lib/email";
-import { enregistrerParrainage } from "@/lib/parrainage";
+import { creerParrainage } from "@/lib/parrainages";
 
 export type EtatFormulaire = { erreur?: string; succes?: string; lien?: string } | null;
 
@@ -21,6 +21,18 @@ export async function connexionAction(_prec: EtatFormulaire, formData: FormData)
 
   if (!email || !motDePasse) return { erreur: "Renseigne ton e-mail et ton mot de passe." };
 
+  // Lot 35 — un compte suspendu / banni reçoit un message dédié
+  // (au lieu du générique « identifiants incorrects »).
+  const compte = await prisma.user
+    .findUnique({ where: { email }, select: { statut: true } })
+    .catch(() => null);
+  if (compte?.statut === "SUSPENDU") {
+    return { erreur: "Ton compte est actuellement suspendu. Contacte-nous via la page Contact pour en savoir plus." };
+  }
+  if (compte?.statut === "BANNI") {
+    return { erreur: "Ton compte a été banni de Webgiverse." };
+  }
+
   try {
     await signIn("credentials", { email, password: motDePasse, redirectTo: suite });
   } catch (erreur) {
@@ -33,9 +45,16 @@ export async function connexionAction(_prec: EtatFormulaire, formData: FormData)
 }
 
 // ── Bouton Google (connexion ET inscription) ──────────────────
+// Lot 35 : si un code de parrainage (?ref=CODE) accompagne l'inscription,
+// la redirection passe par /api/parrainage/capture qui relie le nouveau
+// compte à son parrain après l'authentification Google.
 export async function connexionGoogleAction(formData: FormData) {
   const suite = String(formData.get("suite") ?? "/dashboard") || "/dashboard";
-  await signIn("google", { redirectTo: suite });
+  const ref = String(formData.get("ref") ?? "").trim().toUpperCase();
+  const destination = ref
+    ? `/api/parrainage/capture?ref=${encodeURIComponent(ref)}&suite=${encodeURIComponent(suite)}`
+    : suite;
+  await signIn("google", { redirectTo: destination });
 }
 
 // ── Inscription (nom complet + e-mail + mot de passe) ─────────
@@ -62,11 +81,11 @@ export async function inscriptionAction(_prec: EtatFormulaire, formData: FormDat
   const hash = await bcrypt.hash(motDePasse, 10);
   const nouveau = await prisma.user.create({ data: { name: nom, email, motDePasse: hash } });
 
-  // 🤝 Lot 20 — parrainage : le nouveau compte est lié au parrain si
-  // l'inscription vient d'un lien ?ref=… (non bloquant en cas d'échec).
-  const ref = String(formData.get("ref") ?? "").trim();
-  if (ref) {
-    await enregistrerParrainage(ref, nouveau.id);
+  // Lot 35 — parrainage : le formulaire peut transmettre ?ref=CODE
+  // (champ caché « ref »). Silencieux en cas de code invalide.
+  const codeParrain = String(formData.get("ref") ?? "").trim().toUpperCase();
+  if (codeParrain) {
+    await creerParrainage(codeParrain, nouveau.id).catch(() => null);
   }
 
   // Email de bienvenue : envoyé AVANT la connexion automatique, car signIn

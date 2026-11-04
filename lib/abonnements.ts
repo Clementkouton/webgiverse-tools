@@ -5,6 +5,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { DUREE_JOURS, type ClePlan } from "@/lib/plans";
+import { recompenserParrainage } from "@/lib/parrainages";
 
 /** Date d'expiration après un paiement : maintenant + 30 jours. */
 export function dateExpiration(): Date {
@@ -57,6 +58,14 @@ export async function activerAbonnement(parametres: {
   await prisma.paiement.update({
     where: { id: parametres.paiementId },
     data: { abonnementId: abonnement.id },
+  });
+
+  // Lot 35 — RÉCOMPENSE PARRAINAGE AUTOMATIQUE : si ce membre a été
+  // invité par un parrain, celui-ci reçoit ses jours Premium offerts
+  // (une seule fois par filleul). Jamais d'échec propagé : la récompense
+  // ne doit jamais bloquer un paiement validé.
+  await recompenserParrainage(parametres.utilisateurId).catch((erreur) => {
+    console.error("[parrainage] récompense automatique échouée :", erreur);
   });
 
   return abonnement;
