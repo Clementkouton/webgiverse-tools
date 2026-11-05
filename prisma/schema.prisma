@@ -126,20 +126,17 @@ model User {
   // Lot 23 — table de parrainage (le lien parrain → filleul + sa récompense)
   parrainages       Parrainage[]          @relation("ParrainagesRecus")
   parrainageFilleul Parrainage?           @relation("ParrainagesDonnes")
-  // Lot 36 — statut du compte (suspension / bannissement révocables)
+  // Lot 36 — statut du compte (suspension / bannissement révocables).
+  // C'est CE champ que lit auth.ts à chaque requête (blocage de connexion
+  // et révocation de session) — ne pas le renommer.
   statut            StatutCompte          @default(ACTIF)
   motifSuspension   String?
-  // Lot 36 — notes internes et historique de suspension (console admin)
-  notes             NoteMembre[]
+  suspenduLe        DateTime?
+  // Lot 36 — notes internes des admins (notes = reçues, notesRedigees =
+  // rédigées) et historique des suspensions posées par les admins.
+  notes             NoteMembre[]          @relation("NotesRecues")
+  notesRedigees     NoteMembre[]          @relation("NotesRedigees")
   suspensions       SuspensionUser[]
-
-  // Lot 36 — notes internes et historique de suspension (console admin)
-  statutCompte    StatutCompte     @default(ACTIF)
-  motifCompte     String?
-  suspenduLe      DateTime?
-  notes           NoteMembre[]     @relation("NotesRecues")
-  notesRedigees   NoteMembre[]     @relation("NotesRedigees")
-  suspensions     SuspensionUser[]
 }
 
 // ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────

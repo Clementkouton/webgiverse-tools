@@ -84,8 +84,8 @@ export async function suspendreMembreFormulaire(formData: FormData) {
   await prisma.user.update({
     where: { id },
     data: {
-      statutCompte: "SUSPENDU",
-      motifCompte: motif || null,
+      statut: "SUSPENDU",
+      motifSuspension: motif || null,
       suspenduLe: new Date(),
     },
   });
@@ -106,8 +106,8 @@ export async function bannirMembreFormulaire(formData: FormData) {
   await prisma.user.update({
     where: { id },
     data: {
-      statutCompte: "BANNI",
-      motifCompte: motif || null,
+      statut: "BANNI",
+      motifSuspension: motif || null,
       suspenduLe: new Date(),
     },
   });
@@ -123,7 +123,7 @@ export async function reactiverMembreFormulaire(formData: FormData) {
 
   await prisma.user.update({
     where: { id },
-    data: { statutCompte: "ACTIF", motifCompte: null, suspenduLe: null },
+    data: { statut: "ACTIF", motifSuspension: null, suspenduLe: null },
   });
   rafraichir(id);
 }
@@ -153,10 +153,10 @@ export async function impersonerFormulaire(formData: FormData) {
 
   const cible = await prisma.user.findUnique({
     where: { id },
-    select: { role: true, statutCompte: true },
+    select: { role: true, statut: true },
   });
   // On n'impersonne ni un admin, ni un compte suspendu/banni.
-  if (!cible || cible.role === "ADMIN" || cible.statutCompte !== "ACTIF") return;
+  if (!cible || cible.role === "ADMIN" || cible.statut !== "ACTIF") return;
 
   const ok = await ouvrirSessionPour(id);
   if (!ok) return;
@@ -189,6 +189,15 @@ export async function revenirAdminFormulaire() {
   const ok = await ouvrirSessionPour(adminId);
   jar.delete("impersonateurId");
   redirect(ok ? "/admin/utilisateurs" : "/");
+}
+
+/**
+ * Alias utilisé par le bandeau rouge d'impersonation
+ * (components/auth/bandeau-impersonation.tsx) : même action que
+ * « Revenir en admin ».
+ */
+export async function terminerImpersonationFormulaire() {
+  await revenirAdminFormulaire();
 }
 
 /* ──────────────────────── Notes internes ──────────────────────── */

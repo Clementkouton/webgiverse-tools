@@ -103,8 +103,8 @@ export default async function PageUtilisateursAdmin({
   // Filtre intelligent : TOUS les mots doivent correspondre (ET),
   // dans le nom OU l'e-mail (OU) — pas une succession de mots.
   const mots = qBrut.trim().split(/\s+/).filter(Boolean);
-  const where: Prisma.UserWhereInput & { statutCompte?: NonNullable<typeof statutFiltre> } = {};
-  if (statutFiltre) Object.assign(where, { statutCompte: statutFiltre });
+  const where: Prisma.UserWhereInput = {};
+  if (statutFiltre) where.statut = statutFiltre;
   if (mots.length > 0) {
     where.AND = mots.map((mot) => ({
       OR: [
@@ -124,23 +124,13 @@ export default async function PageUtilisateursAdmin({
       },
     }),
     prisma.user.groupBy({
-      by: ["statutCompte"] as unknown as Prisma.UserScalarFieldEnum[],
+      by: ["statut"],
       _count: { _all: true },
-    }) as unknown as Promise<Array<{ statutCompte: string | null; _count: { _all: number } }>>,
+    }),
   ]);
 
-  // Les champs de statut sont présents dans les enregistrements retournés,
-  // mais absents du client Prisma actuellement généré.
-  const utilisateursAvecStatut = utilisateurs as unknown as Array<
-    (typeof utilisateurs)[number] & {
-      statutCompte: string;
-      motifCompte: string | null;
-      suspenduLe: Date | null;
-    }
-  >;
-
-  const nombre = (statut: string) =>
-    repartition.find((r) => r.statutCompte === statut)?._count._all ?? 0;
+  const nombre = (statutRecherche: string) =>
+    repartition.find((r) => r.statut === statutRecherche)?._count._all ?? 0;
   const total = repartition.reduce((somme, r) => somme + r._count._all, 0);
 
   const lienOnglet = (statut: string | null) => {
@@ -240,7 +230,7 @@ export default async function PageUtilisateursAdmin({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {utilisateursAvecStatut.map((u) => (
+            {utilisateurs.map((u) => (
               <tr key={u.id} className="hover:bg-slate-50/60">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
@@ -260,12 +250,12 @@ export default async function PageUtilisateursAdmin({
                 <td className="px-4 py-3">
                   <span
                     title={
-                      u.motifCompte
-                        ? `${u.motifCompte} (depuis le ${dateFr(u.suspenduLe)})`
+                      u.motifSuspension
+                        ? `${u.motifSuspension} (depuis le ${dateFr(u.suspenduLe)})`
                         : undefined
                     }
                   >
-                    <BadgeStatut statut={u.statutCompte} />
+                    <BadgeStatut statut={u.statut} />
                   </span>
                 </td>
 
@@ -311,7 +301,7 @@ export default async function PageUtilisateursAdmin({
                       Fiche
                     </Link>
 
-                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "ACTIF" && (
+                    {u.id !== monId && u.role !== "ADMIN" && u.statut === "ACTIF" && (
                       <FormulaireAction
                         action={impersonerFormulaire}
                         id={u.id}
@@ -321,7 +311,7 @@ export default async function PageUtilisateursAdmin({
                       </FormulaireAction>
                     )}
 
-                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "ACTIF" && (
+                    {u.id !== monId && u.role !== "ADMIN" && u.statut === "ACTIF" && (
                       <FormulaireAction
                         action={suspendreMembreFormulaire}
                         id={u.id}
@@ -331,7 +321,7 @@ export default async function PageUtilisateursAdmin({
                       </FormulaireAction>
                     )}
 
-                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "SUSPENDU" && (
+                    {u.id !== monId && u.role !== "ADMIN" && u.statut === "SUSPENDU" && (
                       <>
                         <FormulaireAction
                           action={reactiverMembreFormulaire}
@@ -350,7 +340,7 @@ export default async function PageUtilisateursAdmin({
                       </>
                     )}
 
-                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "BANNI" && (
+                    {u.id !== monId && u.role !== "ADMIN" && u.statut === "BANNI" && (
                       <FormulaireAction
                         action={reactiverMembreFormulaire}
                         id={u.id}
