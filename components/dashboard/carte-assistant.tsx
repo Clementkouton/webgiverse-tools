@@ -6,7 +6,7 @@ export function CarteAssistant() {
   return (
     <Link
       href="/assistant"
-      className="group relative block overflow-hidden rounded-2xl bg-linear-to-r from-indigo-600 via-sky-500-600 to-fuchsia-600 p-6 text-white shadow-lg transition hover:shadow-xl"
+      className="group relative block overflow-hidden rounded-2xl bg-linear-to-r from-indigo-600 via-sky-500 to-fuchsia-600 p-6 text-white shadow-lg transition hover:shadow-xl"
     >
       <div
         aria-hidden

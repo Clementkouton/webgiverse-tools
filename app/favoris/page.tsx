@@ -87,7 +87,7 @@ export default function PageFavoris() {
           <p className="mb-4 font-medium">Connecte-toi pour voir tes favoris.</p>
           <Link
             href="/connexion"
-              className="rounded-lg bg-sky-500-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500-700"
+              className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500-700"
           >
             Se connecter
           </Link>
@@ -149,7 +149,7 @@ export default function PageFavoris() {
                 <div className="mt-4 flex items-center justify-between">
                   <Link
                     href={`/outil/${outil.slug}`}
-                    className="text-sm font-medium text-sky-500-600 hover:underline"
+                    className="text-sm font-medium text-sky-500 hover:underline"
                   >
                     Voir la fiche →
                   </Link>

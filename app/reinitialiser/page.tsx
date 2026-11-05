@@ -70,7 +70,7 @@ export default function PageReinitialiser() {
           </p>
           <Link
             href="/mot-de-passe-oublie"
-            className="mt-6 inline-block rounded-champ bg-sky-500-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
+            className="mt-6 inline-block rounded-champ bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
           >
             Refaire une demande
           </Link>
@@ -107,7 +107,7 @@ export default function PageReinitialiser() {
             </p>
             <Link
               href="/connexion"
-              className="inline-block rounded-champ bg-sky-500-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
+              className="inline-block rounded-champ bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
             >
               Se connecter
             </Link>
@@ -171,7 +171,7 @@ export default function PageReinitialiser() {
               <button
                 type="submit"
                 disabled={charge}
-                  className="w-full rounded-champ bg-sky-500-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full rounded-champ bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {charge ? "Enregistrement..." : "Enregistrer le mot de passe"}
               </button>

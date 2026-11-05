@@ -81,7 +81,7 @@ export default function PageMotDePasseOublie() {
                 </p>
                 <Link
                   href={lien}
-                  className="block text-center rounded-champ bg-sky-500-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
+                  className="block text-center rounded-champ bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
                 >
                   Définir un nouveau mot de passe
                 </Link>
@@ -125,7 +125,7 @@ export default function PageMotDePasseOublie() {
             <button
               type="submit"
               disabled={charge}
-                className="w-full rounded-champ bg-sky-500-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-champ bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {charge ? "Envoi en cours..." : "Réinitialiser mon mot de passe"}
             </button>

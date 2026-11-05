@@ -812,6 +812,8 @@ model Sponsor {
   @@index([categorieId])
 }
 
+
+
 model CampagneNewsletter {
   id       String    @id @default(cuid())
   titre    String
@@ -821,4 +823,14 @@ model CampagneNewsletter {
   envoyeLe DateTime?
   creeLe   DateTime  @default(now())
   majLe    DateTime  @updatedAt
+}
+
+model AbonneNewsletter {
+  id     String   @id @default(cuid())
+  email  String   @unique
+  nom    String?
+  token  String   @unique @default(cuid())
+  statut String   @default("ABONNE")
+  creeLe DateTime @default(now())
+  majLe  DateTime @updatedAt
 }

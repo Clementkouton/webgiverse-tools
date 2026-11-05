@@ -26,7 +26,7 @@ export default function PageRetourPaiement() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-6 text-center">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-500-200 border-t-sky-500-600" />
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-500-200 border-t-sky-500" />
       <h1 className="text-xl font-semibold text-slate-900">Paiement confirmé</h1>
       <p className="max-w-md text-sm text-slate-600">
         Redirection vers ton espace... Ton abonnement est activé automatiquement quelques

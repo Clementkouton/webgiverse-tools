@@ -100,7 +100,7 @@ export default async function PageListePublique({ params }: Props) {
         </p>
         <Link
           href="/inscription"
-          className="mt-4 inline-block rounded-champ bg-sky-500-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
+          className="mt-4 inline-block rounded-champ bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-500-700"
         >
           Créer mon compte gratuit
         </Link>

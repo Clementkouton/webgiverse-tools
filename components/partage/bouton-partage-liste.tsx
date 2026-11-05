@@ -52,7 +52,7 @@ export function LienPartage({ url, texte }: { url: string; texte: string }) {
       <button
         type="button"
         onClick={copier}
-        className="inline-flex items-center rounded-full bg-sky-500-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500-700"
+        className="inline-flex items-center rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500-700"
       >
         {copie ? "Lien copié !" : "Copier le lien"}
       </button>
