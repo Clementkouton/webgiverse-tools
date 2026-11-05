@@ -640,7 +640,6 @@ model RequeteRecherche {
 // (cuid, creeLe/majLe, enums StatutX, index sur les filtres).
 // ═════════════════════════════════════════════════════════════════
 
-
 // ── Slots sponsorisés « À la une » ──────────────────────────────────
 // Une ligne = un emplacement acheté par un annonceur, affiché sur
 // l'accueil ou en tête d'une catégorie PENDANT sa période
@@ -739,7 +738,6 @@ model RecompenseParrain {
   @@index([creeLe])
 }
 
-
 // ── Suspensions / bannissements de comptes ──────────────────────────
 // Une ligne = une suspension (ou un bannissement si finLe est null)
 // posée par un admin, avec son motif. Révocable : à la levée,
@@ -790,3 +788,26 @@ model NoteMembre {
   @@index([auteurId])
 }
 
+model SponsorCategorie {
+  id       String    @id @default(cuid())
+  nom      String    @unique
+  slug     String    @unique
+  sponsors Sponsor[]
+  creeLe   DateTime  @default(now())
+}
+
+model Sponsor {
+  id          String            @id @default(cuid())
+  nom         String
+  slug        String            @unique
+  description String?
+  logoUrl     String?
+  siteWeb     String?
+  categorieId String?
+  categorie   SponsorCategorie? @relation(fields: [categorieId], references: [id], onDelete: SetNull)
+  actif       Boolean           @default(true)
+  ordre       Int               @default(0)
+  creeLe      DateTime          @default(now())
+
+  @@index([categorieId])
+}

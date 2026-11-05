@@ -126,7 +126,7 @@ export default function FormulaireConnexion({ suite, apresConnexion }: Props) {
         type="button"
         onClick={connexionGoogle}
         disabled={charge}
-        className="flex w-full items-center justify-center gap-2 rounded-champ border border-bordure bg-white px-4 py-2.5 text-sm font-medium text-encre transition hover:bg-gris disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-champ border border-bordure bg-sky-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-500 hover:border-sky-500 disabled:opacity-60"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24">
           <path

@@ -1,253 +1,509 @@
+// ═══════════════════════════════════════════════════════════════
 // app/admin/sponsors/page.tsx
-// ─────────────────────────────────────────────────────────────────
-// Lot 35 — Slots sponsorisés (admin) : réserver un emplacement
-// « À la une » sur l'accueil ou une catégorie, avec dates de début/fin,
-// activation, suivi des impressions / clics / CTR.
-// ─────────────────────────────────────────────────────────────────
-import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
-import { Carte } from "@/components/ui/carte";
-import { Badge } from "@/components/ui/badge";
-import { Bouton } from "@/components/ui/bouton";
-import {
-  creerSponsorFormulaire,
-  majSponsorFormulaire,
-  basculerSponsorFormulaire,
-  supprimerSponsorFormulaire,
-  remettreStatsSponsorFormulaire,
-} from "@/app/actions/sponsors";
-import { formatteDate } from "@/lib/dates";
+// Administration des sponsors : liste, création, activation,
+// suppression + gestion des catégories.
+//
+// ⚠️ UNE SEULE LIGNE À VÉRIFIER : l'import de « prismaClient »
+// ci-dessous. Si ton projet importe le client Prisma depuis un
+// autre chemin (par ex.  import prismaClient from "@/lib/prisma"),
+// garde TA ligne d'import actuelle à la place.
+// ═══════════════════════════════════════════════════════════════
 
-export const metadata: Metadata = { title: "Sponsors — Administration" };
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 
-const CLASSE_CHAMP =
-  "w-full rounded-champ border border-bordure bg-white px-3 py-2 text-[14px] leading-5 text-bleu outline-none focus:border-violet";
+/* ── Types locaux ───────────────────────────────────────────────
+   Volontairement indépendants du client Prisma généré : la page
+   compile et affiche des instructions claires tant que la commande
+   « npx prisma db push » n'a pas été relancée après modification
+   du schéma. Plus jamais de TypeError « undefined » à l'écran.
+   ─────────────────────────────────────────────────────────────── */
 
-/** Formulaire partagé création / modification. */
-function FormulaireSponsor({
-  action,
-  sponsor,
-  categories,
-}: {
-  action: (donnees: FormData) => void | Promise<void>;
-  sponsor?: {
-    id: string;
-    titre: string;
-    description: string;
-    url: string;
-    imageUrl: string | null;
-    emplacement: string;
-    categorieId: string | null;
-    debutLe: Date;
-    finLe: Date;
-    note: string | null;
-  };
-  categories: { id: string; nom: string }[];
-}) {
-  return (
-    <form action={action} className="grid gap-3">
-      {sponsor && <input type="hidden" name="sponsorId" value={sponsor.id} />}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          Titre affiché
-          <input name="titre" required minLength={3} maxLength={80} defaultValue={sponsor?.titre} className={CLASSE_CHAMP} />
-        </label>
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          URL de destination
-          <input name="url" required type="url" placeholder="https://…" defaultValue={sponsor?.url} className={CLASSE_CHAMP} />
-        </label>
-      </div>
-      <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-        Description (1–2 phrases)
-        <input name="description" maxLength={200} defaultValue={sponsor?.description ?? ""} className={CLASSE_CHAMP} />
-      </label>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          Image (facultatif, carré 112 px conseillé)
-          <input name="imageUrl" type="url" placeholder="https://…png" defaultValue={sponsor?.imageUrl ?? ""} className={CLASSE_CHAMP} />
-        </label>
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          Note interne (annonceur, tarif…)
-          <input name="note" maxLength={300} defaultValue={sponsor?.note ?? ""} className={CLASSE_CHAMP} />
-        </label>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          Emplacement
-          <select name="emplacement" defaultValue={sponsor?.emplacement ?? "ACCUEIL"} className={CLASSE_CHAMP}>
-            <option value="ACCUEIL">Accueil (À la une)</option>
-            <option value="CATEGORIE">Page d&apos;une catégorie</option>
-          </select>
-        </label>
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          Catégorie (si emplacement catégorie)
-          <select name="categorieId" defaultValue={sponsor?.categorieId ?? ""} className={CLASSE_CHAMP}>
-            <option value="">— Choisir une catégorie —</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.nom}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          Début de diffusion
-          <input
-            name="debutLe"
-            type="datetime-local"
-            defaultValue={sponsor ? new Date(sponsor.debutLe).toISOString().slice(0, 16) : ""}
-            className={CLASSE_CHAMP}
-          />
-        </label>
-        <label className="grid gap-1 text-[13px] font-semibold text-bleu">
-          Fin de diffusion
-          <input
-            name="finLe"
-            type="datetime-local"
-            defaultValue={sponsor ? new Date(sponsor.finLe).toISOString().slice(0, 16) : ""}
-            className={CLASSE_CHAMP}
-          />
-        </label>
-      </div>
-      <div>
-        <Bouton taille="sm" type="submit">
-          {sponsor ? "Enregistrer les modifications" : "Réserver ce slot"}
-        </Bouton>
-      </div>
-    </form>
-  );
+type CategorieAffichee = {
+  id: string;
+  nom: string;
+  slug: string;
+  _count?: { sponsors: number };
+};
+
+type SponsorAffiche = {
+  id: string;
+  nom: string;
+  slug: string;
+  description: string | null;
+  logoUrl: string | null;
+  siteWeb: string | null;
+  actif: boolean;
+  ordre: number;
+  creeLe: Date;
+  categorie: { nom: string; slug: string } | null;
+};
+
+// Accès « souple » au client Prisma (évite les erreurs de
+// compilation quand les types générés ne sont pas à jour).
+type ClientPrisma = Record<string, any>;
+
+/* ── Utilitaires ──────────────────────────────────────────────── */
+
+const formateurDate = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+function slugifier(texte: string): string {
+  return texte
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
-export default async function PageSponsorsAdmin() {
-  const prismaClient = prisma as any;
+async function slugUnique(slug: string, modele: any): Promise<string> {
+  let candidat = slug.length > 0 ? slug : "element";
+  let compteur = 2;
+  // Tant que le slug existe déjà en base, on ajoute -2, -3, …
+  while (true) {
+    const existant = await modele.findFirst({
+      where: { slug: candidat },
+      select: { id: true },
+    });
+    if (!existant) {
+      return candidat;
+    }
+    candidat = `${slug}-${compteur}`;
+    compteur += 1;
+  }
+}
 
-  const [sponsors, categories] = await Promise.all([
-    prismaClient.sponsor.findMany({
+/* ── Actions serveur ──────────────────────────────────────────── */
+
+async function creerCategorie(formData: FormData) {
+  "use server";
+
+  const nom = String(formData.get("nom") ?? "").trim();
+  if (nom.length === 0) return;
+
+  const client = prisma as unknown as ClientPrisma;
+  if (!client.sponsorCategorie) return;
+
+  const slug = await slugUnique(slugifier(nom), client.sponsorCategorie);
+  try {
+    await client.sponsorCategorie.create({ data: { nom, slug } });
+  } catch {
+    return; // nom déjà pris : on ne crée pas de doublon
+  }
+  revalidatePath("/admin/sponsors");
+}
+
+async function supprimerCategorie(formData: FormData) {
+  "use server";
+
+  const id = String(formData.get("id") ?? "").trim();
+  if (id.length === 0) return;
+
+  const client = prisma as unknown as ClientPrisma;
+  if (!client.sponsorCategorie) return;
+
+  // Les sponsors de cette catégorie ne sont pas supprimés :
+  // ils passent simplement « sans catégorie » (onDelete: SetNull).
+  await client.sponsorCategorie.delete({ where: { id } }).catch(() => null);
+  revalidatePath("/admin/sponsors");
+}
+
+async function creerSponsor(formData: FormData) {
+  "use server";
+
+  const nom = String(formData.get("nom") ?? "").trim();
+  if (nom.length === 0) return;
+
+  const siteWeb = String(formData.get("siteWeb") ?? "").trim() || null;
+  const logoUrl = String(formData.get("logoUrl") ?? "").trim() || null;
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const categorieId = String(formData.get("categorieId") ?? "").trim() || null;
+  const actif = formData.get("actif") === "on";
+
+  const client = prisma as unknown as ClientPrisma;
+  if (!client.sponsor) return;
+
+  const slug = await slugUnique(slugifier(nom), client.sponsor);
+  try {
+    await client.sponsor.create({
+      data: { nom, slug, description, logoUrl, siteWeb, categorieId, actif },
+    });
+  } catch {
+    return;
+  }
+  revalidatePath("/admin/sponsors");
+}
+
+async function basculerActivation(formData: FormData) {
+  "use server";
+
+  const id = String(formData.get("id") ?? "").trim();
+  const actifActuel = String(formData.get("actif") ?? "") === "true";
+  if (id.length === 0) return;
+
+  const client = prisma as unknown as ClientPrisma;
+  if (!client.sponsor) return;
+
+  await client.sponsor
+    .update({ where: { id }, data: { actif: !actifActuel } })
+    .catch(() => null);
+  revalidatePath("/admin/sponsors");
+}
+
+async function supprimerSponsor(formData: FormData) {
+  "use server";
+
+  const id = String(formData.get("id") ?? "").trim();
+  if (id.length === 0) return;
+
+  const client = prisma as unknown as ClientPrisma;
+  if (!client.sponsor) return;
+
+  await client.sponsor.delete({ where: { id } }).catch(() => null);
+  revalidatePath("/admin/sponsors");
+}
+
+/* ── Styles partagés ──────────────────────────────────────────── */
+
+const styleLabel = "block text-sm font-medium text-slate-700 mb-1";
+const styleInput =
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200";
+const styleBoutonPrimaire =
+  "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700";
+
+/* ── Page ─────────────────────────────────────────────────────── */
+
+export default async function PageSponsorsAdmin() {
+  const client = prisma as unknown as ClientPrisma;
+
+  // ── Garde-fou : client Prisma pas encore régénéré ─────────────
+  // Si les modèles sponsors n'existent pas dans le client généré,
+  // on affiche les instructions au lieu de laisser planter la page.
+  if (!client.sponsor || !client.sponsorCategorie) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-12">
+        <h1 className="text-2xl font-bold text-slate-900">Sponsors</h1>
+        <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-6 text-amber-900">
+          <p className="font-semibold">
+            Le client Prisma ne connaît pas encore les modèles « Sponsor » et
+            « SponsorCategorie ».
+          </p>
+          <p className="mt-2">
+            Le schéma a été modifié mais le client n&apos;a pas été régénéré.
+            Arrête le serveur de développement (Ctrl+C), puis exécute :
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm leading-6 text-slate-100">
+            {"npx prisma format\nnpx prisma db push"}
+          </pre>
+          <p className="mt-3">Puis relance le serveur :</p>
+          <pre className="mt-1 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm leading-6 text-slate-100">
+            npm run dev
+          </pre>
+        </div>
+      </main>
+    );
+  }
+
+  // ── Données ───────────────────────────────────────────────────
+  const [sponsorsBruts, categoriesBrutes] = await Promise.all([
+    client.sponsor.findMany({
       include: { categorie: { select: { nom: true, slug: true } } },
-      orderBy: { creeLe: "desc" },
+      orderBy: [{ ordre: "asc" }, { creeLe: "desc" }],
     }),
-    prisma.category.findMany({ select: { id: true, nom: true }, orderBy: { nom: "asc" } }),
+    client.sponsorCategorie.findMany({
+      include: { _count: { select: { sponsors: true } } },
+      orderBy: { nom: "asc" },
+    }),
   ]);
 
-  const maintenant = new Date();
+  const sponsors = sponsorsBruts as SponsorAffiche[];
+  const categories = categoriesBrutes as CategorieAffichee[];
 
+  // ── Rendu ─────────────────────────────────────────────────────
   return (
-    <div className="grid gap-6">
-      <div>
-        <h2 className="text-h3 font-semibold">Slots sponsorisés</h2>
-        <p className="mt-1 text-[14px] leading-5 text-encre">
-          Un bandeau « À la une » apparaît sur l&apos;accueil ou en haut d&apos;une catégorie pendant
-          la période de diffusion. Impressions et clics sont comptés automatiquement (CTR visible).
-        </p>
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Sponsors</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {sponsors.length} sponsor{sponsors.length > 1 ? "s" : ""} ·{" "}
+            {categories.length} catégorie{categories.length > 1 ? "s" : ""}
+          </p>
+        </div>
       </div>
 
-      {/* ── Nouveau slot ──────────────────────────────────────────── */}
-      <Carte className="p-5">
-        <h3 className="font-titre text-[16px] font-semibold">Réserver un slot</h3>
-        <div className="mt-4">
-          <FormulaireSponsor action={creerSponsorFormulaire} categories={categories} />
-        </div>
-      </Carte>
+      {/* Formulaire de création */}
+      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Ajouter un sponsor
+        </h2>
+        <form
+          action={creerSponsor}
+          className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
+        >
+          <div>
+            <label htmlFor="nom" className={styleLabel}>
+              Nom *
+            </label>
+            <input
+              id="nom"
+              name="nom"
+              required
+              placeholder="Ex. TechCorp"
+              className={styleInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="categorieId" className={styleLabel}>
+              Catégorie
+            </label>
+            <select
+              id="categorieId"
+              name="categorieId"
+              className={styleInput}
+              defaultValue=""
+            >
+              <option value="">— Aucune —</option>
+              {categories.map((categorie) => (
+                <option key={categorie.id} value={categorie.id}>
+                  {categorie.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="siteWeb" className={styleLabel}>
+              Site web
+            </label>
+            <input
+              id="siteWeb"
+              name="siteWeb"
+              type="url"
+              placeholder="https://exemple.com"
+              className={styleInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="logoUrl" className={styleLabel}>
+              Logo (URL de l&apos;image)
+            </label>
+            <input
+              id="logoUrl"
+              name="logoUrl"
+              type="url"
+              placeholder="https://exemple.com/logo.png"
+              className={styleInput}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label htmlFor="description" className={styleLabel}>
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows={3}
+              placeholder="Quelques mots sur ce sponsor…"
+              className={styleInput}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-4 md:col-span-2">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                name="actif"
+                defaultChecked
+                className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+              />
+              Sponsor actif (visible publiquement)
+            </label>
+            <button type="submit" className={styleBoutonPrimaire}>
+              Ajouter le sponsor
+            </button>
+          </div>
+        </form>
+      </section>
 
-      {/* ── Liste ─────────────────────────────────────────────────── */}
-      <div className="grid gap-4">
-        {sponsors.map((s: any) => {
-          const enCours = s.actif && s.debutLe <= maintenant && s.finLe >= maintenant;
-          const ctr = s.impressions > 0 ? ((s.clics / s.impressions) * 100).toFixed(1) : "0.0";
-          return (
-            <Carte key={s.id} className="p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-titre text-[16px] font-semibold">{s.titre}</h3>
-                    {enCours ? (
-                      <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">En diffusion</Badge>
-                    ) : s.actif ? (
-                      <Badge>Programmé / terminé</Badge>
-                    ) : (
-                      <Badge className="border-red-200 bg-red-50 text-red-700">En pause</Badge>
-                    )}
-                    <Badge variante="source">
-                      {s.emplacement === "ACCUEIL" ? "Accueil" : `Catégorie : ${s.categorie?.nom ?? "?"}`}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 text-[14px] text-encre">{s.description}</p>
-                  <p className="mt-1 text-[13px] text-encre">
-                    {formatteDate(s.debutLe)} → {formatteDate(s.finLe)} ·{" "}
-                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-violet hover:underline">
-                      {s.url.slice(0, 60)}…
-                    </a>
-                    {s.note && ` · ${s.note}`}
+      {/* Liste des sponsors */}
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Liste des sponsors
+        </h2>
+        {sponsors.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
+            Aucun sponsor pour l&apos;instant. Utilise le formulaire
+            ci-dessus pour en ajouter un.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Sponsor</th>
+                  <th className="px-4 py-3">Catégorie</th>
+                  <th className="px-4 py-3">Site web</th>
+                  <th className="px-4 py-3">Statut</th>
+                  <th className="px-4 py-3">Ajouté le</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sponsors.map((sponsor) => (
+                  <tr key={sponsor.id}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {sponsor.logoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={sponsor.logoUrl}
+                            alt={`Logo de ${sponsor.nom}`}
+                            className="h-10 w-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-sm font-bold text-indigo-700">
+                            {sponsor.nom.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <div>
+                          <p className="font-medium text-slate-900">
+                            {sponsor.nom}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            /{sponsor.slug}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {sponsor.categorie ? (
+                        <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                          {sponsor.categorie.nom}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {sponsor.siteWeb ? (
+                        <a
+                          href={sponsor.siteWeb}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-indigo-600 hover:underline"
+                        >
+                          {sponsor.siteWeb.replace(/^https?:\/\//, "")}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <form action={basculerActivation}>
+                        <input type="hidden" name="id" value={sponsor.id} />
+                        <input
+                          type="hidden"
+                          name="actif"
+                          value={sponsor.actif ? "true" : "false"}
+                        />
+                        <button
+                          type="submit"
+                          className={
+                            sponsor.actif
+                              ? "inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200"
+                              : "inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-300"
+                          }
+                        >
+                          {sponsor.actif ? "Actif" : "Inactif"}
+                        </button>
+                      </form>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">
+                      {formateurDate.format(new Date(sponsor.creeLe))}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <form action={supprimerSponsor}>
+                        <input type="hidden" name="id" value={sponsor.id} />
+                        <button
+                          type="submit"
+                          className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                        >
+                          Supprimer
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+                </tbody>
+              </table>
+            </div>
+        )}
+      </section>
+
+      {/* Catégories */}
+      <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Catégories de sponsors
+        </h2>
+        <form action={creerCategorie} className="mt-4 flex flex-wrap items-end gap-3">
+          <div className="min-w-[14rem] flex-1">
+            <label htmlFor="categorie-nom" className={styleLabel}>
+              Nom de la catégorie
+            </label>
+            <input
+              id="categorie-nom"
+              name="nom"
+              required
+              placeholder="Ex. Partenaires Or"
+              className={styleInput}
+            />
+          </div>
+          <button type="submit" className={styleBoutonPrimaire}>
+            Ajouter la catégorie
+          </button>
+        </form>
+
+        {categories.length === 0 ? (
+          <p className="mt-4 text-sm text-slate-500">
+            Aucune catégorie pour l&apos;instant.
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-100">
+            {categories.map((categorie) => (
+              <li
+                key={categorie.id}
+                className="flex items-center justify-between gap-3 px-4 py-3"
+              >
+                <div>
+                  <p className="font-medium text-slate-900">{categorie.nom}</p>
+                  <p className="text-xs text-slate-400">
+                    /{categorie.slug} · {categorie._count?.sponsors ?? 0}{" "}
+                    sponsor(s)
                   </p>
                 </div>
-                <dl className="grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-champ bg-gris px-4 py-2">
-                    <dt className="text-[11px] font-semibold uppercase text-encre">Impressions</dt>
-                    <dd className="font-titre text-[18px] font-bold text-violet">{s.impressions}</dd>
-                  </div>
-                  <div className="rounded-champ bg-gris px-4 py-2">
-                    <dt className="text-[11px] font-semibold uppercase text-encre">Clics</dt>
-                    <dd className="font-titre text-[18px] font-bold text-violet">{s.clics}</dd>
-                  </div>
-                  <div className="rounded-champ bg-gris px-4 py-2">
-                    <dt className="text-[11px] font-semibold uppercase text-encre">CTR</dt>
-                    <dd className="font-titre text-[18px] font-bold text-violet">{ctr} %</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <form action={basculerSponsorFormulaire}>
-                  <input type="hidden" name="sponsorId" value={s.id} />
-                  <Bouton taille="sm" variante="secondaire" type="submit">
-                    {s.actif ? "Mettre en pause" : "Activer"}
-                  </Bouton>
+                <form action={supprimerCategorie}>
+                  <input type="hidden" name="id" value={categorie.id} />
+                  <button
+                    type="submit"
+                    className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                  >
+                    Supprimer
+                  </button>
                 </form>
-                <form action={remettreStatsSponsorFormulaire}>
-                  <input type="hidden" name="sponsorId" value={s.id} />
-                  <Bouton taille="sm" variante="secondaire" type="submit">Remettre les stats à zéro</Bouton>
-                </form>
-                <form action={supprimerSponsorFormulaire}>
-                  <input type="hidden" name="sponsorId" value={s.id} />
-                  <Bouton taille="sm" variante="danger" type="submit">Supprimer</Bouton>
-                </form>
-              </div>
-
-              {/* Modification dépliable */}
-              <details className="mt-3 rounded-champ border border-bordure p-4">
-                <summary className="cursor-pointer select-none text-[13px] font-semibold text-violet">
-                  Modifier ce slot
-                </summary>
-                <div className="mt-4">
-                  <FormulaireSponsor
-                    action={majSponsorFormulaire}
-                    categories={categories}
-                    sponsor={{
-                      id: s.id,
-                      titre: s.titre,
-                      description: s.description,
-                      url: s.url,
-                      imageUrl: s.imageUrl,
-                      emplacement: s.emplacement,
-                      categorieId: s.categorieId,
-                      debutLe: s.debutLe,
-                      finLe: s.finLe,
-                      note: s.note,
-                    }}
-                  />
-                </div>
-              </details>
-            </Carte>
-          );
-        })}
-        {sponsors.length === 0 && (
-          <Carte className="p-6 text-[14px] text-encre">
-            Aucun slot réservé pour l&apos;instant — crée le premier ci-dessus : il apparaîtra
-            immédiatement sur le site (accueil ou catégorie choisie).
-          </Carte>
+              </li>
+            ))}
+            </ul>
         )}
-      </div>
-    </div>
+        <p className="mt-3 text-xs text-slate-400">
+          Supprimer une catégorie ne supprime pas ses sponsors : ils passent
+          simplement « sans catégorie ».
+        </p>
+      </section>
+    </main>
   );
 }
