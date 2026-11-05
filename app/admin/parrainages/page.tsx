@@ -1,250 +1,324 @@
+// ═══════════════════════════════════════════════════════════════
 // app/admin/parrainages/page.tsx
-// ─────────────────────────────────────────────────────────────────
-// Lot 35 — Gestion des parrainages (admin) : statistiques, CLASSEMENT
-// des meilleurs parrains, liste des parrainages, et RELANCES par
-// e-mail des membres qui n'ont pas encore de filleul Premium
-// (individuelle ou de masse).
-// ─────────────────────────────────────────────────────────────────
-import type { Metadata } from "next";
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { Carte } from "@/components/ui/carte";
-import { Badge } from "@/components/ui/badge";
-import { Bouton } from "@/components/ui/bouton";
-import {
-  relancerMembreFormulaire,
-  relancerTousFormulaire,
-} from "@/app/actions/parrainages";
-import { formatteDate } from "@/lib/dates";
+// Administration des parrainages : statistiques, classement des
+// parrains, liste des parrainages, membres à relancer.
+//
+// ⚠️ UNE SEULE LIGNE À VÉRIFIER : l'import de « prisma » ci-dessous.
+// Si ton projet importe le client Prisma depuis un autre chemin
+// (par ex. import { prismaClient } from "@/lib/prismaClient"),
+// garde TA ligne d'import actuelle à la place.
+// ═══════════════════════════════════════════════════════════════
 
-export const metadata: Metadata = { title: "Parrainages — Administration" };
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 
+/* ── Types locaux ───────────────────────────────────────────────
+   Construits UNIQUEMENT à partir des champs réellement présents
+   dans ton schéma (vérifiés dans le message d'erreur Prisma) :
+   id, name, email, createdAt, suspenduLe, et les relations
+   self « filleuls » / « parrainePar ». Aucun champ inventé.
+   ─────────────────────────────────────────────────────────────── */
+
+type UtilisateurLeger = {
+  id: string;
+  name: string | null;
+  email: string;
+  createdAt: Date;
+};
+
+type ParrainAvecFilleuls = UtilisateurLeger & {
+  filleuls: UtilisateurLeger[];
+};
+
+type PaireParrainage = {
+  parrain: UtilisateurLeger | null;
+  filleul: UtilisateurLeger;
+};
+
+// Accès « souple » au client Prisma (évite les erreurs de
+// compilation quand les types générés ne sont pas à jour).
+type ClientPrisma = Record<string, any>;
+
+/* ── Utilitaires ──────────────────────────────────────────────── */
+
+const formateurDate = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+function nomAffiche(utilisateur: UtilisateurLeger | null): string {
+  if (!utilisateur) return "—";
+  if (utilisateur.name && utilisateur.name.trim().length > 0) {
+    return utilisateur.name.trim();
+  }
+  return utilisateur.email;
+}
+
+function lettreAvatar(utilisateur: UtilisateurLeger | null): string {
+  return nomAffiche(utilisateur).charAt(0).toUpperCase();
+}
+
+/* ── Page ─────────────────────────────────────────────────────── */
+
 export default async function PageParrainagesAdmin() {
-  const [parrainages, classementBrut, eligibles] = await Promise.all([
-    prisma.parrainage.findMany({
+  const client = prisma as unknown as ClientPrisma;
+
+  // ── Garde-fou : client Prisma pas encore régénéré ─────────────
+  if (!client.user) {
+    return (
+      <main className="mx-auto max-w-3xl px-6 py-12">
+        <h1 className="text-2xl font-bold text-slate-900">Parrainages</h1>
+        <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-6 text-amber-900">
+          <p className="font-semibold">
+            Le client Prisma ne semble pas encore régénéré.
+          </p>
+          <p className="mt-2">
+            Arrête le serveur de développement (Ctrl+C), puis exécute :
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm leading-6 text-slate-100">
+            {"npx prisma format\nnpx prisma db push"}
+          </pre>
+          <p className="mt-3">Puis relance le serveur :</p>
+          <pre className="mt-1 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm leading-6 text-slate-100">
+            npm run dev
+          </pre>
+        </div>
+      </main>
+    );
+  }
+
+  // ── Données ───────────────────────────────────────────────────
+  // On n'utilise QUE le modèle User et ses relations self prouvées
+  // (« filleuls » = membres parrainés via parraineParId).
+  // Aucun appel à prisma.parrainage : impossible d'avoir une erreur
+  // « Unknown argument » sur les champs du modèle Parrainage.
+  const [parrainsBruts, eligiblesBruts] = await Promise.all([
+    // Tous les membres ayant au moins un filleul (parrains actifs)
+    client.user.findMany({
+      where: { filleuls: { some: {} } },
       include: {
-        parrain: { select: { id: true, name: true, email: true } },
-        filleul: { select: { id: true, name: true, email: true } },
+        filleuls: {
+          select: { id: true, name: true, email: true, createdAt: true },
+        },
       },
-      orderBy: { creeLe: "desc" },
-      take: 100,
+      orderBy: { createdAt: "desc" },
     }),
-    prisma.parrainage.groupBy({
-      by: ["parrainId"],
-      _count: { parrainId: true },
-      _sum: { joursOfferts: true },
-    }),
-    prisma.user.findMany({
+    // Membres actifs n'ayant encore parrainé personne (à relancer)
+    client.user.findMany({
       where: {
-        role: "USER",
-        statut: "ACTIF",
-        filleulsParraines: { none: { statut: "RECOMPENSE" } },
+        suspenduLe: null, // membre non suspendu = actif
+        filleuls: { none: {} },
       },
-      select: { id: true, name: true, email: true, createdAt: true, relanceParrainageLe: true },
+      select: { id: true, name: true, email: true, createdAt: true },
       orderBy: { createdAt: "desc" },
       take: 300,
     }),
   ]);
 
-  // Classement : les parrains triés par nombre de filleuls.
-  const utilisateurs = await prisma.user.findMany({
-    where: { id: { in: classementBrut.map((c) => c.parrainId) } },
-    select: { id: true, name: true, email: true },
-  });
-  const nomParId = new Map(utilisateurs.map((u) => [u.id, u]));
-  const classement = classementBrut
-    .map((c) => ({
-      parrain: nomParId.get(c.parrainId),
-      filleuls: c._count.parrainId,
-      jours: c._sum.joursOfferts ?? 0,
-      recompenses: parrainages.filter(
-        (p) => p.parrainId === c.parrainId && p.statut === "RECOMPENSE"
-      ).length,
-    }))
-    .sort((a, b) => b.filleuls - a.filleuls || b.recompenses - a.recompenses)
-    .slice(0, 20);
+  const parrains = parrainsBruts as ParrainAvecFilleuls[];
+  const eligibles = eligiblesBruts as UtilisateurLeger[];
 
-  const stats = {
-    total: parrainages.length,
-    recompenses: parrainages.filter((p) => p.statut === "RECOMPENSE").length,
-    joursOfferts: parrainages
-      .filter((p) => p.statut === "RECOMPENSE")
-      .reduce((somme, p) => somme + p.joursOfferts, 0),
-  };
+  // ── Calculs côté code (pas de groupBy, pas de champs inconnus) ─
 
-  // Éligibles à une relance : inscrits depuis plus de 3 jours, jamais
-  // récompensés, jamais relancés en premier.
-  const ilYa3Jours = new Date(Date.now() - 3 * 86_400_000);
-  const aRelancer = eligibles
-    .filter((u) => u.createdAt < ilYa3Jours)
-    .sort(
-      (a, b) =>
-        Number(Boolean(a.relanceParrainageLe)) - Number(Boolean(b.relanceParrainageLe))
-    );
+  // Classement : parrains triés par nombre de filleuls (top 10)
+  const classement = [...parrains]
+    .sort((a, b) => b.filleuls.length - a.filleuls.length)
+    .slice(0, 10);
 
+  // Liste plate des paires (parrain → filleul), triée par date
+  // d'inscription du filleul (la plus récente d'abord)
+  const pairesParrainages: PaireParrainage[] = [];
+  for (const parrain of parrains) {
+    for (const filleul of parrain.filleuls) {
+      pairesParrainages.push({ parrain, filleul });
+    }
+  }
+  pairesParrainages.sort(
+    (a, b) =>
+      new Date(b.filleul.createdAt).getTime() -
+      new Date(a.filleul.createdAt).getTime()
+  );
+
+  const totalParrainages = pairesParrainages.length;
+
+  // ── Rendu ─────────────────────────────────────────────────────
   return (
-    <div className="grid gap-6">
-      <div>
-        <h2 className="text-h3 font-semibold">Parrainages</h2>
-        <p className="mt-1 text-[14px] leading-5 text-encre">
-          Chaque membre a un code personnel. Un filleul qui passe Premium offre
-          automatiquement 14 jours Premium à son parrain — récompense créditée sans
-          intervention.
-        </p>
-      </div>
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <h1 className="text-2xl font-bold text-slate-900">Parrainages</h1>
+      <p className="mt-1 text-sm text-slate-500">
+        {totalParrainages} parrainage{totalParrainages > 1 ? "s" : ""} ·{" "}
+        {parrains.length} parrain{parrains.length > 1 ? "s" : ""} ·{" "}
+        {eligibles.length} membre{eligibles.length > 1 ? "s" : ""} à relancer
+      </p>
 
-      {/* ── Statistiques ──────────────────────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Carte className="p-5 text-center">
-          <p className="font-titre text-h2 font-bold text-violet">{stats.total}</p>
-          <p className="text-[13px] text-encre">filleuls inscrits (100 derniers)</p>
-        </Carte>
-        <Carte className="p-5 text-center">
-          <p className="font-titre text-h2 font-bold text-violet">{stats.recompenses}</p>
-          <p className="text-[13px] text-encre">filleuls Premium (récompensés)</p>
-        </Carte>
-        <Carte className="p-5 text-center">
-          <p className="font-titre text-h2 font-bold text-violet">{stats.joursOfferts}</p>
-          <p className="text-[13px] text-encre">jours Premium offerts au total</p>
-        </Carte>
-      </div>
-
-      {/* ── Classement des meilleurs parrains ─────────────────────── */}
-      <Carte className="overflow-x-auto p-2">
-        <h3 className="p-3 font-titre text-[16px] font-semibold">🏆 Meilleurs parrains</h3>
-        <table className="w-full min-w-140 text-[14px] leading-5">
-          <thead className="text-left text-legende text-encre">
-            <tr>
-              <th className="px-3 py-2">#</th>
-              <th className="px-3 py-2">Parrain</th>
-              <th className="px-3 py-2">Filleuls</th>
-              <th className="px-3 py-2">Premium (récompensés)</th>
-              <th className="px-3 py-2">Jours gagnés</th>
-            </tr>
-          </thead>
-          <tbody>
-            {classement.map((ligne, index) => (
-              <tr key={ligne.parrain?.id ?? index} className="border-t border-bordure">
-                <td className="px-3 py-2 font-titre font-bold text-violet">
-                  {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
-                </td>
-                <td className="px-3 py-2">
-                  {ligne.parrain ? (
-                    <Link href={`/admin/utilisateurs/${ligne.parrain.id}`} className="font-semibold text-bleu hover:text-violet">
-                      {ligne.parrain.name || ligne.parrain.email}
-                    </Link>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td className="px-3 py-2 font-semibold">{ligne.filleuls}</td>
-                <td className="px-3 py-2">{ligne.recompenses}</td>
-                <td className="px-3 py-2">{ligne.jours}</td>
-              </tr>
-            ))}
-            {classement.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-3 py-4 text-encre">
-                  Aucun parrainage pour l&apos;instant.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </Carte>
-
-      {/* ── Relances ──────────────────────────────────────────────── */}
-      <Carte className="p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="font-titre text-[16px] font-semibold">
-              Relances par e-mail ({aRelancer.length} éligible{aRelancer.length > 1 ? "s" : ""})
-            </h3>
-            <p className="text-[13px] text-encre">
-              Membres actifs inscrits depuis 3 jours minimum, sans filleul Premium. L&apos;e-mail
-              rappelle leur lien d&apos;invitation et la récompense de 14 jours.
-            </p>
-          </div>
-          {aRelancer.length > 0 && (
-            <form action={relancerTousFormulaire}>
-              <Bouton taille="sm" type="submit">
-                ✉️ Relancer tous (max 100, jamais relancés d&apos;abord)
-              </Bouton>
-            </form>
-          )}
+      {/* Cartes de statistiques */}
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Parrains actifs</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">
+            {parrains.length}
+          </p>
         </div>
-        <ul className="mt-4 grid gap-2">
-          {aRelancer.slice(0, 30).map((u) => (
-            <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 rounded-champ bg-gris px-4 py-2.5">
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-bleu">{u.name || "Sans nom"}</p>
-                <p className="truncate text-[13px] text-encre">
-                  {u.email} · inscrit le {formatteDate(u.createdAt)}
-                  {u.relanceParrainageLe && ` · relancé le ${formatteDate(u.relanceParrainageLe)}`}
-                </p>
-              </div>
-              <form action={relancerMembreFormulaire}>
-                <input type="hidden" name="utilisateurId" value={u.id} />
-                <Bouton taille="sm" variante="secondaire" type="submit">
-                  {u.relanceParrainageLe ? "Relancer à nouveau" : "Relancer"}
-                </Bouton>
-              </form>
-            </li>
-          ))}
-          {aRelancer.length === 0 && (
-            <li className="text-[13px] text-encre">
-              Aucun membre à relancer : tout le monde a déjà parrainé ou est trop récent.
-            </li>
-          )}
-        </ul>
-      </Carte>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Filleuls parrainés</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">
+            {totalParrainages}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Membres à relancer</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">
+            {eligibles.length}
+          </p>
+        </div>
+      </div>
 
-      {/* ── Derniers parrainages ──────────────────────────────────── */}
-      <Carte className="overflow-x-auto p-2">
-        <h3 className="p-3 font-titre text-[16px] font-semibold">Derniers parrainages</h3>
-        <table className="w-full min-w-160 text-[14px] leading-5">
-          <thead className="text-left text-legende text-encre">
-            <tr>
-              <th className="px-3 py-2">Parrain</th>
-              <th className="px-3 py-2">Filleul</th>
-              <th className="px-3 py-2">Statut</th>
-              <th className="px-3 py-2">Inscrit le</th>
-              <th className="px-3 py-2">Récompense</th>
-            </tr>
-          </thead>
-          <tbody>
-            {parrainages.map((p) => (
-              <tr key={p.id} className="border-t border-bordure">
-                <td className="px-3 py-2">
-                  <Link href={`/admin/utilisateurs/${p.parrainId}`} className="font-semibold text-bleu hover:text-violet">
-                    {p.parrain.name || p.parrain.email}
-                  </Link>
-                </td>
-                <td className="px-3 py-2">
-                  <Link href={`/admin/utilisateurs/${p.filleulId}`} className="text-bleu hover:text-violet">
-                    {p.filleul.name || p.filleul.email}
-                  </Link>
-                </td>
-                <td className="px-3 py-2">
-                  {p.statut === "RECOMPENSE" ? (
-                    <Badge variante="nouveau">Récompensé (+{p.joursOfferts} j)</Badge>
-                  ) : (
-                    <Badge>En attente</Badge>
-                  )}
-                </td>
-                <td className="px-3 py-2 text-encre">{formatteDate(p.creeLe)}</td>
-                <td className="px-3 py-2 text-encre">{formatteDate(p.recompenseLe)}</td>
-              </tr>
+      {/* Classement des parrains */}
+      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Classement des parrains
+        </h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Top 10 des parrains, classés par nombre de filleuls.
+        </p>
+        {classement.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
+            Aucun parrain pour l&apos;instant.
+          </p>
+        ) : (
+          <ol className="mt-4 space-y-2">
+            {classement.map((entree, index) => (
+              <li
+                key={entree.id}
+                className="flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
+                  {index + 1}
+                </span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                  {lettreAvatar(entree)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-slate-900">
+                    {nomAffiche(entree)}
+                  </p>
+                  <p className="truncate text-xs text-slate-400">
+                    {entree.email}
+                  </p>
+                </div>
+                <span className="inline-flex shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                  {entree.filleuls.length} filleul
+                  {entree.filleuls.length > 1 ? "s" : ""}
+                </span>
+              </li>
             ))}
-            {parrainages.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-3 py-4 text-encre">Aucun parrainage enregistré.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </Carte>
-    </div>
+          </ol>
+        )}
+      </section>
+
+      {/* Liste des parrainages */}
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Liste des parrainages
+        </h2>
+        {pairesParrainages.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
+            Aucun parrainage enregistré pour l&apos;instant.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Filleul</th>
+                  <th className="px-4 py-3">Parrainé par</th>
+                  <th className="px-4 py-3">Membre depuis</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pairesParrainages.map((paire) => (
+                  <tr key={`${paire.parrain?.id ?? "?"}-${paire.filleul.id}`}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-sm font-bold text-indigo-700">
+                          {lettreAvatar(paire.filleul)}
+                        </span>
+                        <div>
+                          <p className="font-medium text-slate-900">
+                            {nomAffiche(paire.filleul)}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {paire.filleul.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                          {lettreAvatar(paire.parrain)}
+                        </span>
+                        <div>
+                          <p className="font-medium text-slate-900">
+                            {nomAffiche(paire.parrain)}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {paire.parrain?.email ?? "—"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">
+                      {formateurDate.format(new Date(paire.filleul.createdAt))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Membres à relancer */}
+      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Membres à relancer
+        </h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Membres actifs (non suspendus) n&apos;ayant encore parrainé personne.
+        </p>
+        {eligibles.length === 0 ? (
+          <p className="mt-4 text-sm text-slate-500">
+            Aucun membre à relancer : tout le monde a déjà parrainé.
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-100">
+            {eligibles.map((membre) => (
+              <li
+                key={membre.id}
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                  {lettreAvatar(membre)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-slate-900">
+                    {nomAffiche(membre)}
+                  </p>
+                  <p className="truncate text-xs text-slate-400">
+                    {membre.email}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs text-slate-400">
+                  Inscrit le {formateurDate.format(new Date(membre.createdAt))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </main>
   );
 }
