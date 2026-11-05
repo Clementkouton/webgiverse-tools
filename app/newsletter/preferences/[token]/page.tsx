@@ -73,15 +73,16 @@ export default async function PagePreferences({
 
         {!client.abonneNewsletter ? (
           <p className="text-sm text-gray-500">
-            La newsletter n'est pas encore configurée sur ce site (modèle AbonneNewsletter
+            La newsletter n&apos;est pas encore configurée sur ce site (modèle AbonneNewsletter
             manquant : exécutez « npx prisma db push »).
           </p>
         ) : !abonne ? (
           <>
-            <p className="text-sm text-gray-500">Ce lien est invalide ou n'existe plus.</p>
-            <Link href="/newsletter/inscription" className="text-sm text-indigo-600 underline">
-              S'inscrire à la newsletter
-            </Link>
+            <p className="text-sm text-gray-500">Ce lien est invalide ou n&apos;existe plus.</p>
+            <p className="text-sm text-gray-500">
+              Pour vous réinscrire, utilisez le formulaire de newsletter de la
+              page d&apos;accueil.
+            </p>
           </>
         ) : (
           <>

@@ -1,24 +1,13 @@
-// ============================================================
-// WEBGIVERSE TOOLS — Admin / Newsletter
-// Chemin : app/admin/newsletter/page.tsx
-// Remplace INTÉGRALEMENT l'ancien fichier du même nom.
+// ═══════════════════════════════════════════════════════════════
+// app/admin/newsletter/page.tsx
+// Administration de la newsletter : campagnes, abonnés, aperçu
+// personnalisé et envoi réel — MÊME STYLE que /admin/sponsors
+// (cartes blanches rounded-2xl, accent indigo, tableaux slate-50).
 //
-// Contient :
-//   - Liste + création de campagnes (titre, objet, contenu,
-//     lien de l'article, nom de l'entreprise)
-//   - Liste + gestion des ABONNÉS (ajout, activation, suppression)
-//   - APERÇU personnalisé d'une campagne pour l'abonné choisi
-//     (toutes les variables {{...}} sont remplacées)
-//   - Envoi réel par e-mail à tous les abonnés actifs (SMTP /
-//     nodemailer) avec les variables remplacées pour CHACUN
-//
-// Prérequis :
-//   - Modèles CampagneNewsletter + AbonneNewsletter dans
-//     prisma/schema.prisma (voir prisma/ajout-abonnes-newsletter.prisma)
-//   - npx prisma db push
-//   - Pour l'envoi réel : npm install nodemailer + variables SMTP
-//     dans .env.local (voir LISEZ-MOI)
-// ============================================================
+// ⚠️ UNE SEULE LIGNE À VÉRIFIER : l'import de « prisma » ci-dessous.
+// Si ton projet importe le client Prisma depuis un autre chemin,
+// garde TA ligne d'import actuelle à la place.
+// ═══════════════════════════════════════════════════════════════
 
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -62,7 +51,7 @@ type AbonneTemplate = {
 
 const NOM_ENTREPRISE_DEFAUT = process.env.NOM_ENTREPRISE || "Webgiverse";
 
-/* ------------------------- Utilitaires ------------------------- */
+/* ── Utilitaires ──────────────────────────────────────────────── */
 
 /** URL absolue du site : variable NEXT_PUBLIC_URL_SITE si elle est
  *  définie, sinon détection automatique (tunnel dev, localhost, prod). */
@@ -170,6 +159,12 @@ function contenuEnHtml(contenu: string): string {
   return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#1f2937;white-space:pre-wrap;">${echappe}</div>`;
 }
 
+const formateurDate = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 function formatDate(d: Date | null | undefined): string {
   if (!d) return "—";
   return new Date(d).toLocaleString("fr-FR", {
@@ -193,7 +188,7 @@ function chargerNodemailer(): any {
   }
 }
 
-/* ---------------------- Actions serveur ------------------------ */
+/* ── Actions serveur ──────────────────────────────────────────── */
 
 async function creerCampagne(formData: FormData) {
   "use server";
@@ -384,7 +379,19 @@ async function supprimerAbonne(formData: FormData) {
   revalidatePath("/admin/newsletter");
 }
 
-/* --------------------------- Page ------------------------------ */
+/* ── Styles partagés (identiques à /admin/sponsors) ───────────── */
+
+const styleLabel = "block text-sm font-medium text-slate-700 mb-1";
+const styleInput =
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200";
+const styleBoutonPrimaire =
+  "inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700";
+const styleBoutonSecondaire =
+  "inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50";
+const styleBoutonSupprimer =
+  "rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50";
+
+/* ── Page ─────────────────────────────────────────────────────── */
 
 export default async function PageAdminNewsletter({
   searchParams,
@@ -472,226 +479,277 @@ export default async function PageAdminNewsletter({
       : "";
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900">Newsletter</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Campagnes, abonnés, aperçu personnalisé et envoi.
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      {/* ── En-tête (même présentation que Sponsors) ─────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Newsletter</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {campagnes.length} campagne{campagnes.length > 1 ? "s" : ""} ·{" "}
+            {actifs.length} abonné{actifs.length > 1 ? "s" : ""} actif
+            {actifs.length > 1 ? "s" : ""} · {abonnes.length - actifs.length}{" "}
+            désabonné{abonnes.length - actifs.length > 1 ? "s" : ""}
           </p>
-        </header>
-
-        {(modeleManquant || erreurChargement) && (
-          <div className="rounded-xl border border-orange-300 bg-orange-50 p-4 text-sm text-orange-900">
-            <p className="font-semibold">La newsletter n'est pas encore opérationnelle.</p>
-            {modeleManquant && (
-              <p className="mt-1">
-                Modèle(s) manquant(s) dans votre client Prisma :{" "}
-                <strong>{modeleManquant}</strong>.
-              </p>
-            )}
-            {erreurChargement && <p className="mt-1">{erreurChargement}</p>}
-            <ol className="mt-2 list-decimal space-y-1 pl-5">
-              <li>
-                Copiez les modèles du fichier{" "}
-                <code className="bg-orange-100 px-1">prisma/ajout-abonnes-newsletter.prisma</code>{" "}
-                dans votre <code className="bg-orange-100 px-1">prisma/schema.prisma</code>{" "}
-                (si un ancien modèle CampagneNewsletter existe, REMPLACEZ-LE, ne le dupliquez pas).
-              </li>
-              <li>
-                Exécutez <code className="bg-orange-100 px-1">npx prisma format</code> puis{" "}
-                <code className="bg-orange-100 px-1">npx prisma db push</code>
-              </li>
-              <li>
-                Arrêtez le serveur, supprimez le dossier{" "}
-                <code className="bg-orange-100 px-1">.next</code>, relancez{" "}
-                <code className="bg-orange-100 px-1">npm run dev</code>
-              </li>
-            </ol>
-          </div>
-        )}
-
-        {messageEnvoi && (
-          <div
-            className={
-              "rounded-xl border p-4 text-sm " +
-              (messageEnvoi.startsWith("Erreur")
-                ? "border-red-300 bg-red-50 text-red-800"
-                : "border-green-300 bg-green-50 text-green-800")
-            }
-          >
-            {messageEnvoi}
-          </div>
-        )}
-
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Campagnes</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{campagnes.length}</p>
-          </div>
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Abonnés actifs</p>
-            <p className="mt-1 text-2xl font-bold text-green-700">{actifs.length}</p>
-          </div>
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Désabonnés</p>
-            <p className="mt-1 text-2xl font-bold text-gray-400">
-              {abonnes.length - actifs.length}
-            </p>
-          </div>
         </div>
+      </div>
 
-        {/* Campagnes */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Campagnes ({campagnes.length})
-          </h2>
+      {/* ── Message de retour (création / ajout / envoi) ─────────── */}
+      {messageEnvoi && (
+        <div
+          className={
+            "mt-6 rounded-xl border p-4 text-sm " +
+            (messageEnvoi.startsWith("Erreur")
+              ? "border-red-300 bg-red-50 text-red-800"
+              : "border-emerald-300 bg-emerald-50 text-emerald-800")
+          }
+        >
+          {messageEnvoi}
+        </div>
+      )}
 
-          <form action={creerCampagne} className="space-y-3 rounded-xl border bg-white p-4">
-            <p className="text-sm font-semibold text-gray-700">Nouvelle campagne</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <input
-                name="titre"
-                required
-                placeholder="Titre interne *"
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
-              <input
-                name="objet"
-                required
-                placeholder="Objet de l'e-mail *"
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
-              <input
-                name="lienArticle"
-                placeholder="Lien de l'article (pour {{lien_article}})"
-                className="rounded-lg border px-3 py-2 text-sm sm:col-span-2"
-              />
-              <input
-                name="nomEntreprise"
-                placeholder="Nom de l'entreprise (pour {{nom_entreprise}})"
-                className="rounded-lg border px-3 py-2 text-sm sm:col-span-2"
-              />
-            </div>
+      {/* ── Garde-fou : client Prisma pas encore régénéré ────────── */}
+      {(modeleManquant || erreurChargement) && (
+        <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-6 text-amber-900">
+          <p className="font-semibold">
+            La newsletter n&apos;est pas encore opérationnelle.
+          </p>
+          {modeleManquant && (
+            <p className="mt-2">
+              Modèle(s) manquant(s) dans votre client Prisma :{" "}
+              <strong>{modeleManquant}</strong>.
+            </p>
+          )}
+          {erreurChargement && <p className="mt-2">{erreurChargement}</p>}
+          <p className="mt-2">
+            Arrête le serveur de développement (Ctrl+C), puis exécute :
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm leading-6 text-slate-100">
+            {"npx prisma format\nnpx prisma db push"}
+          </pre>
+          <p className="mt-3">Puis relance le serveur :</p>
+          <pre className="mt-1 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm leading-6 text-slate-100">
+            npm run dev
+          </pre>
+        </div>
+      )}
+
+      {/* ── Statistiques ─────────────────────────────────────────── */}
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Campagnes</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">{campagnes.length}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Abonnés actifs</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-600">{actifs.length}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <p className="text-xs uppercase tracking-wide text-slate-500">Désabonnés</p>
+          <p className="mt-1 text-2xl font-bold text-slate-400">
+            {abonnes.length - actifs.length}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Formulaire de création de campagne ───────────────────── */}
+      <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">Créer une campagne</h2>
+        <form action={creerCampagne} className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label htmlFor="titre" className={styleLabel}>
+              Titre interne *
+            </label>
+            <input
+              id="titre"
+              name="titre"
+              required
+              placeholder="Ex. NL-2026-11"
+              className={styleInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="objet" className={styleLabel}>
+              Objet de l&apos;e-mail *
+            </label>
+            <input
+              id="objet"
+              name="objet"
+              required
+              placeholder="Ex. Les nouveaux outils de novembre"
+              className={styleInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="lienArticle" className={styleLabel}>
+              Lien de l&apos;article (pour {"{{lien_article}}"})
+            </label>
+            <input
+              id="lienArticle"
+              name="lienArticle"
+              type="url"
+              placeholder="https://…"
+              className={styleInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="nomEntreprise" className={styleLabel}>
+              Nom de l&apos;entreprise (pour {"{{nom_entreprise}}"})
+            </label>
+            <input
+              id="nomEntreprise"
+              name="nomEntreprise"
+              placeholder="Ex. Webgiverse"
+              className={styleInput}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label htmlFor="contenu" className={styleLabel}>
+              Contenu de l&apos;e-mail *
+            </label>
             <textarea
+              id="contenu"
               name="contenu"
               required
-              rows={12}
-              placeholder="Contenu de l'e-mail * — collez votre texte ici, les variables seront remplacées automatiquement."
-              className="w-full rounded-lg border px-3 py-2 font-mono text-sm"
+              rows={10}
+              placeholder="Collez votre texte ici — les variables {{…}} seront remplacées automatiquement pour chaque abonné."
+              className={`${styleInput} font-mono`}
             />
-            <p className="text-xs text-gray-500">
+          </div>
+          <div className="md:col-span-2">
+            <p className="text-xs text-slate-400">
               Variables remplacées automatiquement pour chaque abonné :{" "}
               <code>{"{{prénom}}"}</code>, <code>{"{{nom}}"}</code>,{" "}
               <code>{"{{email}}"}</code>, <code>{"{{nom_entreprise}}"}</code>,{" "}
               <code>{"{{lien_article}}"}</code>, <code>{"{{lien_desabonnement}}"}</code>,{" "}
-              <code>{"{{lien_preferences}}"}</code>. Si le contenu ne contient pas{" "}
-              <code>{"{{lien_desabonnement}}"}</code>, un pied de page avec les liens est
-              ajouté automatiquement à l'envoi.
+              <code>{"{{lien_preferences}}"}</code>, <code>{"{{date}}"}</code>. Si le
+              contenu ne contient pas <code>{"{{lien_desabonnement}}"}</code>, un pied
+              de page avec les liens est ajouté automatiquement à l&apos;envoi.
             </p>
-            <button
-              type="submit"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-            >
+          </div>
+          <div className="flex items-center justify-end md:col-span-2">
+            <button type="submit" className={styleBoutonPrimaire}>
               Créer la campagne
             </button>
-          </form>
+          </div>
+        </form>
+      </section>
 
-          {campagnes.length === 0 && (
-            <p className="rounded-xl border border-dashed p-6 text-center text-sm text-gray-500">
-              Aucune campagne pour l'instant. Créez-en une ci-dessus.
-            </p>
-          )}
+      {/* ── Liste des campagnes ──────────────────────────────────── */}
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Liste des campagnes
+        </h2>
 
-          <div className="space-y-3">
+        {campagnes.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
+            Aucune campagne pour l&apos;instant. Utilise le formulaire
+            ci-dessus pour en créer une.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-4">
             {campagnes.map((campagne) => (
-              <div key={campagne.id} className="rounded-xl border bg-white p-4">
+              <article
+                key={campagne.id}
+                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+              >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="font-semibold text-gray-900">{campagne.titre}</p>
-                    <p className="text-sm text-gray-500">{campagne.objet}</p>
+                    <p className="font-medium text-slate-900">{campagne.titre}</p>
+                    <p className="text-xs text-slate-400">{campagne.objet}</p>
                   </div>
                   <span
                     className={
-                      "rounded-full px-3 py-1 text-xs font-semibold " +
+                      "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium " +
                       (campagne.statut === "ENVOYEE"
-                        ? "bg-green-100 text-green-800"
+                        ? "bg-emerald-100 text-emerald-700"
                         : campagne.statut === "PRETE"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-gray-100 text-gray-600")
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-slate-200 text-slate-600")
                     }
                   >
                     {campagne.statut}
                   </span>
                 </div>
-                <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs text-gray-500">
+
+                <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm text-slate-500">
                   {campagne.contenu.slice(0, 300)}
                 </p>
-                <p className="mt-2 text-xs text-gray-400">
-                  Créée le {formatDate(campagne.creeLe)}
-                  {campagne.envoyeLe ? ` · Envoyée le ${formatDate(campagne.envoyeLe)}` : ""}
+                <p className="mt-2 text-xs text-slate-400">
+                  Créée le {formateurDate.format(new Date(campagne.creeLe))}
+                  {campagne.envoyeLe
+                    ? ` · Envoyée le ${formateurDate.format(new Date(campagne.envoyeLe))}`
+                    : ""}
                 </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   <Link
                     href={`/admin/newsletter?apercu=${campagne.id}`}
-                    className="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                    className="inline-flex items-center justify-center rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
                   >
                     Aperçu
                   </Link>
                   <form action={basculerStatutCampagne}>
                     <input type="hidden" name="id" value={campagne.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg border px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      {campagne.statut === "PRETE" ? "Remettre en brouillon" : "Marquer comme prête"}
+                    <button type="submit" className={styleBoutonSecondaire}>
+                      {campagne.statut === "PRETE"
+                        ? "Remettre en brouillon"
+                        : "Marquer comme prête"}
                     </button>
                   </form>
                   <form action={envoyerCampagne}>
                     <input type="hidden" name="id" value={campagne.id} />
                     <button
                       type="submit"
-                      className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-500"
+                      className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700"
                     >
                       {campagne.statut === "ENVOYEE"
                         ? "Renvoyer"
-                        : `Envoyer (${actifs.length} actifs)`}
+                        : `Envoyer (${actifs.length} actif${actifs.length > 1 ? "s" : ""})`}
                     </button>
                   </form>
                   <form action={supprimerCampagne}>
                     <input type="hidden" name="id" value={campagne.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
-                    >
+                    <button type="submit" className={styleBoutonSupprimer}>
                       Supprimer
                     </button>
                   </form>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
+        )}
 
-          {/* Aperçu personnalisé */}
-          {campagneApercu && abonneApercu && (
-            <div className="space-y-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-semibold text-indigo-900">
-                  Aperçu personnalisé — {campagneApercu.titre}
-                </h3>
-                <Link href="/admin/newsletter" className="text-sm text-indigo-700 underline">
-                  Fermer
-                </Link>
-              </div>
+        {/* ── Aperçu personnalisé ────────────────────────────────── */}
+        {campagneApercu && abonneApercu && (
+          <div className="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-lg font-semibold text-slate-900">
+                Aperçu personnalisé — {campagneApercu.titre}
+              </h3>
+              <Link
+                href="/admin/newsletter"
+                className="text-sm text-indigo-600 hover:underline"
+              >
+                Fermer
+              </Link>
+            </div>
 
-              {abonnes.length > 0 && (
-                <form method="get" action="/admin/newsletter" className="flex flex-wrap items-center gap-2">
-                  <input type="hidden" name="apercu" value={campagneApercu.id} />
+            {abonnes.length > 0 && (
+              <form
+                method="get"
+                action="/admin/newsletter"
+                className="mt-4 flex flex-wrap items-end gap-3"
+              >
+                <input type="hidden" name="apercu" value={campagneApercu.id} />
+                <div className="min-w-[14rem] flex-1">
+                  <label htmlFor="abonne-apercu" className={styleLabel}>
+                    Voir le rendu pour cet abonné
+                  </label>
                   <select
+                    id="abonne-apercu"
                     name="abonne"
                     defaultValue={abonneApercu.id}
-                    className="rounded-lg border border-indigo-300 bg-white px-3 py-2 text-sm"
+                    className={styleInput}
                   >
                     {abonnes.map((a) => (
                       <option key={a.id} value={a.id}>
@@ -700,162 +758,175 @@ export default async function PageAdminNewsletter({
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500"
-                  >
-                    Voir pour cet abonné
-                  </button>
-                </form>
-              )}
-              {apercuExemple && (
-                <p className="text-xs text-indigo-700">
-                  Aucun abonné enregistré : aperçu avec des données d'exemple. Ajoutez des
-                  abonnés ci-dessous pour un aperçu réel.
-                </p>
-              )}
+                </div>
+                <button
+                  type="submit"
+                  className={styleBoutonPrimaire}
+                >
+                  Afficher l&apos;aperçu
+                </button>
+              </form>
+            )}
+            {apercuExemple && (
+              <p className="mt-2 text-xs text-indigo-700">
+                Aucun abonné enregistré : aperçu avec des données d&apos;exemple.
+              </p>
+            )}
 
-              <div className="rounded-lg border bg-white p-4">
-                <p className="text-sm text-gray-500">
-                  Objet : <strong className="text-gray-900">{objetRendu}</strong>
-                </p>
-                <hr className="my-3" />
-                <div className="whitespace-pre-wrap text-sm text-gray-800">{contenuRendu}</div>
-              </div>
-
-              <div className="text-xs text-indigo-700">
-                <p className="break-all">
-                  Lien désabonnement : {base}/newsletter/desabonnement/{abonneApercu.token}
-                </p>
-                <p className="break-all">
-                  Lien préférences : {base}/newsletter/preferences/{abonneApercu.token}
-                </p>
+            <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+              <p className="text-sm text-slate-500">
+                Objet : <strong className="text-slate-900">{objetRendu}</strong>
+              </p>
+              <hr className="my-3 border-slate-100" />
+              <div className="whitespace-pre-wrap text-sm text-slate-800">
+                {contenuRendu}
               </div>
             </div>
-          )}
-        </section>
 
-        {/* Abonnés */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Abonnés ({abonnes.length} — dont {actifs.length} actifs)
-          </h2>
+            <div className="mt-3 text-xs text-slate-500">
+              <p className="break-all">
+                Lien désabonnement :{" "}
+                <span className="font-mono text-indigo-600">
+                  {base}/newsletter/desabonnement/{abonneApercu.token}
+                </span>
+              </p>
+              <p className="break-all">
+                Lien préférences :{" "}
+                <span className="font-mono text-indigo-600">
+                  {base}/newsletter/preferences/{abonneApercu.token}
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
 
-          <form action={creerAbonne} className="rounded-xl border bg-white p-4">
-            <p className="text-sm font-semibold text-gray-700">Ajouter un abonné</p>
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+      {/* ── Abonnés ──────────────────────────────────────────────── */}
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold text-slate-900">
+          Abonnés ({abonnes.length} — dont {actifs.length} actif
+          {actifs.length > 1 ? "s" : ""})
+        </h2>
+
+        <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 className="text-base font-semibold text-slate-900">
+            Ajouter un abonné
+          </h3>
+          <form action={creerAbonne} className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="md:col-span-2">
+              <label htmlFor="email-abonne" className={styleLabel}>
+                E-mail *
+              </label>
               <input
+                id="email-abonne"
                 name="email"
                 type="email"
                 required
-                placeholder="E-mail *"
-                className="rounded-lg border px-3 py-2 text-sm sm:col-span-2"
-              />
-              <input
-                name="prenom"
-                placeholder="Prénom"
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
-              <input
-                name="nom"
-                placeholder="Nom"
-                className="rounded-lg border px-3 py-2 text-sm"
+                placeholder="Ex. abonne@exemple.com"
+                className={styleInput}
               />
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <button
-                type="submit"
-                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-              >
+            <div>
+              <label htmlFor="prenom-abonne" className={styleLabel}>
+                Prénom
+              </label>
+              <input
+                id="prenom-abonne"
+                name="prenom"
+                placeholder="Ex. Awa"
+                className={styleInput}
+              />
+            </div>
+            <div>
+              <label htmlFor="nom-abonne" className={styleLabel}>
+                Nom
+              </label>
+              <input
+                id="nom-abonne"
+                name="nom"
+                placeholder="Ex. Koné"
+                className={styleInput}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4 md:col-span-4">
+              <p className="text-xs text-slate-400">
+                Les visiteurs s&apos;inscrivent eux-mêmes via le formulaire de
+                newsletter de la page d&apos;accueil.
+              </p>
+              <button type="submit" className={styleBoutonPrimaire}>
                 Ajouter
               </button>
-              <p className="text-xs text-gray-500">
-                Les visiteurs peuvent aussi s'inscrire eux-mêmes sur{" "}
-                <Link href="/newsletter/inscription" className="text-indigo-600 underline">
-                  /newsletter/inscription
-                </Link>
-              </p>
             </div>
           </form>
+        </section>
 
-          {abonnes.length === 0 ? (
-            <p className="rounded-xl border border-dashed p-6 text-center text-sm text-gray-500">
-              Aucun abonné pour l'instant : ajoutez-en un ci-dessus ou partagez la page{" "}
-              <Link href="/newsletter/inscription" className="text-indigo-600 underline">
-                /newsletter/inscription
-              </Link>
-              .
-            </p>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border bg-white">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-                    <th className="px-4 py-3">E-mail</th>
-                    <th className="px-4 py-3">Prénom</th>
-                    <th className="px-4 py-3">Nom</th>
-                    <th className="px-4 py-3">Statut</th>
-                    <th className="px-4 py-3">Inscrit le</th>
-                    <th className="px-4 py-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {abonnes.map((abonne) => (
-                    <tr key={abonne.id} className="border-b last:border-0">
-                      <td className="px-4 py-3 font-medium text-gray-900">{abonne.email}</td>
-                      <td className="px-4 py-3 text-gray-600">{abonne.prenom || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{abonne.nom || "—"}</td>
-                      <td className="px-4 py-3">
-                        <span
+        {abonnes.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
+            Aucun abonné pour l&apos;instant. Les inscriptions de la page
+            d&apos;accueil apparaîtront ici automatiquement.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">E-mail</th>
+                  <th className="px-4 py-3">Prénom</th>
+                  <th className="px-4 py-3">Nom</th>
+                  <th className="px-4 py-3">Statut</th>
+                  <th className="px-4 py-3">Inscrit le</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {abonnes.map((abonne) => (
+                  <tr key={abonne.id}>
+                    <td className="px-4 py-3 font-medium text-slate-900">
+                      {abonne.email}
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">{abonne.prenom || "—"}</td>
+                    <td className="px-4 py-3 text-slate-500">{abonne.nom || "—"}</td>
+                    <td className="px-4 py-3">
+                      <form action={basculerAbonne}>
+                        <input type="hidden" name="id" value={abonne.id} />
+                        <button
+                          type="submit"
                           className={
-                            "rounded-full px-2.5 py-1 text-xs font-semibold " +
-                            (abonne.actif
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-500")
+                            abonne.actif
+                              ? "inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200"
+                              : "inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-300"
                           }
                         >
                           {abonne.actif ? "Actif" : "Désabonné"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">
-                        {formatDate(abonne.creeLe)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <form action={basculerAbonne}>
-                            <input type="hidden" name="id" value={abonne.id} />
-                            <button
-                              type="submit"
-                              className="rounded-lg border px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50"
-                            >
-                              {abonne.actif ? "Désactiver" : "Réactiver"}
-                            </button>
-                          </form>
-                          <Link
-                            href={`/newsletter/preferences/${abonne.token}`}
-                            className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
-                          >
-                            Préférences
-                          </Link>
-                          <form action={supprimerAbonne}>
-                            <input type="hidden" name="id" value={abonne.id} />
-                            <button
-                              type="submit"
-                              className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs text-red-700 hover:bg-red-100"
-                            >
-                              Supprimer
-                            </button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </div>
-    </div>
+                        </button>
+                      </form>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">
+                      {formateurDate.format(new Date(abonne.creeLe))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <Link
+                          href={`/newsletter/preferences/${abonne.token}`}
+                          className="text-indigo-600 hover:underline"
+                        >
+                          Préférences
+                        </Link>
+                        <form action={supprimerAbonne}>
+                          <input type="hidden" name="id" value={abonne.id} />
+                          <button type="submit" className={styleBoutonSupprimer}>
+                            Supprimer
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }

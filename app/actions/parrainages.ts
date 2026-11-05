@@ -74,7 +74,9 @@ async function membresARelancer() {
       role: "USER",
       statut: "ACTIF",
       // pas de parrainage récompensé (aucun filleul Premium)
-      filleulsParraines: { none: { statut: "RECOMPENSE" } },
+      // NB : la relation User → Parrainage (côté parrain) s'appelle
+      // « parrainages » dans le schéma.
+      parrainages: { none: { statut: "RECOMPENSE" } },
     },
     select: { id: true, name: true, email: true, createdAt: true },
     orderBy: { createdAt: "desc" },
