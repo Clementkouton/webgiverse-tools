@@ -214,7 +214,11 @@ export async function ajouterNoteMembreFormulaire(formData: FormData) {
   if (!cible) return;
 
   await prisma.noteMembre.create({
-    data: { auteurId: admin.id, cibleId, contenu },
+    data: {
+      contenu,
+      cible: { connect: { id: cibleId } },
+      auteur: { connect: { id: admin.id } },
+    },
   });
   rafraichir(cibleId);
 }

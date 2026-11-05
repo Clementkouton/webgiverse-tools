@@ -392,7 +392,8 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
           ressources: lit(l, "ressources"),
           paragraphes: lit(l, "paragraphes"),
         },
-        existant?.descriptionRaffinee ?? null,
+        (existant as unknown as { descriptionRaffinee?: Prisma.JsonValue | null } | null)
+          ?.descriptionRaffinee ?? null,
       );
       if (!desc.ok) {
         erreurs.push(`Ligne ${numero} : ${desc.erreur} — ${titre}.`);

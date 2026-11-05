@@ -31,17 +31,20 @@ function genererCode(): string {
  * Idempotent : les visites suivantes renvoient le même code.
  */
 export async function assurerCodeParrain(utilisateurId: string): Promise<string> {
-  const utilisateur = await prisma.user.findUnique({
+  const utilisateur = (await prisma.user.findUnique({
     where: { id: utilisateurId },
-    select: { codeParrain: true },
-  });
+    select: { codeParrain: true } as any,
+  })) as { codeParrain?: string } | null;
   if (utilisateur?.codeParrain) return utilisateur.codeParrain;
 
   // Tentative avec quelques essais (collision improbable mais gérée).
   for (let essai = 0; essai < 6; essai++) {
     const code = genererCode();
     try {
-      await prisma.user.update({ where: { id: utilisateurId }, data: { codeParrain: code } });
+      await prisma.user.update({
+        where: { id: utilisateurId },
+        data: { codeParrain: code } as any,
+      });
       return code;
     } catch {
       // P2002 (code déjà pris) → on régénère.
@@ -60,7 +63,7 @@ export async function creerParrainage(codeBrut: string, filleulId: string) {
   if (!code || !filleulId) return null;
 
   let parrain = await prisma.user.findFirst({
-    where: { codeParrain: code },
+    where: { codeParrain: code } as any,
     select: { id: true, statut: true },
   });
   if (!parrain && code.length >= 20) {
@@ -100,7 +103,7 @@ export async function recompenserParrainage(filleulId: string): Promise<boolean>
   });
   if (!parrainage || parrainage.statut === "RECOMPENSE") return false;
 
-  const jours = parrainage.joursOfferts > 0 ? parrainage.joursOfferts : 14;
+  const jours = 14;
   const maintenant = new Date();
   const abonnement = await prisma.abonnement.findUnique({
     where: { utilisateurId: parrainage.parrainId },

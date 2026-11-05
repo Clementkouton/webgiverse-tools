@@ -251,7 +251,7 @@ export default async function PageUtilisateursAdmin({
                   <span
                     title={
                       u.motifSuspension
-                        ? `${u.motifSuspension} (depuis le ${dateFr(u.suspenduLe)})`
+                        ? u.motifSuspension
                         : undefined
                     }
                   >
