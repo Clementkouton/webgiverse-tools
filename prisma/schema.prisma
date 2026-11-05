@@ -812,25 +812,29 @@ model Sponsor {
   @@index([categorieId])
 }
 
+model AbonneNewsletter {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  prenom      String?
+  nom         String?
+  token       String    @unique @default(cuid())
+  actif       Boolean   @default(true)
+  desabonneLe DateTime?
+  creeLe      DateTime  @default(now())
+  majLe       DateTime  @updatedAt
 
-
-model CampagneNewsletter {
-  id       String    @id @default(cuid())
-  titre    String
-  objet    String
-  contenu  String
-  statut   String    @default("BROUILLON")
-  envoyeLe DateTime?
-  creeLe   DateTime  @default(now())
-  majLe    DateTime  @updatedAt
+  @@index([actif])
 }
 
-model AbonneNewsletter {
-  id     String   @id @default(cuid())
-  email  String   @unique
-  nom    String?
-  token  String   @unique @default(cuid())
-  statut String   @default("ABONNE")
-  creeLe DateTime @default(now())
-  majLe  DateTime @updatedAt
+model CampagneNewsletter {
+  id            String    @id @default(cuid())
+  titre         String
+  objet         String
+  contenu       String
+  lienArticle   String?
+  nomEntreprise String?
+  statut        String    @default("BROUILLON") // BROUILLON | PRETE | ENVOYEE
+  envoyeLe      DateTime?
+  creeLe        DateTime  @default(now())
+  majLe         DateTime  @updatedAt
 }
