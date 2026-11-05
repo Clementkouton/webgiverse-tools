@@ -1,264 +1,372 @@
-// app/admin/utilisateurs/page.tsx
-// ─────────────────────────────────────────────────────────────────
-// Lot 35 — Liste des membres : RECHERCHE PAR MOT (filtre intelligent :
-// chaque mot doit être présent, partout dans le nom ou l'e-mail — pas
-// une succession de mots), filtre par statut, et actions rapides :
-// fiche détaillée, impersonation, suspension/bannissement (révocable).
-// ─────────────────────────────────────────────────────────────────
-import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import type { Prisma } from "@prisma/client";
+import type { ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
-import { Carte } from "@/components/ui/carte";
-import { Badge } from "@/components/ui/badge";
-import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
-import { UsersRound } from "lucide-react";
-import { Bouton } from "@/components/ui/bouton";
-import { basculerRoleFormulaire } from "@/app/actions/admin";
+import { auth } from "@/auth";
 import {
-  suspendreMembreFormulaire,
   bannirMembreFormulaire,
-  reactiverMembreFormulaire,
   impersonerFormulaire,
-} from "@/app/actions/gestion-utilisateurs";
-import { formatteDate } from "@/lib/dates";
+  rendreAdminFormulaire,
+  reactiverMembreFormulaire,
+  revenirAdminFormulaire,
+  suspendreMembreFormulaire,
+} from "../../actions/gestion-utilisateurs";
 
-export const metadata: Metadata = { title: "Utilisateurs — Administration" };
 export const dynamic = "force-dynamic";
 
-/** Découpe la requête en mots (filtre intelligent : ET logique). */
-function motsDeRecherche(q: string | undefined): string[] {
-  return (q ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
+/* ────────────────────────── Éléments d'affichage ────────────────────────── */
+
+function dateFr(date: Date | null | undefined) {
+  if (!date) return "—";
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function BadgeStatut({ statut }: { statut: "ACTIF" | "SUSPENDU" | "BANNI" }) {
-  if (statut === "SUSPENDU") {
-    return <Badge className="border-red-200 bg-red-50 text-red-700">Suspendu</Badge>;
-  }
-  if (statut === "BANNI") {
-    return <Badge className="border-red-300 bg-red-600 text-white">Banni</Badge>;
-  }
-  return <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">Actif</Badge>;
+const LIBELLES_STATUT: Record<string, { texte: string; classe: string }> = {
+  ACTIF: { texte: "Actif", classe: "bg-emerald-100 text-emerald-700" },
+  SUSPENDU: { texte: "Suspendu", classe: "bg-amber-100 text-amber-700" },
+  BANNI: { texte: "Banni", classe: "bg-rose-100 text-rose-700" },
+};
+
+function BadgeStatut({ statut }: { statut: string }) {
+  const libelle = LIBELLES_STATUT[statut] ?? { texte: statut, classe: "bg-slate-100 text-slate-600" };
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${libelle.classe}`}>
+      {libelle.texte}
+    </span>
+  );
 }
+
+function Avatar({ image, name }: { image: string | null; name: string | null }) {
+  if (image) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={image} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+    );
+  }
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600">
+      {(name ?? "?").slice(0, 1).toUpperCase()}
+    </span>
+  );
+}
+
+function FormulaireAction({
+  action,
+  id,
+  classe,
+  children,
+}: {
+  action: (formData: FormData) => Promise<void>;
+  id: string;
+  classe?: string;
+  children: ReactNode;
+}) {
+  return (
+    <form action={action}>
+      <input type="hidden" name="id" value={id} />
+      <button
+        type="submit"
+        className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
+          classe ?? "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+        }`}
+      >
+        {children}
+      </button>
+    </form>
+  );
+}
+
+/* ──────────────────────────────── Page ──────────────────────────────── */
 
 export default async function PageUtilisateursAdmin({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; statut?: string }>;
+  searchParams: Promise<{ [cle: string]: string | string[] | undefined }>;
 }) {
-  const { q, statut } = await searchParams;
-  const mots = motsDeRecherche(q);
-  const filtreStatut =
-    statut === "ACTIF" || statut === "SUSPENDU" || statut === "BANNI" ? statut : null;
+  const params = await searchParams;
+  const qBrut = typeof params.q === "string" ? params.q : "";
+  const statutBrut = typeof params.statut === "string" ? params.statut : "";
+  const statutFiltre =
+    statutBrut === "ACTIF" || statutBrut === "SUSPENDU" || statutBrut === "BANNI" ? statutBrut : null;
 
-  const utilisateurs = await prisma.user.findMany({
-    where: {
-      // Filtre intelligent : TOUS les mots doivent correspondre (ET),
-      // dans le nom OU l'e-mail (OU) — pas une succession de mots.
-      ...(mots.length > 0
-        ? {
-            AND: mots.map((mot) => ({
-              OR: [
-                { name: { contains: mot, mode: "insensitive" as const } },
-                { email: { contains: mot, mode: "insensitive" as const } },
-              ],
-            })),
-          }
-        : {}),
-      ...(filtreStatut ? { statut: filtreStatut } : {}),
-    },
-    orderBy: { createdAt: "desc" },
-    include: {
-      _count: { select: { favorites: true, avis: true, lists: true, votes: true, conversations: true } },
-      abonnement: { select: { statut: true, plan: true, expireLe: true } },
-    },
-  });
+  const session = await auth();
+  const moi = session?.user?.email
+    ? await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } })
+    : null;
+  const monId = moi?.id ?? null;
 
-  type UtilisateurAvecStatut = (typeof utilisateurs)[number] & {
-    statut: "ACTIF" | "SUSPENDU" | "BANNI";
-    motifCompte?: string | null;
+  // Une impersonation est-elle en cours ? (cookie posé par « Se connecter en tant que… »)
+  const jar = await cookies();
+  const impersonationEnCours = Boolean(jar.get("impersonateurId")?.value);
+
+  // Filtre intelligent : TOUS les mots doivent correspondre (ET),
+  // dans le nom OU l'e-mail (OU) — pas une succession de mots.
+  const mots = qBrut.trim().split(/\s+/).filter(Boolean);
+  const where: Prisma.UserWhereInput = {};
+  if (statutFiltre) where.statutCompte = statutFiltre;
+  if (mots.length > 0) {
+    where.AND = mots.map((mot) => ({
+      OR: [
+        { name: { contains: mot, mode: "insensitive" } },
+        { email: { contains: mot, mode: "insensitive" } },
+      ],
+    }));
+  }
+
+  const [utilisateurs, repartition] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: { select: { favorites: true, avis: true, lists: true, votes: true, conversations: true } },
+        abonnement: { select: { statut: true, plan: true, expireLe: true } },
+      },
+    }),
+    prisma.user.groupBy({ by: ["statutCompte"], _count: { _all: true } }),
+  ]);
+
+  const nombre = (statut: string) =>
+    repartition.find((r) => r.statutCompte === statut)?._count._all ?? 0;
+  const total = repartition.reduce((somme, r) => somme + r._count._all, 0);
+
+  const lienOnglet = (statut: string | null) => {
+    const criteres = new URLSearchParams();
+    if (qBrut) criteres.set("q", qBrut);
+    if (statut) criteres.set("statut", statut);
+    const requete = criteres.toString();
+    return requete ? `/admin/utilisateurs?${requete}` : "/admin/utilisateurs";
   };
 
-  const [nbAdmins, nbSuspendus, nbBannis] = [
-    utilisateurs.filter((u) => u.role === "ADMIN").length,
-    utilisateurs.filter((u) => (u as UtilisateurAvecStatut).statut === "SUSPENDU").length,
-    utilisateurs.filter((u) => (u as UtilisateurAvecStatut).statut === "BANNI").length,
-  ];
-
-  const maintenant = new Date();
+  const pillClasse = (actif: boolean) =>
+    `rounded-full px-3 py-1.5 text-xs font-medium transition ${
+      actif
+        ? "bg-slate-900 text-white"
+        : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
+    }`;
 
   return (
-    <div>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-h3 font-semibold">Utilisateurs ({utilisateurs.length})</h2>
-          <p className="mt-1 text-[14px] leading-5 text-encre">
-            {nbAdmins} admin{nbAdmins > 1 ? "s" : ""} · {nbSuspendus} suspendu
-            {nbSuspendus > 1 ? "s" : ""} · {nbBannis} banni{nbBannis > 1 ? "s" : ""} — fiche,
-            impersonation et suspension sur chaque membre.
-          </p>
-        </div>
-
-        {/* Recherche PAR MOT + filtre statut (formulaire GET natif) */}
-        <form className="flex flex-wrap items-center gap-2" action="/admin/utilisateurs">
-          <input
-            type="search"
-            name="q"
-            defaultValue={q ?? ""}
-            placeholder="Rechercher par mot : marie gmail litige…"
-            aria-label="Rechercher un membre par mot"
-            className="min-h-10 w-64 rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 text-bleu outline-none focus:border-violet"
-          />
-          <select
-            name="statut"
-            defaultValue={filtreStatut ?? ""}
-            aria-label="Filtrer par statut"
-            className="min-h-10 rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 text-bleu outline-none focus:border-violet"
-          >
-            <option value="">Tous les statuts</option>
-            <option value="ACTIF">Actifs</option>
-            <option value="SUSPENDU">Suspendus</option>
-            <option value="BANNI">Bannis</option>
-          </select>
-          <Bouton taille="sm" variante="secondaire" type="submit">Filtrer</Bouton>
-        </form>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Utilisateurs</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {total} compte{total > 1 ? "s" : ""} au total — tous les mots de la recherche doivent
+          correspondre au nom ou à l'e-mail.
+        </p>
       </div>
 
-      <Carte className="mt-6 overflow-x-auto p-2">
-        <table className="w-full min-w-200 text-[14px] leading-5">
-          <thead className="text-left text-legende text-encre">
+      {impersonationEnCours && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span>
+            Session « Se connecter en tant que » active ({session?.user?.email ?? "membre"}).
+            Pour retrouver votre compte admin, déconnectez-vous puis reconnectez-vous.
+          </span>
+          <form action={revenirAdminFormulaire}>
+            <button
+              type="submit"
+              className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+            >
+              Revenir en admin
+            </button>
+          </form>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <form action="/admin/utilisateurs" method="get" className="flex flex-wrap items-center gap-2">
+          {statutFiltre ? <input type="hidden" name="statut" value={statutFiltre} /> : null}
+          <input
+            name="q"
+            defaultValue={qBrut}
+            placeholder="Rechercher un nom ou un e-mail…"
+            className="w-72 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-slate-500"
+          />
+          <button
+            type="submit"
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            Rechercher
+          </button>
+          {qBrut ? (
+            <Link
+              href={lienOnglet(statutFiltre)}
+              className="text-xs text-slate-500 underline hover:text-slate-700"
+            >
+              Effacer
+            </Link>
+          ) : null}
+        </form>
+
+        <div className="flex flex-wrap gap-2">
+          <Link href={lienOnglet(null)} className={pillClasse(!statutFiltre)}>
+            Tous ({total})
+          </Link>
+          <Link href={lienOnglet("ACTIF")} className={pillClasse(statutFiltre === "ACTIF")}>
+            Actifs ({nombre("ACTIF")})
+          </Link>
+          <Link href={lienOnglet("SUSPENDU")} className={pillClasse(statutFiltre === "SUSPENDU")}>
+            Suspendus ({nombre("SUSPENDU")})
+          </Link>
+          <Link href={lienOnglet("BANNI")} className={pillClasse(statutFiltre === "BANNI")}>
+            Bannis ({nombre("BANNI")})
+          </Link>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <table className="w-full min-w-[960px] text-left text-sm">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="p-3">Utilisateur</th>
-              <th className="p-3">Statut</th>
-              <th className="p-3">Rôle</th>
-              <th className="p-3">Abonnement</th>
-              <th className="p-3">Inscrit le</th>
-              <th className="p-3">Activité</th>
-              <th className="p-3">Actions</th>
+              <th className="px-4 py-3 font-medium">Utilisateur</th>
+              <th className="px-4 py-3 font-medium">Statut</th>
+              <th className="px-4 py-3 font-medium">Rôle</th>
+              <th className="px-4 py-3 font-medium">Abonnement</th>
+              <th className="px-4 py-3 font-medium">Inscrit le</th>
+              <th className="px-4 py-3 font-medium">Activité</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {utilisateurs.map((u) => {
-              const membre = u as UtilisateurAvecStatut;
-              const premium =
-                u.abonnement?.statut === "ACTIF" && u.abonnement.expireLe > maintenant;
-              return (
-                <tr key={u.id} className="border-t border-bordure align-top">
-                  <td className="p-3">
-                    <p className="font-semibold text-bleu">{u.name || "Sans nom"}</p>
-                    <p className="text-[13px] text-encre">{u.email}</p>
-                    {membre.statut !== "ACTIF" && membre.motifCompte && (
-                      <p className="mt-1 text-[12px] leading-4 text-red-700">Motif : {membre.motifCompte}</p>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <BadgeStatut statut={membre.statut} />
-                  </td>
-                  <td className="p-3">
-                    {u.role === "ADMIN" ? <Badge variante="source">Admin</Badge> : <Badge>Utilisateur</Badge>}
-                  </td>
-                  <td className="p-3 text-[13px] text-encre">
-                    {premium ? (
-                      <Badge variante="nouveau">Premium {u.abonnement?.plan === "ENTREPRISE" ? "Entreprise" : "Pro"}</Badge>
-                    ) : (
-                      <span>Découverte</span>
-                    )}
-                  </td>
-                  <td className="p-3 text-encre">{formatteDate(u.createdAt)}</td>
-                  <td className="p-3 text-[13px] text-encre">
-                    {u._count.favorites} fav. · {u._count.avis} avis · {u._count.lists} listes
-                  </td>
-                  <td className="p-3">
-                    <div className="flex flex-wrap items-start gap-2">
-                      <Bouton taille="sm" variante="secondaire" asChild>
-                        <Link href={`/admin/utilisateurs/${u.id}`}>Fiche</Link>
-                      </Bouton>
-
-                      {u.role !== "ADMIN" && (
-                        <form action={impersonerFormulaire}>
-                          <input type="hidden" name="utilisateurId" value={u.id} />
-                          <Bouton taille="sm" variante="secondaire" type="submit" title="Voir le site avec les yeux de ce membre">
-                            👁 Se connecter en tant que…
-                          </Bouton>
-                        </form>
-                      )}
-
-                      {u.role !== "ADMIN" && membre.statut === "ACTIF" && (
-                        <details className="rounded-champ border border-bordure bg-gris/50 px-3 py-2 text-[13px]">
-                          <summary className="cursor-pointer select-none font-semibold text-rouge">
-                            ⏸ Suspendre / bannir
-                          </summary>
-                          <div className="mt-2 grid w-64 gap-2">
-                            <textarea
-                              name="motif"
-                              form={`suspension-${u.id}`}
-                              placeholder="Motif (litige, abus, remboursement…)"
-                              rows={2}
-                              className="w-full rounded-champ border border-bordure bg-white px-2 py-1.5 text-[13px] text-bleu outline-none focus:border-violet"
-                            />
-                            <form id={`suspension-${u.id}`} action={suspendreMembreFormulaire}>
-                              <input type="hidden" name="utilisateurId" value={u.id} />
-                              <div className="flex items-center gap-2">
-                                <select name="duree" className="min-h-9 flex-1 rounded-champ border border-bordure bg-white px-2 text-[13px] text-bleu">
-                                  <option value="">Illimitée</option>
-                                  <option value="1">24 h</option>
-                                  <option value="7">7 jours</option>
-                                  <option value="30">30 jours</option>
-                                </select>
-                                <Bouton taille="sm" variante="danger" type="submit">Suspendre</Bouton>
-                              </div>
-                            </form>
-                            <form action={bannirMembreFormulaire}>
-                              <input type="hidden" name="utilisateurId" value={u.id} />
-                              <Bouton taille="sm" variante="danger" type="submit" className="w-full">
-                                🚫 Bannir définitivement
-                              </Bouton>
-                            </form>
-                          </div>
-                        </details>
-                      )}
-
-                      {membre.statut !== "ACTIF" && (
-                        <form action={reactiverMembreFormulaire}>
-                          <input type="hidden" name="utilisateurId" value={u.id} />
-                          <Bouton taille="sm" variante="secondaire" type="submit">✅ Réactiver</Bouton>
-                        </form>
-                      )}
-
-                      {u.role === "ADMIN" ? (
-                        <p className="text-[13px] font-semibold text-violet">C&apos;est ton compte 👋</p>
-                      ) : (
-                        <form action={basculerRoleFormulaire}>
-                          <input type="hidden" name="utilisateurId" value={u.id} />
-                          <Bouton taille="sm" variante="secondaire" type="submit">Rendre admin</Bouton>
-                        </form>
-                      )}
+          <tbody className="divide-y divide-slate-100">
+            {utilisateurs.map((u) => (
+              <tr key={u.id} className="hover:bg-slate-50/60">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar image={u.image} name={u.name} />
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-2 font-medium text-slate-900">
+                        <span className="truncate">{u.name ?? "Sans nom"}</span>
+                        {u.id === monId && (
+                          <span className="shrink-0 text-xs text-slate-400">C'est ton compte 👋</span>
+                        )}
+                      </p>
+                      <p className="truncate text-xs text-slate-500">{u.email}</p>
                     </div>
-                  </td>
-                </tr>
-              );
-            })}
+                  </div>
+                </td>
+
+                <td className="px-4 py-3">
+                  <span
+                    title={
+                      u.motifCompte
+                        ? `${u.motifCompte} (depuis le ${dateFr(u.suspenduLe)})`
+                        : undefined
+                    }
+                  >
+                    <BadgeStatut statut={u.statutCompte} />
+                  </span>
+                </td>
+
+                <td className="px-4 py-3">
+                  {u.role === "ADMIN" ? (
+                    <span className="inline-flex rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                      Admin
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                      Membre
+                    </span>
+                  )}
+                </td>
+
+                <td className="px-4 py-3">
+                  {u.abonnement ? (
+                    <span className="inline-flex rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                      {u.abonnement.plan ?? "Abonnement"}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
+                </td>
+
+                <td className="px-4 py-3 text-slate-600">{dateFr(u.createdAt)}</td>
+
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1.5 text-xs text-slate-500">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5">{u._count.favorites} favoris</span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5">{u._count.avis} avis</span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5">{u._count.lists} listes</span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5">{u._count.votes} votes</span>
+                  </div>
+                </td>
+
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Link
+                      href={`/admin/utilisateurs/${u.id}`}
+                      className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Fiche
+                    </Link>
+
+                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "ACTIF" && (
+                      <FormulaireAction
+                        action={impersonerFormulaire}
+                        id={u.id}
+                        classe="border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                      >
+                        Se connecter en tant que…
+                      </FormulaireAction>
+                    )}
+
+                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "ACTIF" && (
+                      <FormulaireAction
+                        action={suspendreMembreFormulaire}
+                        id={u.id}
+                        classe="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                      >
+                        Suspendre
+                      </FormulaireAction>
+                    )}
+
+                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "SUSPENDU" && (
+                      <>
+                        <FormulaireAction
+                          action={reactiverMembreFormulaire}
+                          id={u.id}
+                          classe="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        >
+                          Réactiver
+                        </FormulaireAction>
+                        <FormulaireAction
+                          action={bannirMembreFormulaire}
+                          id={u.id}
+                          classe="border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                        >
+                          Bannir
+                        </FormulaireAction>
+                      </>
+                    )}
+
+                    {u.id !== monId && u.role !== "ADMIN" && u.statutCompte === "BANNI" && (
+                      <FormulaireAction
+                        action={reactiverMembreFormulaire}
+                        id={u.id}
+                        classe="border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                      >
+                        Réactiver
+                      </FormulaireAction>
+                    )}
+
+                    {u.id !== monId && u.role !== "ADMIN" && (
+                      <FormulaireAction action={rendreAdminFormulaire} id={u.id}>
+                        Rendre admin
+                      </FormulaireAction>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+
+            {utilisateurs.length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">
+                  Aucun utilisateur ne correspond à ces critères.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-        {utilisateurs.length === 0 && (
-          <EtatVideAdmin
-            icone={UsersRound}
-            ton="info"
-            titre={mots.length > 0 || filtreStatut ? "Aucun membre ne correspond" : "Aucun utilisateur inscrit"}
-            description={
-              mots.length > 0 || filtreStatut
-                ? "Essaie d'autres mots-clés ou réinitialise le filtre de statut."
-                : "Les membres apparaîtront ici dès la première inscription."
-            }
-          />
-        )}
-      </Carte>
-
-      <p className="mt-3 text-[13px] leading-5 text-encre">
-        💡 La recherche fonctionne <strong>par mot</strong> : « marie gmail » trouve tous les membres
-        dont le nom OU l&apos;e-mail contient « marie » ET « gmail », peu importe l&apos;ordre. La
-        suspension d&apos;un compte le déconnecte automatiquement (moins d&apos;une minute) et bloque
-        les nouvelles connexions ; la réactivation restaure l&apos;accès immédiatement.
-      </p>
+      </div>
     </div>
   );
 }

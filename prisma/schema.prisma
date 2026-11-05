@@ -133,11 +133,13 @@ model User {
   notes             NoteMembre[]
   suspensions       SuspensionUser[]
 
-  statutCompte  StatutCompte @default(ACTIF)
-  motifCompte   String?
-  suspenduLe    DateTime?
-  notesRecues   NoteMembre[] @relation("NotesRecues")
-  notesRedigees NoteMembre[] @relation("NotesRedigees")
+  // Lot 36 — notes internes et historique de suspension (console admin)
+  statutCompte    StatutCompte     @default(ACTIF)
+  motifCompte     String?
+  suspenduLe      DateTime?
+  notes           NoteMembre[]     @relation("NotesRecues")
+  notesRedigees   NoteMembre[]     @relation("NotesRedigees")
+  suspensions     SuspensionUser[]
 }
 
 // ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────
