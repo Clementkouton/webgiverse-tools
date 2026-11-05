@@ -73,7 +73,7 @@ export default async function PagePreferences({
 
         {!client.abonneNewsletter ? (
           <p className="text-sm text-gray-500">
-            La newsletter n&apos;est pas encore configurée sur ce site (modèle AbonneNewsletter
+            La newsletter n'est pas encore configurée sur ce site (modèle AbonneNewsletter
             manquant : exécutez « npx prisma db push »).
           </p>
         ) : !abonne ? (
