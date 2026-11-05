@@ -1,182 +1,228 @@
-// app/actions/gestion-utilisateurs.ts
-// ─────────────────────────────────────────────────────────────────
-// Lot 35 — Administration des membres :
-//   • suspension / bannissement en 1 clic avec motif (révocable) ;
-//   • impersonation « Se connecter en tant que… » (+ retour) ;
-//   • notes internes privées sur un membre.
-// ─────────────────────────────────────────────────────────────────
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  demarrerImpersonation,
-  terminerImpersonation,
-  lireImpersonation,
-} from "@/lib/impersonation";
+import { auth } from "@/auth";
 
-// Le modèle NoteInterne n'est pas encore présent dans les types du client généré.
-const prismaAvecNotes = prisma as typeof prisma & { noteInterne: any };
+/* ──────────────────────── Helpers internes ──────────────────────── */
 
-async function exigerAdmin(): Promise<string> {
+/**
+ * Récupère l’admin connecté. On passe par l’e-mail de la session puis par
+ * une lecture en base : fiable même si la session ne contient pas l’id,
+ * et chaque action est ainsi protégée contre un non-admin.
+ */
+async function getAdmin() {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("Accès réservé aux administrateurs.");
-  const moi = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
+  const email = session?.user?.email;
+  if (!email) return null;
+
+  const admin = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, role: true },
   });
-  if (moi?.role !== "ADMIN") throw new Error("Accès réservé aux administrateurs.");
-  return session.user.id;
+  if (!admin || admin.role !== "ADMIN") return null;
+  return admin;
 }
 
-// ── Suspension / bannissement (révocable) ────────────────────────────
-
-const schemaSuspension = z.object({
-  utilisateurId: z.string().min(1),
-  motif: z.string().trim().min(3, "Indique un motif (3 caractères minimum).").max(500),
-  duree: z.string().optional(), // "1" | "7" | "30" | "" (illimitée)
-});
-
-/** Suspend (durée optionnelle en jours) ou bannit un membre, avec motif. */
-export async function suspendreMembreFormulaire(donnees: FormData) {
-  const adminId = await exigerAdmin();
-  const analyse = schemaSuspension.safeParse({
-    utilisateurId: donnees.get("utilisateurId"),
-    motif: donnees.get("motif"),
-    duree: donnees.get("duree") ?? "",
-  });
-  if (!analyse.success) return;
-
-  const cible = await prisma.user.findUnique({ where: { id: analyse.data.utilisateurId } });
-  if (!cible || cible.role === "ADMIN") return; // jamais un admin (dont soi-même)
-
-  const jours = Number(analyse.data.duree ?? "");
-  const suspenduJusqua =
-    Number.isFinite(jours) && jours > 0
-      ? new Date(Date.now() + Math.min(jours, 365) * 24 * 60 * 60 * 1000)
-      : null;
-
-  await prisma.user.update({
-    where: { id: cible.id },
-    data: ({
-      statutCompte: "SUSPENDU",
-      motifCompte: analyse.data.motif,
-      suspenduLe: new Date(),
-      // réutilisé comme « raison » : la date de fin est dans le motif si fixée
-      ...(suspenduJusqua
-        ? { motifCompte: `${analyse.data.motif} — jusqu'au ${suspenduJusqua.toLocaleDateString("fr-FR")}` }
-        : {}),
-    } as never),
-  });
-  // La session existante est invalidée automatiquement (auth.ts, < 60 s).
-  await prismaAvecNotes.noteInterne.create({
-    data: {
-      cibleId: cible.id,
-      auteurId: adminId,
-      contenu: `⛔ Suspension : ${analyse.data.motif}`,
-    },
-  });
+function rafraichir(id?: string) {
   revalidatePath("/admin/utilisateurs");
-  revalidatePath(`/admin/utilisateurs/${cible.id}`);
+  if (id) revalidatePath(`/admin/utilisateurs/${id}`);
 }
 
-/** Bannit définitivement un membre (révocable via « Réactiver »). */
-export async function bannirMembreFormulaire(donnees: FormData) {
-  const adminId = await exigerAdmin();
-  const analyse = schemaSuspension.safeParse({
-    utilisateurId: donnees.get("utilisateurId"),
-    motif: donnees.get("motif"),
-    duree: "",
-  });
-  if (!analyse.success) return;
+/** Nom du cookie de session NextAuth réellement présent dans le navigateur. */
+async function nomCookieSession() {
+  const jar = await cookies();
+  const candidats = [
+    "__Secure-authjs.session-token", // Auth.js v5 en HTTPS
+    "authjs.session-token", // Auth.js v5 en local
+    "__Secure-next-auth.session-token", // NextAuth v4 en HTTPS
+    "next-auth.session-token", // NextAuth v4 en local
+  ];
+  return candidats.find((nom) => Boolean(jar.get(nom))) ?? null;
+}
 
-  const cible = await prisma.user.findUnique({ where: { id: analyse.data.utilisateurId } });
+/**
+ * Crée une session en base (model Session : sessionToken / userId / expires)
+ * pour l’utilisateur donné et pose le cookie de session correspondant.
+ * C’est le mécanisme d’une connexion « en tant que » avec sessions en base.
+ */
+async function ouvrirSessionPour(userId: string) {
+  const nom = await nomCookieSession();
+  if (!nom) return false;
+
+  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const sessionToken = randomUUID();
+  await prisma.session.create({ data: { sessionToken, userId, expires } });
+
+  const jar = await cookies();
+  jar.set(nom, sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: nom.startsWith("__Secure"),
+    expires,
+  });
+  return true;
+}
+
+/* ──────────────────────── Statut du compte ──────────────────────── */
+
+export async function suspendreMembreFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id || id === admin.id) return;
+
+  const cible = await prisma.user.findUnique({ where: { id }, select: { role: true } });
   if (!cible || cible.role === "ADMIN") return;
 
+  const motif = String(formData.get("motif") ?? "").trim();
   await prisma.user.update({
-    where: { id: cible.id },
-    data: ({ statutCompte: "BANNI", motifCompte: analyse.data.motif, suspenduLe: new Date() } as never),
-  });
-  await prismaAvecNotes.noteInterne.create({
+    where: { id },
     data: {
-      cibleId: cible.id,
-      auteurId: adminId,
-      contenu: `🚫 Bannissement : ${analyse.data.motif}`,
+      statutCompte: "SUSPENDU",
+      motifCompte: motif || null,
+      suspenduLe: new Date(),
     },
   });
-  revalidatePath("/admin/utilisateurs");
-  revalidatePath(`/admin/utilisateurs/${cible.id}`);
+  rafraichir(id);
 }
 
-/** Révoque la suspension / le bannissement : le compte redevient ACTIF. */
-export async function reactiverMembreFormulaire(donnees: FormData) {
-  await exigerAdmin();
-  const id = z.string().min(1).parse(donnees.get("utilisateurId"));
-  const cible = await prisma.user.findUnique({ where: { id } });
-  if (!cible || (cible as { statutCompte?: string }).statutCompte === "ACTIF") return;
+export async function bannirMembreFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id || id === admin.id) return;
+
+  const cible = await prisma.user.findUnique({ where: { id }, select: { role: true } });
+  if (!cible || cible.role === "ADMIN") return;
+
+  const motif = String(formData.get("motif") ?? "").trim();
+  await prisma.user.update({
+    where: { id },
+    data: {
+      statutCompte: "BANNI",
+      motifCompte: motif || null,
+      suspenduLe: new Date(),
+    },
+  });
+  rafraichir(id);
+}
+
+export async function reactiverMembreFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id || id === admin.id) return;
 
   await prisma.user.update({
     where: { id },
-    data: ({ statutCompte: "ACTIF", motifCompte: null, suspenduLe: null } as never),
+    data: { statutCompte: "ACTIF", motifCompte: null, suspenduLe: null },
   });
-  revalidatePath("/admin/utilisateurs");
-  revalidatePath(`/admin/utilisateurs/${id}`);
+  rafraichir(id);
 }
 
-// ── Impersonation « Se connecter en tant que… » ──────────────────────
+export async function rendreAdminFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
 
-/**
- * Démarre une session de support : l'admin voit le site avec les yeux du
- * membre (bandeau rouge permanent). Interdit sur un autre admin.
- */
-export async function impersonerFormulaire(donnees: FormData) {
-  const adminId = await exigerAdmin();
-  const id = z.string().min(1).parse(donnees.get("utilisateurId"));
-  if (id === adminId) return;
+  const id = String(formData.get("id") ?? "");
+  if (!id || id === admin.id) return;
+
+  const cible = await prisma.user.findUnique({ where: { id }, select: { id: true } });
+  if (!cible) return;
+
+  await prisma.user.update({ where: { id }, data: { role: "ADMIN" } });
+  rafraichir(id);
+}
+
+/* ──────────────────── Se connecter en tant que… ──────────────────── */
+
+export async function impersonerFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id || id === admin.id) return;
 
   const cible = await prisma.user.findUnique({
     where: { id },
     select: { role: true, statutCompte: true },
   });
-  // On n'impersonne pas un admin (sécurité) ni un compte inactif.
+  // On n’impersonne ni un admin, ni un compte suspendu/banni.
   if (!cible || cible.role === "ADMIN" || cible.statutCompte !== "ACTIF") return;
 
-  await demarrerImpersonation(adminId, id);
-  redirect("/dashboard");
+  const ok = await ouvrirSessionPour(id);
+  if (!ok) return;
+
+  const jar = await cookies();
+  jar.set("impersonateurId", admin.id, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 8 * 60 * 60,
+  });
+
+  redirect("/");
 }
 
-/** Bouton « Revenir à mon compte admin » du bandeau rouge. */
-export async function terminerImpersonationFormulaire() {
-  const impersonation = await lireImpersonation();
-  if (!impersonation) redirect("/");
-  await terminerImpersonation();
-  redirect("/admin/utilisateurs");
+export async function revenirAdminFormulaire() {
+  const jar = await cookies();
+  const adminId = jar.get("impersonateurId")?.value;
+  if (!adminId) redirect("/admin/utilisateurs");
+
+  const admin = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: { id: true, role: true },
+  });
+  if (!admin || admin.role !== "ADMIN") {
+    jar.delete("impersonateurId");
+    redirect("/");
+  }
+
+  const ok = await ouvrirSessionPour(adminId);
+  jar.delete("impersonateurId");
+  redirect(ok ? "/admin/utilisateurs" : "/");
 }
 
-// ── Notes internes sur un membre (historique privé admin) ────────────
+/* ──────────────────────── Notes internes ──────────────────────── */
 
-export async function ajouterNoteFormulaire(donnees: FormData) {
-  const adminId = await exigerAdmin();
-  const cibleId = z.string().min(1).parse(donnees.get("utilisateurId"));
-  const contenu = String(donnees.get("contenu") ?? "").trim().slice(0, 2000);
-  if (!contenu) return;
+export async function ajouterNoteMembreFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
+
+  const cibleId = String(formData.get("id") ?? "");
+  const contenu = String(formData.get("contenu") ?? "").trim();
+  if (!cibleId || !contenu) return;
 
   const cible = await prisma.user.findUnique({ where: { id: cibleId }, select: { id: true } });
   if (!cible) return;
-  await prismaAvecNotes.noteInterne.create({ data: { cibleId, auteurId: adminId, contenu } });
-  revalidatePath(`/admin/utilisateurs/${cibleId}`);
-  revalidatePath("/admin/utilisateurs");
+
+  await prisma.noteMembre.create({
+    data: { auteurId: admin.id, cibleId, contenu },
+  });
+  rafraichir(cibleId);
 }
 
-export async function supprimerNoteFormulaire(donnees: FormData) {
-  await exigerAdmin();
-  const noteId = z.string().min(1).parse(donnees.get("noteId"));
-  const note = await prismaAvecNotes.noteInterne.findUnique({ where: { id: noteId } });
+export async function supprimerNoteMembreFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
+
+  const noteId = String(formData.get("noteId") ?? "");
+  if (!noteId) return;
+
+  const note = await prisma.noteMembre.findUnique({
+    where: { id: noteId },
+    select: { id: true, cibleId: true },
+  });
   if (!note) return;
-  await prismaAvecNotes.noteInterne.delete({ where: { id: noteId } });
-  revalidatePath(`/admin/utilisateurs/${note.cibleId}`);
-  revalidatePath("/admin/utilisateurs");
+
+  await prisma.noteMembre.delete({ where: { id: note.id } });
+  rafraichir(note.cibleId);
 }

@@ -132,6 +132,12 @@ model User {
   // Lot 36 — notes internes et historique de suspension (console admin)
   notes             NoteMembre[]
   suspensions       SuspensionUser[]
+
+  statutCompte  StatutCompte @default(ACTIF)
+  motifCompte   String?
+  suspenduLe    DateTime?
+  notesRecues   NoteMembre[] @relation("NotesRecues")
+  notesRedigees NoteMembre[] @relation("NotesRedigees")
 }
 
 // ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────
@@ -635,16 +641,6 @@ model RequeteRecherche {
 // (cuid, creeLe/majLe, enums StatutX, index sur les filtres).
 // ═════════════════════════════════════════════════════════════════
 
-// Statut du compte d'un membre (modéré par les admins depuis la
-// fiche membre). ACTIF par défaut ; SUSPENDU = connexion bloquée
-// avec motif affiché ; BANNI = blocage définitif. Révocable :
-// l'admin remet le statut à ACTIF et la ligne SuspensionUser est
-// levée (leveeLe rempli).
-enum StatutCompte {
-  ACTIF
-  SUSPENDU
-  BANNI
-}
 
 // ── Slots sponsorisés « À la une » ──────────────────────────────────
 // Une ligne = un emplacement acheté par un annonceur, affiché sur
@@ -744,19 +740,6 @@ model RecompenseParrain {
   @@index([creeLe])
 }
 
-// ── Notes internes sur un membre (console admin) ────────────────────
-// Une ligne = une note privée d'un admin sur un membre, visible dans
-// la fiche membre (/admin/membres/[id]). Jamais montrée au membre.
-model NoteMembre {
-  id      String   @id @default(cuid())
-  userId  String
-  adminId String
-  contenu String
-  creeLe  DateTime @default(now())
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, creeLe])
-}
 
 // ── Suspensions / bannissements de comptes ──────────────────────────
 // Une ligne = une suspension (ou un bannissement si finLe est null)
@@ -776,3 +759,35 @@ model SuspensionUser {
   @@index([userId])
   @@index([debutLe])
 }
+
+// =====================================================================
+//  CORRECTIF GESTION MEMBRES — complément à ajouter à prisma/schema.prisma
+//  3 ajouts, RIEN à supprimer. Appliquez-les tous les deux, puis lancez :
+//      npx prisma generate
+//      npx prisma db push        (ou : npx prisma migrate dev --name gestion_membres)
+// =====================================================================
+
+// ─────────────────────────────────────────────────────────────────────
+//  AJOUT ① — À coller TOUT À LA FIN de schema.prisma
+//  (l'enum + le modèle NoteMembre)
+// ─────────────────────────────────────────────────────────────────────
+
+enum StatutCompte {
+  ACTIF
+  SUSPENDU
+  BANNI
+}
+
+model NoteMembre {
+  id       String   @id @default(cuid())
+  auteurId String
+  cibleId  String
+  contenu  String
+  creeLe   DateTime @default(now())
+  auteur   User     @relation("NotesRedigees", fields: [auteurId], references: [id], onDelete: Cascade)
+  cible    User     @relation("NotesRecues", fields: [cibleId], references: [id], onDelete: Cascade)
+
+  @@index([cibleId])
+  @@index([auteurId])
+}
+

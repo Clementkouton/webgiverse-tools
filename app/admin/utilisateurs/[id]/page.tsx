@@ -1,263 +1,436 @@
-// app/admin/utilisateurs/[id]/page.tsx
-// ─────────────────────────────────────────────────────────────────
-// Lot 35 — Fiche membre : identité, diagnostic d'inscription,
-// abonnement, parrainage, paiements, ACTIVITÉ, et l'outillage admin :
-//   • notes internes privées (historique : litige, Premium offert…) ;
-//   • impersonation « Se connecter en tant que… » ;
-//   • suspension / bannissement avec motif (révocable).
-// ─────────────────────────────────────────────────────────────────
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Carte } from "@/components/ui/carte";
-import { Badge } from "@/components/ui/badge";
-import { Bouton } from "@/components/ui/bouton";
-import { basculerRoleFormulaire } from "@/app/actions/admin";
+import { auth } from "@/auth";
 import {
+  ajouterNoteMembreFormulaire,
+  bannirMembreFormulaire,
   impersonerFormulaire,
-  ajouterNoteFormulaire,
-  supprimerNoteFormulaire,
-} from "@/app/actions/gestion-utilisateurs";
-import { formatteDate } from "@/lib/dates";
-import { formatePrix } from "@/lib/plans";
+  rendreAdminFormulaire,
+  reactiverMembreFormulaire,
+  supprimerNoteMembreFormulaire,
+  suspendreMembreFormulaire,
+} from "../../../actions/gestion-utilisateurs";
 
-export const metadata: Metadata = { title: "Fiche membre — Administration" };
 export const dynamic = "force-dynamic";
 
-export default async function PageFicheMembre({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+/* ────────────────────────── Éléments d’affichage ────────────────────────── */
+
+function dateFr(date: Date | null | undefined) {
+  if (!date) return "—";
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function dateHeureFr(date: Date) {
+  return date.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const LIBELLES_STATUT: Record<string, { texte: string; classe: string }> = {
+  ACTIF: { texte: "Actif", classe: "bg-emerald-100 text-emerald-700" },
+  SUSPENDU: { texte: "Suspendu", classe: "bg-amber-100 text-amber-700" },
+  BANNI: { texte: "Banni", classe: "bg-rose-100 text-rose-700" },
+};
+
+function BadgeStatut({ statut }: { statut: string }) {
+  const libelle = LIBELLES_STATUT[statut] ?? { texte: statut, classe: "bg-slate-100 text-slate-600" };
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${libelle.classe}`}>
+      {libelle.texte}
+    </span>
+  );
+}
+
+const LIBELLES_PARRAINAGE: Record<string, string> = {
+  EN_ATTENTE: "En attente",
+  RECOMPENSE: "Récompensé",
+  ANNULE: "Annulé",
+};
+
+/* ──────────────────────────────── Page ──────────────────────────────── */
+
+export default async function PageFicheMembre({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  // Champs et relations 100 % conformes au schéma réel du projet :
+  // parrainePar (User), filleuls (User[]), parrainageFilleul (Parrainage),
+  // paiements (creeLe), abonnement (statut/plan/expireLe), notesRecues (NoteMembre).
   const membre = await prisma.user.findUnique({
     where: { id },
     include: {
-      _count: { select: { favorites: true, avis: true, lists: true, votes: true, conversations: true, activites: true } },
+      _count: {
+        select: {
+          favorites: true,
+          avis: true,
+          lists: true,
+          votes: true,
+          conversations: true,
+          activites: true,
+        },
+      },
       abonnement: true,
       paiements: { orderBy: { creeLe: "desc" }, take: 8 },
-      filleulDe: { include: { parrain: { select: { id: true, name: true, email: true } } } },
-      filleulsParraines: {
-        include: { filleul: { select: { id: true, name: true, email: true } } },
-        orderBy: { creeLe: "desc" },
+      parrainePar: { select: { id: true, name: true, email: true } },
+      filleuls: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          parrainageFilleul: { select: { statut: true, recompenseLe: true } },
+        },
       },
       notesRecues: {
-        include: { auteur: { select: { name: true, email: true } } },
         orderBy: { creeLe: "desc" },
+        include: { auteur: { select: { name: true, email: true } } },
       },
     },
   });
   if (!membre) notFound();
 
-  const maintenant = new Date();
-  const premium =
-    membre.abonnement?.statut === "ACTIF" && membre.abonnement.expireLe > maintenant;
+  const session = await auth();
+  const moi = session?.user?.email
+    ? await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } })
+    : null;
+  const monId = moi?.id ?? null;
 
-  const stats = [
-    { libelle: "Favoris", valeur: membre._count.favorites },
-    { libelle: "Avis", valeur: membre._count.avis },
-    { libelle: "Listes", valeur: membre._count.lists },
-    { libelle: "Votes", valeur: membre._count.votes },
-    { libelle: "Conversations", valeur: membre._count.conversations },
-    { libelle: "Activités", valeur: membre._count.activites },
-  ];
+  // Pas d’actions sensibles sur soi-même ni sur un autre admin.
+  const protege = membre.role === "ADMIN" || membre.id === monId;
 
   return (
-    <div className="grid gap-6">
-      {/* ── En-tête : identité + statut ──────────────────────────── */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link href="/admin/utilisateurs" className="text-[13px] font-semibold text-violet hover:underline">
-            ← Toutes les fiches
-          </Link>
-          <h2 className="mt-2 text-h3 font-semibold">{membre.name || "Sans nom"}</h2>
-          <p className="text-[14px] text-encre">{membre.email}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {membre.role === "ADMIN" ? <Badge variante="source">Admin</Badge> : <Badge>Utilisateur</Badge>}
-            {premium ? (
-              <Badge variante="nouveau">
-                Premium {membre.abonnement?.plan === "ENTREPRISE" ? "Entreprise" : "Pro"} — jusqu&apos;au{" "}
-                {formatteDate(membre.abonnement?.expireLe)}
-              </Badge>
+    <div className="space-y-6">
+      <Link
+        href="/admin/utilisateurs"
+        className="inline-flex items-center text-sm text-slate-500 hover:text-slate-800"
+      >
+        ← Retour aux utilisateurs
+      </Link>
+
+      {/* En-tête */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {membre.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={membre.image} alt="" className="h-14 w-14 rounded-full object-cover" />
             ) : (
-              <Badge>Découverte</Badge>
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-xl font-semibold text-slate-600">
+                {(membre.name ?? "?").slice(0, 1).toUpperCase()}
+              </span>
             )}
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">{membre.name ?? "Sans nom"}</h1>
+              <p className="text-sm text-slate-500">{membre.email}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {membre.role === "ADMIN" ? (
+                  <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                    Admin
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                    Membre
+                  </span>
+                )}
+                <BadgeStatut statut={membre.statutCompte} />
+                {membre.id === monId && (
+                  <span className="text-xs text-slate-400">C’est ton compte 👋</span>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Actions principales */}
-        <div className="flex flex-wrap items-start gap-2">
-          {membre.role !== "ADMIN" && (
-            <form action={impersonerFormulaire}>
-              <input type="hidden" name="utilisateurId" value={membre.id} />
-              <Bouton taille="sm" variante="secondaire" type="submit">
-                👁 Se connecter en tant que…
-              </Bouton>
-            </form>
-          )}
-          {membre.role === "ADMIN" ? (
-            <p className="text-[13px] font-semibold text-violet">C&apos;est ton compte 👋</p>
-          ) : (
-            <form action={basculerRoleFormulaire}>
-              <input type="hidden" name="utilisateurId" value={membre.id} />
-              <Bouton taille="sm" variante="secondaire" type="submit">Rendre admin</Bouton>
-            </form>
-          )}
-        </div>
-      </div>
-
-      {/* ── Diagnostic d'inscription + statistiques ───────────────── */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Carte className="p-5">
-          <h3 className="font-titre text-[16px] font-semibold">Diagnostic d&apos;inscription</h3>
-          <dl className="mt-3 grid gap-1.5 text-[13px] leading-5">
-            <div className="flex justify-between gap-3">
-              <dt className="text-encre">Objectif</dt>
-              <dd className="text-right font-semibold">{membre.objectif || "—"}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-encre">Niveau</dt>
-              <dd className="text-right font-semibold">{membre.niveau || "—"}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-encre">Budget</dt>
-              <dd className="text-right font-semibold">{membre.budget || "—"}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-encre">Inscrit le</dt>
-              <dd className="text-right font-semibold">{formatteDate(membre.createdAt)}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-encre">Code parrain</dt>
-              <dd className="text-right font-mono text-[12px] font-semibold">{membre.codeParrain ?? "—"}</dd>
-            </div>
-          </dl>
-        </Carte>
-
-        <Carte className="p-5">
-          <h3 className="font-titre text-[16px] font-semibold">Activité</h3>
-          <ul className="mt-3 grid grid-cols-2 gap-2 text-[13px]">
-            {stats.map((s) => (
-              <li key={s.libelle} className="rounded-champ bg-gris px-3 py-2">
-                <span className="font-titre text-[18px] font-bold text-violet">{s.valeur}</span>
-                <br />
-                <span className="text-encre">{s.libelle}</span>
-              </li>
-            ))}
-          </ul>
-        </Carte>
-
-        <Carte className="p-5">
-          <h3 className="font-titre text-[16px] font-semibold">Parrainage</h3>
-          <div className="mt-3 grid gap-2 text-[13px] leading-5">
-            <p>
-              <span className="text-encre">Parrain : </span>
-              {membre.filleulDe ? (
-                <Link href={`/admin/utilisateurs/${membre.filleulDe.parrain.id}`} className="font-semibold text-violet hover:underline">
-                  {membre.filleulDe.parrain.name || membre.filleulDe.parrain.email}
-                </Link>
-              ) : (
-                <span className="font-semibold">—</span>
-              )}
-            </p>
-            <p>
-              <span className="text-encre">Filleuls : </span>
-              <strong>{membre.filleulsParraines.length}</strong>
-              {" "}
-              ({membre.filleulsParraines.filter((p) => p.statut === "RECOMPENSE").length} récompensé(s))
-            </p>
-            {membre.filleulsParraines.slice(0, 5).map((p) => (
-              <p key={p.id} className="rounded-champ bg-gris px-3 py-1.5">
-                {p.filleul.name || p.filleul.email} —{" "}
-                {p.statut === "RECOMPENSE" ? "Premium (récompense envoyée)" : "en attente"}
+          <div className="space-y-1 text-right text-xs text-slate-500">
+            <p>Inscrit le {dateFr(membre.createdAt)}</p>
+            {membre.refCode && (
+              <p>
+                Code de parrainage :{" "}
+                <span className="font-mono text-slate-700">{membre.refCode}</span>
               </p>
-            ))}
-          </div>
-        </Carte>
-      </div>
-
-      {/* ── Paiements ─────────────────────────────────────────────── */}
-      <Carte className="overflow-x-auto p-2">
-        <h3 className="p-3 font-titre text-[16px] font-semibold">Paiements récents</h3>
-        <table className="w-full min-w-120 text-[14px] leading-5">
-          <thead className="text-left text-legende text-encre">
-            <tr>
-              <th className="px-3 py-2">Date</th>
-              <th className="px-3 py-2">Plan</th>
-              <th className="px-3 py-2">Montant</th>
-              <th className="px-3 py-2">Canal</th>
-              <th className="px-3 py-2">Code promo</th>
-              <th className="px-3 py-2">Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            {membre.paiements.map((p) => (
-              <tr key={p.id} className="border-t border-bordure">
-                <td className="px-3 py-2 text-encre">{formatteDate(p.creeLe)}</td>
-                <td className="px-3 py-2 font-semibold">{p.plan}</td>
-                <td className="px-3 py-2">{formatePrix(p.montant)}</td>
-                <td className="px-3 py-2 text-encre">{p.simulation ? "Test" : p.canal ?? "—"}</td>
-                <td className="px-3 py-2 font-mono text-[13px]">{p.codePromo ?? "—"}</td>
-                <td className="px-3 py-2">{p.statut}</td>
-              </tr>
-            ))}
-            {membre.paiements.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-3 py-4 text-encre">Aucun paiement enregistré.</td>
-              </tr>
             )}
-          </tbody>
-        </table>
-      </Carte>
-
-      {/* ── Notes internes (historique privé) ─────────────────────── */}
-      <Carte className="p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h3 className="font-titre text-[16px] font-semibold">Notes internes ({membre.notesRecues.length})</h3>
-            <p className="text-[13px] text-encre">
-              Historique privé de l&apos;équipe — litige, Premium offert, abus… Jamais visible par le membre.
-            </p>
           </div>
         </div>
+      </div>
 
-        <form action={ajouterNoteFormulaire} className="mt-4 grid gap-2">
-          <input type="hidden" name="utilisateurId" value={membre.id} />
+      {/* Gestion du compte */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Gestion du compte
+        </h2>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {!protege && membre.statutCompte === "ACTIF" && (
+            <>
+              <form action={impersonerFormulaire}>
+                <input type="hidden" name="id" value={membre.id} />
+                <button
+                  type="submit"
+                  className="rounded-md border border-indigo-300 bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                >
+                  Se connecter en tant que…
+                </button>
+              </form>
+
+              <form action={suspendreMembreFormulaire} className="flex flex-wrap items-center gap-2">
+                <input type="hidden" name="id" value={membre.id} />
+                <input
+                  name="motif"
+                  placeholder="Motif (optionnel)"
+                  className="w-56 rounded-md border border-slate-300 px-2 py-1 text-xs outline-none focus:border-slate-500"
+                />
+                <button
+                  type="submit"
+                  className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                >
+                  Suspendre
+                </button>
+              </form>
+
+              <form action={bannirMembreFormulaire}>
+                <input type="hidden" name="id" value={membre.id} />
+                <button
+                  type="submit"
+                  className="rounded-md border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 hover:bg-rose-100"
+                >
+                  Bannir
+                </button>
+              </form>
+            </>
+          )}
+
+          {!protege && membre.statutCompte === "SUSPENDU" && (
+            <>
+              <form action={reactiverMembreFormulaire}>
+                <input type="hidden" name="id" value={membre.id} />
+                <button
+                  type="submit"
+                  className="rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
+                >
+                  Réactiver
+                </button>
+              </form>
+              <form action={bannirMembreFormulaire}>
+                <input type="hidden" name="id" value={membre.id} />
+                <button
+                  type="submit"
+                  className="rounded-md border border-rose-300 bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 hover:bg-rose-100"
+                >
+                  Bannir
+                </button>
+              </form>
+            </>
+          )}
+
+          {membre.statutCompte === "BANNI" && (
+            <form action={reactiverMembreFormulaire}>
+              <input type="hidden" name="id" value={membre.id} />
+              <button
+                type="submit"
+                className="rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
+              >
+                Réactiver
+              </button>
+            </form>
+          )}
+
+          {membre.role !== "ADMIN" && (
+            <form action={rendreAdminFormulaire}>
+              <input type="hidden" name="id" value={membre.id} />
+              <button
+                type="submit"
+                className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Rendre admin
+              </button>
+            </form>
+          )}
+
+          {protege && (
+            <p className="text-xs text-slate-400">Aucune action disponible sur ce compte.</p>
+          )}
+        </div>
+
+        {(membre.statutCompte === "SUSPENDU" || membre.statutCompte === "BANNI") && (
+          <p className="mt-3 text-xs text-slate-500">
+            {membre.statutCompte === "SUSPENDU" ? "Suspendu" : "Banni"} depuis le{" "}
+            {dateFr(membre.suspenduLe)}
+            {membre.motifCompte ? ` — Motif : ${membre.motifCompte}` : ""}.
+          </p>
+        )}
+      </div>
+
+      {/* Statistiques */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {[
+          { label: "Favoris", valeur: membre._count.favorites },
+          { label: "Avis", valeur: membre._count.avis },
+          { label: "Listes", valeur: membre._count.lists },
+          { label: "Votes", valeur: membre._count.votes },
+          { label: "Conversations", valeur: membre._count.conversations },
+          { label: "Activités", valeur: membre._count.activites },
+        ].map((carte) => (
+          <div key={carte.label} className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+            <p className="text-2xl font-bold text-slate-900">{carte.valeur}</p>
+            <p className="mt-1 text-xs text-slate-500">{carte.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Abonnement + paiements */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Abonnement</h2>
+          {membre.abonnement ? (
+            <div className="mt-3 space-y-1 text-sm">
+              <p className="text-lg font-semibold text-slate-900">
+                {membre.abonnement.plan ?? "Plan inconnu"}
+              </p>
+              <p className="text-slate-600">Statut : {membre.abonnement.statut}</p>
+              <p className="text-slate-500">Expire le {dateFr(membre.abonnement.expireLe)}</p>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-slate-400">Aucun abonnement.</p>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Paiements récents
+          </h2>
+          {membre.paiements.length > 0 ? (
+            <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              {membre.paiements.map((paiement) => (
+                <li
+                  key={paiement.id}
+                  className="rounded-lg bg-slate-50 px-3 py-2"
+                >
+                  Paiement du {dateFr(paiement.creeLe)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-slate-400">Aucun paiement enregistré.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Profil déclaré */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Profil déclaré
+        </h2>
+        <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div>
+            <dt className="text-xs text-slate-500">Objectif</dt>
+            <dd className="text-sm text-slate-800">{membre.objectif ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-slate-500">Niveau</dt>
+            <dd className="text-sm text-slate-800">{membre.niveau ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-slate-500">Budget</dt>
+            <dd className="text-sm text-slate-800">{membre.budget ?? "—"}</dd>
+          </div>
+        </dl>
+      </div>
+
+      {/* Parrainage */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Parrainage</h2>
+        <div className="mt-3 grid gap-6 lg:grid-cols-2">
+          <div>
+            <p className="text-xs font-medium text-slate-500">Parrainé par</p>
+            {membre.parrainePar ? (
+              <Link
+                href={`/admin/utilisateurs/${membre.parrainePar.id}`}
+                className="mt-1 block text-sm text-indigo-600 hover:underline"
+              >
+                {membre.parrainePar.name ?? membre.parrainePar.email}{" "}
+                <span className="text-slate-400">({membre.parrainePar.email})</span>
+              </Link>
+            ) : (
+              <p className="mt-1 text-sm text-slate-400">Aucun parrain.</p>
+            )}
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-slate-500">Filleuls ({membre.filleuls.length})</p>
+            {membre.filleuls.length > 0 ? (
+              <ul className="mt-1 space-y-2">
+                {membre.filleuls.map((filleul) => (
+                  <li key={filleul.id} className="flex items-center justify-between gap-2 text-sm">
+                    <Link
+                      href={`/admin/utilisateurs/${filleul.id}`}
+                      className="truncate text-indigo-600 hover:underline"
+                    >
+                      {filleul.name ?? filleul.email}
+                    </Link>
+                    {filleul.parrainageFilleul && (
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                        {LIBELLES_PARRAINAGE[filleul.parrainageFilleul.statut] ??
+                          filleul.parrainageFilleul.statut}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-sm text-slate-400">Aucun filleul.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Notes internes des admins */}
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          Notes internes ({membre.notesRecues.length})
+        </h2>
+
+        <form action={ajouterNoteMembreFormulaire} className="mt-3 space-y-2">
+          <input type="hidden" name="id" value={membre.id} />
           <textarea
             name="contenu"
-            required
-            minLength={3}
-            maxLength={2000}
             rows={3}
-            placeholder="Ex. : remboursement accordé le 12/03, Premium offert 1 mois suite au litige #4482…"
-            className="w-full rounded-champ border border-bordure bg-white px-3 py-2 text-[14px] leading-5 text-bleu outline-none focus:border-violet"
+            required
+            placeholder="Note interne (visible uniquement par les admins)…"
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
           />
-          <div>
-            <Bouton taille="sm" type="submit">Ajouter la note</Bouton>
-          </div>
+          <button
+            type="submit"
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            Ajouter la note
+          </button>
         </form>
 
-        <ul className="mt-4 grid gap-2">
+        <ul className="mt-4 space-y-3">
           {membre.notesRecues.map((note) => (
-            <li key={note.id} className="flex items-start justify-between gap-3 rounded-champ bg-gris px-4 py-3">
-              <div className="min-w-0">
-                <p className="whitespace-pre-wrap text-[14px] leading-5">{note.contenu}</p>
-                <p className="mt-1 text-[12px] leading-4 text-encre">
-                  {note.auteur.name || note.auteur.email} — {formatteDate(note.creeLe)}
-                </p>
+            <li key={note.id} className="rounded-lg bg-slate-50 p-3">
+              <p className="text-sm text-slate-800">{note.contenu}</p>
+              <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-500">
+                <span>
+                  Par {note.auteur.name ?? note.auteur.email} — {dateHeureFr(note.creeLe)}
+                </span>
+                <form action={supprimerNoteMembreFormulaire}>
+                  <input type="hidden" name="noteId" value={note.id} />
+                  <button type="submit" className="text-rose-600 hover:underline">
+                    Supprimer
+                  </button>
+                </form>
               </div>
-              <form action={supprimerNoteFormulaire}>
-                <input type="hidden" name="noteId" value={note.id} />
-                <Bouton taille="sm" variante="danger" type="submit">Supprimer</Bouton>
-              </form>
             </li>
           ))}
           {membre.notesRecues.length === 0 && (
-            <li className="text-[13px] text-encre">Aucune note pour l&apos;instant.</li>
+            <li className="text-sm text-slate-400">Aucune note pour le moment.</li>
           )}
         </ul>
-      </Carte>
+      </div>
     </div>
   );
 }
