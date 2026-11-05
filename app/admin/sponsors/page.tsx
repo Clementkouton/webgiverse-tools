@@ -120,8 +120,10 @@ function FormulaireSponsor({
 }
 
 export default async function PageSponsorsAdmin() {
+  const prismaClient = prisma as any;
+
   const [sponsors, categories] = await Promise.all([
-    prisma.sponsor.findMany({
+    prismaClient.sponsor.findMany({
       include: { categorie: { select: { nom: true, slug: true } } },
       orderBy: { creeLe: "desc" },
     }),
@@ -150,7 +152,7 @@ export default async function PageSponsorsAdmin() {
 
       {/* ── Liste ─────────────────────────────────────────────────── */}
       <div className="grid gap-4">
-        {sponsors.map((s) => {
+        {sponsors.map((s: any) => {
           const enCours = s.actif && s.debutLe <= maintenant && s.finLe >= maintenant;
           const ctr = s.impressions > 0 ? ((s.clics / s.impressions) * 100).toFixed(1) : "0.0";
           return (

@@ -15,9 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
 import { basculerRoleFormulaire } from "@/app/actions/admin";
 import {
-  suspendreMembreFormulaire,
-  bannirMembreFormulaire,
-  reactiverMembreFormulaire,
   impersonerFormulaire,
   ajouterNoteFormulaire,
   supprimerNoteFormulaire,
@@ -78,15 +75,6 @@ export default async function PageFicheMembre({
           <p className="text-[14px] text-encre">{membre.email}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {membre.role === "ADMIN" ? <Badge variante="source">Admin</Badge> : <Badge>Utilisateur</Badge>}
-            {membre.statut === "ACTIF" && (
-              <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">Actif</Badge>
-            )}
-            {membre.statut === "SUSPENDU" && (
-              <Badge className="border-red-200 bg-red-50 text-red-700">Suspendu</Badge>
-            )}
-            {membre.statut === "BANNI" && (
-              <Badge className="border-red-300 bg-red-600 text-white">Banni</Badge>
-            )}
             {premium ? (
               <Badge variante="nouveau">
                 Premium {membre.abonnement?.plan === "ENTREPRISE" ? "Entreprise" : "Pro"} — jusqu&apos;au{" "}
@@ -96,11 +84,6 @@ export default async function PageFicheMembre({
               <Badge>Découverte</Badge>
             )}
           </div>
-          {membre.statut !== "ACTIF" && membre.motifCompte && (
-            <p className="mt-2 rounded-champ border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
-              Motif : {membre.motifCompte} — depuis le {formatteDate(membre.suspenduLe)}
-            </p>
-          )}
         </div>
 
         {/* Actions principales */}
@@ -112,54 +95,6 @@ export default async function PageFicheMembre({
                 👁 Se connecter en tant que…
               </Bouton>
             </form>
-          )}
-          {membre.statut !== "ACTIF" ? (
-            <form action={reactiverMembreFormulaire}>
-              <input type="hidden" name="utilisateurId" value={membre.id} />
-              <Bouton taille="sm" variante="primaire" type="submit">✅ Réactiver le compte</Bouton>
-            </form>
-          ) : (
-            membre.role !== "ADMIN" && (
-              <details className="rounded-champ border border-bordure bg-white px-3 py-2 text-[13px]">
-                <summary className="cursor-pointer select-none font-semibold text-rouge">
-                  ⏸ Suspendre / bannir
-                </summary>
-                <div className="mt-2 grid w-72 gap-2">
-                  <form action={suspendreMembreFormulaire} className="grid gap-2">
-                    <input type="hidden" name="utilisateurId" value={membre.id} />
-                    <input
-                      name="motif"
-                      required
-                      minLength={3}
-                      placeholder="Motif (litige, abus…)"
-                      className="w-full rounded-champ border border-bordure bg-white px-2 py-1.5 text-[13px] text-bleu outline-none focus:border-violet"
-                    />
-                    <div className="flex items-center gap-2">
-                      <select name="duree" className="min-h-9 flex-1 rounded-champ border border-bordure bg-white px-2 text-[13px] text-bleu">
-                        <option value="">Illimitée</option>
-                        <option value="1">24 h</option>
-                        <option value="7">7 jours</option>
-                        <option value="30">30 jours</option>
-                      </select>
-                      <Bouton taille="sm" variante="danger" type="submit">Suspendre</Bouton>
-                    </div>
-                  </form>
-                  <form action={bannirMembreFormulaire} className="grid gap-2">
-                    <input type="hidden" name="utilisateurId" value={membre.id} />
-                    <input
-                      name="motif"
-                      required
-                      minLength={3}
-                      placeholder="Motif du bannissement"
-                      className="w-full rounded-champ border border-bordure bg-white px-2 py-1.5 text-[13px] text-bleu outline-none focus:border-violet"
-                    />
-                    <Bouton taille="sm" variante="danger" type="submit" className="w-full">
-                      🚫 Bannir définitivement
-                    </Bouton>
-                  </form>
-                </div>
-              </details>
-            )
           )}
           {membre.role === "ADMIN" ? (
             <p className="text-[13px] font-semibold text-violet">C&apos;est ton compte 👋</p>

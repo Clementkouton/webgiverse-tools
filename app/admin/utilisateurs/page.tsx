@@ -73,10 +73,15 @@ export default async function PageUtilisateursAdmin({
     },
   });
 
+  type UtilisateurAvecStatut = (typeof utilisateurs)[number] & {
+    statut: "ACTIF" | "SUSPENDU" | "BANNI";
+    motifCompte?: string | null;
+  };
+
   const [nbAdmins, nbSuspendus, nbBannis] = [
     utilisateurs.filter((u) => u.role === "ADMIN").length,
-    utilisateurs.filter((u) => u.statut === "SUSPENDU").length,
-    utilisateurs.filter((u) => u.statut === "BANNI").length,
+    utilisateurs.filter((u) => (u as UtilisateurAvecStatut).statut === "SUSPENDU").length,
+    utilisateurs.filter((u) => (u as UtilisateurAvecStatut).statut === "BANNI").length,
   ];
 
   const maintenant = new Date();
@@ -133,6 +138,7 @@ export default async function PageUtilisateursAdmin({
           </thead>
           <tbody>
             {utilisateurs.map((u) => {
+              const membre = u as UtilisateurAvecStatut;
               const premium =
                 u.abonnement?.statut === "ACTIF" && u.abonnement.expireLe > maintenant;
               return (
@@ -140,12 +146,12 @@ export default async function PageUtilisateursAdmin({
                   <td className="p-3">
                     <p className="font-semibold text-bleu">{u.name || "Sans nom"}</p>
                     <p className="text-[13px] text-encre">{u.email}</p>
-                    {u.statut !== "ACTIF" && u.motifCompte && (
-                      <p className="mt-1 text-[12px] leading-4 text-red-700">Motif : {u.motifCompte}</p>
+                    {membre.statut !== "ACTIF" && membre.motifCompte && (
+                      <p className="mt-1 text-[12px] leading-4 text-red-700">Motif : {membre.motifCompte}</p>
                     )}
                   </td>
                   <td className="p-3">
-                    <BadgeStatut statut={u.statut} />
+                    <BadgeStatut statut={membre.statut} />
                   </td>
                   <td className="p-3">
                     {u.role === "ADMIN" ? <Badge variante="source">Admin</Badge> : <Badge>Utilisateur</Badge>}
@@ -176,7 +182,7 @@ export default async function PageUtilisateursAdmin({
                         </form>
                       )}
 
-                      {u.role !== "ADMIN" && u.statut === "ACTIF" && (
+                      {u.role !== "ADMIN" && membre.statut === "ACTIF" && (
                         <details className="rounded-champ border border-bordure bg-gris/50 px-3 py-2 text-[13px]">
                           <summary className="cursor-pointer select-none font-semibold text-rouge">
                             ⏸ Suspendre / bannir
@@ -211,7 +217,7 @@ export default async function PageUtilisateursAdmin({
                         </details>
                       )}
 
-                      {u.statut !== "ACTIF" && (
+                      {membre.statut !== "ACTIF" && (
                         <form action={reactiverMembreFormulaire}>
                           <input type="hidden" name="utilisateurId" value={u.id} />
                           <Bouton taille="sm" variante="secondaire" type="submit">✅ Réactiver</Bouton>

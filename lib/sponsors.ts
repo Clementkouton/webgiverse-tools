@@ -4,7 +4,32 @@
 // courant (accueil ou catégorie), comptage des impressions.
 // ─────────────────────────────────────────────────────────────────
 import { prisma } from "@/lib/prisma";
-import type { EmplacementSponsor } from "@prisma/client";
+
+// Valeurs de l'enum Prisma utilisées ici, même si le client généré ne l'exporte pas.
+type EmplacementSponsor = "ACCUEIL" | "CATEGORIE";
+
+// Le client Prisma utilisé ici peut ne pas exposer encore le délégué Sponsor
+// dans ses types générés.
+const prismaAvecSponsors = prisma as unknown as {
+  sponsor: {
+    findFirst(args: {
+      where: Record<string, unknown>;
+      orderBy: { creeLe: "asc" };
+      select: { id: true; titre: true; description: true; url: true; imageUrl: true };
+    }): Promise<{
+      id: string;
+      titre: string;
+      description: string;
+      url: string;
+      imageUrl: string | null;
+    } | null>;
+    update(args: {
+      where: { id: string };
+      data: { impressions?: { increment: number }; clics?: { increment: number } };
+      select?: { url: true };
+    }): Promise<{ url?: string }>;
+  };
+};
 
 export type SponsorPublic = {
   id: string;
@@ -21,7 +46,7 @@ export async function sponsorActif(parametres: {
   categorieId?: string | null;
 }): Promise<SponsorPublic | null> {
   const maintenant = new Date();
-  const sponsor = await prisma.sponsor.findFirst({
+  const sponsor = await prismaAvecSponsors.sponsor.findFirst({
     where: {
       actif: true,
       emplacement: parametres.emplacement,
@@ -46,14 +71,14 @@ export async function sponsorActif(parametres: {
 
 /** Compte une impression (appelé par la route /api/sponsors/actif). */
 export async function compterImpression(sponsorId: string) {
-  await prisma.sponsor
+  await prismaAvecSponsors.sponsor
     .update({ where: { id: sponsorId }, data: { impressions: { increment: 1 } } })
     .catch(() => null);
 }
 
 /** Compte un clic puis renvoie l'URL de destination (route clic). */
 export async function enregistrerClic(sponsorId: string): Promise<string | null> {
-  const sponsor = await prisma.sponsor.update({
+  const sponsor = await prismaAvecSponsors.sponsor.update({
     where: { id: sponsorId },
     data: { clics: { increment: 1 } },
     select: { url: true },

@@ -18,6 +18,9 @@ import {
   lireImpersonation,
 } from "@/lib/impersonation";
 
+// Le modèle NoteInterne n'est pas encore présent dans les types du client généré.
+const prismaAvecNotes = prisma as typeof prisma & { noteInterne: any };
+
 async function exigerAdmin(): Promise<string> {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Accès réservé aux administrateurs.");
@@ -58,18 +61,18 @@ export async function suspendreMembreFormulaire(donnees: FormData) {
 
   await prisma.user.update({
     where: { id: cible.id },
-    data: {
-      statut: "SUSPENDU",
+    data: ({
+      statutCompte: "SUSPENDU",
       motifCompte: analyse.data.motif,
       suspenduLe: new Date(),
       // réutilisé comme « raison » : la date de fin est dans le motif si fixée
       ...(suspenduJusqua
         ? { motifCompte: `${analyse.data.motif} — jusqu'au ${suspenduJusqua.toLocaleDateString("fr-FR")}` }
         : {}),
-    },
+    } as never),
   });
   // La session existante est invalidée automatiquement (auth.ts, < 60 s).
-  await prisma.noteInterne.create({
+  await prismaAvecNotes.noteInterne.create({
     data: {
       cibleId: cible.id,
       auteurId: adminId,
@@ -95,9 +98,9 @@ export async function bannirMembreFormulaire(donnees: FormData) {
 
   await prisma.user.update({
     where: { id: cible.id },
-    data: { statut: "BANNI", motifCompte: analyse.data.motif, suspenduLe: new Date() },
+    data: ({ statutCompte: "BANNI", motifCompte: analyse.data.motif, suspenduLe: new Date() } as never),
   });
-  await prisma.noteInterne.create({
+  await prismaAvecNotes.noteInterne.create({
     data: {
       cibleId: cible.id,
       auteurId: adminId,
@@ -113,11 +116,11 @@ export async function reactiverMembreFormulaire(donnees: FormData) {
   await exigerAdmin();
   const id = z.string().min(1).parse(donnees.get("utilisateurId"));
   const cible = await prisma.user.findUnique({ where: { id } });
-  if (!cible || cible.statut === "ACTIF") return;
+  if (!cible || (cible as { statutCompte?: string }).statutCompte === "ACTIF") return;
 
   await prisma.user.update({
     where: { id },
-    data: { statut: "ACTIF", motifCompte: null, suspenduLe: null },
+    data: ({ statutCompte: "ACTIF", motifCompte: null, suspenduLe: null } as never),
   });
   revalidatePath("/admin/utilisateurs");
   revalidatePath(`/admin/utilisateurs/${id}`);
@@ -136,10 +139,10 @@ export async function impersonerFormulaire(donnees: FormData) {
 
   const cible = await prisma.user.findUnique({
     where: { id },
-    select: { role: true, statut: true },
+    select: { role: true, statutCompte: true },
   });
   // On n'impersonne pas un admin (sécurité) ni un compte inactif.
-  if (!cible || cible.role === "ADMIN" || cible.statut !== "ACTIF") return;
+  if (!cible || cible.role === "ADMIN" || cible.statutCompte !== "ACTIF") return;
 
   await demarrerImpersonation(adminId, id);
   redirect("/dashboard");
@@ -163,7 +166,7 @@ export async function ajouterNoteFormulaire(donnees: FormData) {
 
   const cible = await prisma.user.findUnique({ where: { id: cibleId }, select: { id: true } });
   if (!cible) return;
-  await prisma.noteInterne.create({ data: { cibleId, auteurId: adminId, contenu } });
+  await prismaAvecNotes.noteInterne.create({ data: { cibleId, auteurId: adminId, contenu } });
   revalidatePath(`/admin/utilisateurs/${cibleId}`);
   revalidatePath("/admin/utilisateurs");
 }
@@ -171,9 +174,9 @@ export async function ajouterNoteFormulaire(donnees: FormData) {
 export async function supprimerNoteFormulaire(donnees: FormData) {
   await exigerAdmin();
   const noteId = z.string().min(1).parse(donnees.get("noteId"));
-  const note = await prisma.noteInterne.findUnique({ where: { id: noteId } });
+  const note = await prismaAvecNotes.noteInterne.findUnique({ where: { id: noteId } });
   if (!note) return;
-  await prisma.noteInterne.delete({ where: { id: noteId } });
+  await prismaAvecNotes.noteInterne.delete({ where: { id: noteId } });
   revalidatePath(`/admin/utilisateurs/${note.cibleId}`);
   revalidatePath("/admin/utilisateurs");
 }

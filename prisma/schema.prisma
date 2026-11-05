@@ -89,43 +89,49 @@ model Paiement {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  name            String?
-  email           String           @unique
-  emailVerified   DateTime?
-  image           String?
-  role            UserRole         @default(USER)
-  motDePasse      String? // tests E2E uniquement (fournisseur Credentials)
-  objectif        String? // diagnostic
-  niveau          String?
-  budget          String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  accounts        Account[]
-  sessions        Session[]
-  favorites       Favorite[]
-  lists           List[]
-  recommendations Recommendation[]
-  chatSessions    ChatSession[]
-  conversations Conversation[]
-  activites     ActiviteUtilisateur[]
-  avis          Avis[]
-  votes         Vote[]
-  abonnement    Abonnement?
-  paiements     Paiement[]
+  id                String                @id @default(cuid())
+  name              String?
+  email             String                @unique
+  emailVerified     DateTime?
+  image             String?
+  role              UserRole              @default(USER)
+  motDePasse        String? // tests E2E uniquement (fournisseur Credentials)
+  objectif          String? // diagnostic
+  niveau            String?
+  budget            String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  accounts          Account[]
+  sessions          Session[]
+  favorites         Favorite[]
+  lists             List[]
+  recommendations   Recommendation[]
+  chatSessions      ChatSession[]
+  conversations     Conversation[]
+  activites         ActiviteUtilisateur[]
+  avis              Avis[]
+  votes             Vote[]
+  abonnement        Abonnement?
+  paiements         Paiement[]
   // Lot 19 — section « Apprendre »
   promptFavoris     PromptFavori[]
   progressionsTutos ProgressionTuto[]
   // Lot 20 — notifications in-app + parrainage
-  notifications  Notification[]
-  votesAvis      VoteAvis[]
-  refCode        String?  @unique // code personnel pour le lien d'invitation (?ref=…)
-  parraineParId  String?
-  parrainePar    User?    @relation("Parrainage", fields: [parraineParId], references: [id], onDelete: SetNull)
-  filleuls       User[]   @relation("Parrainage")
+  notifications     Notification[]
+  votesAvis         VoteAvis[]
+  refCode           String?               @unique // code personnel pour le lien d'invitation (?ref=…)
+  parraineParId     String?
+  parrainePar       User?                 @relation("Parrainage", fields: [parraineParId], references: [id], onDelete: SetNull)
+  filleuls          User[]                @relation("Parrainage")
   // Lot 23 — table de parrainage (le lien parrain → filleul + sa récompense)
-  parrainages    Parrainage[] @relation("ParrainagesRecus")
-  parrainageFilleul Parrainage? @relation("ParrainagesDonnes")
+  parrainages       Parrainage[]          @relation("ParrainagesRecus")
+  parrainageFilleul Parrainage?           @relation("ParrainagesDonnes")
+  // Lot 36 — statut du compte (suspension / bannissement révocables)
+  statut            StatutCompte          @default(ACTIF)
+  motifSuspension   String?
+  // Lot 36 — notes internes et historique de suspension (console admin)
+  notes             NoteMembre[]
+  suspensions       SuspensionUser[]
 }
 
 // ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────
@@ -147,8 +153,8 @@ model Parrainage {
   recompenseLe DateTime?
   creeLe       DateTime         @default(now())
   majLe        DateTime         @updatedAt
-  parrain User  @relation("ParrainagesRecus", fields: [parrainId], references: [id], onDelete: Cascade)
-  filleul User  @relation("ParrainagesDonnes", fields: [filleulId], references: [id], onDelete: Cascade)
+  parrain      User             @relation("ParrainagesRecus", fields: [parrainId], references: [id], onDelete: Cascade)
+  filleul      User             @relation("ParrainagesDonnes", fields: [filleulId], references: [id], onDelete: Cascade)
 
   @@index([parrainId])
   @@index([statut, creeLe])
@@ -242,37 +248,37 @@ model Category {
 }
 
 model Tool {
-  id          String           @id @default(cuid())
-  nom         String
-  slug        String           @unique
-  url         String
-  logo        String?
-  description String
-  type        ToolType         @default(OUTIL)
-  tarif       String // affichage : « Freemium — Pro à 20 $/mois »
-  tarifMin    Float? // mensuel indicatif (null = inconnu)
-  gratuit     Boolean          @default(false) // version gratuite utilisable
-  openSource  Boolean          @default(false)
-  langues     String[]         @default(["Français", "Anglais"])
-  niveau      String           @default("Débutant")
-  objectifs   String[]         @default([])
-  fonctions   String[]         @default([])
-  casUsage    String[]         @default([])
-  misEnAvant  Boolean          @default(false)
-  verifieLe   DateTime?
-  statut      ToolStatus       @default(PUBLIE)
-  vues        Int              @default(0) // Lot 25 — compteur d'affichages de la fiche
+  id            String           @id @default(cuid())
+  nom           String
+  slug          String           @unique
+  url           String
+  logo          String?
+  description   String
+  type          ToolType         @default(OUTIL)
+  tarif         String // affichage : « Freemium — Pro à 20 $/mois »
+  tarifMin      Float? // mensuel indicatif (null = inconnu)
+  gratuit       Boolean          @default(false) // version gratuite utilisable
+  openSource    Boolean          @default(false)
+  langues       String[]         @default(["Français", "Anglais"])
+  niveau        String           @default("Débutant")
+  objectifs     String[]         @default([])
+  fonctions     String[]         @default([])
+  casUsage      String[]         @default([])
+  misEnAvant    Boolean          @default(false)
+  verifieLe     DateTime?
+  statut        ToolStatus       @default(PUBLIE)
+  vues          Int              @default(0) // Lot 25 — compteur d'affichages de la fiche
   // Lot 26 — vérification automatique du lien du site officiel :
   // statutLien = dernier code HTTP observé (0 = injoignable / timeout,
   // 2xx-3xx = lien vivant, ≥ 400 = lien mort). null = jamais vérifié.
   statutLien    Int?
   lienVerifieLe DateTime?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  categories  ToolCategory[]
-  favorites   Favorite[]
-  listItems   ListItem[]
-  soumissions ToolSubmission[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  categories    ToolCategory[]
+  favorites     Favorite[]
+  listItems     ListItem[]
+  soumissions   ToolSubmission[]
   avis          Avis[]
   votes         Vote[]
 
@@ -321,6 +327,7 @@ model Avis {
   @@unique([outilId, utilisateurId])
   @@index([outilId])
 }
+
 // Lot 20 — vote « Utile » d'un membre sur un avis (1 vote max par
 // membre et par avis, un 2e clic retire le vote). L'auteur de l'avis
 // reçoit une notification in-app à chaque nouveau vote.
@@ -371,14 +378,14 @@ model Vote {
 }
 
 model List {
-  id        String     @id @default(cuid())
-  userId    String
-  nom       String
-  createdAt DateTime   @default(now())
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     ListItem[]
-  slug          String?  @unique
-  estPublique   Boolean  @default(false)
+  id          String     @id @default(cuid())
+  userId      String
+  nom         String
+  createdAt   DateTime   @default(now())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       ListItem[]
+  slug        String?    @unique
+  estPublique Boolean    @default(false)
 }
 
 model ListItem {
@@ -478,32 +485,35 @@ enum NiveauTuto {
 }
 
 model Tuto {
-  id        String     @id @default(cuid())
-  slug      String     @unique
-  titre     String
-  youtubeId String? // identifiant vidéo YouTube (ex: aBcD123xYz) — null tant que non complété
-  miniature String? // URL d'une miniature personnalisée (sinon i.ytimg.com/vi/{youtubeId}/hqdefault.jpg, sinon placeholder)
-  dureeMin  Int // durée en minutes (94 = « 1h34 »)
-  niveau    NiveauTuto @default(DEBUTANT)
-  outils    String[]   @default([]) // outils/catégories concernés (ex: ["ChatGPT", "Prompt", "OpenAI"])
-  vues      Int        @default(0) // popularité (tri « Plus vus »)
-  ordre     Int        @default(0) // rang de pertinence (tri par défaut, du plus pertinent au moins pertinent)
-  nouveau   Boolean    @default(false) // récent ajout (tri « Nouveautés »)
-  verifieLe DateTime?
-  creeLe    DateTime   @default(now())
-  majLe     DateTime   @updatedAt
+  id           String            @id @default(cuid())
+  slug         String            @unique
+  titre        String
+  youtubeId    String? // identifiant vidéo YouTube (ex: aBcD123xYz) — null tant que non complété
+  miniature    String? // URL d'une miniature personnalisée (sinon i.ytimg.com/vi/{youtubeId}/hqdefault.jpg, sinon placeholder)
+  dureeMin     Int // durée en minutes (94 = « 1h34 »)
+  niveau       NiveauTuto        @default(DEBUTANT)
+  outils       String[]          @default([]) // outils/catégories concernés (ex: ["ChatGPT", "Prompt", "OpenAI"])
+  vues         Int               @default(0) // popularité (tri « Plus vus »)
+  ordre        Int               @default(0) // rang de pertinence (tri par défaut, du plus pertinent au moins pertinent)
+  nouveau      Boolean           @default(false) // récent ajout (tri « Nouveautés »)
+  verifieLe    DateTime?
+  creeLe       DateTime          @default(now())
+  majLe        DateTime          @updatedAt
   progressions ProgressionTuto[]
 
   @@index([niveau])
   @@index([vues])
 }
-/* ============================================================
-   BIBLIOTHÈQUE DE PROMPTS IA (/prompts)
-   Lot 17 — catalogue de prompts métiers prêts à l'emploi.
-   La page d'un prompt est accessible à tous (vitrine), mais le
-   contenu complet + la copie sont réservés aux abonnés Premium
-   (Pro / Entreprise) — même logique que les tutoriels vidéo.
-   ============================================================ */
+
+/**
+ * ============================================================
+ * BIBLIOTHÈQUE DE PROMPTS IA (/prompts)
+ * Lot 17 — catalogue de prompts métiers prêts à l'emploi.
+ * La page d'un prompt est accessible à tous (vitrine), mais le
+ * contenu complet + la copie sont réservés aux abonnés Premium
+ * (Pro / Entreprise) — même logique que les tutoriels vidéo.
+ * ============================================================
+ */
 
 enum TypePrompt {
   TEXTE
@@ -522,25 +532,25 @@ model PromptCategorie {
 }
 
 model Prompt {
-  id            String         @id @default(cuid())
-  slug          String         @unique
+  id            String          @id @default(cuid())
+  slug          String          @unique
   titre         String
-  emoji         String         @default("✨")
+  emoji         String          @default("✨")
   description   String // aperçu public (1–2 phrases, visible sans compte)
   contenu       String // le prompt complet — réservé aux Premium
-  type          TypePrompt     @default(TEXTE)
-  modeles       String[]       @default([]) // ex: ["ChatGPT", "Claude", "Gemini"]
+  type          TypePrompt      @default(TEXTE)
+  modeles       String[]        @default([]) // ex: ["ChatGPT", "Claude", "Gemini"]
   categorieId   String
   categorie     PromptCategorie @relation(fields: [categorieId], references: [id])
-  sousCategorie String         @default("") // tag FR, ex: "Réseaux sociaux"
-  roles         String[]       @default([]) // slugs FR, ex: ["entrepreneurs", "marketeurs"]
-  conseils      String         @default("") // conseils d'utilisation (3 puces)
-  utilisation   String         @default("") // comment l'utiliser (variables à remplir)
-  vues          Int            @default(0) // popularité (tri « Plus vus »)
-  ordre         Int            @default(0) // rang de pertinence (tri par défaut)
-  nouveau       Boolean        @default(false) // récent ajout (tri « Nouveautés »)
-  creeLe        DateTime       @default(now())
-  majLe         DateTime       @updatedAt
+  sousCategorie String          @default("") // tag FR, ex: "Réseaux sociaux"
+  roles         String[]        @default([]) // slugs FR, ex: ["entrepreneurs", "marketeurs"]
+  conseils      String          @default("") // conseils d'utilisation (3 puces)
+  utilisation   String          @default("") // comment l'utiliser (variables à remplir)
+  vues          Int             @default(0) // popularité (tri « Plus vus »)
+  ordre         Int             @default(0) // rang de pertinence (tri par défaut)
+  nouveau       Boolean         @default(false) // récent ajout (tri « Nouveautés »)
+  creeLe        DateTime        @default(now())
+  majLe         DateTime        @updatedAt
   favoris       PromptFavori[]
 
   @@index([categorieId])
@@ -584,6 +594,7 @@ model ProgressionTuto {
   @@unique([userId, tutoId])
   @@index([tutoId])
 }
+
 // Lot 25 — Journal d'audit de la console admin : chaque action sensible
 // (création, édition, suppression, bascule) y est tracée automatiquement.
 model JournalAdmin {
@@ -613,4 +624,155 @@ model RequeteRecherche {
   @@index([terme])
   @@index([creeLe])
   @@index([nbResultats])
+}
+
+// ═════════════════════════════════════════════════════════════════
+// Lot 36 — CROISSANCE & MONÉTISATION (complète le lot 34/35)
+// Ajoute à la base ce que le code des lots 34/35 attend :
+// slots sponsorisés « À la une », codes promo Chariow, envois
+// newsletter, récompenses de parrainage, notes internes et
+// suspensions de comptes — dans les conventions du projet
+// (cuid, creeLe/majLe, enums StatutX, index sur les filtres).
+// ═════════════════════════════════════════════════════════════════
+
+// Statut du compte d'un membre (modéré par les admins depuis la
+// fiche membre). ACTIF par défaut ; SUSPENDU = connexion bloquée
+// avec motif affiché ; BANNI = blocage définitif. Révocable :
+// l'admin remet le statut à ACTIF et la ligne SuspensionUser est
+// levée (leveeLe rempli).
+enum StatutCompte {
+  ACTIF
+  SUSPENDU
+  BANNI
+}
+
+// ── Slots sponsorisés « À la une » ──────────────────────────────────
+// Une ligne = un emplacement acheté par un annonceur, affiché sur
+// l'accueil ou en tête d'une catégorie PENDANT sa période
+// (dateDebut → dateFin). Chaque affichage public incrémente
+// `impressions`, chaque clic incrémente `clics` — l'admin voit les
+// deux compteurs dans /admin/sponsors.
+model SlotSponsor {
+  id          String   @id @default(cuid())
+  titre       String // nom affiché de l'annonce
+  url         String // destination du clic
+  logo        String? // URL d'un logo (sinon favicon auto)
+  description String? // une phrase d'accroche
+  emplacement String   @default("ACCUEIL") // "ACCUEIL" ou "CATEGORIE"
+  cibleSlug   String? // slug de la catégorie quand emplacement = "CATEGORIE"
+  dateDebut   DateTime // début de diffusion (inclus)
+  dateFin     DateTime // fin de diffusion (incluse)
+  actif       Boolean  @default(true) // interrupteur admin (pause)
+  impressions Int      @default(0)
+  clics       Int      @default(0)
+  creeLe      DateTime @default(now())
+  majLe       DateTime @updatedAt
+
+  @@index([actif, dateDebut, dateFin])
+  @@index([emplacement, cibleSlug])
+}
+
+// ── Codes promo Chariow ─────────────────────────────────────────────
+// Un code = une réduction communiquée aux membres, à créer aussi côté
+// Chariow. `ConversionCodePromo` enregistre chaque achat attribué au
+// code (traçage des ventes), pour la page /admin/codes-promo.
+model CodePromo {
+  id              String                @id @default(cuid())
+  code            String                @unique // ex: "LANCEMENT20" (insensible à la casse côté saisie, stocké en majuscules)
+  description     String? // note interne (« Campagne newsletter de mars »)
+  typeRemise      String                @default("POURCENTAGE") // "POURCENTAGE" | "MONTANT" | "MOIS_OFFERTS"
+  valeur          Int                   @default(0) // pourcentage (20 = -20 %), montant en centimes, ou nombre de mois offerts
+  dateDebut       DateTime? // null = valable dès maintenant
+  dateFin         DateTime? // null = sans limite de durée
+  maxUtilisations Int? // null = illimité
+  actif           Boolean               @default(true)
+  creeLe          DateTime              @default(now())
+  majLe           DateTime              @updatedAt
+  conversions     ConversionCodePromo[]
+
+  @@index([actif, dateFin])
+}
+
+// Une ligne = un paiement attribué à un code promo (webhook Chariow
+// ou retour de paiement). `code` est recopié en clair pour garder
+// l'historique même si le code promo est supprimé plus tard.
+model ConversionCodePromo {
+  id           String    @id @default(cuid())
+  codeId       String
+  code         String // copie lisible du code au moment de la conversion
+  email        String? // email du client Chariow si connu
+  userId       String? // membre Webgiverse lié, s'il était connecté
+  montantCents Int? // montant payé, en centimes (299 = 2,99 USD)
+  creeLe       DateTime  @default(now())
+  codePromo    CodePromo @relation(fields: [codeId], references: [id], onDelete: Cascade)
+
+  @@index([codeId])
+  @@index([creeLe])
+}
+
+// ── Newsletter (console admin) ──────────────────────────────────────
+// Une ligne = un envoi effectué depuis le composeur /admin/newsletter :
+// sujet, contenu HTML rendu, segment ciblé et nombre de destinataires
+// réels — l'historique permet de savoir ce qui a déjà été envoyé.
+model EnvoiNewsletter {
+  id              String   @id @default(cuid())
+  sujet           String
+  contenuHtml     String
+  segment         String   @default("TOUS") // "TOUS", "PREMIUM", "INACTIFS-30J", "PARRAINS-ACTIFS", "INSCRITS-SEMAINE"…
+  nbDestinataires Int      @default(0) // destinataires réellement traités
+  statut          String   @default("ENVOYE") // "ENVOYE" | "ECHEC"
+  creeLe          DateTime @default(now())
+
+  @@index([creeLe])
+}
+
+// ── Récompenses de parrainage (livre de comptes) ────────────────────
+// Une ligne = une récompense offerte à un parrain quand son filleul
+// paie (abonnement prolongé de N jours). Complète Parrainage.statut :
+// la table Parrainage dit QUEL lien est récompensé, celle-ci dit
+// COMBIEN de jours ont été ajoutés et jusqu'à quand.
+model RecompenseParrain {
+  id           String    @id @default(cuid())
+  parrainId    String
+  filleulId    String
+  parrainageId String? // lien Parrainage d'origine
+  joursOfferts Int       @default(30)
+  expireLe     DateTime? // nouvelle date d'expiration de l'abonnement du parrain
+  creeLe       DateTime  @default(now())
+
+  @@index([parrainId])
+  @@index([creeLe])
+}
+
+// ── Notes internes sur un membre (console admin) ────────────────────
+// Une ligne = une note privée d'un admin sur un membre, visible dans
+// la fiche membre (/admin/membres/[id]). Jamais montrée au membre.
+model NoteMembre {
+  id      String   @id @default(cuid())
+  userId  String
+  adminId String
+  contenu String
+  creeLe  DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, creeLe])
+}
+
+// ── Suspensions / bannissements de comptes ──────────────────────────
+// Une ligne = une suspension (ou un bannissement si finLe est null)
+// posée par un admin, avec son motif. Révocable : à la levée,
+// leveeLe est rempli et le User.statut repasse à ACTIF.
+model SuspensionUser {
+  id      String    @id @default(cuid())
+  userId  String
+  adminId String
+  motif   String
+  debutLe DateTime  @default(now())
+  finLe   DateTime? // null = bannissement indéfini
+  leveeLe DateTime? // rempli quand l'admin lève la suspension
+  creeLe  DateTime  @default(now())
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([debutLe])
 }
