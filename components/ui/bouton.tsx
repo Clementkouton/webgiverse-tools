@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const boutonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full text-[16px] leading-5 font-semibold transition duration-200 active:scale-[0.98] active:duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-[18px] [&_svg]:shrink-0",
+  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full text-[14px] leading-5 font-semibold transition duration-200 active:scale-[0.98] active:duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-[18px] [&_svg]:shrink-0",
   {
     variants: {
       variante: {
@@ -22,7 +22,7 @@ const boutonVariants = cva(
         indigoDoux: "border border-primaire/30 bg-primaire/10 text-primaire-texte hover:border-primaire/60 hover:bg-primaire/15",
       },
       taille: {
-        sm: "min-h-11 px-4 text-[14px] leading-5", // 44 px minimum (tactile)
+        sm: "min-h-10 px-2 text-[14px] leading-5", // 44 px minimum (tactile)
         md: "min-h-11 px-6",
         lg: "min-h-12 px-8",
       },

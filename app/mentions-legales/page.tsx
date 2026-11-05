@@ -1,19 +1,29 @@
-﻿import type { Metadata } from "next";
+﻿
+import type { Metadata } from "next";
 import Link from "next/link";
-import { Scale, MessageCircle, ShieldCheck, ScrollText } from "lucide-react";
+import {
+  Scale,
+  MessageCircle,
+  ShieldCheck,
+  ScrollText,
+  Globe,
+  FileText,
+  BriefcaseBusiness,
+  Mail,
+} from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Mentions légales",
+  title: "Mentions légales | Webgiverse Tools",
   description:
-    "Éditeur du site Webgiverse, hébergement, prestataires techniques, propriété intellectuelle, liens d'affiliation et informations légales de la plateforme Webgiverse Tools.",
+    "Consultez les mentions légales de Webgiverse Tools : informations sur l'éditeur, hébergement, propriété intellectuelle, responsabilité et conditions d'utilisation.",
 };
 
 const SOMMAIRE: Array<[string, string]> = [
-  ["Éditeur", "editeur"],
+  ["Éditeur du site", "editeur"],
   ["Hébergement", "hebergement"],
-  ["Prestataires", "prestataires"],
+  ["Services et prestataires", "prestataires"],
   ["Propriété intellectuelle", "propriete"],
-  ["Liens et affiliation", "liens"],
+  ["Liens externes", "liens"],
   ["Responsabilité", "responsabilite"],
   ["Données personnelles", "donnees"],
   ["Droit applicable", "droit"],
@@ -25,202 +35,256 @@ const VOIR_AUSSI = [
     href: "/confidentialite",
     icone: ShieldCheck,
     titre: "Politique de confidentialité",
-    texte: "Données collectées, cookies, durées de conservation et tes droits.",
+    texte:
+      "Découvrez comment vos données personnelles sont traitées et protégées.",
   },
   {
     href: "/cgu",
     icone: ScrollText,
     titre: "Conditions générales d'utilisation",
-    texte: "Compte, offres Premium, avis et règles d'utilisation du service.",
+    texte:
+      "Consultez les règles d'utilisation de la plateforme et les conditions des offres.",
   },
   {
     href: "/contact",
     icone: MessageCircle,
-    titre: "Une question légale ?",
-    texte: "Écris-nous depuis la page Contact, réponse sous 48 h ouvrées.",
+    titre: "Contacter Webgiverse",
+    texte:
+      "Une question ou une demande concernant la plateforme ? Notre équipe est à votre écoute.",
   },
 ];
 
 export default function PageMentionsLegales() {
   return (
     <>
-      {/* ── En-tête ─────────────────────────────────────────────── */}
+      {/* En-tête */}
       <section className="hero-verre border-b border-bordure">
-        <div className="mx-auto max-w-3xl px-4 py-14 text-center lg:py-18">
+        <div className="mx-auto max-w-6xl px-4 py-14 text-center lg:py-18">
+          <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl border border-bordure bg-white shadow-carte">
+            <Scale className="size-7 text-sky-500" />
+          </div>
+
           <h1 className="text-[30px] leading-9 font-bold tracking-tight sm:text-h1">
             Mentions <span className="texte-degrade">légales</span>
           </h1>
+
           <p className="mesure mx-auto mt-4 text-encre">
-            Les informations légales de Webgiverse Tools : éditeur,
-            hébergement, prestataires et propriété intellectuelle.
+            Retrouvez les informations relatives à l'édition, à
+            l'hébergement et à l'utilisation de Webgiverse Tools.
           </p>
         </div>
       </section>
 
       <section className="py-14 lg:py-18">
-        <div className="mx-auto max-w-3xl px-4">
-          <p className="text-legende text-encre">
-            Dernière mise à jour : 6 novembre 2026
-          </p>
+        <div className="mx-auto max-w-6xl px-4">
 
-          {/* ── Sommaire ──────────────────────────────────────────── */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-legende text-encre">
+              Dernière mise à jour : 5 novembre 2026
+            </p>
+            <span className="rounded-full border border-bordure bg-white px-3 py-1 text-xs text-encre">
+              Informations légales
+            </span>
+          </div>
+
+          {/* Sommaire */}
           <nav
             aria-label="Sommaire des mentions légales"
-            className="mt-4 flex flex-wrap gap-2"
+            className="mt-5 flex flex-wrap gap-2"
           >
             {SOMMAIRE.map(([label, ancre]) => (
               <a
                 key={ancre}
                 href={`#${ancre}`}
-                className="rounded-full border border-bordure bg-white px-3 py-1 text-[13px] leading-5 text-encre transition hover:border-sky-500 hover:text-sky-500"
+                className="rounded-full border border-bordure bg-white px-3 py-1.5 text-[13px] leading-5 text-encre transition hover:border-sky-500 hover:text-sky-500"
               >
                 {label}
               </a>
             ))}
           </nav>
 
-          {/* ── 1. Éditeur ────────────────────────────────────────── */}
+          {/* 1. Éditeur */}
           <article
             id="editeur"
             className="mt-8 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
           >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              1. Éditeur du site
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+            <div className="flex items-center gap-3">
+              <BriefcaseBusiness className="size-6 text-sky-500" />
+              <h2 className="font-titre text-h3 font-semibold text-bleu">
+                1. Éditeur du site
+              </h2>
+            </div>
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                Le site Webgiverse Tools (ci-après « Webgiverse »), accessible
-                notamment à l&apos;adresse{" "}
-                <strong className="font-medium text-bleu">
-                  webgiverse-tools.vercel.app
-                </strong>
-                , est édité par :{" "}
-                <strong className="font-medium text-bleu">
-                  [À COMPLÉTER : nom / prénom de l&apos;éditeur ou raison sociale]
-                </strong>
-                .
+                Le site <strong>Webgiverse Tools</strong>, accessible à
+                l'adresse suivante :
+                {" "}
+                <a
+                  href="https://webgiverse-tools.vercel.app"
+                  className="font-medium text-sky-500 hover:underline"
+                >
+                  https://webgiverse-tools.vercel.app
+                </a>
+                , est une plateforme numérique dédiée à la découverte,
+                à l'exploration et à l'utilisation des outils
+                d'intelligence artificielle et des ressources numériques.
               </p>
-              <ul className="grid gap-1">
-                <li>
-                  Statut juridique :{" "}
-                  <strong className="font-medium text-bleu">[À COMPLÉTER]</strong>
-                </li>
-                <li>
-                  Numéro d&apos;enregistrement (SIRET, RCCM ou équivalent) :{" "}
-                  <strong className="font-medium text-bleu">[À COMPLÉTER]</strong>
-                </li>
-                <li>
-                  Siège / adresse :{" "}
-                  <strong className="font-medium text-bleu">[À COMPLÉTER]</strong>
-                </li>
-                <li>
-                  Directeur de la publication :{" "}
-                  <strong className="font-medium text-bleu">[À COMPLÉTER]</strong>
-                </li>
-                <li>
-                  E-mail de contact :{" "}
-                  <strong className="font-medium text-bleu">[À COMPLÉTER]</strong>
-                </li>
-              </ul>
+
               <p>
-                Toute question relative au site peut également être posée
-                depuis la{" "}
-                <Link href="/contact" className="font-medium text-sky-500 hover:underline">
-                  page Contact
-                </Link>{" "}
-                : ton message arrive directement dans l&apos;espace de gestion
-                de l&apos;équipe.
+                La plateforme est éditée et administrée par son
+                responsable de publication sous la marque
+                commerciale <strong>Webgiverse Tools</strong>.
+              </p>
+
+              <div className="rounded-xl border border-bordure bg-fond p-4">
+                <p className="mb-3 font-semibold text-bleu">
+                  Identification de l'éditeur
+                </p>
+
+                <ul className="grid gap-2">
+                  <li>
+                    <strong>Nom de l'éditeur :</strong> Clement Kouton
+                  </li>
+                  <li>
+                    <strong>Nom commercial :</strong> Webgiverse Tools
+                  </li>
+                  <li>
+                    <strong>Qualité :</strong> Personne physique
+                  </li>
+                  <li>
+                    <strong>Statut juridique :</strong> Activité exercée
+                    à titre individuel, sans société constituée à ce jour.
+                  </li>
+                  <li>
+                    <strong>Immatriculation RCCM :</strong> Non immatriculé
+                    à ce jour.
+                  </li>
+                  <li>
+                    <strong>Directeur de publication :</strong> Clement Kouton
+                  </li>
+                  <li>
+                    <strong>Pays d'établissement :</strong> République du Bénin
+                  </li>
+                  <li>
+                    <strong>Téléphone :</strong> +229 01 69 40 51 98
+                  </li>
+                  <li>
+                    <strong>E-mail :</strong> webgiverse@gmail.com
+                  </li>
+                </ul>
+              </div>
+
+              <p>
+                Webgiverse Tools est une plateforme indépendante
+                destinée à faciliter l'accès aux ressources et
+                solutions numériques. Elle ne représente pas
+                officiellement les éditeurs des outils référencés,
+                sauf indication contraire.
               </p>
             </div>
           </article>
 
-          {/* ── 2. Hébergement ────────────────────────────────────── */}
+          {/* 2. Hébergement */}
           <article
             id="hebergement"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
           >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              2. Hébergement
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+            <div className="flex items-center gap-3">
+              <Globe className="size-6 text-sky-500" />
+              <h2 className="font-titre text-h3 font-semibold text-bleu">
+                2. Hébergement
+              </h2>
+            </div>
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                Le site est hébergé par{" "}
-                <strong className="font-medium text-bleu">Vercel Inc.</strong>,{" "}
-                440 N Barranca Avenue #4133, Covina, CA 91723, États-Unis —{" "}
+                Le site Webgiverse Tools est hébergé par :
+              </p>
+
+              <div className="rounded-xl border border-bordure bg-fond p-4">
+                <strong className="text-bleu">Vercel Inc.</strong>
+                <p>440 N Barranca Avenue #4133</p>
+                <p>Covina, CA 91723, États-Unis</p>
                 <a
                   href="https://vercel.com"
                   target="_blank"
                   rel="noreferrer noopener"
                   className="font-medium text-sky-500 hover:underline"
                 >
-                  vercel.com
+                  https://vercel.com
                 </a>
-                . L&apos;infrastructure de Vercel fournit le service de
-                déploiement, la distribution du contenu et la terminaison HTTPS
-                de Webgiverse Tools.
+              </div>
+
+              <p>
+                Le prestataire assure notamment l'hébergement,
+                la distribution et la mise à disposition des
+                pages publiques de la plateforme.
               </p>
             </div>
           </article>
 
-          {/* ── 3. Prestataires techniques ────────────────────────── */}
+          {/* 3. Services et prestataires */}
           <article
             id="prestataires"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
           >
             <h2 className="font-titre text-h3 font-semibold text-bleu">
-              3. Autres prestataires techniques
+              3. Services et prestataires
             </h2>
-            <ul className="mesure mt-3 grid gap-2 text-[15px] leading-6 text-encre">
-              <li className="flex gap-2">
-                <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden />
-                <span>
-                  <strong className="font-medium text-bleu">
-                    Base de données
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
+              <p>
+                Pour assurer le fonctionnement de ses services,
+                Webgiverse Tools peut faire appel à différents
+                prestataires externes spécialisés.
+              </p>
+
+              <ul className="grid gap-3">
+                <li>
+                  <strong className="text-bleu">
+                    Services de paiement :
                   </strong>{" "}
-                  : PostgreSQL managé par Neon (neon.tech).
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden />
-                <span>
-                  <strong className="font-medium text-bleu">
-                    Envoi d&apos;e-mails
+                  les transactions liées aux offres payantes
+                  peuvent être traitées par des prestataires
+                  de paiement partenaires, notamment Chariow.
+                </li>
+
+                <li>
+                  <strong className="text-bleu">
+                    Services de communication :
                   </strong>{" "}
-                  : service SMTP configuré par l&apos;éditeur (par exemple
-                  Gmail ou Brevo) via la librairie nodemailer.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden />
-                <span>
-                  <strong className="font-medium text-bleu">
-                    Paiements
+                  des prestataires externes peuvent être utilisés
+                  pour assurer les communications nécessaires
+                  avec les utilisateurs.
+                </li>
+
+                <li>
+                  <strong className="text-bleu">
+                    Services de contenus :
                   </strong>{" "}
-                  : Chariow, service de Axa Zara LLC (chariow.com), et le cas
-                  échéant Moneroo — aucun donné bancaire n&apos;est stocké sur
-                  Webgiverse.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden />
-                <span>
-                  <strong className="font-medium text-bleu">Connexion</strong>{" "}
-                  : authentification par Google (OAuth) ou par e-mail et mot de
-                  passe, gérée par NextAuth.js.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden />
-                <span>
-                  <strong className="font-medium text-bleu">Vidéos</strong> :
-                  les tutoriels sont des vidéos YouTube embarquées (lire la
-                  politique de confidentialité au sujet des cookies YouTube).
-                </span>
-              </li>
-            </ul>
+                  certains contenus pédagogiques peuvent être
+                  diffusés à partir de plateformes tierces,
+                  notamment des services d'hébergement vidéo.
+                </li>
+              </ul>
+
+              <p>
+                Ces prestataires interviennent uniquement dans
+                le cadre des services nécessaires au fonctionnement
+                de la plateforme et selon leurs conditions
+                respectives.
+              </p>
+
+              <p>
+                Les informations relatives au traitement des
+                données personnelles sont disponibles dans
+                notre politique de confidentialité.
+              </p>
+            </div>
           </article>
 
-          {/* ── 4. Propriété intellectuelle ───────────────────────── */}
+          {/* 4. Propriété intellectuelle */}
           <article
             id="propriete"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
@@ -228,33 +292,42 @@ export default function PageMentionsLegales() {
             <h2 className="font-titre text-h3 font-semibold text-bleu">
               4. Propriété intellectuelle
             </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                L&apos;ensemble du site — structure, textes, logo, charte
-                graphique, base de données d&apos;outils et code source — est la
-                propriété de l&apos;éditeur ou fait l&apos;objet d&apos;une
-                autorisation d&apos;utilisation. Toute reproduction,
-                représentation ou exploitation, totale ou partielle, sans
-                autorisation écrite préalable est interdite.
+                L'ensemble des éléments composant Webgiverse Tools,
+                notamment son identité visuelle, son logo, ses
+                textes originaux, son organisation éditoriale et
+                ses contenus propriétaires, est protégé par les
+                règles applicables en matière de propriété
+                intellectuelle.
               </p>
+
               <p>
-                Webgiverse référence des outils, agents et services créés par
-                des tiers. Les noms, logos et descriptions de ces outils
-                appartiennent à leurs ayants droit respectifs ; leur mention sur
-                Webgiverse vaut description éditoriale, pas revendication de
-                propriété. Webgiverse n&apos;est pas affilié aux éditeurs des
-                outils référencés, sauf mention contraire.
+                Toute reproduction, représentation, modification,
+                distribution ou exploitation non autorisée de
+                ces éléments, en totalité ou en partie, est
+                interdite, sauf autorisation préalable du titulaire
+                des droits ou disposition légale contraire.
               </p>
+
               <p>
-                Les tutoriels vidéo sont hébergés par YouTube et diffusés via
-                l&apos;intégration officielle : leur utilisation reste soumise
-                aux conditions d&apos;utilisation de YouTube et des services
-                Google.
+                Webgiverse Tools référence également des outils,
+                plateformes, agents IA et services développés
+                par des entreprises ou créateurs indépendants.
+              </p>
+
+              <p>
+                Les marques, noms commerciaux, logos et contenus
+                appartenant à ces tiers restent la propriété
+                de leurs titulaires respectifs. Leur présence
+                sur Webgiverse Tools ne signifie pas que ces
+                derniers approuvent ou sponsorisent la plateforme.
               </p>
             </div>
           </article>
 
-          {/* ── 5. Liens et affiliation ───────────────────────────── */}
+          {/* 5. Liens externes et affiliation */}
           <article
             id="liens"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
@@ -262,126 +335,200 @@ export default function PageMentionsLegales() {
             <h2 className="font-titre text-h3 font-semibold text-bleu">
               5. Liens externes et affiliation
             </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                Certains liens du site (vers des outils IA ou des services
-                partenaires) sont des{" "}
-                <strong className="font-medium text-bleu">
-                  liens d&apos;affiliation
-                </strong>{" "}
-                : si tu souscris à un service après avoir cliqué, Webgiverse
-                peut recevoir une commission de l&apos;éditeur du service. Ce
-                dispositif finance le projet{" "}
-                <strong className="font-medium text-bleu">
-                  sans changer ton prix
-                </strong>
-                .
+                Webgiverse Tools peut proposer des liens vers
+                des sites, applications et services externes
+                afin de faciliter la découverte des ressources
+                numériques.
               </p>
+
               <p>
-                Webgiverse renvoie vers des sites tiers qu&apos;il ne contrôle
-                pas. L&apos;éditeur ne peut être tenu responsable du contenu,
-                des prix ou des pratiques de ces sites externes ; les
-                conditions et politiques de confidentialité de ces sites
-                s&apos;appliquent à leur usage.
+                Certains liens peuvent être des liens
+                d'affiliation. Dans ce cas, Webgiverse Tools
+                peut percevoir une commission lorsqu'un
+                utilisateur effectue une action ou souscrit
+                à un service partenaire à partir de ces liens.
+              </p>
+
+              <p>
+                Lorsque cela s'applique, la nature commerciale
+                du lien est signalée de manière appropriée.
+                L'utilisation d'un lien d'affiliation n'entraîne
+                pas nécessairement de coût supplémentaire
+                pour l'utilisateur.
+              </p>
+
+              <p>
+                Webgiverse Tools ne contrôle pas les sites
+                externes et ne peut garantir la disponibilité,
+                l'exactitude des informations, les tarifs ou
+                les conditions proposés par leurs éditeurs.
               </p>
             </div>
           </article>
 
-          {/* ── 6. Responsabilité ─────────────────────────────────── */}
+          {/* 6. Responsabilité */}
           <article
             id="responsabilite"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
           >
             <h2 className="font-titre text-h3 font-semibold text-bleu">
-              6. Limitation de responsabilité
+              6. Responsabilité
             </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                Webgiverse est fourni « en l&apos;état » et s&apos;efforce
-                d&apos;assurer un accès continu, mais des interruptions
-                (maintenance, évolutions, incidents techniques) peuvent
-                survenir sans préavis.
+                Webgiverse Tools s'efforce de proposer une
+                plateforme accessible, fonctionnelle et
+                régulièrement améliorée.
               </p>
+
               <p>
-                Les fiches outils (tarifs, fonctionnalités, langues) sont
-                vérifiées régulièrement mais restent indicatives : seul le site
-                officiel de chaque outil fait foi pour ses prix et conditions
-                actuels. L&apos;éditeur ne saurait être tenu responsable des
-                décisions prises sur la base de ces informations ni des dommages
-                indirects liés à l&apos;usage du site ou des outils
-                référencés.
+                Toutefois, des interruptions temporaires peuvent
+                survenir notamment en raison d'opérations de
+                maintenance, de mises à jour ou d'incidents
+                indépendants de la volonté de l'éditeur.
+              </p>
+
+              <p>
+                Les descriptions, tarifs, fonctionnalités et
+                disponibilités des outils référencés sont
+                communiqués à titre informatif. Malgré les
+                efforts de vérification, certaines informations
+                peuvent évoluer sans préavis.
+              </p>
+
+              <p>
+                Il appartient à chaque utilisateur de vérifier
+                les informations directement auprès de l'éditeur
+                du service concerné avant toute décision d'achat
+                ou d'utilisation.
+              </p>
+
+              <p>
+                Les présentes dispositions ne limitent pas les
+                droits dont les utilisateurs bénéficient
+                impérativement en vertu de la législation
+                applicable.
               </p>
             </div>
           </article>
 
-          {/* ── 7. Données personnelles ───────────────────────────── */}
+          {/* 7. Données personnelles */}
           <article
             id="donnees"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
           >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              7. Données personnelles et cookies
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="size-6 text-sky-500" />
+              <h2 className="font-titre text-h3 font-semibold text-bleu">
+                7. Données personnelles et confidentialité
+              </h2>
+            </div>
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                Le traitement de tes données personnelles (compte, newsletter,
-                paiements, cookies) est décrit en détail dans la{" "}
-                <Link
-                  href="/confidentialite"
-                  className="font-medium text-sky-500 hover:underline"
-                >
-                  politique de confidentialité
-                </Link>
-                , qui fait partie intégrante des présentes mentions.
+                Dans le cadre de l'utilisation de Webgiverse Tools,
+                certaines données peuvent être collectées et
+                traitées afin de permettre la création de comptes,
+                l'accès aux fonctionnalités, la gestion des
+                abonnements et l'amélioration des services.
               </p>
+
+              <p>
+                Webgiverse Tools accorde une importance particulière
+                à la confidentialité et à la protection des
+                informations de ses utilisateurs.
+              </p>
+
+              <p>
+                Les modalités de collecte, d'utilisation, de
+                conservation et de protection des données,
+                ainsi que les droits des utilisateurs, sont
+                détaillés dans notre :
+              </p>
+
+              <Link
+                href="/confidentialite"
+                className="inline-flex items-center gap-2 font-medium text-sky-500 hover:underline"
+              >
+                <ShieldCheck className="size-4" />
+                Politique de confidentialité
+              </Link>
             </div>
           </article>
 
-          {/* ── 8. Droit applicable ───────────────────────────────── */}
+          {/* 8. Droit applicable */}
           <article
             id="droit"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
           >
             <h2 className="font-titre text-h3 font-semibold text-bleu">
-              8. Droit applicable et litiges
+              8. Droit applicable et règlement des différends
             </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                Les présentes mentions sont soumises au droit de{" "}
-                <strong className="font-medium text-bleu">
-                  [À COMPLÉTER : pays de l&apos;éditeur]
-                </strong>
-                . En cas de différend, une solution amiable sera recherchée en
-                priorité ; à défaut, les tribunaux compétents de{" "}
-                <strong className="font-medium text-bleu">
-                  [À COMPLÉTER : ville / ressort]
-                </strong>{" "}
-                seront saisis. Tu peux aussi saisir l&apos;autorité de
-                protection des données de ton pays de résidence.
+                Les présentes mentions légales sont soumises
+                à la législation applicable au lieu
+                d'établissement de l'éditeur, sous réserve
+                des dispositions impératives applicables
+                aux utilisateurs.
+              </p>
+
+              <p>
+                En cas de difficulté ou de différend relatif
+                à l'utilisation de Webgiverse Tools, les
+                parties sont invitées à rechercher en priorité
+                une solution amiable.
+              </p>
+
+              <p>
+                À défaut de résolution amiable, le différend
+                sera soumis aux juridictions compétentes
+                conformément aux règles de droit applicables.
               </p>
             </div>
           </article>
 
-          {/* ── 9. Contact ────────────────────────────────────────── */}
+          {/* 9. Contact */}
           <article
             id="contact"
             className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
           >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              9. Contact
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+            <div className="flex items-center gap-3">
+              <MessageCircle className="size-6 text-sky-500" />
+              <h2 className="font-titre text-h3 font-semibold text-bleu">
+                9. Contact
+              </h2>
+            </div>
+
+            <div className="mesure mt-4 grid gap-3 text-[15px] leading-7 text-encre">
               <p>
-                Pour toute question sur ces mentions ou sur le site, utilise la{" "}
-                <Link href="/contact" className="font-medium text-sky-500 hover:underline">
-                  page Contact
-                </Link>
-                . L&apos;équipe répond sous 48 h ouvrées.
+                Pour toute question concernant les présentes
+                mentions légales, le fonctionnement de la
+                plateforme ou l'utilisation de ses services,
+                vous pouvez contacter l'équipe Webgiverse Tools.
+              </p>
+
+              <Link
+                href="/contact"
+                className="inline-flex w-fit items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-violet-600 px-5 py-3 font-medium text-white transition hover:opacity-90"
+              >
+                <MessageCircle className="size-4" />
+                Contacter Webgiverse Tools
+              </Link>
+
+              <p className="text-sm text-encre">
+                Les demandes sont examinées par l'équipe
+                dans les meilleurs délais.
               </p>
             </div>
           </article>
 
-          {/* ── Voir aussi ────────────────────────────────────────── */}
+          {/* Pages complémentaires */}
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {VOIR_AUSSI.map((l) => (
               <Link
@@ -390,20 +537,29 @@ export default function PageMentionsLegales() {
                 className="group survol-carte rounded-carte border border-bordure bg-white p-5 shadow-carte"
               >
                 <l.icone className="size-6 text-sky-500" aria-hidden />
-                <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold group-hover:text-sky-500">
+
+                <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold text-bleu group-hover:text-sky-500">
                   {l.titre}
                 </h2>
-                <p className="mt-1 text-[14px] leading-5 text-encre">{l.texte}</p>
+
+                <p className="mt-2 text-[14px] leading-5 text-encre">
+                  {l.texte}
+                </p>
               </Link>
             ))}
           </div>
 
-          <p className="mesure mt-8 flex items-start gap-2 text-[13px] leading-5 text-encre">
-            <Scale className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
-            <span>
-              Mentions légales de Webgiverse Tools — version du 6 novembre 2026.
-            </span>
-          </p>
+          {/* Pied de page */}
+          <div className="mt-10 border-t border-bordure pt-6">
+            <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
+              <FileText className="mt-0.5 size-4 shrink-0 text-sky-500" />
+              <span>
+                Mentions légales de Webgiverse Tools.
+                Dernière mise à jour : 5 novembre 2026.
+              </span>
+            </p>
+          </div>
+
         </div>
       </section>
     </>

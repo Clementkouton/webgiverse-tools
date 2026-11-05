@@ -78,11 +78,11 @@ export function Header() {
 
   return (
     <header className="verre justify-between sticky top-0 z-50 border-b border-bordure">
-      <div className="mx-auto flex h-16  items-center gap-2 px-4 sm:gap-3 lg:h-18">
-        <LienLogo />
+      <div className="mx-0 flex h-16  items-center gap-2 lg:px-8 px-4 sm:gap-3 lg:h-18">
+        <LienLogo  />
 
         {/* Navigation desktop */}
-        <nav className="hidden items-center justify-between gap-1 lg:flex" aria-label="Navigation principale">
+        <nav className="ml-auto hidden items-center justify-center gap-1 lg:flex" aria-label="Navigation principale">
           <details className="group relative  items-center justify-center">
             <summary
               className={`flex min-h-11 cursor-pointer list-none items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium transition [&::-webkit-details-marker]:hidden ${

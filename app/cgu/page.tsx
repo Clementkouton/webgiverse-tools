@@ -1,11 +1,15 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { ScrollText, MessageCircle, ShieldCheck, Scale } from "lucide-react";
+import {
+  ScrollText,
+  ShieldCheck,
+  Scale,
+} from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Conditions générales d'utilisation (CGU)",
+  title: "Conditions générales d'utilisation (CGU) | Webgiverse Tools",
   description:
-    "Règles d'utilisation de Webgiverse Tools : compte, plan Découverte et offres Premium (Pro, Entreprise), avis et contenus, newsletter, suspension et responsabilités.",
+    "Consulte les conditions générales d'utilisation de Webgiverse Tools : compte, fonctionnalités gratuites et Premium, paiements, contenus et responsabilités.",
 };
 
 const SOMMAIRE: Array<[string, string]> = [
@@ -28,38 +32,78 @@ const VOIR_AUSSI = [
     href: "/confidentialite",
     icone: ShieldCheck,
     titre: "Politique de confidentialité",
-    texte: "Données collectées, cookies, durées de conservation et tes droits.",
+    texte: "Découvre les données traitées, leur utilisation et tes droits.",
   },
   {
     href: "/mentions-legales",
     icone: Scale,
     titre: "Mentions légales",
-    texte: "Éditeur du site, hébergement et prestataires techniques.",
+    texte: "Identité de l'éditeur, hébergement et informations légales.",
   },
   {
     href: "/tarifs",
     icone: ScrollText,
     titre: "Voir les tarifs",
-    texte: "Plan Découverte gratuit, offres Pro et Entreprise en détail.",
+    texte: "Consulte les fonctionnalités et les tarifs des différentes offres.",
   },
 ];
 
 function Puce() {
-  return <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500" aria-hidden />;
+  return (
+    <span
+      className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500"
+      aria-hidden
+    />
+  );
+}
+
+function Section({
+  id,
+  titre,
+  children,
+}: {
+  id: string;
+  titre: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <article
+      id={id}
+      className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
+    >
+      <h2 className="font-titre text-h3 font-semibold text-bleu">
+        {titre}
+      </h2>
+      <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
+        {children}
+      </div>
+    </article>
+  );
+}
+
+function Item({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex gap-2">
+      <Puce />
+      <span>{children}</span>
+    </li>
+  );
 }
 
 export default function PageCgu() {
   return (
     <>
-      {/* ── En-tête ─────────────────────────────────────────────── */}
+      {/* En-tête */}
       <section className="hero-verre border-b border-bordure">
-        <div className="mx-auto max-w-3xl px-4 py-14 text-center lg:py-18">
+        <div className="mx-auto max-w-6xl px-4 py-14 text-center lg:py-18">
           <h1 className="text-[30px] leading-9 font-bold tracking-tight sm:text-h1">
-            Conditions générales <span className="texte-degrade">d&apos;utilisation</span>
+            Conditions générales{" "}
+            <span className="texte-degrade">d&apos;utilisation</span>
           </h1>
+
           <p className="mesure mx-auto mt-4 text-encre">
-            Les règles du jeu : ce que Webgiverse t&apos;offre et ce que nous
-            attendons de toi. Courtes, lisibles, sans piège.
+            Les règles d&apos;utilisation de Webgiverse Tools, présentées de
+            manière claire et transparente.
           </p>
         </div>
       </section>
@@ -67,10 +111,10 @@ export default function PageCgu() {
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-3xl px-4">
           <p className="text-legende text-encre">
-            Dernière mise à jour : 6 novembre 2026
+            Dernière mise à jour : 5 novembre 2026
           </p>
 
-          {/* ── Sommaire ──────────────────────────────────────────── */}
+          {/* Sommaire */}
           <nav
             aria-label="Sommaire des conditions générales d'utilisation"
             className="mt-4 flex flex-wrap gap-2"
@@ -86,442 +130,554 @@ export default function PageCgu() {
             ))}
           </nav>
 
-          {/* ── 1. Objet ──────────────────────────────────────────── */}
-          <article
-            id="objet"
-            className="mt-8 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              1. Objet et acceptation
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                Les présentes conditions régissent l&apos;utilisation de
-                Webgiverse Tools : un annuaire d&apos;outils et d&apos;agents
-                IA, des tutoriels vidéo, une bibliothèque de prompts, un
-                assistant IA de recommandation, un blog, des actualités et un
-                espace membre (dashboard).
-              </p>
-              <p>
-                En naviguant sur le site tu acceptes ces conditions ; en créant
-                un compte, tu les acceptes expressément. Si tu n&apos;es pas
-                d&apos;accord, merci de ne pas utiliser le service. Elles sont
-                complétées par la{" "}
+          {/* 1. Objet */}
+          <Section id="objet" titre="1. Objet et acceptation">
+            <p>
+              Les présentes conditions générales d&apos;utilisation (CGU)
+              encadrent l&apos;accès et l&apos;utilisation de Webgiverse Tools,
+              une plateforme proposant notamment un annuaire d&apos;outils et
+              d&apos;agents d&apos;intelligence artificielle, des tutoriels,
+              une bibliothèque de prompts, un assistant de recommandation,
+              des contenus éditoriaux et un espace membre.
+            </p>
+
+            <p>
+              En utilisant les services de Webgiverse Tools, tu reconnais
+              avoir pris connaissance des présentes conditions. La création
+              d&apos;un compte ou la souscription à une offre payante peut
+              également nécessiter une acceptation expresse de ces conditions.
+            </p>
+
+            <p>
+              Si tu n&apos;acceptes pas ces conditions, nous te demandons de
+              ne pas utiliser les fonctionnalités concernées.
+            </p>
+
+            <p>
+              Les présentes CGU sont complétées par notre{" "}
+              <Link
+                href="/confidentialite"
+                className="font-medium text-sky-500 hover:underline"
+              >
+                politique de confidentialité
+              </Link>{" "}
+              et nos{" "}
+              <Link
+                href="/mentions-legales"
+                className="font-medium text-sky-500 hover:underline"
+              >
+                mentions légales
+              </Link>
+              .
+            </p>
+          </Section>
+
+          {/* 2. Définitions */}
+          <Section id="definitions" titre="2. Définitions">
+            <ul className="grid gap-2 leading-6">
+              <Item>
+                <strong className="font-medium text-bleu">Site :</strong>{" "}
+                le site Webgiverse Tools et l&apos;ensemble de ses pages.
+              </Item>
+
+              <Item>
+                <strong className="font-medium text-bleu">Visiteur :</strong>{" "}
+                toute personne qui consulte le site sans disposer d&apos;un
+                compte.
+              </Item>
+
+              <Item>
+                <strong className="font-medium text-bleu">Membre :</strong>{" "}
+                toute personne ayant créé un compte sur la plateforme.
+              </Item>
+
+              <Item>
+                <strong className="font-medium text-bleu">Outils :</strong>{" "}
+                les logiciels, applications, plateformes et agents
+                d&apos;intelligence artificielle référencés sur le site.
+              </Item>
+
+              <Item>
+                <strong className="font-medium text-bleu">
+                  Plan Découverte :
+                </strong>{" "}
+                l&apos;offre gratuite donnant accès à certaines
+                fonctionnalités de la plateforme.
+              </Item>
+
+              <Item>
+                <strong className="font-medium text-bleu">
+                  Offres Premium :
+                </strong>{" "}
+                les formules payantes proposées sur la page Tarifs.
+              </Item>
+            </ul>
+          </Section>
+
+          {/* 3. Compte */}
+          <Section id="compte" titre="3. Compte et plan Découverte">
+            <p>
+              La consultation des pages publiques de Webgiverse Tools peut
+              être effectuée sans création de compte. Certaines fonctionnalités
+              nécessitent toutefois de disposer d&apos;un compte membre.
+            </p>
+
+            <p>
+              La création d&apos;un compte peut être proposée par connexion
+              Google ou par adresse e-mail et mot de passe, selon les options
+              disponibles sur la plateforme.
+            </p>
+
+            <p>
+              Le plan Découverte donne accès aux fonctionnalités gratuites
+              indiquées sur le site. Les limites d&apos;utilisation, quotas
+              et fonctionnalités incluses sont ceux affichés sur la plateforme
+              au moment de l&apos;utilisation.
+            </p>
+
+            <ul className="grid gap-2 leading-6">
+              <Item>
+                Tu t&apos;engages à fournir des informations exactes lors de
+                la création de ton compte et à les maintenir à jour.
+              </Item>
+
+              <Item>
+                Tu es responsable de la confidentialité de tes identifiants
+                et des activités réalisées depuis ton compte.
+              </Item>
+
+              <Item>
+                En cas d&apos;utilisation non autorisée de ton compte, tu dois
+                nous contacter dans les meilleurs délais par la{" "}
                 <Link
-                  href="/confidentialite"
+                  href="/contact"
                   className="font-medium text-sky-500 hover:underline"
                 >
-                  politique de confidentialité
-                </Link>{" "}
-                et les{" "}
-                <Link
-                  href="/mentions-legales"
-                  className="font-medium text-sky-500 hover:underline"
-                >
-                  mentions légales
-                </Link>
-                .
-              </p>
-            </div>
-          </article>
-
-          {/* ── 2. Définitions ────────────────────────────────────── */}
-          <article
-            id="definitions"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              2. Définitions
-            </h2>
-            <ul className="mesure mt-3 grid gap-2 text-[15px] leading-6 text-encre">
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  <strong className="font-medium text-bleu">« Site »</strong> :
-                  le site Webgiverse Tools et toutes ses pages.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  <strong className="font-medium text-bleu">« Visiteur »</strong>{" "}
-                  : toute personne naviguant sans compte ;{" "}
-                  <strong className="font-medium text-bleu">« Membre »</strong>{" "}
-                  : toute personne disposant d&apos;un compte.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  <strong className="font-medium text-bleu">« Outils »</strong>{" "}
-                  : les logiciels, applications et agents d&apos;IA référencés
-                  dans l&apos;annuaire, créés par des tiers.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  <strong className="font-medium text-bleu">
-                    « Offres Premium »
-                  </strong>{" "}
-                  : les plans payants Pro et Entreprise décrits à la section 4.
-                </span>
-              </li>
-            </ul>
-          </article>
-
-          {/* ── 3. Compte ─────────────────────────────────────────── */}
-          <article
-            id="compte"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              3. Compte et plan Découverte
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                La consultation de l&apos;annuaire est gratuite, sans compte.
-                La création d&apos;un compte (gratuit) se fait{" "}
-                <strong className="font-medium text-bleu">
-                  avec Google ou par e-mail + mot de passe
-                </strong>{" "}
-                et donne accès au{" "}
-                <strong className="font-medium text-bleu">plan Découverte</strong>{" "}
-                : annuaire complet, 20 favoris, 10 listes, 10 questions
-                d&apos;assistant IA par mois, avis, votes, suivi de progression
-                et export PDF des favoris.
-              </p>
-              <ul className="grid gap-2 leading-6">
-                <li className="flex gap-2">
-                  <Puce />
-                  <span>
-                    Les informations fournies doivent être exactes ; un seul
-                    compte par personne.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <Puce />
-                  <span>
-                    Tu es responsable de la confidentialité de ton mot de passe
-                    et de l&apos;activité réalisée avec ton compte.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <Puce />
-                  <span>
-                    Parrainage : inviter un ami avec ton lien personnel peut
-                    t&apos;offrir 14 jours Premium par filleul qui rejoint et
-                    paie — dans la limite d&apos;un usage loyal (pas
-                    d&apos;auto-parrainage ni de faux comptes).
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <Puce />
-                  <span>
-                    Tu peux demander la suppression de ton compte à tout moment
-                    via la{" "}
-                    <Link
-                      href="/contact"
-                      className="font-medium text-sky-500 hover:underline"
-                    >
-                      page Contact
-                    </Link>
-                    .
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </article>
-
-          {/* ── 4. Premium ────────────────────────────────────────── */}
-          <article
-            id="premium"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              4. Offres Premium
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                Les offres payantes sont des{" "}
-                <strong className="font-medium text-bleu">
-                  prépaiements par période de 30 jours
-                </strong>
-                , en dollars américains (USD), réglés via notre prestataire de
-                paiement{" "}
-                <strong className="font-medium text-bleu">
-                  Chariow (Axa Zara LLC)
-                </strong>{" "}
-                — carte bancaire, mobile money ou transfert selon ton pays :
-              </p>
-              <ul className="grid gap-2 leading-6">
-                <li className="flex gap-2">
-                  <Puce />
-                  <span>
-                    <strong className="font-medium text-bleu">
-                      Pro — $2,99
-                    </strong>{" "}
-                    / 30 jours : favoris et listes illimités, assistant IA
-                    illimité, badge Premium, suggestions prioritaires (le
-                    double), export PDF.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <Puce />
-                  <span>
-                    <strong className="font-medium text-bleu">
-                      Entreprise — $7,99
-                    </strong>{" "}
-                    / 30 jours : tous les avantages Pro, alertes hebdomadaires
-                    des nouveaux outils, accès anticipé aux nouveautés,
-                    historique d&apos;activité étendu (200 entrées), support
-                    prioritaire par e-mail.
-                  </span>
-                </li>
-                <li className="flex gap-2">
-                  <Puce />
-                  <span>
-                    La lecture des tutoriels vidéo est réservée aux abonnés
-                    Premium connectés ; la liste des tutoriels reste publique.
-                  </span>
-                </li>
-              </ul>
-              <p>
-                <strong className="font-medium text-bleu">
-                  Pas de reconduction automatique
-                </strong>{" "}
-                : ton accès Premium court jusqu&apos;à la fin de la période
-                payée, puis tu repasses au plan Découverte (tu peux le
-                prolonger par un nouveau paiement à tout moment). Tes données
-                (favoris, listes, progression) sont conservées après
-                l&apos;expiration. Aucune donnée bancaire n&apos;est stockée
-                sur Webgiverse : le paiement est intégralement traité par le
-                prestataire.
-              </p>
-              <p>
-                Les codes promo éventuels sont valables dans la limite de leur
-                quota et de leurs dates, sont non cumulables et peuvent être
-                retirés à tout moment. Conformément à la politique affichée au
-                moment du paiement{" "}
-                <strong className="font-medium text-bleu">
-                  [À COMPLÉTER si tu veux une politique de remboursement
-                  précise]
-                </strong>
-                , une demande commerciale peut être adressée via la page
-                Contact.
-              </p>
-            </div>
-          </article>
-
-          {/* ── 5. Règles ─────────────────────────────────────────── */}
-          <article
-            id="regles"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              5. Règles d&apos;utilisation
-            </h2>
-            <ul className="mesure mt-3 grid gap-2 text-[15px] leading-6 text-encre">
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  Utilise le site de façon licite et loyale : pas d&apos;usage
-                  frauduleux, pas de tentative de contournement des limites du
-                  plan Découverte.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  Pas d&apos;extraction massive (scraping) du catalogue, pas de
-                  revente ni de partage de ton accès Premium avec des tiers.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  Les avis, votes et propositions d&apos;outils doivent être
-                  sincères et respectueux : pas d&apos;insultes, de spam, de
-                  faux avis ni de liens publicitaires.
-                </span>
-              </li>
-              <li className="flex gap-2">
-                <Puce />
-                <span>
-                  Ne t&apos;attribue pas le contenu du site : pas de
-                  republication du catalogue ou des fiches sans accord écrit.
-                </span>
-              </li>
-            </ul>
-          </article>
-
-          {/* ── 6. Contenus des membres ───────────────────────────── */}
-          <article
-            id="contenus"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              6. Tes contenus (avis, votes, propositions)
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                Les contenus que tu publies (avis, notes, propositions
-                d&apos;outils) restent les tiens. Tu nous accordes une licence
-                non exclusive et gratuite pour les héberger, les afficher et
-                les modérer sur le site.
-              </p>
-              <p>
-                L&apos;équipe peut modifier, masquer ou supprimer tout contenu
-                qui violerait ces conditions ou la loi, sans préavis et sans
-                compensation. Un contenu signalé est examiné dans
-                l&apos;espace de modération interne.
-              </p>
-            </div>
-          </article>
-
-          {/* ── 7. Contenus tiers ─────────────────────────────────── */}
-          <article
-            id="tiers"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              7. Contenus du site et outils tiers
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                Les fiches (tarifs affichés, fonctionnalités, langues,
-                niveaux) sont vérifiées régulièrement mais restent
-                <strong className="font-medium text-bleu"> indicatives</strong>{" "}
-                : seul l&apos;éditeur de chaque outil fait foi pour ses prix et
-                conditions du jour.
-              </p>
-              <p>
-                Les tutoriels sont des vidéos YouTube intégrées : leur lecture
-                est soumise aux conditions de YouTube. Les noms et logos des
-                outils référencés appartiennent à leurs propriétaires
-                respectifs ; Webgiverse est un service indépendant, non affilié
-                aux éditeurs référencés sauf mention contraire.
-              </p>
-            </div>
-          </article>
-
-          {/* ── 8. Affiliation ────────────────────────────────────── */}
-          <article
-            id="affiliation"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              8. Liens d&apos;affiliation
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                Certains liens sont des liens d&apos;affiliation : si tu
-                souscris un service après un clic, Webgiverse peut recevoir une
-                commission —{" "}
-                <strong className="font-medium text-bleu">
-                  cela ne change jamais ton prix
-                </strong>
-                . L&apos;affiliation finance l&apos;hébergement et le
-                développement du site ; elle ne détermine pas à ta place le
-                contenu des avis.
-              </p>
-            </div>
-          </article>
-
-          {/* ── 9. Newsletter ─────────────────────────────────────── */}
-          <article
-            id="newsletter"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              9. Newsletter et e-mails
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                La newsletter (sélection hebdo d&apos;outils IA) t&apos;est
-                envoyée uniquement si tu t&apos;inscris volontairement avec le
-                formulaire du site. Chaque e-mail contient un lien de
-                désabonnement en un clic ; tu peux aussi corriger tes
-                informations via la page de préférences jointe aux e-mails.
-                Les e-mails transactionnels (bienvenue, paiement, sécurité) ne
-                sont pas de la prospection.
-              </p>
-            </div>
-          </article>
-
-          {/* ── 10. Suspension ────────────────────────────────────── */}
-          <article
-            id="suspension"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              10. Suspension et suppression
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                En cas de manquement sérieux à ces conditions (fraude,
-                contenus illicites, abus du service), nous pouvons suspendre ou
-                bannir un compte, avec indication du motif et possibilité de
-                contact — les sessions concernées sont déconnectées
-                immédiatement. Les périodes Premium déjà payées ne sont pas
-                prolongées pendant une suspension justifiée. Tu peux, toi,
-                mettre fin à l&apos;utilisation du service et demander la
-                suppression de ton compte à tout moment.
-              </p>
-            </div>
-          </article>
-
-          {/* ── 11. Responsabilité ────────────────────────────────── */}
-          <article
-            id="responsabilite"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              11. Disponibilité et responsabilité
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                Le service est fourni « en l&apos;état » et peut évoluer
-                (ajouts, corrections, interruptions pour maintenance) ; certains
-                contenus peuvent être corrigés ou retirés. Webgiverse ne
-                garantit pas les outils tiers référencés : leur usage se fait
-                sous ta responsabilité et selon leurs propres conditions.
-                Dans toute la mesure permise par la loi, la responsabilité de
-                l&apos;éditeur ne saurait être engagée pour les dommages
-                indirects (perte de données chez un tiers, perte de revenus)
-                résultant de l&apos;usage du site.
-              </p>
-            </div>
-          </article>
-
-          {/* ── 12. Droit applicable ──────────────────────────────── */}
-          <article
-            id="droit"
-            className="mt-6 scroll-mt-24 rounded-carte border border-bordure bg-white p-6 shadow-carte"
-          >
-            <h2 className="font-titre text-h3 font-semibold text-bleu">
-              12. Modifications et droit applicable
-            </h2>
-            <div className="mesure mt-3 grid gap-3 text-[15px] leading-7 text-encre">
-              <p>
-                Ces conditions peuvent évoluer : la version applicable est celle
-                publiée sur cette page à la date de ton utilisation du service,
-                et la date de mise à jour est indiquée en haut de page. Elles
-                sont soumises au droit de{" "}
-                <strong className="font-medium text-bleu">
-                  [À COMPLÉTER : pays de l&apos;éditeur]
-                </strong>
-                ; tout différend sera d&apos;abord traité à l&apos;amiable via
-                la{" "}
-                <Link href="/contact" className="font-medium text-sky-500 hover:underline">
                   page Contact
                 </Link>
                 .
-              </p>
-            </div>
-          </article>
+              </Item>
 
-          {/* ── Voir aussi ────────────────────────────────────────── */}
+              <Item>
+                Le partage, la création de faux comptes ou toute manipulation
+                destinée à contourner les limites du service sont interdits.
+              </Item>
+
+              <Item>
+                Tu peux demander la suppression de ton compte à tout moment,
+                sous réserve des obligations légales de conservation de
+                certaines informations.
+              </Item>
+            </ul>
+
+            <p>
+              <strong className="font-medium text-bleu">Parrainage :</strong>{" "}
+              si un programme de parrainage est proposé, ses conditions,
+              récompenses et limites sont celles affichées dans l&apos;espace
+              membre au moment de la participation. L&apos;auto-parrainage,
+              les faux comptes et les manipulations du programme sont interdits.
+            </p>
+          </Section>
+
+          {/* 4. Premium */}
+          <Section id="premium" titre="4. Offres Premium et paiements">
+            <p>
+              Webgiverse Tools peut proposer des offres payantes donnant accès
+              à des fonctionnalités supplémentaires. Les caractéristiques,
+              prix, durée d&apos;accès et modalités de paiement sont présentés
+              sur la{" "}
+              <Link
+                href="/tarifs"
+                className="font-medium text-sky-500 hover:underline"
+              >
+                page Tarifs
+              </Link>{" "}
+              et récapitulés avant la validation de la commande.
+            </p>
+
+            <p>
+              Les offres actuellement présentées sur la plateforme comprennent
+              notamment :
+            </p>
+
+            <ul className="grid gap-2 leading-6">
+              <Item>
+                <strong className="font-medium text-bleu">
+                  Pro — 2,99 USD :
+                </strong>{" "}
+                accès aux avantages Premium associés à cette formule,
+                conformément à la description affichée au moment de
+                l&apos;achat.
+              </Item>
+
+              <Item>
+                <strong className="font-medium text-bleu">
+                  Entreprise — 7,99 USD :
+                </strong>{" "}
+                accès aux fonctionnalités supplémentaires prévues pour cette
+                formule, conformément à la description affichée au moment
+                de l&apos;achat.
+              </Item>
+            </ul>
+
+            <p>
+              Les prix, devises, moyens de paiement et durées peuvent évoluer.
+              Les informations affichées au moment de la commande font foi
+              pour l&apos;achat concerné.
+            </p>
+
+            <p>
+              Les paiements sont traités par un prestataire de paiement
+              externe, notamment Chariow lorsque ce moyen est proposé.
+              Les moyens de paiement disponibles dépendent du pays et des
+              options présentées au moment de la commande.
+            </p>
+
+            <p>
+              Webgiverse Tools ne demande pas aux membres de communiquer leurs
+              coordonnées bancaires directement par message ou par e-mail.
+              Le paiement doit être réalisé uniquement à travers le parcours
+              de paiement officiel proposé sur la plateforme.
+            </p>
+
+            <p>
+              <strong className="font-medium text-bleu">
+                Durée et renouvellement :
+              </strong>{" "}
+              lorsque l&apos;offre est présentée comme un accès prépayé de
+              30 jours sans reconduction automatique, l&apos;accès prend fin
+              à l&apos;expiration de cette période. Un nouveau paiement est
+              alors nécessaire pour prolonger l&apos;accès Premium.
+            </p>
+
+            <p>
+              Les modalités de renouvellement applicables sont toujours celles
+              indiquées avant le paiement. Si une formule prévoit une
+              reconduction automatique, cette information doit être clairement
+              présentée avant la validation de la commande.
+            </p>
+
+            <p>
+              À l&apos;expiration d&apos;un accès Premium, le compte peut
+              repasser au plan Découverte. La disponibilité des données et
+              fonctionnalités après expiration dépend des conditions du
+              service et des règles de conservation applicables.
+            </p>
+
+            <p>
+              Les demandes relatives à une commande, à un paiement ou à un
+              remboursement peuvent être adressées depuis la{" "}
+              <Link
+                href="/contact"
+                className="font-medium text-sky-500 hover:underline"
+              >
+                page Contact
+              </Link>
+              . Elles sont examinées conformément aux conditions affichées
+              lors de l&apos;achat et aux dispositions légales applicables.
+            </p>
+
+            <p>
+              Les codes promotionnels sont soumis à leurs conditions
+              particulières, notamment leur période de validité, leur quota
+              éventuel et leurs règles de cumul.
+            </p>
+          </Section>
+
+          {/* 5. Règles d'utilisation */}
+          <Section id="regles" titre="5. Règles d'utilisation">
+            <p>
+              En utilisant Webgiverse Tools, tu t&apos;engages à respecter
+              la loi, les présentes conditions et les droits des autres
+              utilisateurs.
+            </p>
+
+            <ul className="grid gap-2 leading-6">
+              <Item>
+                Ne pas utiliser la plateforme à des fins frauduleuses,
+                illicites ou portant atteinte aux droits d&apos;autrui.
+              </Item>
+
+              <Item>
+                Ne pas tenter de contourner les limites techniques ou
+                commerciales de ton offre.
+              </Item>
+
+              <Item>
+                Ne pas procéder à une extraction massive ou automatisée du
+                catalogue sans autorisation préalable.
+              </Item>
+
+              <Item>
+                Ne pas revendre, céder ou partager un accès personnel lorsque
+                cette pratique n&apos;est pas autorisée par l&apos;offre.
+              </Item>
+
+              <Item>
+                Ne pas publier de faux avis, de contenus trompeurs, de spam,
+                de propos injurieux ou de liens malveillants.
+              </Item>
+
+              <Item>
+                Ne pas tenter de perturber le fonctionnement, la sécurité
+                ou la disponibilité de la plateforme.
+              </Item>
+
+              <Item>
+                Ne pas reproduire ou commercialiser les contenus de
+                Webgiverse Tools sans autorisation, sauf exceptions prévues
+                par la loi.
+              </Item>
+            </ul>
+          </Section>
+
+          {/* 6. Contenus des membres */}
+          <Section id="contenus" titre="6. Contenus publiés par les membres">
+            <p>
+              Les membres peuvent, selon les fonctionnalités disponibles,
+              publier des avis, notes, votes, commentaires ou propositions
+              d&apos;outils.
+            </p>
+
+            <p>
+              Tu restes responsable des contenus que tu publies. Tu garantis
+              disposer des droits nécessaires pour les partager et t&apos;engages
+              à ne pas publier de contenus illicites, diffamatoires,
+              contrefaisants ou portant atteinte aux droits d&apos;un tiers.
+            </p>
+
+            <p>
+              En publiant un contenu sur la plateforme, tu autorises
+              Webgiverse Tools, à titre non exclusif et gratuit, à
+              l&apos;héberger, l&apos;afficher et le reproduire dans la mesure
+              nécessaire au fonctionnement et à la promotion du service.
+            </p>
+
+            <p>
+              Cette autorisation ne transfère pas la propriété de ton contenu.
+              Elle prend fin lorsque le contenu est supprimé, sous réserve
+              des copies techniques temporaires et des obligations légales
+              de conservation.
+            </p>
+
+            <p>
+              L&apos;éditeur peut masquer ou retirer un contenu manifestement
+              illicite, abusif ou contraire aux présentes conditions. Lorsque
+              cela est possible, le membre concerné est informé du motif
+              de cette décision.
+            </p>
+          </Section>
+
+          {/* 7. Contenus tiers */}
+          <Section id="tiers" titre="7. Outils et contenus de tiers">
+            <p>
+              Webgiverse Tools référence des outils, logiciels, applications,
+              plateformes et agents d&apos;intelligence artificielle édités
+              ou exploités par des tiers indépendants.
+            </p>
+
+            <p>
+              Les informations présentées dans les fiches — fonctionnalités,
+              tarifs, langues, disponibilité et conditions d&apos;accès —
+              sont fournies à titre informatif. Elles peuvent évoluer sans
+              que Webgiverse Tools en soit immédiatement informé.
+            </p>
+
+            <p>
+              Avant d&apos;acheter ou d&apos;utiliser un outil externe, tu
+              dois vérifier ses tarifs, ses conditions d&apos;utilisation,
+              sa politique de confidentialité et ses éventuelles restrictions
+              directement auprès de son éditeur.
+            </p>
+
+            <p>
+              Les tutoriels vidéo peuvent intégrer des contenus hébergés
+              sur des plateformes tierces, notamment YouTube. Leur lecture
+              est soumise aux conditions et politiques de ces plateformes.
+            </p>
+
+            <p>
+              Les noms, marques et logos des outils référencés appartiennent
+              à leurs propriétaires respectifs. Sauf indication contraire,
+              Webgiverse Tools est un service indépendant et n&apos;est ni
+              propriétaire ni représentant des outils présentés.
+            </p>
+          </Section>
+
+          {/* 8. Affiliation */}
+          <Section id="affiliation" titre="8. Liens d'affiliation">
+            <p>
+              Certains liens présents sur Webgiverse Tools peuvent être des
+              liens d&apos;affiliation. Cela signifie que l&apos;éditeur
+              peut recevoir une commission lorsqu&apos;un utilisateur
+              souscrit à un service ou réalise un achat après avoir suivi
+              l&apos;un de ces liens.
+            </p>
+
+            <p>
+              Lorsqu&apos;un lien est affilié, cette information doit être
+              indiquée de manière claire. Le recours à l&apos;affiliation
+              n&apos;entraîne pas nécessairement de coût supplémentaire
+              pour l&apos;utilisateur.
+            </p>
+
+            <p>
+              La présence d&apos;un lien d&apos;affiliation ne constitue
+              pas une garantie de qualité, de disponibilité ou de résultat
+              du service tiers. Il appartient à chaque utilisateur de
+              vérifier les conditions de l&apos;offre auprès de son éditeur.
+            </p>
+          </Section>
+
+          {/* 9. Newsletter */}
+          <Section id="newsletter" titre="9. Newsletter et communications">
+            <p>
+              Si une newsletter est proposée, l&apos;inscription repose
+              sur une démarche volontaire. Les informations utilisées
+              pour son envoi sont traitées conformément à notre{" "}
+              <Link
+                href="/confidentialite"
+                className="font-medium text-sky-500 hover:underline"
+              >
+                politique de confidentialité
+              </Link>
+              .
+            </p>
+
+            <p>
+              Tu peux te désabonner des communications promotionnelles
+              à tout moment en utilisant le lien prévu dans les e-mails
+              concernés, lorsqu&apos;il est disponible.
+            </p>
+
+            <p>
+              Certains messages indispensables au fonctionnement du compte,
+              à la sécurité ou au suivi d&apos;une commande peuvent être
+              envoyés indépendamment de l&apos;inscription à la newsletter.
+            </p>
+          </Section>
+
+          {/* 10. Suspension */}
+          <Section id="suspension" titre="10. Suspension et suppression du compte">
+            <p>
+              En cas de violation des présentes conditions, d&apos;usage
+              frauduleux, de tentative d&apos;atteinte à la sécurité ou
+              de comportement portant préjudice au service ou à ses membres,
+              l&apos;éditeur peut prendre des mesures adaptées.
+            </p>
+
+            <p>
+              Ces mesures peuvent inclure la limitation de certaines
+              fonctionnalités, la suppression d&apos;un contenu, la
+              suspension temporaire ou la fermeture d&apos;un compte.
+            </p>
+
+            <p>
+              Lorsque les circonstances le permettent, le membre concerné
+              est informé du motif de la mesure et peut contacter
+              l&apos;éditeur pour demander un réexamen.
+            </p>
+
+            <p>
+              La suspension ou la fermeture d&apos;un compte ne prive pas
+              l&apos;utilisateur des droits qui lui sont reconnus par
+              la législation applicable, notamment en matière de
+              remboursement ou de contestation d&apos;un paiement.
+            </p>
+
+            <p>
+              Tu peux cesser d&apos;utiliser le service et demander la
+              suppression de ton compte en passant par la{" "}
+              <Link
+                href="/contact"
+                className="font-medium text-sky-500 hover:underline"
+              >
+                page Contact
+              </Link>
+              .
+            </p>
+          </Section>
+
+          {/* 11. Responsabilité */}
+          <Section id="responsabilite" titre="11. Disponibilité et responsabilité">
+            <p>
+              Webgiverse Tools s&apos;efforce de maintenir la plateforme
+              accessible et de fournir des informations utiles et à jour.
+              Toutefois, le service peut connaître des interruptions,
+              opérations de maintenance, modifications ou indisponibilités.
+            </p>
+
+            <p>
+              Les informations publiées sur la plateforme sont fournies
+              à titre informatif. Elles ne constituent pas une garantie
+              de résultat, un conseil professionnel ou une promesse de
+              revenus.
+            </p>
+
+            <p>
+              L&apos;utilisation des outils tiers se fait sous la
+              responsabilité de chaque utilisateur et conformément aux
+              conditions de leurs éditeurs respectifs.
+            </p>
+
+            <p>
+              L&apos;éditeur ne peut être tenu responsable des dommages
+              résultant directement d&apos;un fait imputable à un tiers,
+              d&apos;une mauvaise utilisation du service ou d&apos;un
+              événement échappant raisonnablement à son contrôle, dans
+              les limites autorisées par la loi.
+            </p>
+
+            <p>
+              Aucune disposition des présentes conditions n&apos;a pour
+              effet d&apos;exclure ou de limiter une responsabilité qui
+              ne pourrait légalement l&apos;être.
+            </p>
+          </Section>
+
+          {/* 12. Droit applicable */}
+          <Section id="droit" titre="12. Modifications et droit applicable">
+            <p>
+              Les présentes conditions peuvent être modifiées afin de
+              tenir compte de l&apos;évolution de Webgiverse Tools, de
+              ses fonctionnalités ou de la réglementation applicable.
+            </p>
+
+            <p>
+              La version applicable est celle publiée sur cette page.
+              La date de dernière mise à jour figure en haut du document.
+              En cas de modification importante, une information peut
+              être communiquée aux membres par les moyens disponibles
+              sur la plateforme.
+            </p>
+
+            <p>
+              Les présentes conditions sont soumises au droit béninois,
+              sous réserve des dispositions impératives éventuellement
+              applicables à l&apos;utilisateur.
+            </p>
+
+            <p>
+              En cas de difficulté, les parties sont invitées à rechercher
+              une solution amiable en contactant l&apos;éditeur depuis
+              la{" "}
+              <Link
+                href="/contact"
+                className="font-medium text-sky-500 hover:underline"
+              >
+                page Contact
+              </Link>
+              .
+            </p>
+
+            <p>
+              À défaut de résolution amiable, le différend pourra être
+              soumis aux juridictions compétentes conformément aux règles
+              de droit applicables.
+            </p>
+          </Section>
+
+          {/* Voir aussi */}
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {VOIR_AUSSI.map((l) => (
               <Link
@@ -530,19 +686,27 @@ export default function PageCgu() {
                 className="group survol-carte rounded-carte border border-bordure bg-white p-5 shadow-carte"
               >
                 <l.icone className="size-6 text-sky-500" aria-hidden />
+
                 <h2 className="mt-3 font-titre text-[16px] leading-6 font-semibold group-hover:text-sky-500">
                   {l.titre}
                 </h2>
-                <p className="mt-1 text-[14px] leading-5 text-encre">{l.texte}</p>
+
+                <p className="mt-1 text-[14px] leading-5 text-encre">
+                  {l.texte}
+                </p>
               </Link>
             ))}
           </div>
 
+          {/* Pied de page */}
           <p className="mesure mt-8 flex items-start gap-2 text-[13px] leading-5 text-encre">
-            <ScrollText className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
+            <ScrollText
+              className="mt-0.5 size-4 shrink-0 text-sky-500"
+              aria-hidden
+            />
             <span>
               Conditions générales d&apos;utilisation de Webgiverse Tools —
-              version du 6 novembre 2026.
+              version du 5 novembre 2026.
             </span>
           </p>
         </div>
