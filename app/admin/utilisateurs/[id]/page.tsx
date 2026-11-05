@@ -14,7 +14,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/* ────────────────────────── Éléments d’affichage ────────────────────────── */
+/* ────────────────────────── Éléments d'affichage ────────────────────────── */
 
 function dateFr(date: Date | null | undefined) {
   if (!date) return "—";
@@ -59,7 +59,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
 
   // Champs et relations 100 % conformes au schéma réel du projet :
   // parrainePar (User), filleuls (User[]), parrainageFilleul (Parrainage),
-  // paiements (creeLe), abonnement (statut/plan/expireLe), notesRecues (NoteMembre).
+  // paiements (creeLe), abonnement (statut/plan/expireLe), notes (NoteMembre).
   const membre = await prisma.user.findUnique({
     where: { id },
     include: {
@@ -86,9 +86,8 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
           parrainageFilleul: { select: { statut: true, recompenseLe: true } },
         },
       },
-      notesRecues: {
+      notes: {
         orderBy: { creeLe: "desc" },
-        include: { auteur: { select: { name: true, email: true } } },
       },
     },
   });
@@ -100,7 +99,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
     : null;
   const monId = moi?.id ?? null;
 
-  // Pas d’actions sensibles sur soi-même ni sur un autre admin.
+  // Pas d'actions sensibles sur soi-même ni sur un autre admin.
   const protege = membre.role === "ADMIN" || membre.id === monId;
 
   return (
@@ -137,9 +136,9 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
                     Membre
                   </span>
                 )}
-                <BadgeStatut statut={membre.statutCompte} />
+                <BadgeStatut statut={membre.statut} />
                 {membre.id === monId && (
-                  <span className="text-xs text-slate-400">C’est ton compte 👋</span>
+                  <span className="text-xs text-slate-400">C'est ton compte 👋</span>
                 )}
               </div>
             </div>
@@ -163,7 +162,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
           Gestion du compte
         </h2>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          {!protege && membre.statutCompte === "ACTIF" && (
+          {!protege && membre.statut === "ACTIF" && (
             <>
               <form action={impersonerFormulaire}>
                 <input type="hidden" name="id" value={membre.id} />
@@ -202,7 +201,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
             </>
           )}
 
-          {!protege && membre.statutCompte === "SUSPENDU" && (
+          {!protege && membre.statut === "SUSPENDU" && (
             <>
               <form action={reactiverMembreFormulaire}>
                 <input type="hidden" name="id" value={membre.id} />
@@ -225,7 +224,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
             </>
           )}
 
-          {membre.statutCompte === "BANNI" && (
+          {membre.statut === "BANNI" && (
             <form action={reactiverMembreFormulaire}>
               <input type="hidden" name="id" value={membre.id} />
               <button
@@ -254,11 +253,9 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
           )}
         </div>
 
-        {(membre.statutCompte === "SUSPENDU" || membre.statutCompte === "BANNI") && (
+        {(membre.statut === "SUSPENDU" || membre.statut === "BANNI") && (
           <p className="mt-3 text-xs text-slate-500">
-            {membre.statutCompte === "SUSPENDU" ? "Suspendu" : "Banni"} depuis le{" "}
-            {dateFr(membre.suspenduLe)}
-            {membre.motifCompte ? ` — Motif : ${membre.motifCompte}` : ""}.
+            {membre.statut === "SUSPENDU" ? "Suspendu" : "Banni"}.
           </p>
         )}
       </div>
@@ -389,7 +386,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
       {/* Notes internes des admins */}
       <div className="rounded-xl border border-slate-200 bg-white p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Notes internes ({membre.notesRecues.length})
+          Notes internes ({membre.notes.length})
         </h2>
 
         <form action={ajouterNoteMembreFormulaire} className="mt-3 space-y-2">
@@ -410,13 +407,11 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
         </form>
 
         <ul className="mt-4 space-y-3">
-          {membre.notesRecues.map((note) => (
+          {membre.notes.map((note) => (
             <li key={note.id} className="rounded-lg bg-slate-50 p-3">
               <p className="text-sm text-slate-800">{note.contenu}</p>
               <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-500">
-                <span>
-                  Par {note.auteur.name ?? note.auteur.email} — {dateHeureFr(note.creeLe)}
-                </span>
+                <span>{dateHeureFr(note.creeLe)}</span>
                 <form action={supprimerNoteMembreFormulaire}>
                   <input type="hidden" name="noteId" value={note.id} />
                   <button type="submit" className="text-rose-600 hover:underline">
@@ -426,7 +421,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
               </div>
             </li>
           ))}
-          {membre.notesRecues.length === 0 && (
+          {membre.notes.length === 0 && (
             <li className="text-sm text-slate-400">Aucune note pour le moment.</li>
           )}
         </ul>

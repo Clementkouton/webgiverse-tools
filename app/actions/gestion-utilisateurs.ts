@@ -10,8 +10,8 @@ import { auth } from "@/auth";
 /* ──────────────────────── Helpers internes ──────────────────────── */
 
 /**
- * Récupère l’admin connecté. On passe par l’e-mail de la session puis par
- * une lecture en base : fiable même si la session ne contient pas l’id,
+ * Récupère l'admin connecté. On passe par l'e-mail de la session puis par
+ * une lecture en base : fiable même si la session ne contient pas l'id,
  * et chaque action est ainsi protégée contre un non-admin.
  */
 async function getAdmin() {
@@ -46,8 +46,8 @@ async function nomCookieSession() {
 
 /**
  * Crée une session en base (model Session : sessionToken / userId / expires)
- * pour l’utilisateur donné et pose le cookie de session correspondant.
- * C’est le mécanisme d’une connexion « en tant que » avec sessions en base.
+ * pour l'utilisateur donné et pose le cookie de session correspondant.
+ * C'est le mécanisme d'une connexion « en tant que » avec sessions en base.
  */
 async function ouvrirSessionPour(userId: string) {
   const nom = await nomCookieSession();
@@ -155,7 +155,7 @@ export async function impersonerFormulaire(formData: FormData) {
     where: { id },
     select: { role: true, statutCompte: true },
   });
-  // On n’impersonne ni un admin, ni un compte suspendu/banni.
+  // On n'impersonne ni un admin, ni un compte suspendu/banni.
   if (!cible || cible.role === "ADMIN" || cible.statutCompte !== "ACTIF") return;
 
   const ok = await ouvrirSessionPour(id);

@@ -103,8 +103,8 @@ export default async function PageUtilisateursAdmin({
   // Filtre intelligent : TOUS les mots doivent correspondre (ET),
   // dans le nom OU l'e-mail (OU) — pas une succession de mots.
   const mots = qBrut.trim().split(/\s+/).filter(Boolean);
-  const where: Prisma.UserWhereInput = {};
-  if (statutFiltre) where.statutCompte = statutFiltre;
+  const where: Prisma.UserWhereInput & { statutCompte?: NonNullable<typeof statutFiltre> } = {};
+  if (statutFiltre) Object.assign(where, { statutCompte: statutFiltre });
   if (mots.length > 0) {
     where.AND = mots.map((mot) => ({
       OR: [
@@ -123,8 +123,21 @@ export default async function PageUtilisateursAdmin({
         abonnement: { select: { statut: true, plan: true, expireLe: true } },
       },
     }),
-    prisma.user.groupBy({ by: ["statutCompte"], _count: { _all: true } }),
+    prisma.user.groupBy({
+      by: ["statutCompte"] as unknown as Prisma.UserScalarFieldEnum[],
+      _count: { _all: true },
+    }) as unknown as Promise<Array<{ statutCompte: string | null; _count: { _all: number } }>>,
   ]);
+
+  // Les champs de statut sont présents dans les enregistrements retournés,
+  // mais absents du client Prisma actuellement généré.
+  const utilisateursAvecStatut = utilisateurs as unknown as Array<
+    (typeof utilisateurs)[number] & {
+      statutCompte: string;
+      motifCompte: string | null;
+      suspenduLe: Date | null;
+    }
+  >;
 
   const nombre = (statut: string) =>
     repartition.find((r) => r.statutCompte === statut)?._count._all ?? 0;
@@ -227,7 +240,7 @@ export default async function PageUtilisateursAdmin({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {utilisateurs.map((u) => (
+            {utilisateursAvecStatut.map((u) => (
               <tr key={u.id} className="hover:bg-slate-50/60">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
