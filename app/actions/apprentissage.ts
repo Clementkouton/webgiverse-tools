@@ -1,22 +1,3 @@
-// app/actions/apprentissage.ts
-// Lot 19 (correctif) — actions serveur de la section « Apprendre » du
-// dashboard : favoris de prompts IA, progression des tutoriels,
-// suppression d'une conversation de l'assistant.
-//
-// CORRECTIFS apportés par cette version :
-//   1. TOUTES les requêtes Prisma sont dans un try/catch : une action ne
-//      plante plus jamais. Avant, un échec hors try/catch (create, count,
-//      delete…) faisait planter l'action entière → côté client le bouton
-//      restait figé et l'overlay d'erreur recouvrait la page.
-//   2. Si la base de données n'est pas à jour (tables PromptFavori /
-//      ProgressionTuto absentes — codes Prisma P2021 / P2022), l'action
-//      renvoie la raison « base » : les boutons affichent alors
-//      l'instruction exacte « npx prisma db push » au lieu d'un message
-//      générique. Le détail complet est aussi écrit dans le terminal.
-//   3. Raisons typées exportées (RaisonApprentissage) pour un affichage
-//      précis côté client.
-//   4. Client Prisma non régénéré (prisma.promptFavori undefined) → raison
-//      « client » : message dédié avec la procédure de régénération.
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -26,12 +7,16 @@ import { prisma } from "@/lib/prisma";
 import { LIMITES_DECOUVERTE, premiumActif } from "@/lib/premium";
 import { journaliser } from "@/lib/journal";
 
-/** Raisons renvoyées aux composants clients pour afficher le bon message. */
+/** Raisons renvoyées aux composants clients pour afficher le bon message.
+ *  « premium » est conservé dans l'union pour compatibilité avec
+ *  d'éventuels composants existants, mais il n'est plus renvoyé :
+ *  depuis les tutoriels gratuits, aucune action de progression
+ *  n'est réservée aux abonnés. */
 export type RaisonApprentissage =
   | "non-connecte"
   | "invalide"
-  | "limite" // plan Découverte : quota atteint
-  | "premium" // Lot 28 — suivi de progression réservé aux abonnés Pro / Entreprise
+  | "limite" // plan Découverte : quota atteint (favoris de prompts)
+  | "premium" // conservé pour compat — plus renvoyé depuis les tutoriels gratuits
   | "base" // base de données non à jour (tables absentes)
   | "client" // client Prisma non régénéré (modèles nouveaux inconnus)
   | "indisponible"; // erreur passagère
@@ -147,13 +132,15 @@ export async function retirerPromptFormulaire(donnees: FormData): Promise<void> 
 }
 
 /* ════════════════════════════════════════════════════════════════
-   2) PROGRESSION DES TUTORIELS
+   2) PROGRESSION DES TUTORIELS — GRATUITE POUR TOUS LES MEMBRES
    ════════════════════════════════════════════════════════════════ */
 
 const STATUTS_TUTO = ["EN_COURS", "TERMINE"] as const;
 type StatutTuto = (typeof STATUTS_TUTO)[number];
 
-/** Définit (ou met à jour) la progression d'un tutoriel. */
+/** Définit (ou met à jour) la progression d'un tutoriel.
+ *  Lot 29 : plus aucun contrôle Premium — les tutoriels sont
+ *  gratuits, il suffit d'être connecté. */
 export async function majProgressionTuto(
   tutoId: string,
   statut: StatutTuto,
@@ -165,14 +152,6 @@ export async function majProgressionTuto(
     .object({ tutoId: z.string().min(1).max(64), statut: z.enum(STATUTS_TUTO) })
     .safeParse({ tutoId, statut });
   if (!analyse.success) return { ok: false, raison: "invalide" };
-
-  // Lot 28 — le suivi de progression accompagne la LECTURE des
-  // vidéos, réservée aux abonnés Premium actifs (Pro / Entreprise).
-  // Contrôle côté serveur : un appel d'action forgé est refusé ici
-  // même s'il n'est pas affiché côté client.
-  if (!(await premiumActif(userId))) {
-    return { ok: false, raison: "premium" };
-  }
 
   try {
     await prisma.progressionTuto.upsert({

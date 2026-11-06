@@ -1,927 +1,652 @@
-// ============================================================
-// WEBGIVERSE TOOLS — Admin / Newsletter (VERSION 2)
-// Chemin : app/admin/newsletter/page.tsx
-// Remplace INTÉGRALEMENT l'ancien fichier du même nom.
-//
-// Nouveautés de cette version :
-//   - Les requêtes campagnes et abonnés sont testées SÉPARÉMENT :
-//     si une table n'est pas à jour, l'autre s'affiche quand même
-//     et un encadré orange explique exactement quoi faire.
-//   - Détection précise du cas « colonne absente de la base »
-//     (ex. AbonneNewsletter.statut) avec la marche à suivre.
-//   - Les abonnés sont créés/modifiés en synchronisant actif ET
-//     statut (compatibilité avec votre formulaire de la landing
-//     page existant).
-//   - L'ancien statut « PRETA » (coquille) s'affiche « PRETE » et
-//     se corrige en un clic.
-//   - Plus aucun lien vers /newsletter/inscription (supprimée :
-//     votre landing page a déjà son formulaire).
-//
-// Prérequis :
-//   - Modèle AbonneNewsletter version 2 (avec statut) dans
-//     prisma/schema.prisma (voir prisma/modele-abonne-newsletter.prisma)
-//     + npx prisma db push
-//   - Pour l'envoi réel : npm install nodemailer + variables SMTP
-//     dans .env.local (voir LISEZ-MOI)
-// ============================================================
-
-import { prisma } from "@/lib/prisma";
+// app/admin/page.tsx
+// ─────────────────────────────────────────────────────────────────
+// TABLEAU DE BORD ADMIN — VERSION AMÉLIORÉE (Lot 29).
+// Reprend le design « TailwindAdmin » validé et l'enrichit :
+//   • en-tête + période du mois en cours ;
+//   • bannière dégradé indigo → bleu ciel (style du template) ;
+//   • rangée « Pilotage du jour » : KPI temps réel ;
+//   • 4 cartes statistiques avec tendance ± % et mini-courbe 7 jours ;
+//   • NOUVEAU — rangée « Apprendre & audience » : tutoriels (vues,
+//     vidéos en ligne, notes des membres), abonnés newsletter et
+//     codes promo actifs (lectures défensives, jamais bloquantes) ;
+//   • alertes visuelles : liens morts, brouillons oubliés,
+//     descriptions YouTube manquantes ;
+//   • graphique des inscriptions (14 jours) + anneau « par plan » ;
+//   • raccourcis enrichis : Newsletter, Codes promo, Parrainages.
+// Aucun tableau ici : chaque contenu a sa page dans le menu.
+// Aucune librairie ajoutée.
+// ─────────────────────────────────────────────────────────────────
+import type { Metadata } from "next";
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import {
+  ArrowRight,
+  Captions as CaptionIcon,
+  Crown,
+  Eye,
+  FileWarning,
+  Link2Off,
+  Mail,
+  MessageSquareQuote,
+  MonitorPlay,
+  Sparkles,
+  Tag,
+  Users,
+  Wallet,
+  Wrench,
+} from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { Carte } from "@/components/ui/carte";
+import { Badge } from "@/components/ui/badge";
+import { CarteStatAdmin } from "@/components/admin/carte-stat-admin";
+import { GraphiqueBarres } from "@/components/admin/graphique-barres";
+import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
+import { BoutonVerifierLiens } from "@/components/admin/bouton-verifier-liens";
+import { BoutonRecupererDescriptions } from "@/components/admin/bouton-recuperer-descriptions";
 
+export const metadata: Metadata = { title: "Administration" };
 export const dynamic = "force-dynamic";
 
-type ClientPrisma = Record<string, any>;
-
-type Campagne = {
-  id: string;
-  titre: string;
-  objet: string;
-  contenu: string;
-  lienArticle: string | null;
-  nomEntreprise: string | null;
-  statut: string;
-  envoyeLe: Date | null;
-  creeLe: Date;
-};
-
-type Abonne = {
-  id: string;
-  email: string;
-  prenom: string | null;
-  nom: string | null;
-  token: string;
-  statut: string | null;
-  actif: boolean;
-  desabonneLe: Date | null;
-  creeLe: Date;
-};
-
-type AbonneTemplate = {
-  email: string;
-  prenom?: string | null;
-  nom?: string | null;
-  token?: string | null;
-};
-
-const NOM_ENTREPRISE_DEFAUT = process.env.NOM_ENTREPRISE || "Webgiverse";
-
-/* ------------------------- Utilitaires ------------------------- */
-
-/** URL absolue du site : variable NEXT_PUBLIC_URL_SITE si elle est
- *  définie, sinon détection automatique (tunnel dev, localhost, prod). */
-async function baseUrlDuSite(): Promise<string> {
-  const env = process.env.NEXT_PUBLIC_URL_SITE;
-  if (env && env.trim()) return env.trim().replace(/\/+$/, "");
-  try {
-    const h = await headers();
-    const host = h.get("host") || "localhost:3000";
-    const proto =
-      h.get("x-forwarded-proto") ||
-      (host.startsWith("localhost") || host.startsWith("127.0.0.1")
-        ? "http"
-        : "https");
-    return `${proto}://${host}`;
-  } catch {
-    return "http://localhost:3000";
-  }
+/** % de variation entre la période courante et la précédente. */
+function tendance(cur: number, prec: number): number {
+  if (prec > 0) return Math.round(((cur - prec) / prec) * 100);
+  return cur > 0 ? 100 : 0;
 }
 
-/** Remplace toutes les variables {{...}} par les valeurs réelles de
- *  l'abonné et de la campagne. Les variables inconnues sont retirées. */
-function remplacerVariables(
-  texte: string,
-  abonne: AbonneTemplate,
-  campagne: { nomEntreprise?: string | null; lienArticle?: string | null },
-  baseUrl: string
-): string {
-  const base = (baseUrl || "").replace(/\/+$/, "");
-  const prenom =
-    (abonne.prenom || "").trim() ||
-    (abonne.nom || "").trim() ||
-    (abonne.email || "").split("@")[0] ||
-    "";
-  const nom = (abonne.nom || "").trim();
-  const entreprise =
-    (campagne.nomEntreprise || "").trim() || NOM_ENTREPRISE_DEFAUT;
-  const article = (campagne.lienArticle || "").trim() || base;
-  const token = (abonne.token || "").trim();
-  const lienDesabonnement = token
-    ? `${base}/newsletter/desabonnement/${token}`
-    : `${base}/newsletter`;
-  const lienPreferences = token
-    ? `${base}/newsletter/preferences/${token}`
-    : `${base}/newsletter`;
-  const dateDuJour = new Date().toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
+/** Répartit des dates en compteurs journaliers sur `nb` jours. */
+function parJour(dates: Date[], debut: Date, nb: number): number[] {
+  return Array.from({ length: nb }, (_, i) => {
+    const d = new Date(debut);
+    d.setDate(debut.getDate() + i);
+    const fin = new Date(d);
+    fin.setDate(d.getDate() + 1);
+    return dates.filter((x) => x >= d && x < fin).length;
   });
+}
 
-  const valeurs: Record<string, string> = {
-    "prénom": prenom,
-    prenom: prenom,
-    "PRÉNOM": prenom.toUpperCase(),
-    PRENOM: prenom.toUpperCase(),
-    nom: nom,
-    NOM: nom.toUpperCase(),
-    email: abonne.email,
-    EMAIL: abonne.email,
-    nom_entreprise: entreprise,
-    nomEntreprise: entreprise,
-    NOM_ENTREPRISE: entreprise,
-    lien_article: article,
-    lienArticle: article,
-    LIEN_ARTICLE: article,
-    lien_desabonnement: lienDesabonnement,
-    lienDesabonnement: lienDesabonnement,
-    LIEN_DESABONNEMENT: lienDesabonnement,
-    lien_preferences: lienPreferences,
-    lienPreferences: lienPreferences,
-    LIEN_PREFERENCES: lienPreferences,
-    date: dateDuJour,
-    date_du_jour: dateDuJour,
+/** Libellé humain d'un code de vérification de lien. */
+function libelleCodeLien(code: number | null): string {
+  if (code === null) return "Jamais vérifié";
+  if (code === 0) return "Injoignable";
+  return `HTTP ${code}`;
+}
+
+export default async function PageAdmin() {
+  // ── Bornes de temps ─────────────────────────────────────────────
+  const maintenant = new Date();
+  const debutJour = new Date();
+  debutJour.setHours(0, 0, 0, 0);
+  const debutMois = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
+  const debutMoisPrec = new Date(maintenant.getFullYear(), maintenant.getMonth() - 1, 1);
+  const debut7j = new Date();
+  debut7j.setHours(0, 0, 0, 0);
+  debut7j.setDate(debut7j.getDate() - 6);
+  const debut14j = new Date(debut7j);
+  debut14j.setDate(debut7j.getDate() - 7);
+  const ilYa24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const ilYa30j = new Date(maintenant);
+  ilYa30j.setDate(ilYa30j.getDate() - 30);
+
+  // ── Compteurs ───────────────────────────────────────────────────
+  const [
+    nbUtilisateurs, inscritsMois, inscritsMoisPrec, inscrits14j,
+    nbOutilsPublies, nbOutilsTotal, outilsMois, outilsMoisPrec, outils14j,
+    nbAvis, avisMois, avisMoisPrec, avis14j,
+    abonnementsActifs, premium14j, revenusMois, revenusMoisPrec, paiements14j,
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { createdAt: { gte: debutMois } } }),
+    prisma.user.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
+    prisma.user.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
+    prisma.tool.count({ where: { statut: "PUBLIE" } }),
+    prisma.tool.count(),
+    prisma.tool.count({ where: { createdAt: { gte: debutMois } } }),
+    prisma.tool.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
+    prisma.tool.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
+    prisma.avis.count(),
+    prisma.avis.count({ where: { creeLe: { gte: debutMois } } }),
+    prisma.avis.count({ where: { creeLe: { gte: debutMoisPrec, lt: debutMois } } }),
+    prisma.avis.findMany({ where: { creeLe: { gte: debut14j } }, select: { creeLe: true } }),
+    prisma.abonnement.findMany({
+      where: { statut: "ACTIF", expireLe: { gt: maintenant } },
+      select: { plan: true, debutLe: true },
+    }),
+    prisma.abonnement.findMany({ where: { debutLe: { gte: debut7j } }, select: { debutLe: true } }),
+    prisma.paiement.aggregate({
+      where: { statut: "PAYE", creeLe: { gte: debutMois } },
+      _sum: { montant: true },
+    }),
+    prisma.paiement.aggregate({
+      where: { statut: "PAYE", creeLe: { gte: debutMoisPrec, lt: debutMois } },
+      _sum: { montant: true },
+    }),
+    prisma.paiement.findMany({
+      where: { statut: "PAYE", creeLe: { gte: debut7j } },
+      select: { montant: true, creeLe: true },
+    }),
+  ]);
+
+  // ── Pilotage du jour + alertes ──────────────────────────────────
+  const whereLienMort = {
+    statut: "PUBLIE" as const,
+    OR: [{ statutLien: { gte: 400 } }, { statutLien: 0 }],
   };
+  const [
+    inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts,
+    liensMorts, nbJamaisVerifies, nbBrouillonsAnciens, brouillonsAnciens,
+  ] = await Promise.all([
+    prisma.user.count({ where: { createdAt: { gte: debutJour } } }),
+    prisma.avis.count({ where: { creeLe: { gte: ilYa24h } } }),
+    prisma.messageContact.count({ where: { traite: false } }),
+    prisma.tool.count({ where: whereLienMort }),
+    prisma.tool.findMany({
+      where: whereLienMort,
+      orderBy: [{ lienVerifieLe: { sort: "desc", nulls: "last" } }],
+      select: { id: true, nom: true, statutLien: true, lienVerifieLe: true },
+      take: 5,
+    }),
+    prisma.tool.count({ where: { statut: "PUBLIE", statutLien: null } }),
+    prisma.article.count({ where: { statut: "BROUILLON", majLe: { lt: ilYa30j } } }),
+    prisma.article.findMany({
+      where: { statut: "BROUILLON", majLe: { lt: ilYa30j } },
+      orderBy: { majLe: "asc" },
+      select: { id: true, titre: true, majLe: true },
+      take: 5,
+    }),
+  ]);
 
-  return (texte || "").replace(
-    /\{\{\s*([^{}]+?)\s*\}\}/g,
-    (entier: string, cle: string) => {
-      const valeur =
-        valeurs[cle] ?? valeurs[cle.toLowerCase()] ?? valeurs[cle.toUpperCase()];
-      return valeur !== undefined ? valeur : "";
-    }
-  );
-}
+  // ── Apprendre & audience (lectures défensives, jamais bloquantes) ─
+  // Tutoriels : le modèle Tuto existe dans le schéma → appels directs.
+  const [nbTutos, nbTutosAvecVideo, vuesTutos] = await Promise.all([
+    prisma.tuto.count(),
+    prisma.tuto.count({ where: { youtubeId: { not: null } } }),
+    prisma.tuto.aggregate({ _sum: { vues: true } }),
+  ]);
 
-/** Ajoute le pied de page (liens désabonnement / préférences) s'il est absent. */
-function completerPiedDePage(contenu: string): string {
-  if (!contenu || contenu.includes("lien_desabonnement")) return contenu;
-  return (
-    contenu +
-    "\n\n——————————————————\n" +
-    "Vous recevez cet e-mail car vous êtes inscrit à la newsletter.\n" +
-    "Se désabonner : {{lien_desabonnement}}\n" +
-    "Mettre à jour vos préférences : {{lien_preferences}}"
-  );
-}
+  // Descriptions YouTube raffinées manquantes (colonne peut manquer
+  // si la base n'est pas à jour → 0, la page reste affichable).
+  const [nbTutosSansDescription, tutosSansDescription] = await Promise.all([
+    prisma.tuto
+      .count({ where: { youtubeId: { not: null }, descriptionRaffinee: { equals: Prisma.AnyNull } } })
+      .catch(() => 0),
+    prisma.tuto
+      .findMany({
+        where: { youtubeId: { not: null }, descriptionRaffinee: { equals: Prisma.AnyNull } },
+        orderBy: { ordre: "asc" },
+        select: { id: true, titre: true },
+        take: 5,
+      })
+      .catch(() => []),
+  ]);
 
-/** HTML simple et lisible pour les boîtes mail (à partir du texte). */
-function contenuEnHtml(contenu: string): string {
-  const echappe = (contenu || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.6;color:#1f2937;white-space:pre-wrap;">${echappe}</div>`;
-}
+  // Votes « Utile » (modèle VoteAvis, lecture défensive).
+  const delegueVotesAvis = (prisma as any).voteAvis;
+  const nbVotesUtile: number = delegueVotesAvis?.count
+    ? await delegueVotesAvis.count().catch(() => 0)
+    : 0;
 
-function formatDate(d: Date | null | undefined): string {
-  if (!d) return "—";
-  return new Date(d).toLocaleString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+  // Abonnés newsletter (modèle ajouté avec la newsletter → défensif).
+  const delegueAbonnes = (prisma as any).abonneNewsletter;
+  const nbAbonnesNewsletter: number = delegueAbonnes?.count
+    ? await delegueAbonnes.count({ where: { actif: true } }).catch(() => 0)
+    : 0;
+
+  // Codes promo actifs (défensif).
+  const delegueCodes = (prisma as any).codePromo;
+  const nbCodesPromoActifs: number = delegueCodes?.count
+    ? await delegueCodes.count({ where: { actif: true } }).catch(() => 0)
+    : 0;
+
+  // Notes prises par les membres pendant les tutoriels (défensif :
+  // le modèle NoteTutoriel n'est compté que si la base est à jour).
+  const delegueNotes = (prisma as any).noteTutoriel;
+  const nbNotesMembres: number = delegueNotes?.count
+    ? await delegueNotes.count().catch(() => 0)
+    : 0;
+
+  // ── Séries journalières (7 derniers jours) + barres (14 jours) ──
+  const joursInscrits = parJour(inscrits14j.map((u) => u.createdAt), debut7j, 7);
+  const joursOutils = parJour(outils14j.map((o) => o.createdAt), debut7j, 7);
+  const joursAvis = parJour(avis14j.map((a) => a.creeLe), debut7j, 7);
+  const joursPremium = parJour(premium14j.map((a) => a.debutLe), debut7j, 7);
+  const joursRevenus = parJour(paiements14j.map((p) => p.creeLe), debut7j, 7);
+
+  const valeursBarres = parJour(inscrits14j.map((u) => u.createdAt), debut14j, 14);
+  const labelsBarres = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(debut14j);
+    d.setDate(debut14j.getDate() + i);
+    return String(d.getDate());
   });
-}
 
-/** Affiche le statut en corrigeant l'ancienne coquille « PRETA ». */
-function afficherStatut(statut: string): string {
-  if (statut === "PRETA") return "PRETE";
-  return statut;
-}
+  // ── Plans Premium ───────────────────────────────────────────────
+  const nbPremium = abonnementsActifs.length;
+  const nbPro = abonnementsActifs.filter((a) => a.plan === "PRO").length;
+  const nbEntreprise = abonnementsActifs.filter((a) => a.plan === "ENTREPRISE").length;
+  const nbDecouverte = Math.max(nbUtilisateurs - nbPremium, 0);
 
-/** Charge nodemailer sans casser la compilation si le package
- *  n'est pas installé (l'envoi affichera alors un message clair). */
-function chargerNodemailer(): any {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const requis = eval("require") as (module: string) => any;
-    return requis("nodemailer");
-  } catch {
-    return null;
-  }
-}
+  // ── Tendances vs le mois dernier ────────────────────────────────
+  const revenusCur = revenusMois._sum.montant ?? 0;
+  const revenusPrec = revenusMoisPrec._sum.montant ?? 0;
+  const revenusFormates = `${(revenusCur / 100).toFixed(2)} $`;
 
-/** Met à jour un abonné en synchronisant actif ET statut (l'ancien
- *  système utilise statut, le nouveau actif). Retente sans statut
- *  si la colonne n'existe pas encore dans la base. */
-async function majAbonneAvecStatut(
-  where: Record<string, any>,
-  data: Record<string, any>
-) {
-  const client = prisma as ClientPrisma;
-  const donnees = { ...data };
-  if (data.actif !== undefined) {
-    donnees.statut = data.actif === false ? "DESABONNE" : "ACTIF";
-  }
-  try {
-    await client.abonneNewsletter.update({ where, data: donnees });
-  } catch {
-    const sansStatut: Record<string, any> = { ...donnees };
-    delete sansStatut.statut;
-    await client.abonneNewsletter.update({ where, data: sansStatut });
-  }
-}
+  const formateurJour = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
+  const periode = `${formateurJour.format(debutMois)} – ${formateurJour.format(maintenant)} ${maintenant.getFullYear()}`;
+  const dateLongue = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" }).format(maintenant);
+  const formateurDate = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
 
-/* ---------------------- Actions serveur ------------------------ */
-
-async function creerCampagne(formData: FormData) {
-  "use server";
-  const titre = String(formData.get("titre") || "").trim();
-  const objet = String(formData.get("objet") || "").trim();
-  const contenu = String(formData.get("contenu") || "").trim();
-  const lienArticle = String(formData.get("lienArticle") || "").trim();
-  const nomEntreprise = String(formData.get("nomEntreprise") || "").trim();
-
-  if (!titre || !objet || !contenu) {
-    redirect(
-      "/admin/newsletter?envoi=" +
-        encodeURIComponent("Erreur : titre, objet et contenu sont obligatoires.")
-    );
-  }
-
-  const client = prisma as ClientPrisma;
-  try {
-    await client.campagneNewsletter.create({
-      data: {
-        titre,
-        objet,
-        contenu,
-        lienArticle: lienArticle || null,
-        nomEntreprise: nomEntreprise || null,
-      },
-    });
-  } catch {
-    // Champs lienArticle / nomEntreprise absents du schéma -> création sans eux
-    await client.campagneNewsletter.create({ data: { titre, objet, contenu } });
-  }
-  revalidatePath("/admin/newsletter");
-  redirect("/admin/newsletter");
-}
-
-async function basculerStatutCampagne(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id") || "");
-  const client = prisma as ClientPrisma;
-  const campagne = await client.campagneNewsletter
-    ?.findUnique({ where: { id } })
-    .catch(() => null);
-  if (campagne) {
-    const nouveau = campagne.statut === "PRETE" ? "BROUILLON" : "PRETE";
-    await client.campagneNewsletter.update({
-      where: { id },
-      data: { statut: nouveau },
-    });
-  }
-  revalidatePath("/admin/newsletter");
-}
-
-async function supprimerCampagne(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id") || "");
-  const client = prisma as ClientPrisma;
-  await client.campagneNewsletter?.delete({ where: { id } }).catch(() => null);
-  revalidatePath("/admin/newsletter");
-}
-
-async function envoyerCampagne(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id") || "");
-  let message = "";
-  try {
-    const client = prisma as ClientPrisma;
-    const campagne = await client.campagneNewsletter.findUnique({ where: { id } });
-    if (!campagne) throw new Error("Campagne introuvable.");
-
-    const abonnes = await client.abonneNewsletter.findMany({
-      where: { actif: true },
-    });
-    if (!abonnes.length) {
-      throw new Error("Aucun abonné actif : ajoutez d'abord des abonnés.");
-    }
-
-    const nodemailer = chargerNodemailer();
-    if (!nodemailer) {
-      throw new Error(
-        "Le package nodemailer est manquant. Exécutez : npm install nodemailer (puis redémarrez le serveur)."
-      );
-    }
-
-    const hote = process.env.SMTP_HOST;
-    const port = Number(process.env.SMTP_PORT || 587);
-    const utilisateur = process.env.SMTP_USER;
-    const motDePasse = process.env.SMTP_PASS;
-    if (!hote || !utilisateur || !motDePasse) {
-      throw new Error(
-        "SMTP non configuré : ajoutez SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS dans .env.local puis redémarrez le serveur."
-      );
-    }
-    const expediteur = process.env.NEWSLETTER_FROM || utilisateur;
-    const transport = nodemailer.createTransport({
-      host: hote,
-      port,
-      secure: port === 465,
-      auth: { user: utilisateur, pass: motDePasse },
-    });
-
-    const base = await baseUrlDuSite();
-    const contenuBrut = completerPiedDePage(campagne.contenu);
-    let envoyes = 0;
-    let echecs = 0;
-
-    for (const abonne of abonnes) {
-      try {
-        const objet = remplacerVariables(campagne.objet, abonne, campagne, base);
-        const texte = remplacerVariables(contenuBrut, abonne, campagne, base);
-        await transport.sendMail({
-          from: expediteur,
-          to: abonne.email,
-          subject: objet,
-          text: texte,
-          html: contenuEnHtml(texte),
-        });
-        envoyes++;
-      } catch {
-        echecs++;
-      }
-    }
-
-    await client.campagneNewsletter.update({
-      where: { id },
-      data: { statut: "ENVOYEE", envoyeLe: new Date() },
-    });
-
-    message =
-      `Envoi terminé : ${envoyes} e-mail(s) envoyé(s)` +
-      (echecs ? `, ${echecs} échec(s)` : "") +
-      ".";
-  } catch (erreur: any) {
-    message = "Erreur : " + (erreur?.message || "envoi impossible");
-  }
-  revalidatePath("/admin/newsletter");
-  redirect("/admin/newsletter?envoi=" + encodeURIComponent(message));
-}
-
-async function creerAbonne(formData: FormData) {
-  "use server";
-  const email = String(formData.get("email") || "").trim().toLowerCase();
-  const prenom = String(formData.get("prenom") || "").trim();
-  const nom = String(formData.get("nom") || "").trim();
-
-  if (!email || !email.includes("@")) {
-    redirect(
-      "/admin/newsletter?envoi=" + encodeURIComponent("Erreur : e-mail invalide.")
-    );
-  }
-
-  const client = prisma as ClientPrisma;
-  const existant = await client.abonneNewsletter
-    .findUnique({ where: { email } })
-    .catch(() => null);
-  if (existant) {
-    await majAbonneAvecStatut(
-      { email },
-      { prenom: prenom || existant.prenom, nom: nom || existant.nom }
-    );
-  } else {
-    try {
-      await client.abonneNewsletter.create({
-        data: {
-          email,
-          prenom: prenom || null,
-          nom: nom || null,
-          actif: true,
-          statut: "ACTIF",
-        },
-      });
-    } catch {
-      // Colonne statut absente de la base -> création sans statut
-      await client.abonneNewsletter.create({
-        data: { email, prenom: prenom || null, nom: nom || null },
-      });
-    }
-  }
-  revalidatePath("/admin/newsletter");
-  redirect("/admin/newsletter");
-}
-
-async function basculerAbonne(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id") || "");
-  const client = prisma as ClientPrisma;
-  const abonne = await client.abonneNewsletter
-    ?.findUnique({ where: { id } })
-    .catch(() => null);
-  if (abonne) {
-    const actif = !abonne.actif;
-    await majAbonneAvecStatut(
-      { id },
-      { actif, desabonneLe: actif ? null : new Date() }
-    );
-  }
-  revalidatePath("/admin/newsletter");
-}
-
-async function supprimerAbonne(formData: FormData) {
-  "use server";
-  const id = String(formData.get("id") || "");
-  const client = prisma as ClientPrisma;
-  await client.abonneNewsletter?.delete({ where: { id } }).catch(() => null);
-  revalidatePath("/admin/newsletter");
-}
-
-/* --------------------------- Page ------------------------------ */
-
-export default async function PageAdminNewsletter({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const params = await searchParams;
-  const messageEnvoi = typeof params.envoi === "string" ? params.envoi : "";
-  const idApercu = typeof params.apercu === "string" ? params.apercu : "";
-  const idAbonneApercu = typeof params.abonne === "string" ? params.abonne : "";
-
-  const client = prisma as ClientPrisma;
-
-  let modeleManquant = "";
-  if (!client.campagneNewsletter) modeleManquant = "CampagneNewsletter";
-  if (!client.abonneNewsletter) {
-    modeleManquant = modeleManquant
-      ? "CampagneNewsletter et AbonneNewsletter"
-      : "AbonneNewsletter";
-  }
-
-  let campagnes: Campagne[] = [];
-  let abonnes: Abonne[] = [];
-  let erreurs: string[] = [];
-
-  if (!modeleManquant) {
-    try {
-      campagnes = (await client.campagneNewsletter.findMany({
-        orderBy: { creeLe: "desc" },
-      })) as Campagne[];
-    } catch (erreur: any) {
-      erreurs.push("Campagnes : " + (erreur?.message || "erreur inconnue"));
-    }
-    try {
-      abonnes = (await client.abonneNewsletter.findMany({
-        orderBy: { creeLe: "desc" },
-      })) as Abonne[];
-    } catch (erreur: any) {
-      erreurs.push("Abonnés : " + (erreur?.message || "erreur inconnue"));
-    }
-  }
-
-  const erreurChargement = erreurs.join(" — ");
-  const baseDesynchronisee = erreurChargement
-    .toLowerCase()
-    .includes("does not exist");
-
-  const base = await baseUrlDuSite();
-  const actifs = abonnes.filter((a) => a.actif);
-
-  // Aperçu personnalisé
-  const campagneApercu = idApercu
-    ? campagnes.find((c) => c.id === idApercu) || null
-    : null;
-  let abonneApercu: Abonne | null = null;
-  let apercuExemple = false;
-  if (campagneApercu) {
-    if (idAbonneApercu) {
-      abonneApercu = abonnes.find((a) => a.id === idAbonneApercu) || null;
-    }
-    if (!abonneApercu) {
-      abonneApercu = actifs[0] || abonnes[0] || null;
-    }
-    if (!abonneApercu) {
-      apercuExemple = true;
-      abonneApercu = {
-        id: "exemple",
-        email: "exemple@domaine.fr",
-        prenom: "Aperçu",
-        nom: "Exemple",
-        token: "TOKEN_EXEMPLE_123",
-        statut: "ACTIF",
-        actif: true,
-        desabonneLe: null,
-        creeLe: new Date(),
-      };
-    }
-  }
-
-  const objetRendu =
-    campagneApercu && abonneApercu
-      ? remplacerVariables(campagneApercu.objet, abonneApercu, campagneApercu, base)
-      : "";
-  const contenuRendu =
-    campagneApercu && abonneApercu
-      ? remplacerVariables(
-          completerPiedDePage(campagneApercu.contenu),
-          abonneApercu,
-          campagneApercu,
-          base
-        )
-      : "";
+  /** Âge en jours d'une date (pour les brouillons oubliés). */
+  const ageJours = (date: Date) =>
+    Math.max(0, Math.floor((maintenant.getTime() - new Date(date).getTime()) / 86_400_000));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900">Newsletter</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Campagnes, abonnés, aperçu personnalisé et envoi.
+    <div>
+      {/* ── En-tête + période ───────────────────────────────────────── */}
+      <div className="animate-apparition-haut flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-h3 font-semibold">Tableau de bord</h1>
+          <p className="mt-1 text-[14px] leading-6 text-encre">
+            Une vue simple de l&apos;activité de Webgiverse — le détail de chaque contenu vit dans le menu.
           </p>
-        </header>
-
-        {(modeleManquant || erreurChargement) && (
-          <div className="rounded-xl border border-orange-300 bg-orange-50 p-4 text-sm text-orange-900">
-            <p className="font-semibold">La newsletter n'est pas encore opérationnelle.</p>
-            {modeleManquant && (
-              <p className="mt-1">
-                Modèle(s) manquant(s) dans votre client Prisma :{" "}
-                <strong>{modeleManquant}</strong>.
-              </p>
-            )}
-            {erreurChargement && <p className="mt-1 break-words">{erreurChargement}</p>}
-            {baseDesynchronisee && (
-              <p className="mt-2 rounded-lg bg-orange-100 p-2">
-                <strong>Cause la plus probable :</strong> votre schéma Prisma et votre base
-                ne sont pas synchronisés (le client attend une colonne absente de la base,
-                par exemple <code>AbonneNewsletter.statut</code>). Remplacez le modèle
-                AbonneNewsletter dans <code>prisma/schema.prisma</code> par celui du fichier{" "}
-                <code>prisma/modele-abonne-newsletter.prisma</code> fourni (il contient
-                désormais le champ <code>statut</code>), puis relancez{" "}
-                <code>npx prisma format</code>, <code>npx prisma db push</code>, et
-                redémarrez le serveur.
-              </p>
-            )}
-            <ol className="mt-2 list-decimal space-y-1 pl-5">
-              <li>
-                Copiez le modèle AbonneNewsletter du fichier{" "}
-                <code className="bg-orange-100 px-1">prisma/modele-abonne-newsletter.prisma</code>{" "}
-                dans votre <code className="bg-orange-100 px-1">prisma/schema.prisma</code>{" "}
-                À LA PLACE de l'ancien (ne touchez pas à CampagneNewsletter).
-              </li>
-              <li>
-                Exécutez <code className="bg-orange-100 px-1">npx prisma format</code> puis{" "}
-                <code className="bg-orange-100 px-1">npx prisma db push</code>
-              </li>
-              <li>
-                Arrêtez le serveur, supprimez le dossier{" "}
-                <code className="bg-orange-100 px-1">.next</code>, relancez{" "}
-                <code className="bg-orange-100 px-1">npm run dev</code>
-              </li>
-            </ol>
-          </div>
-        )}
-
-        {messageEnvoi && (
-          <div
-            className={
-              "rounded-xl border p-4 text-sm " +
-              (messageEnvoi.startsWith("Erreur")
-                ? "border-red-300 bg-red-50 text-red-800"
-                : "border-green-300 bg-green-50 text-green-800")
-            }
-          >
-            {messageEnvoi}
-          </div>
-        )}
-
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Campagnes</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{campagnes.length}</p>
-          </div>
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Abonnés actifs</p>
-            <p className="mt-1 text-2xl font-bold text-green-700">{actifs.length}</p>
-          </div>
-          <div className="rounded-xl border bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Désabonnés</p>
-            <p className="mt-1 text-2xl font-bold text-gray-400">
-              {abonnes.length - actifs.length}
-            </p>
-          </div>
         </div>
+        <Badge variante="defaut" className="capitalize">{periode}</Badge>
+      </div>
 
-        {/* Campagnes */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Campagnes ({campagnes.length})
-          </h2>
-
-          <form action={creerCampagne} className="space-y-3 rounded-xl border bg-white p-4">
-            <p className="text-sm font-semibold text-gray-700">Nouvelle campagne</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <input
-                name="titre"
-                required
-                placeholder="Titre interne *"
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
-              <input
-                name="objet"
-                required
-                placeholder="Objet de l'e-mail *"
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
-              <input
-                name="lienArticle"
-                placeholder="Lien de l'article (pour {{lien_article}})"
-                className="rounded-lg border px-3 py-2 text-sm sm:col-span-2"
-              />
-              <input
-                name="nomEntreprise"
-                placeholder="Nom de l'entreprise (pour {{nom_entreprise}})"
-                className="rounded-lg border px-3 py-2 text-sm sm:col-span-2"
-              />
-            </div>
-            <textarea
-              name="contenu"
-              required
-              rows={12}
-              placeholder="Contenu de l'e-mail * — collez votre texte ici, les variables seront remplacées automatiquement."
-              className="w-full rounded-lg border px-3 py-2 font-mono text-sm"
-            />
-            <p className="text-xs text-gray-500">
-              Variables remplacées automatiquement pour chaque abonné :{" "}
-              <code>{"{{prénom}}"}</code>, <code>{"{{nom}}"}</code>,{" "}
-              <code>{"{{email}}"}</code>, <code>{"{{nom_entreprise}}"}</code>,{" "}
-              <code>{"{{lien_article}}"}</code>, <code>{"{{lien_desabonnement}}"}</code>,{" "}
-              <code>{"{{lien_preferences}}"}</code>. Si le contenu ne contient pas{" "}
-              <code>{"{{lien_desabonnement}}"}</code>, un pied de page avec les liens est
-              ajouté automatiquement à l'envoi.
+      {/* ── Bannière d'activité (dégradé TailwindAdmin) ─────────────── */}
+      <div className="animate-apparition-haut delai-1 relative mt-5 overflow-hidden rounded-carte bg-[linear-gradient(115deg,#5d87ff_0%,#49beff_100%)] p-6 text-white sm:p-7">
+        <span aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-white/15 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-44 rounded-full bg-white/10 blur-2xl" />
+        <Sparkles
+          aria-hidden
+          className="pointer-events-none absolute -right-4 -bottom-6 size-32 text-white/20"
+        />
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-white">
+                Activité
+              </span>
+              <span className="text-[12px] leading-4 font-medium text-white/85 capitalize">{dateLongue}</span>
             </p>
-            <button
-              type="submit"
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-            >
-              Créer la campagne
-            </button>
-          </form>
-
-          {campagnes.length === 0 && !erreurChargement && (
-            <p className="rounded-xl border border-dashed p-6 text-center text-sm text-gray-500">
-              Aucune campagne pour l'instant. Créez-en une ci-dessus.
+            <p className="mt-2.5 font-titre text-[19px] leading-7 font-semibold">
+              {inscritsMois > 0
+                ? `+${inscritsMois} nouveau${inscritsMois > 1 ? "x" : ""} membre${inscritsMois > 1 ? "s" : ""} ce mois-ci (${tendance(inscritsMois, inscritsMoisPrec) >= 0 ? "+" : ""}${tendance(inscritsMois, inscritsMoisPrec)} % vs le mois dernier)`
+                : "L'activité de la communauté, en un coup d'œil."}
             </p>
-          )}
+          </div>
+          <Link
+            href="/admin/utilisateurs"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-primaire-texte shadow-[0_4px_14px_rgba(32,41,54,0.18)] transition hover:bg-white/90 active:scale-[0.98]"
+          >
+            Voir les utilisateurs <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </div>
+      </div>
 
-          <div className="space-y-3">
-            {campagnes.map((campagne) => (
-              <div key={campagne.id} className="rounded-xl border bg-white p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-gray-900">{campagne.titre}</p>
-                    <p className="text-sm text-gray-500">{campagne.objet}</p>
-                  </div>
-                  <span
-                    className={
-                      "rounded-full px-3 py-1 text-xs font-semibold " +
-                      (campagne.statut === "ENVOYEE"
-                        ? "bg-green-100 text-green-800"
-                        : afficherStatut(campagne.statut) === "PRETE"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-gray-100 text-gray-600")
-                    }
-                  >
-                    {afficherStatut(campagne.statut)}
-                  </span>
-                </div>
-                <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-xs text-gray-500">
-                  {campagne.contenu.slice(0, 300)}
+      {/* ── Pilotage du jour (KPI temps réel) ───────────────────────── */}
+      <section aria-label="Pilotage du jour" className="animate-apparition-haut delai-1 mt-5">
+        <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
+          Pilotage du jour
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <CarteStatAdmin
+            href="/admin/utilisateurs"
+            libelle="Inscrits aujourd'hui"
+            valeur={inscritsAujourdhui}
+            icone={Users}
+            ton="primaire"
+            contexte={`${inscritsMois} inscription${inscritsMois > 1 ? "s" : ""} ce mois-ci`}
+          />
+          <CarteStatAdmin
+            href="/admin/moderation"
+            libelle="À modérer"
+            valeur={avis24h + messagesNonTraites}
+            icone={MessageSquareQuote}
+            ton="alerte"
+            contexte={`${avis24h} avis (24 h) · ${messagesNonTraites} message${messagesNonTraites > 1 ? "s" : ""} de contact`}
+          />
+          <CarteStatAdmin
+            href="/admin/abonnements"
+            libelle="Premium actifs"
+            valeur={nbPremium}
+            icone={Crown}
+            ton="info"
+            contexte={`${nbPro} Pro · ${nbEntreprise} Entreprise`}
+          />
+          <CarteStatAdmin
+            href="/admin/abonnements"
+            libelle="Revenus du mois"
+            valeur={revenusFormates}
+            icone={Wallet}
+            ton="succes"
+            contexte={`tendance ${tendance(revenusCur, revenusPrec) >= 0 ? "+" : ""}${tendance(revenusCur, revenusPrec)} % vs le mois dernier`}
+          />
+        </div>
+      </section>
+
+      {/* ── 4 cartes statistiques avec tendance + sparkline ─────────── */}
+      <section aria-label="Statistiques essentielles" className="animate-apparition-haut delai-2 mt-6">
+        <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
+          Ce mois-ci
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <CarteStatAdmin
+            href="/admin/utilisateurs"
+            libelle="Utilisateurs"
+            valeur={nbUtilisateurs}
+            icone={Users}
+            ton="primaire"
+            tendance={tendance(inscritsMois, inscritsMoisPrec)}
+            contexte={`${inscritsMois} inscription${inscritsMois > 1 ? "s" : ""} ce mois`}
+            donnees={joursInscrits}
+            delay={0}
+          />
+          <CarteStatAdmin
+            href="/admin/outils"
+            libelle="Outils publiés"
+            valeur={nbOutilsPublies}
+            icone={Wrench}
+            ton="succes"
+            tendance={tendance(outilsMois, outilsMoisPrec)}
+            contexte={`${nbOutilsTotal} fiches au total`}
+            donnees={joursOutils}
+            delay={70}
+          />
+          <CarteStatAdmin
+            href="/admin/avis"
+            libelle="Avis publiés"
+            valeur={nbAvis}
+            icone={MessageSquareQuote}
+            ton="alerte"
+            tendance={tendance(avisMois, avisMoisPrec)}
+            contexte={`${nbVotesUtile} vote${nbVotesUtile > 1 ? "s" : ""} « Utile »`}
+            donnees={joursAvis}
+            delay={140}
+          />
+          <CarteStatAdmin
+            href="/admin/abonnements"
+            libelle="Abonnés Premium"
+            valeur={nbPremium}
+            icone={Crown}
+            ton="info"
+            tendance={tendance(revenusCur, revenusPrec)}
+            contexte="tendance des revenus du mois"
+            donnees={joursRevenus.length > 0 ? joursRevenus : joursPremium}
+            delay={210}
+          />
+        </div>
+      </section>
+
+      {/* ── Apprendre & audience (tutoriels · newsletter · codes promo) ─ */}
+      <section aria-label="Apprendre et audience" className="animate-apparition-haut delai-2 mt-6">
+        <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
+          Apprendre &amp; audience
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <CarteStatAdmin
+            href="/admin/tutoriels"
+            libelle="Tutoriels au catalogue"
+            valeur={nbTutos}
+            icone={MonitorPlay}
+            ton="info"
+            contexte={`${nbTutosAvecVideo} vidéo${nbTutosAvecVideo > 1 ? "s" : ""} en ligne · ${nbNotesMembres} note${nbNotesMembres > 1 ? "s" : ""} prise${nbNotesMembres > 1 ? "s" : ""} par les membres`}
+          />
+          <CarteStatAdmin
+            href="/admin/tutoriels"
+            libelle="Vues cumulées"
+            valeur={(vuesTutos._sum.vues ?? 0).toLocaleString("fr-FR")}
+            icone={Eye}
+            ton="succes"
+            contexte="collection gratuite pour les membres connectés"
+          />
+          <CarteStatAdmin
+            href="/admin/newsletter"
+            libelle="Abonnés newsletter"
+            valeur={nbAbonnesNewsletter}
+            icone={Mail}
+            ton="primaire"
+            contexte="inscrits de la landing + ajoutés à la main"
+          />
+          <CarteStatAdmin
+            href="/admin/codes-promo"
+            libelle="Codes promo actifs"
+            valeur={nbCodesPromoActifs}
+            icone={Tag}
+            ton="alerte"
+            contexte="réductions actuellement utilisables"
+          />
+        </div>
+      </section>
+
+      {/* ── Alertes visuelles ──────────────────────────────────────── */}
+      <section aria-label="Alertes" className="animate-apparition-haut delai-2 mt-6 grid gap-4 lg:grid-cols-2">
+        {/* Liens morts détectés */}
+        <Carte className={`p-6 ${nbLiensMorts > 0 ? "border-[#f3c3b5] bg-[#fdf6f4]" : ""}`}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span
+                className={`grid size-11 shrink-0 place-items-center rounded-xl ${
+                  nbLiensMorts > 0 ? "bg-adm-erreur-doux text-[#c94f35]" : "bg-adm-succes-doux text-[#0f9b85]"
+                }`}
+              >
+                <Link2Off className="size-5" aria-hidden />
+              </span>
+              <div>
+                <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
+                  Liens morts détectés
+                </h3>
+                <p className="text-[13px] leading-4 text-adm-gris">
+                  {nbLiensMorts > 0
+                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe vers un site en défaut`
+                    : nbJamaisVerifies > 0
+                      ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
+                      : "Aucun lien mort : tous les liens vérifiés répondent"}
                 </p>
-                <p className="mt-2 text-xs text-gray-400">
-                  Créée le {formatDate(campagne.creeLe)}
-                  {campagne.envoyeLe ? ` · Envoyée le ${formatDate(campagne.envoyeLe)}` : ""}
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/admin/newsletter?apercu=${campagne.id}`}
-                    className="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
-                  >
-                    Aperçu
-                  </Link>
-                  <form action={basculerStatutCampagne}>
-                    <input type="hidden" name="id" value={campagne.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg border px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      {afficherStatut(campagne.statut) === "PRETE"
-                        ? "Remettre en brouillon"
-                        : "Marquer comme prête"}
-                    </button>
-                  </form>
-                  <form action={envoyerCampagne}>
-                    <input type="hidden" name="id" value={campagne.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-500"
-                    >
-                      {campagne.statut === "ENVOYEE"
-                        ? "Renvoyer"
-                        : `Envoyer (${actifs.length} actifs)`}
-                    </button>
-                  </form>
-                  <form action={supprimerCampagne}>
-                    <input type="hidden" name="id" value={campagne.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
-                    >
-                      Supprimer
-                    </button>
-                  </form>
-                </div>
               </div>
+            </div>
+            <BoutonVerifierLiens />
+          </div>
+
+          {nbLiensMorts > 0 && (
+            <ul className="mt-4 grid gap-2">
+              {liensMorts.map((outil) => (
+                <li key={outil.id}>
+                  <Link
+                    href={`/admin/outils/${outil.id}`}
+                    className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#e0917a]"
+                  >
+                    <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre group-hover:text-[#c94f35]">
+                      {outil.nom}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="rounded-full bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
+                        {libelleCodeLien(outil.statutLien)}
+                      </span>
+                      {outil.lienVerifieLe && (
+                        <span className="text-[11px] text-adm-gris-clair">
+                          {formateurDate.format(new Date(outil.lienVerifieLe))}
+                        </span>
+                      )}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {nbLiensMorts > liensMorts.length && (
+                <li className="px-1 text-[12px] text-adm-gris">
+                  + {nbLiensMorts - liensMorts.length} autre{nbLiensMorts - liensMorts.length > 1 ? "s" : ""} fiche{nbLiensMorts - liensMorts.length > 1 ? "s" : ""} en défaut
+                </li>
+              )}
+            </ul>
+          )}
+        </Carte>
+
+        {/* Brouillons oubliés */}
+        <Carte className={`p-6 ${nbBrouillonsAnciens > 0 ? "border-[#efdda8] bg-[#fdfaf1]" : ""}`}>
+          <div className="flex items-center gap-3">
+            <span
+              className={`grid size-11 shrink-0 place-items-center rounded-xl ${
+                nbBrouillonsAnciens > 0 ? "bg-adm-alerte-doux text-[#b26f00]" : "bg-adm-succes-doux text-[#0f9b85]"
+              }`}
+            >
+              <FileWarning className="size-5" aria-hidden />
+            </span>
+            <div>
+              <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
+                Brouillons oubliés
+              </h3>
+              <p className="text-[13px] leading-4 text-adm-gris">
+                {nbBrouillonsAnciens > 0
+                  ? `${nbBrouillonsAnciens} brouillon${nbBrouillonsAnciens > 1 ? "s" : ""} d'article sans modification depuis 30 jours`
+                  : "Aucun brouillon ancien : tout est à jour"}
+              </p>
+            </div>
+          </div>
+
+          {nbBrouillonsAnciens > 0 && (
+            <ul className="mt-4 grid gap-2">
+              {brouillonsAnciens.map((article) => (
+                <li key={article.id}>
+                  <Link
+                    href={`/admin/articles/${article.id}`}
+                    className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#dfb95c]"
+                  >
+                    <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre group-hover:text-[#b26f00]">
+                      {article.titre}
+                    </span>
+                    <span className="shrink-0 text-[11px] leading-4 font-semibold text-[#b26f00]">
+                      inactif depuis {ageJours(article.majLe)} j
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {nbBrouillonsAnciens > brouillonsAnciens.length && (
+                <li className="px-1 text-[12px] text-adm-gris">
+                  + {nbBrouillonsAnciens - brouillonsAnciens.length} autre{nbBrouillonsAnciens - brouillonsAnciens.length > 1 ? "s" : ""} brouillon{nbBrouillonsAnciens - brouillonsAnciens.length > 1 ? "s" : ""}
+                </li>
+              )}
+            </ul>
+          )}
+        </Carte>
+
+        {/* Descriptions YouTube des tutoriels (raffinées) */}
+        <Carte className="p-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span
+                className={`grid size-11 shrink-0 place-items-center rounded-xl ${
+                  nbTutosSansDescription > 0 ? "bg-adm-info-doux text-[#3b6fc9]" : "bg-adm-succes-doux text-[#0f9b85]"
+                }`}
+              >
+                <CaptionIcon className="size-5" aria-hidden />
+              </span>
+              <div>
+                <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
+                  Descriptions YouTube
+                </h3>
+                <p className="max-w-md text-[13px] leading-4 text-adm-gris">
+                  {nbTutosSansDescription > 0
+                    ? `${nbTutosSansDescription} tutoriel${nbTutosSansDescription > 1 ? "s" : ""} attend${nbTutosSansDescription > 1 ? "ent" : ""} sa description raffinée (chapitres + ressources utiles)`
+                    : "Toutes les vidéos ont leur description raffinée, affichée sous chaque tutoriel"}
+                </p>
+              </div>
+            </div>
+            <BoutonRecupererDescriptions />
+          </div>
+
+          {nbTutosSansDescription > 0 && (
+            <ul className="mt-4 grid gap-2">
+              {tutosSansDescription.map((tuto) => (
+                <li key={tuto.id}>
+                  <Link
+                    href="/admin/tutoriels"
+                    className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#9db8e8]"
+                  >
+                    <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre group-hover:text-[#3b6fc9]">
+                      {tuto.titre}
+                    </span>
+                    <span className="shrink-0 text-[11px] leading-4 font-semibold text-[#3b6fc9]">
+                      sans description
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {nbTutosSansDescription > tutosSansDescription.length && (
+                <li className="px-1 text-[12px] text-adm-gris">
+                  + {nbTutosSansDescription - tutosSansDescription.length} autre{nbTutosSansDescription - tutosSansDescription.length > 1 ? "s" : ""}
+                </li>
+              )}
+            </ul>
+          )}
+        </Carte>
+      </section>
+
+      {/* ── Graphiques : inscriptions 14 jours + raccourcis + plans ── */}
+      <section className="mt-6 grid gap-4 lg:grid-cols-3">
+        <Carte className="animate-apparition-haut p-6 lg:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+              Nouvelles inscriptions
+            </h2>
+            <Badge variante="defaut">14 derniers jours</Badge>
+          </div>
+          <p className="mt-1 text-[13px] leading-4 text-encre">
+            {valeursBarres.reduce((s, v) => s + v, 0) > 0
+              ? "Inscriptions par jour, sur les deux dernières semaines."
+              : "Aucune inscription sur la période : partage ton lien d'invitation !"}
+          </p>
+          <div className="mt-4">
+            <GraphiqueBarres valeurs={valeursBarres} labels={labelsBarres} />
+          </div>
+        </Carte>
+
+        {/* Raccourcis — enrichis : Newsletter, Codes promo, Parrainages */}
+        <Carte className="animate-apparition-haut delai-1 p-6">
+          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+            Raccourcis
+          </h2>
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+            {[
+              { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
+              { href: "/admin/newsletter", libelle: "Newsletter", texte: "Campagnes, abonnés et envois" },
+              { href: "/admin/codes-promo", libelle: "Codes promo", texte: "Créer et suivre les réductions" },
+              { href: "/admin/parrainages", libelle: "Parrainages", texte: "Liens d'invitation et récompenses" },
+              { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },
+              { href: "/admin/segments", libelle: "Segments", texte: "Filtres prêts à l'emploi + export CSV" },
+              { href: "/admin/statistiques", libelle: "Statistiques", texte: "Vues par outil, article et prompt" },
+              { href: "/admin/journal", libelle: "Journal d'audit", texte: "Qui a fait quoi, quand" },
+              { href: "/admin/sauvegarde", libelle: "Sauvegarde", texte: "Exporter la base en JSON / CSV" },
+            ].map((r) => (
+              <Link
+                key={r.href}
+                href={r.href}
+                className="group flex items-center justify-between gap-3 rounded-champ border border-bordure bg-white px-4 py-3 transition hover:border-primaire hover:bg-primaire/5"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[14px] font-semibold text-adm-sombre group-hover:text-primaire-texte">{r.libelle}</span>
+                  <span className="block truncate text-[12px] text-encre">{r.texte}</span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-adm-gris-clair transition group-hover:translate-x-0.5 group-hover:text-primaire" aria-hidden />
+              </Link>
             ))}
           </div>
+        </Carte>
 
-          {/* Aperçu personnalisé */}
-          {campagneApercu && abonneApercu && (
-            <div className="space-y-3 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="font-semibold text-indigo-900">
-                  Aperçu personnalisé — {campagneApercu.titre}
-                </h3>
-                <Link href="/admin/newsletter" className="text-sm text-indigo-700 underline">
-                  Fermer
-                </Link>
-              </div>
-
-              {abonnes.length > 0 && (
-                <form method="get" action="/admin/newsletter" className="flex flex-wrap items-center gap-2">
-                  <input type="hidden" name="apercu" value={campagneApercu.id} />
-                  <select
-                    name="abonne"
-                    defaultValue={abonneApercu.id}
-                    className="rounded-lg border border-indigo-300 bg-white px-3 py-2 text-sm"
-                  >
-                    {abonnes.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {((a.prenom || "") + " " + (a.nom || "")).trim() || a.email}
-                        {a.actif ? "" : " (désabonné)"}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500"
-                  >
-                    Voir pour cet abonné
-                  </button>
-                </form>
-              )}
-              {apercuExemple && (
-                <p className="text-xs text-indigo-700">
-                  Aucun abonné enregistré : aperçu avec des données d'exemple. Ajoutez des
-                  abonnés ci-dessous pour un aperçu réel.
-                </p>
-              )}
-
-              <div className="rounded-lg border bg-white p-4">
-                <p className="text-sm text-gray-500">
-                  Objet : <strong className="text-gray-900">{objetRendu}</strong>
-                </p>
-                <hr className="my-3" />
-                <div className="whitespace-pre-wrap text-sm text-gray-800">{contenuRendu}</div>
-              </div>
-
-              <div className="text-xs text-indigo-700">
-                <p className="break-all">
-                  Lien désabonnement : {base}/newsletter/desabonnement/{abonneApercu.token}
-                </p>
-                <p className="break-all">
-                  Lien préférences : {base}/newsletter/preferences/{abonneApercu.token}
-                </p>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Abonnés */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Abonnés ({abonnes.length} — dont {actifs.length} actifs)
+        <Carte className="animate-apparition-haut delai-1 p-6">
+          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+            Membres par plan
           </h2>
-
-          <form action={creerAbonne} className="rounded-xl border bg-white p-4">
-            <p className="text-sm font-semibold text-gray-700">Ajouter un abonné</p>
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
-              <input
-                name="email"
-                type="email"
-                required
-                placeholder="E-mail *"
-                className="rounded-lg border px-3 py-2 text-sm sm:col-span-2"
-              />
-              <input
-                name="prenom"
-                placeholder="Prénom"
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
-              <input
-                name="nom"
-                placeholder="Nom"
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <button
-                type="submit"
-                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-              >
-                Ajouter
-              </button>
-              <p className="text-xs text-gray-500">
-                Les inscriptions du formulaire de la page d'accueil arrivent
-                automatiquement dans cette liste (avec leur token de désabonnement).
-              </p>
-            </div>
-          </form>
-
-          {abonnes.length === 0 ? (
-            <p className="rounded-xl border border-dashed p-6 text-center text-sm text-gray-500">
-              Aucun abonné pour l'instant : ajoutez-en un ci-dessus. Les personnes
-              inscrites via le formulaire de la page d'accueil apparaîtront ici
-              automatiquement.
-            </p>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border bg-white">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
-                    <th className="px-4 py-3">E-mail</th>
-                    <th className="px-4 py-3">Prénom</th>
-                    <th className="px-4 py-3">Nom</th>
-                    <th className="px-4 py-3">Statut</th>
-                    <th className="px-4 py-3">Inscrit le</th>
-                    <th className="px-4 py-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {abonnes.map((abonne) => (
-                    <tr key={abonne.id} className="border-b last:border-0">
-                      <td className="px-4 py-3 font-medium text-gray-900">{abonne.email}</td>
-                      <td className="px-4 py-3 text-gray-600">{abonne.prenom || "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{abonne.nom || "—"}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={
-                            "rounded-full px-2.5 py-1 text-xs font-semibold " +
-                            (abonne.actif
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-500")
-                          }
-                        >
-                          {abonne.actif ? "Actif" : "Désabonné"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">
-                        {formatDate(abonne.creeLe)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <form action={basculerAbonne}>
-                            <input type="hidden" name="id" value={abonne.id} />
-                            <button
-                              type="submit"
-                              className="rounded-lg border px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-50"
-                            >
-                              {abonne.actif ? "Désactiver" : "Réactiver"}
-                            </button>
-                          </form>
-                          <Link
-                            href={`/newsletter/preferences/${abonne.token}`}
-                            className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700 hover:bg-indigo-100"
-                          >
-                            Préférences
-                          </Link>
-                          <form action={supprimerAbonne}>
-                            <input type="hidden" name="id" value={abonne.id} />
-                            <button
-                              type="submit"
-                              className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs text-red-700 hover:bg-red-100"
-                            >
-                              Supprimer
-                            </button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </div>
+          <div className="mt-4">
+            <GraphiqueRepartition
+              segments={[
+                { libelle: "Découverte", valeur: nbDecouverte, couleur: "#99a1af" },
+                { libelle: "Premium Pro", valeur: nbPro, couleur: "#5d87ff" },
+                { libelle: "Entreprise", valeur: nbEntreprise, couleur: "#202936" },
+              ]}
+              total={nbUtilisateurs}
+              totalLibelle="membres"
+            />
+          </div>
+        </Carte>
+      </section>
     </div>
   );
 }

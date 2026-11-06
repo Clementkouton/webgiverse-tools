@@ -7,7 +7,8 @@
 //     déconnexion en un tap sur mobile.
 //   • Barre latérale fixe sur ordinateur, tiroir coulissant animé sur
 //     mobile (fond assombri, fermeture Échap, verrou de défilement).
-//   • Nouvelle section « Apprendre » : Tutoriels IA et Prompts IA.
+//   • Section « Apprendre » : Prompts IA, Tutoriels IA et Mes notes
+//     (notes prises pendant les tutoriels — Lot 29).
 //   • Toile gris clair derrière le contenu : les cartes blanches
 //     ressortent comme dans le template Metis.
 // L'état actif suit l'URL (/dashboard?onglet=…) et la route
@@ -20,12 +21,13 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   ArrowLeftRight,
+  Bell,
   Bot,
   Compass,
   Crown,
   Download,
-  Gift,
   GraduationCap,
+  Handshake,
   History,
   LayoutDashboard,
   Library,
@@ -33,6 +35,7 @@ import {
   Menu,
   MessageSquareQuote,
   MonitorPlay,
+  NotebookPen,
   Search,
   Sparkles,
   Star,
@@ -43,8 +46,8 @@ import {
 import { cn } from "@/lib/utils";
 import { LienLogo } from "@/components/commun/logo";
 import PiedDashboard from "@/components/dashboard/pied-dashboard";
-import ClocheNotifications from "@/components/dashboard/cloche-notifications"; // Lot 20
 import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
+import ClocheNotifications  from "@/components/dashboard/cloche-notifications";
 
 type Props = {
   prenom: string;
@@ -74,6 +77,8 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/dashboard?onglet=listes", libelle: "Mes listes", icone: ListChecks, onglet: "listes" },
       { href: "/dashboard?onglet=avis", libelle: "Mes avis", icone: MessageSquareQuote, onglet: "avis" },
       { href: "/dashboard?onglet=activite", libelle: "Activité", icone: History, onglet: "activite" },
+      { href: "/dashboard/notifications", libelle: "Notifications", icone: Bell, route: "/dashboard/notifications" },
+      { href: "/dashboard/parrainage", libelle: "Parrainage", icone: Handshake, route: "/dashboard/parrainage" },
     ],
   },
   {
@@ -81,6 +86,7 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     liens: [
       { href: "/dashboard/prompts", libelle: "Mes prompts", icone: TerminalSquare, route: "/dashboard/prompts" },
       { href: "/dashboard/tutoriels", libelle: "Mes tutoriels", icone: MonitorPlay, route: "/dashboard/tutoriels" },
+      { href: "/dashboard/notes", libelle: "Mes notes", icone: NotebookPen, route: "/dashboard/notes" },
       { href: "/dashboard/assistant", libelle: "Mes conversations", icone: Bot, route: "/dashboard/assistant" },
       { href: "/prompts", libelle: "Bibliothèque de prompts", icone: Library },
       { href: "/tutoriels", libelle: "Tous les tutoriels", icone: GraduationCap },
@@ -99,7 +105,6 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     liens: [
       { href: "/dashboard/abonnement", libelle: "Mon abonnement", icone: Crown, route: "/dashboard/abonnement" },
       { href: "/dashboard/export", libelle: "Export premium", icone: Download, route: "/dashboard/export" },
-      { href: "/dashboard/parrainage", libelle: "Parrainage (+14 jours)", icone: Gift, route: "/dashboard/parrainage" },
     ],
   },
 ];
@@ -111,12 +116,14 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   listes: { titre: "Mes listes", sousTitre: "Organise tes outils par projet ou par client" },
   avis: { titre: "Mes avis", sousTitre: "Tes retours d'expérience sur les outils testés" },
   activite: { titre: "Mon activité", sousTitre: "Historique de tes actions" },
+  notifications: { titre: "Notifications", sousTitre: "Nouveautés, votes sur tes avis et récompenses" },
+  parrainage: { titre: "Parrainage", sousTitre: "1 mois offert pour chaque filleul Premium" },
   abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
   prompts: { titre: "Mes prompts", sousTitre: "Les prompts IA que tu as sauvegardés" },
   tutoriels: { titre: "Mes tutoriels", sousTitre: "Ta progression dans la collection vidéo" },
+  notes: { titre: "Mes notes", sousTitre: "Tes notes prises pendant les tutoriels" },
   assistant: { titre: "Mes conversations", sousTitre: "Historique de tes échanges avec l'assistant" },
   export: { titre: "Export premium", sousTitre: "Tes favoris et tes listes en PDF ou CSV" },
-  parrainage: { titre: "Parrainage", sousTitre: "Invite tes amis, gagne 14 jours Premium par filleul" },
 };
 
 export default function MenuDashboard({ prenom, image, premium, pied, children }: Props) {
@@ -124,11 +131,11 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
   const chemin = usePathname();
   const params = useSearchParams();
 
-  // Onglet actif : paramètre d'URL (défaut « aperçu » sur /dashboard)
+  // Onglet actif : paramètre d'URL (défaut « apercu » sur /dashboard)
   const ongletActif =
     chemin === "/dashboard" ? (params.get("onglet") ?? "apercu") : null;
   // Sous-pages du dashboard (/dashboard/abonnement, /prompts, /tutoriels,
-  // /assistant, /export) : la clé de titre = dernier segment du chemin.
+  // /notes, /assistant, /export) : la clé de titre = dernier segment.
   const segment = chemin.startsWith("/dashboard/")
     ? chemin.slice("/dashboard/".length).split("/")[0]
     : null;
@@ -263,7 +270,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
         <Sparkles className="size-4 text-ciel" aria-hidden /> Passe Premium
       </p>
       <p className="relative mt-1 text-[12px] leading-4 text-white/75">
-        Favoris illimités, badge exclusif et export PDF dès $2,99/mois.
+        Favoris illimités, bibliothèque de prompts complète et export PDF dès $2,99/mois.
       </p>
       <Link
         href="/dashboard/abonnement#plans"
@@ -377,9 +384,8 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
             </form>
 
             <div className="ml-auto flex shrink-0 items-center gap-3 md:ml-3">
-              {/* Lot 20 — cloche des notifications in-app (tous écrans) */}
+              {/* Notifications in-app — cloche avec compteur */}
               <ClocheNotifications />
-
               {/* Profil (desktop) */}
               <div className="hidden min-w-0 items-center gap-2.5 lg:flex">
                 {avatar}

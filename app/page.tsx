@@ -90,7 +90,7 @@ export default async function Accueil() {
       {/* ── Hero ─────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-14 text-center lg:py-20">
-          <h1 className="mx-auto max-w-[860px] text-[34px] leading-[42px] font-bold tracking-tight sm:text-h1">
+          <h1 className="mx-auto max-w-215 text-[34px] leading-[42px] font-bold tracking-tight sm:text-h1">
             Trouve le <span className="texte-degrade">bon outil IA</span> pour ton projet
           </h1>
           <p className="mesure mx-auto mt-5 text-center text-[18px] leading-7 text-encre">

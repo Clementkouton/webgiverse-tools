@@ -10,9 +10,16 @@
 //     à modérer (badge corail), avatar ;
 //   • Sections : Pilotage / Catalogue (Outils, Tutoriels, Prompts,
 //     Articles) / Modération (Propositions, Avis, Utilisateurs) /
-//     Monétisation (Abonnements) — chaque contenu a sa page ;
+//     Monétisation (Abonnements, Newsletter, Codes promo) — chaque
+//     contenu a sa page ;
 //   • Mobile : tiroir coulissant blanc, fond assombri ardoise.
 // Le header et le footer du site sont masqués sur /admin.
+//
+// MISE À JOUR (correctif « page newsletter ») : ajout des liens
+//   « Newsletter » (/admin/newsletter) et « Codes promo »
+//   (/admin/codes-promo) dans la section Monétisation. Si tu avais
+//   déjà ajouté ces liens toi-même, garde TA version et vérifie
+//   simplement que le href est bien « /admin/newsletter ».
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
@@ -31,11 +38,10 @@ import {
   Gift,
   History,
   Inbox,
-  Mail,
   LayoutDashboard,
   ListChecks,
+  Mail,
   Menu,
-  Megaphone,
   MessageSquareQuote,
   MonitorPlay,
   Newspaper,
@@ -45,8 +51,8 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Tag,
   TerminalSquare,
-  TicketPercent,
   Users,
   Wrench,
   X,
@@ -55,6 +61,7 @@ import {
 import { cn } from "@/lib/utils";
 import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
 import { ClocheAdmin, type NotificationAdmin } from "@/components/admin/cloche-admin";
+import {LienLogo }  from "@/components/commun/logo";
 
 type Props = {
   prenom: string;
@@ -111,10 +118,9 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
     titre: "Monétisation",
     liens: [
       { href: "/admin/abonnements", libelle: "Abonnements", icone: CreditCard },
-      { href: "/admin/parrainages", libelle: "Parrainages", icone: Gift },
-      { href: "/admin/sponsors", libelle: "Sponsors", icone: Megaphone },
-      { href: "/admin/codes-promo", libelle: "Codes promo", icone: TicketPercent },
       { href: "/admin/newsletter", libelle: "Newsletter", icone: Mail },
+      { href: "/admin/codes-promo", libelle: "Codes promo", icone: Tag },
+      { href: "/admin/parrainages", libelle: "Parrainages", icone: Gift },
     ],
   },
   {
@@ -214,7 +220,7 @@ export default function MenuAdmin({
     </div>
   );
 
-  /** Liens des 4 sections (styles clairs, partagés sidebar + tiroir). */
+  /** Liens des sections (styles clairs, partagés sidebar + tiroir). */
   function liensAdmin(replie: boolean, surClic?: () => void) {
     return SECTIONS.map((section) => (
       <div key={section.titre} className="mt-5 first:mt-1">
@@ -312,20 +318,12 @@ export default function MenuAdmin({
       href="/admin"
       className={cn("flex items-center border-b border-adm-bordure py-4", replie ? "justify-center px-0" : "gap-2.5 px-5")}
     >
-      <span
-        aria-hidden
-        className="grid size-9 shrink-0 place-items-center rounded-champ bg-primaire shadow-[0_4px_14px_rgba(93,135,255,0.4)]"
-      >
-        <Sparkles className="size-5 text-white" />
-      </span>
       {!replie && (
         <span className="min-w-0">
           <span className="block font-titre text-[15px] leading-5 font-bold text-adm-sombre">
-            Webgiverse
+            <LienLogo  />
           </span>
-          <span className="block text-[11px] leading-4 font-bold uppercase tracking-[0.16em] text-primaire-texte">
-            Console admin
-          </span>
+          
         </span>
       )}
     </Link>
@@ -344,7 +342,6 @@ export default function MenuAdmin({
       >
         {marque(reduit)}
         
-
         <nav
           aria-label="Menu de la console d'administration"
           className="flex-1 overflow-y-auto px-3 py-2"

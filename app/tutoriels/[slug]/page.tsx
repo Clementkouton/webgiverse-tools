@@ -1,18 +1,17 @@
 // app/tutoriels/[slug]/page.tsx
-// Lot 12 + Lot 19 (correctif) — page de lecture d'un tutoriel vidéo.
-// ⚠ CE FICHIER AVAIT ÉTÉ SUPPRIMÉ PAR ACCIDENT lors du push du Lot 19 :
-//   sans lui, chaque carte tutoriel menait à une 404 et le bouton
-//   « Ma progression » (En cours / Terminé) n'existait plus nulle part.
-// La vidéo YouTube est embarquée (iframe youtube-nocookie) : l'utilisateur
-// regarde le tuto SANS quitter Webgiverse. L'accès à la lecture est
-// réservé aux utilisateurs connectés avec un abonnement Premium ACTIF
-// (Pro ou Entreprise) — contrôle côté serveur via lib/premium.ts, l'iframe
-// n'est tout simplement pas rendue pour les autres.
-// La liste des tutoriels reste publique (vitrine), comme sur Aixploria.
+// Lot 29 — TUTORIELS GRATUITS : la lecture des vidéos est offerte à
+// tous les membres CONNECTÉS (fin de la barrière Premium). Un visiteur
+// non connecté parcourt librement la collection et voit un écran
+// d'invitation sur le lecteur. Le suivi de progression et la prise de
+// notes (privée, visible dans Dashboard → Mes notes) sont inclus :
+// il suffit d'être connecté.
+// La vidéo YouTube est embarquée (iframe youtube-nocookie) : le membre
+// regarde le tuto SANS quitter Webgiverse. La liste des tutoriels reste
+// publique (vitrine), comme sur Aixploria.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, ChevronRight, ClipboardList, Clock, Crown, Eye, Gauge, Lock, LogIn, Play, Sparkles } from "lucide-react";
+import { CalendarDays, ChevronRight, ClipboardList, Clock, Crown, Eye, Gauge, Lock, LogIn, Play } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { premiumActif } from "@/lib/premium";
@@ -21,6 +20,7 @@ import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { BoutonProgression } from "@/components/tutoriels/bouton-progression";
+import { BlocNotesTutoriel } from "@/components/tutoriels/bloc-notes-tutoriel";
 import { RessourcesTuto } from "@/components/tutoriels/ressources-tuto";
 import { PLANS } from "@/lib/plans";
 import { LecteurYoutube } from "@/components/tutoriels/lecteur-youtube";
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: tuto ? `${tuto.titre} — Tutoriels IA Webgiverse` : "Tutoriel introuvable",
     description: tuto
-      ? `Tutoriel vidéo (${formaterDuree(tuto.dureeMin)}, niveau ${NIVEAUX[tuto.niveau].libelle.toLowerCase()}) : ${tuto.titre}.`
+      ? `Tutoriel vidéo gratuit (${formaterDuree(tuto.dureeMin)}, niveau ${NIVEAUX[tuto.niveau].libelle.toLowerCase()}) : ${tuto.titre}.`
       : undefined,
   };
 }
@@ -45,15 +45,17 @@ export default async function PageTuto({ params }: { params: Params }) {
   const tuto = await obtenirTuto(slug);
   if (!tuto) notFound();
 
-  // ── Contrôle d'accès (côté serveur) ──────────────────────────────
+  // ── Contrôle d'accès (côté serveur) : LA CONNEXION SUFFIT ────────
   const session = await auth();
   const utilisateurId = session?.user?.id ?? null;
   const connecte = Boolean(utilisateurId);
+  // Premium n'est plus exigé pour la lecture : il ne sert qu'à
+  // personnaliser l'encart « passe Premium » de la colonne latérale.
   const premium = utilisateurId ? await premiumActif(utilisateurId) : false;
 
-  // Lot 19 — progression personnelle sur ce tutoriel. Défensif : si la
-  // table ProgressionTuto n'existe pas encore (db push absent), « AUCUN »
-  // sans erreur — la page reste affichable.
+  // ── Progression personnelle sur ce tutoriel (gratuite) ──────────
+  // Défensif : si la table ProgressionTuto n'existe pas encore
+  // (db push absent), « AUCUN » sans erreur — la page reste affichable.
   let statutInitial: "AUCUN" | "EN_COURS" | "TERMINE" = "AUCUN";
   if (utilisateurId) {
     try {
@@ -64,6 +66,32 @@ export default async function PageTuto({ params }: { params: Params }) {
       statutInitial = progression?.statut ?? "AUCUN";
     } catch {
       statutInitial = "AUCUN";
+    }
+  }
+
+  // ── Note personnelle existante sur ce tutoriel (Lot 29) ─────────
+  // Lecture défensive : si le modèle NoteTutoriel n'est pas encore
+  // dans le client Prisma (schéma pas à jour), on renvoie null sans
+  // faire planter la page — le bloc-notes affichera la marche à suivre
+  // au moment de l'enregistrement.
+  let noteInitiale: string | null = null;
+  if (utilisateurId) {
+    try {
+      const delegue = prisma as unknown as {
+        noteTutoriel?: {
+          findUnique: (args: {
+            where: { userId_tutoId: { userId: string; tutoId: string } };
+            select: { contenu: true };
+          }) => Promise<{ contenu: string } | null>;
+        };
+      };
+      const note = (await delegue.noteTutoriel?.findUnique({
+        where: { userId_tutoId: { userId: utilisateurId, tutoId: tuto.id } },
+        select: { contenu: true },
+      })) ?? null;
+      noteInitiale = note?.contenu ?? null;
+    } catch {
+      noteInitiale = null;
     }
   }
 
@@ -91,16 +119,16 @@ export default async function PageTuto({ params }: { params: Params }) {
       <div className="mx-auto w-full max-w-7xl px-4 py-8">
         {/* ── Lecteur vidéo (3 états) ─────────────────────────────── */}
         <div className="relative aspect-video w-full overflow-hidden rounded-carte border border-bordure bg-bleu shadow-carte">
-          {premium && tuto.youtubeId ? (
-            // Lecture intégrée (Lot 13) : lecteur officiel YouTube avec
-            // détection d'erreurs + écran de secours « Voir sur YouTube ».
+          {connecte && tuto.youtubeId ? (
+            // Membre connecté + vidéo disponible : lecture intégrée
+            // (lecteur officiel YouTube, écran de secours « Voir sur YouTube »).
             <LecteurYoutube
               youtubeId={tuto.youtubeId}
               titre={tuto.titre}
               miniature={urlMiniature(tuto)}
             />
-          ) : premium ? (
-            // Premium connecté mais vidéo pas encore complétée par l'équipe.
+          ) : connecte ? (
+            // Membre connecté mais vidéo pas encore complétée par l'équipe.
             <div className="absolute inset-0 grid place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
               <div className="px-6 text-center text-white">
                 <Play className="mx-auto size-12" aria-hidden />
@@ -113,37 +141,27 @@ export default async function PageTuto({ params }: { params: Params }) {
               </div>
             </div>
           ) : (
-            // Écran de contrôle d'accès (non connecté OU sans abonnement actif).
+            // Visiteur non connecté : invitation (les tutoriels sont gratuits).
             <div className="absolute inset-0 grid place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
               <div className="max-w-md px-6 py-8 text-center text-white">
                 <Lock className="mx-auto size-10" aria-hidden />
                 <h2 className="mt-4 font-titre text-[20px] leading-7 font-bold">
-                  {connecte ? "Réservé aux abonnés Premium" : "Connecte-toi pour suivre ce tutoriel"}
+                  Connecte-toi pour suivre ce tutoriel
                 </h2>
                 <p className="mx-auto mt-2 text-[14px] leading-6 opacity-90">
-                  {connecte
-                    ? `Les tutoriels vidéo sont inclus dans les plans Pro et Entreprise. Passe Premium pour regarder « ${tuto.titre} » ici même.`
-                    : "La collection se parcours librement, mais la lecture des vidéos est réservée aux abonnés Premium (Pro ou Entreprise)."}
+                  Les tutoriels Webgiverse sont <strong>gratuits</strong> : crée un compte
+                  (ou connecte-toi) pour regarder « {tuto.titre} » ici même, suivre ta
+                  progression et prendre des notes.
                 </p>
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                  {connecte ? (
-                    <Bouton asChild variante="secondaire">
-                      <Link href="/tarifs">
-                        <Sparkles aria-hidden /> Passer Premium
-                      </Link>
-                    </Bouton>
-                  ) : (
-                    <>
-                      <Bouton asChild variante="secondaire">
-                        <Link href={`/connexion?suite=/tutoriels/${tuto.slug}`}>
-                          <LogIn aria-hidden /> Me connecter
-                        </Link>
-                      </Bouton>
-                      <Bouton asChild>
-                        <Link href="/inscription">Créer un compte gratuit</Link>
-                      </Bouton>
-                    </>
-                  )}
+                  <Bouton asChild variante="secondaire">
+                    <Link href={`/connexion?suite=/tutoriels/${tuto.slug}`}>
+                      <LogIn aria-hidden /> Me connecter
+                    </Link>
+                  </Bouton>
+                  <Bouton asChild>
+                    <Link href="/inscription">Créer un compte gratuit</Link>
+                  </Bouton>
                 </div>
               </div>
             </div>
@@ -164,6 +182,9 @@ export default async function PageTuto({ params }: { params: Params }) {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
                 <Eye className="size-3.5" aria-hidden /> {tuto.vues.toLocaleString("fr-FR")} vues
               </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-[12px] leading-4 font-semibold text-sky-600">
+                Gratuit
+              </span>
               {tuto.outils.slice(0, 4).map((o: string) => (
                 <Link
                   key={o}
@@ -175,24 +196,34 @@ export default async function PageTuto({ params }: { params: Params }) {
               ))}
             </div>
 
-            {/* ── Progression personnelle (Lot 19) — réservée aux
-                abonnés Premium actifs depuis le Lot 28 ────────── */}
+            {/* ── Progression personnelle — gratuite pour tous les
+                membres connectés depuis les tutoriels gratuits ─── */}
             <div className="mt-4">
               <BoutonProgression
                 tutoId={tuto.id}
                 statutInitial={statutInitial}
                 connecte={connecte}
-                premium={premium}
                 hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
               />
             </div>
 
-            {/* ── Chapitres & ressources (Lot 28) : description
-                YouTube raffinée, juste sous la progression ───── */}
+            {/* ── Chapitres & ressources : description YouTube
+                raffinée, juste sous la progression ───────────── */}
             {(() => {
               const description = parserDescriptionRaffinee(tuto.descriptionRaffinee);
               return description ? <RessourcesTuto description={description} /> : null;
             })()}
+
+            {/* ── Notes personnelles (Lot 29) : prise de note pendant
+                la vidéo, retrouvées dans Dashboard → Mes notes ── */}
+            <div className="mt-6">
+              <BlocNotesTutoriel
+                tutoId={tuto.id}
+                noteInitiale={noteInitiale}
+                connecte={connecte}
+                hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
+              />
+            </div>
           </div>
 
           {/* ── Colonne latérale : fiche résumé (design tuiles) ────── */}
@@ -229,8 +260,10 @@ export default async function PageTuto({ params }: { params: Params }) {
                         <Crown className="size-4" />
                       </span>
                       <span>
-                        Pour <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> : tous les
-                        tutoriels, les favoris illimités et l&apos;assistant IA sans quota.
+                        Les tutoriels sont <strong className="text-bleu">gratuits</strong>. Pour
+                        les favoris illimités, la bibliothèque complète de prompts et
+                        l&apos;assistant IA sans quota : Premium dès{" "}
+                        <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong>.
                       </span>
                     </p>
                     <Bouton asChild taille="sm" className="mt-3 w-full">
