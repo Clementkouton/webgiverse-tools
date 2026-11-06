@@ -120,6 +120,7 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
       { href: "/admin/abonnements", libelle: "Abonnements", icone: CreditCard },
       { href: "/admin/newsletter", libelle: "Newsletter", icone: Mail },
       { href: "/admin/codes-promo", libelle: "Codes promo", icone: Tag },
+      { href: "/admin/sponsors", libelle: "Sponsors", icone: Sparkles },
       { href: "/admin/parrainages", libelle: "Parrainages", icone: Gift },
     ],
   },

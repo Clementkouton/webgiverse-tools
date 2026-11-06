@@ -175,7 +175,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       className="size-10 shrink-0 rounded-full border-2 border-sky-500/30 object-cover"
     />
   ) : (
-    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
+    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(120deg,#007FFF,#00d1ff)] font-titre text-[15px] font-bold text-white">
       {initiale}
     </span>
   );
@@ -215,7 +215,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
           className={cn(
             "group relative flex items-center gap-3 rounded-champ px-3.5 py-2.5 text-[14px] leading-5 font-semibold transition-all duration-200",
             actif
-              ? "bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] text-white shadow-[0_4px_14px_rgba(106,59,255,0.35)]"
+              ? "bg-[linear-gradient(100deg,#007FFF,#8f6bff)] text-white shadow-[0_4px_14px_rgba(106,59,255,0.35)]"
               : "text-bleu hover:bg-gris hover:text-sky-500 active:scale-[0.98]",
           )}
         >
@@ -242,7 +242,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
 
   /** Carte « passe Premium » (ou remerciement) en bas du menu. */
   const cartePlan = premium ? (
-    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-4 text-white">
+    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#007FFF_100%)] p-4 text-white">
       <div
         aria-hidden
         className="animate-flottant-lent pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-ciel/25 blur-2xl"
@@ -261,7 +261,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       </Link>
     </div>
   ) : (
-    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-4 text-white">
+    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#007FFF_100%)] p-4 text-white">
       <div
         aria-hidden
         className="animate-flottant pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-ciel/25 blur-2xl"
@@ -433,7 +433,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       >
         <div className="flex items-center justify-between border-b border-bordure px-4 py-3.5">
           <div className="flex items-center gap-2">
-            <span className="grid size-9 place-items-center rounded-champ bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
+            <span className="grid size-9 place-items-center rounded-champ bg-[linear-gradient(120deg,#007FFF,#00d1ff)] font-titre text-[15px] font-bold text-white">
               W
             </span>
             <p className="font-titre text-[15px] font-bold">Webgiverse</p>
