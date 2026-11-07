@@ -357,19 +357,7 @@ export default async function PageTuto({ params }: { params: Params }) {
               </CadreVerrouille>
             )}
 
-            {/* ── ASSISTANT IA DU TUTORIEL — Premium uniquement ────── */}
-            {acces.peut("assistantTuto") ? (
-              <div className="mt-6">
-                <ChatTutoriel slug={tuto.slug} titre={tuto.titre} />
-              </div>
-            ) : (
-              <CadreVerrouille titre="Assistant IA du tutoriel" className="mt-6">
-                Pose tes questions sur ce tutoriel, demande un résumé ou un
-                plan d&apos;apprentissage : l&apos;assistant répond à partir du
-                contenu de la vidéo et de sa description. Inclus dans les
-                plans Pro et Entreprise.
-              </CadreVerrouille>
-            )}
+
 
             {/* ── DESCRIPTION & RESSOURCES — Premium uniquement ────── */}
             {acces.peut("descriptionRessources") ? (
@@ -389,51 +377,67 @@ export default async function PageTuto({ params }: { params: Params }) {
 
           {/* ── Colonne latérale : fiche résumé (design tuiles) ────── */}
           <aside className="min-w-0 self-start lg:sticky lg:top-24">
-            <div className="overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
-              <div className="border-b border-bordure bg-gris/60 px-5 py-4">
-                <h2 className="flex items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
-                  <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
-                    <ClipboardList className="size-4" />
-                  </span>
-                  Ce tutoriel en résumé
-                </h2>
-              </div>
-              <dl className="grid grid-cols-2 gap-2.5 p-5">
-                {[
-                  { icone: Gauge, label: "Niveau", contenu: <Badge variante={niveau.variante}>{niveau.libelle}</Badge> },
-                  { icone: Clock, label: "Durée", contenu: <span className="font-titre text-[15px] leading-5 font-bold text-bleu">{formaterDuree(tuto.dureeMin)}</span> },
-                  { icone: Eye, label: "Vues", contenu: <span className="font-titre text-[15px] leading-5 font-bold text-bleu">{tuto.vues.toLocaleString("fr-FR")}</span> },
-                  { icone: CalendarDays, label: "Ajouté le", contenu: <span className="font-titre text-[13px] leading-5 font-bold text-bleu">{ajouteLeCourt}</span> },
-                ].map(({ icone: Icone, label, contenu }) => (
-                  <div key={label} className="min-w-0 rounded-champ border border-bordure bg-gris/50 p-3">
-                    <dt className="flex items-center gap-1.5 text-[10.5px] leading-3.5 font-bold uppercase tracking-wider text-encre/70">
-                      <Icone className="size-3.5 text-violet" aria-hidden /> {label}
-                    </dt>
-                    <dd className="mt-1.5">{contenu}</dd>
-                  </div>
-                ))}
-              </dl>
-              {!premium && (
-                <div className="mx-5 mb-5 rounded-carte bg-[linear-gradient(135deg,#6a3bff,#0091c2)] p-px">
-                  <div className="rounded-[15px] bg-white px-4 py-4">
-                    <p className="flex items-start gap-2.5 text-[13px] leading-5 text-encre">
-                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
-                        <Crown className="size-4" />
-                      </span>
-                      <span>
-                        Les tutoriels <strong className="text-bleu">Débutant</strong> sont
-                        offerts. Passe Premium dès{" "}
-                        <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> pour
-                        débloquer les niveaux Intermédiaire et Avancé, les
-                        chapitres &amp; ressources, les notes avec export, la
-                        progression et l&apos;assistant IA des tutoriels.
-                      </span>
-                    </p>
-                    <Bouton asChild taille="sm" className="mt-3 w-full">
-                      <Link href="/tarifs">Voir les tarifs</Link>
-                    </Bouton>
-                  </div>
+            <div className="flex flex-col gap-6">
+              <div className="overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
+                <div className="border-b border-bordure bg-gris/60 px-5 py-4">
+                  <h2 className="flex items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
+                    <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+                      <ClipboardList className="size-4" />
+                    </span>
+                    Ce tutoriel en résumé
+                  </h2>
                 </div>
+                <dl className="grid grid-cols-2 gap-2.5 p-5">
+                  {[
+                    { icone: Gauge, label: "Niveau", contenu: <Badge variante={niveau.variante}>{niveau.libelle}</Badge> },
+                    { icone: Clock, label: "Durée", contenu: <span className="font-titre text-[15px] leading-5 font-bold text-bleu">{formaterDuree(tuto.dureeMin)}</span> },
+                    { icone: Eye, label: "Vues", contenu: <span className="font-titre text-[15px] leading-5 font-bold text-bleu">{tuto.vues.toLocaleString("fr-FR")}</span> },
+                    { icone: CalendarDays, label: "Ajouté le", contenu: <span className="font-titre text-[13px] leading-5 font-bold text-bleu">{ajouteLeCourt}</span> },
+                  ].map(({ icone: Icone, label, contenu }) => (
+                    <div key={label} className="min-w-0 rounded-champ border border-bordure bg-gris/50 p-3">
+                      <dt className="flex items-center gap-1.5 text-[10.5px] leading-3.5 font-bold uppercase tracking-wider text-encre/70">
+                        <Icone className="size-3.5 text-violet" aria-hidden /> {label}
+                      </dt>
+                      <dd className="mt-1.5">{contenu}</dd>
+                    </div>
+                  ))}
+                </dl>
+                {!premium && (
+                  <div className="mx-5 mb-5 rounded-carte bg-[linear-gradient(135deg,#6a3bff,#0091c2)] p-px">
+                    <div className="rounded-[15px] bg-white px-4 py-4">
+                      <p className="flex items-start gap-2.5 text-[13px] leading-5 text-encre">
+                        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+                          <Crown className="size-4" />
+                        </span>
+                        <span>
+                          Les tutoriels <strong className="text-bleu">Débutant</strong> sont
+                          offerts. Passe Premium dès{" "}
+                          <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> pour
+                          débloquer les niveaux Intermédiaire et Avancé, les
+                          chapitres &amp; ressources, les notes avec export, la
+                          progression et l&apos;assistant IA des tutoriels.
+                        </span>
+                      </p>
+                      <Bouton asChild taille="sm" className="mt-3 w-full">
+                        <Link href="/tarifs">Voir les tarifs</Link>
+                      </Bouton>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* ── ASSISTANT IA DU TUTORIEL — Premium uniquement ────── */}
+              {acces.peut("assistantTuto") ? (
+                <div className="mt-3">
+                  <ChatTutoriel slug={tuto.slug} titre={tuto.titre} />
+                </div>
+              ) : (
+                <CadreVerrouille titre="Assistant IA du tutoriel" className="mt-3">
+                  Pose tes questions sur ce tutoriel, demande un résumé ou un
+                  plan d&apos;apprentissage : l&apos;assistant répond à partir du
+                  contenu de la vidéo et de sa description. Inclus dans les
+                  plans Pro et Entreprise.
+                </CadreVerrouille>
               )}
             </div>
           </aside>
