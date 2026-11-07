@@ -1,16 +1,24 @@
 // app/admin/tutoriels/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 34 — Contrôle des TUTORIELS depuis la console admin :
+// Lot 35 — Contrôle des TUTORIELS depuis la console admin :
 //   • tuiles de statistiques conservées (tutos, vues, en cours,
 //     terminés) ;
-//   • tableau géré par GestionListeAdmin : recherche PAR MOTS (ordre
-//     libre, accents ignorés), filtre par niveau, cases à cocher avec
-//     sélections rapides (40 / 150 / 200) et suppression EN MASSE ;
-//   • actions par ligne : bascule du badge « Nouveau » (réparée : le
-//     bouton était hors formulaire) et suppression (unitaire ou masse).
+//   • NOUVEAU : colonne « N° » = RANG D'AJOUT du tutoriel (1 = le
+//     premier ajouté, dernier = le plus récent) — le numéro reste
+//     stable quel que soit le tri affiché ;
+//   • NOUVEAU : barre de tri (liens ?tri=…) — ordre par défaut,
+//     AJOUT ancien→récent / récent→ancien (pour repérer et supprimer
+//     les derniers tutoriels ajoutés), titre A→Z / Z→A, vues, durée,
+//     progressions. Le tri est fait DANS CETTE PAGE (searchParams +
+//     tri en mémoire) : le composant partagé GestionListeAdmin n'est
+//     pas modifié → aucune autre page admin n'est impactée ;
+//   • tableau toujours géré par GestionListeAdmin : recherche par
+//     mots, filtre par niveau, sélections rapides, suppression en
+//     masse — inchangé.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
-import { GraduationCap, MonitorPlay, PlayCircle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { GraduationCap, ListFilter, MonitorPlay, PlayCircle, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Carte } from "@/components/ui/carte";
 import {
@@ -35,6 +43,95 @@ const LIBELLE_NIVEAU: Record<string, string> = {
   AVANCE: "Avancé",
 };
 
+/* ── Lot 35 — LES TRIS DISPONIBLES ──────────────────────────────
+   Clé = paramètre d'URL (?tri=…). « editorial » = ordre actuel de la
+   base (champ ordre, comme avant) : c'est le tri par défaut, donc
+   l'affichage ne change pas tant qu'on ne choisit rien. */
+const TRIS = {
+  editorial: {
+    libelle: "Ordre par défaut",
+    desc: "Ordre de pertinence géré dans la base (comme avant le lot 35).",
+  },
+  "ajout-asc": {
+    libelle: "Ajout : ancien → récent",
+    desc: "Les premiers tutoriels ajoutés apparaissent en haut.",
+  },
+  "ajout-desc": {
+    libelle: "Ajout : récent → ancien",
+    desc: "Les derniers tutoriels ajoutés apparaissent en haut — pratique pour les repérer et les supprimer en masse.",
+  },
+  az: {
+    libelle: "A → Z",
+    desc: "Classement alphabétique croissant par titre.",
+  },
+  za: {
+    libelle: "Z → A",
+    desc: "Classement alphabétique décroissant par titre.",
+  },
+  "vues-desc": {
+    libelle: "Plus vues",
+    desc: "Les tutoriels les plus vus en premier.",
+  },
+  "vues-asc": {
+    libelle: "Moins vues",
+    desc: "Les tutoriels les moins vus en premier.",
+  },
+  "duree-desc": {
+    libelle: "Plus longues",
+    desc: "Les tutoriels les plus longs en premier.",
+  },
+  "duree-asc": {
+    libelle: "Plus courtes",
+    desc: "Les tutoriels les plus courts en premier.",
+  },
+  "progressions-desc": {
+    libelle: "Plus suivis",
+    desc: "Les tutoriels avec le plus de progressions (En cours + Terminé) en premier.",
+  },
+} as const;
+
+type Tri = keyof typeof TRIS;
+
+/** Forme d'une ligne du tableau (résultat du findMany ci-dessous). */
+type TutoListe = {
+  id: string;
+  slug: string;
+  titre: string;
+  niveau: string;
+  dureeMin: number;
+  vues: number;
+  nouveau: boolean;
+  outils: string[];
+  creeLe: Date;
+  _count: { progressions: number };
+};
+
+/** Comparateur en mémoire pour chaque tri (jamais « editorial » : ordre conservé). */
+function comparateur(tri: Tri): (a: TutoListe, b: TutoListe) => number {
+  switch (tri) {
+    case "ajout-asc":
+      return (a, b) => a.creeLe.getTime() - b.creeLe.getTime() || a.id.localeCompare(b.id);
+    case "ajout-desc":
+      return (a, b) => b.creeLe.getTime() - a.creeLe.getTime() || a.id.localeCompare(b.id);
+    case "az":
+      return (a, b) => a.titre.localeCompare(b.titre, "fr", { sensitivity: "base" });
+    case "za":
+      return (a, b) => b.titre.localeCompare(a.titre, "fr", { sensitivity: "base" });
+    case "vues-desc":
+      return (a, b) => b.vues - a.vues;
+    case "vues-asc":
+      return (a, b) => a.vues - b.vues;
+    case "duree-desc":
+      return (a, b) => b.dureeMin - a.dureeMin;
+    case "duree-asc":
+      return (a, b) => a.dureeMin - b.dureeMin;
+    case "progressions-desc":
+      return (a, b) => b._count.progressions - a._count.progressions;
+    default:
+      return () => 0;
+  }
+}
+
 function duree(min: number): string {
   if (min < 60) return `${min} min`;
   const h = Math.floor(min / 60);
@@ -42,13 +139,21 @@ function duree(min: number): string {
   return reste > 0 ? `${h} h ${reste}` : `${h} h`;
 }
 
-export default async function PageTutorielsAdmin() {
+export default async function PageTutorielsAdmin({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // ── Tri choisi via l'URL (?tri=…), « editorial » par défaut ─────
+  const brut = (await searchParams).tri;
+  const tri: Tri = typeof brut === "string" && brut in TRIS ? (brut as Tri) : "editorial";
+
   const [tutos, vuesTotales, progressions, nbTermines] = await Promise.all([
     prisma.tuto.findMany({
       orderBy: [{ ordre: "asc" }, { creeLe: "desc" }],
       select: {
         id: true, slug: true, titre: true, niveau: true, dureeMin: true,
-        vues: true, nouveau: true, outils: true,
+        vues: true, nouveau: true, outils: true, creeLe: true,
         _count: { select: { progressions: true } },
       },
     }),
@@ -56,6 +161,19 @@ export default async function PageTutorielsAdmin() {
     prisma.progressionTuto.findMany({ where: { statut: "EN_COURS" }, select: { id: true } }),
     prisma.progressionTuto.findMany({ where: { statut: "TERMINE" }, select: { id: true } }),
   ]);
+
+  // ── Lot 35 — RANG D'AJOUT de chaque tutoriel (stable) ───────────
+  // 1 = le premier tutoriel ajouté dans la base, N = le plus récent.
+  // Calculé une seule fois, indépendamment du tri affiché : le N°
+  // reste donc le même quel que soit l'ordre choisi.
+  const rangAjout = new Map<string, number>();
+  [...tutos]
+    .sort((a, b) => a.creeLe.getTime() - b.creeLe.getTime() || a.id.localeCompare(b.id))
+    .forEach((t, i) => rangAjout.set(t.id, i + 1));
+
+  // ── Liste AFFICHÉE = mêmes données, triées selon le choix ───────
+  const tutosAffiches: TutoListe[] =
+    tri === "editorial" ? (tutos as TutoListe[]) : [...tutos].sort(comparateur(tri));
 
   const TUILES: { libelle: string; valeur: number; icone: typeof MonitorPlay; ton: Ton }[] = [
     { libelle: "Tutoriels", valeur: tutos.length, icone: MonitorPlay, ton: "primaire" },
@@ -69,7 +187,7 @@ export default async function PageTutorielsAdmin() {
       <div className="animate-apparition-haut">
         <h1 className="text-h3 font-semibold">Tutoriels</h1>
         <p className="mt-1 text-[14px] leading-6 text-encre">
-          La collection vidéo réservée aux abonnés Premium : recherche par mots, filtres, sélection multiple et suppression en masse.
+          La collection vidéo réservée aux abonnés Premium : recherche par mots, filtres, sélection multiple, suppression en masse — et désormais la numérotation par ordre d&apos;ajout avec tris croissants / décroissants.
         </p>
       </div>
 
@@ -92,22 +210,58 @@ export default async function PageTutorielsAdmin() {
         ))}
       </section>
 
+      {/* ── Lot 35 — Barre de tri (liens, aucune modif du composant
+          partagé) : le tri choisi est mis en surbrillance ─────────── */}
+      <section className="mt-4 flex flex-wrap items-center gap-2" aria-label="Trier les tutoriels">
+        <span className="flex items-center gap-1.5 text-[13px] leading-4 font-semibold text-adm-gris">
+          <ListFilter className="size-4" aria-hidden /> Trier :
+        </span>
+        {(Object.keys(TRIS) as Tri[]).map((cle) => {
+          const actif = cle === tri;
+          return (
+            <Link
+              key={cle}
+              href={`/admin/tutoriels?tri=${cle}`}
+              aria-current={actif ? "true" : undefined}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-[12.5px] leading-4 font-medium transition",
+                actif
+                  ? "border-indigo-600 bg-indigo-600 text-white"
+                  : "border-black/10 bg-white text-adm-gris hover:border-indigo-300 hover:text-adm-sombre",
+              )}
+            >
+              {TRIS[cle].libelle}
+            </Link>
+          );
+        })}
+      </section>
+      <p className="mt-2 text-[12.5px] leading-5 text-adm-gris">
+        {TRIS[tri].desc} — la colonne <strong className="font-semibold text-adm-sombre">N°</strong> est le
+        rang d&apos;ajout (1 = premier tutoriel ajouté, {tutos.length} = le plus récent) ; il ne change
+        pas quand tu tries.
+      </p>
+
       {/* ── Tableau géré (recherche, filtres, sélection, masse) ────── */}
       <div className="animate-apparition-haut delai-2 mt-4">
         <GestionListeAdmin
           libelleTerme="tutoriel"
-          colonnes={["Durée", "Vues", "Progressions"]}
+          colonnes={["N°", "Durée", "Vues", "Progressions"]}
           actionSupprimerMasse={supprimerTutorielsMasseAction}
           actionBasculerNouveau={basculerTutoNouveauFormulaire}
           champId="tutoId"
           filtres={[{ champ: "niveau", label: "Niveau" }]}
-          items={tutos.map((t) => ({
+          items={tutosAffiches.map((t) => ({
             id: t.id,
             titre: t.titre,
             href: `/tutoriels/${t.slug}`,
             sousTitre: `/tutoriels/${t.slug}`,
             badges: [{ label: LIBELLE_NIVEAU[t.niveau] ?? t.niveau, classe: NIVEAU[t.niveau] ?? "bg-adm-fond text-adm-gris" }],
-            cellules: [duree(t.dureeMin), String(t.vues), String(t._count.progressions)],
+            cellules: [
+              String(rangAjout.get(t.id) ?? "—"),
+              duree(t.dureeMin),
+              String(t.vues),
+              String(t._count.progressions),
+            ],
             recherche: `${t.titre} ${t.outils.join(" ")} ${LIBELLE_NIVEAU[t.niveau] ?? t.niveau} ${t.slug}`,
             filtres: { niveau: LIBELLE_NIVEAU[t.niveau] ?? t.niveau },
             nouveau: t.nouveau,

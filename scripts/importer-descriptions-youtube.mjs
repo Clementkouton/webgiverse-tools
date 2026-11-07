@@ -85,7 +85,7 @@ let erreurs = 0;
 try {
     for (const [i, entree] of entrees.entries()) {
         const numero = String(i + 1).padStart(2, "0");
-        const titre = (entree.titre ? ? entree.slug ? ? "?").slice(0, 58);
+        const titre = (entree.titre ?? entree.slug ?? "?").slice(0, 58);
         const raffinee = entree.descriptionRaffinee;
 
         if (!entree.youtubeId || !raffinee) {
