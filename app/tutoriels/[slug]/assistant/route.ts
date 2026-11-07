@@ -1,10 +1,18 @@
 // app/api/tutoriels/[slug]/assistant/route.ts
-// Lot 35 — API de l'ASSISTANT IA DU TUTORIEL (résumé + questions/réponses).
-// · Connecté obligatoire ; capacité « assistantTuto » re-vérifiée ICI
-//   côté serveur : un appel direct par un non-abonné est refusé.
-// · Ancré sur le CONTENU DU TUTORIEL (titre, niveau, durée, outils +
-//   description raffinée du lot 28/31). Réutilise OpenRouter.
-// · Conversation éphémère : pas d'écriture en base.
+// Lot 36 — ASSISTANT IA DU TUTORIEL, version BLINDÉE.
+// · Même contrat que le lot 35 (réservé Premium, ancré sur le contenu du
+//   tutoriel, conversation éphémère), mais :
+//   1. `export const maxDuration = 60` → la fonction Vercel ne meurt plus
+//      avant la fin de l'appel IA (le repli « indisponible » venait aussi
+//      de fonctions tuées à 10 s → page 504 HTML au lieu d'un JSON).
+//   2. PLUSIEURS MODÈLES GRATUITS essayés en cascade : si « openrouter/free »
+//      est saturé (429) ou indisponible (404), on retente sur des modèles
+//      gratuits connus. Le premier modèle est remplaçable via la variable
+//      d'environnement OPENROUTER_MODELE (optionnelle).
+//   3. RÉPONSE JSON DANS TOUS LES CAS : plus aucune situation où le front
+//      reçoit une page HTML (404/504) sans explication. Chaque échec
+//      renvoie un message précis, et tout est loggué côté serveur avec le
+//      préfixe « ASSISTANT TUTO : » (visible dans Vercel → Logs).
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -13,10 +21,26 @@ import { accesTutoriels } from "@/lib/acces-tutoriels";
 import { parserDescriptionRaffinee } from "@/lib/description-youtube";
 import { formaterDuree, NIVEAUX } from "@/lib/tutos-utils";
 
-const MODELE = "openrouter/free";
+// Durée maximale de la fonction sur Vercel (le plan Hobby accepte 60 s).
+export const maxDuration = 60;
+
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
+// Cascade de modèles : le premier qui répond gagne. Si tu veux changer le
+// modèle principal sans toucher au code, définis OPENROUTER_MODELE dans
+// le .env (ex. OPENROUTER_MODELE=meta-llama/llama-3.3-70b-instruct:free).
+const MODELES = Array.from(
+  new Set(
+    [
+      process.env.OPENROUTER_MODELE?.trim() || "openrouter/free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "meta-llama/llama-3.3-70b-instruct:free",
+    ].filter((m) => m.length > 0),
+  ),
+);
 const MAX_MESSAGE = 1000; // caractères
 const MAX_HISTORIQUE = 6; // messages renvoyés par le front
+const MAX_TOKENS_REPONSE = 700;
+const DELAI_PAR_MODELE_MS = 25000; // 25 s par modèle (60 s dispo côté Vercel)
 
 /** Construit le bloc « CONTENU DU TUTORIEL » injecté dans le système. */
 function contexteTuto(tuto: {
@@ -161,60 +185,99 @@ CONTENU DU TUTORIEL :
       { role: "user", content: message },
     ];
 
-    // ── 7. Appel OpenRouter (même config que l'assistant global) ────
-    const reponseHttp = await fetch(URL_API, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${cleApi}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:3000",
-        "X-Title": "Webgiverse Outils IA",
-      },
-      body: JSON.stringify({ model: MODELE, max_tokens: 700, messages: messagesApi }),
-      signal: AbortSignal.timeout(30000),
-    });
+    // ── 7. Appel OpenRouter — cascade de modèles gratuits ───────────
+    let texte = "";
+    let statutEchec = 0;
+    let detailEchec = "";
+    let delaiDepasse = false;
 
-    if (!reponseHttp.ok) {
-      const texteErreur = await reponseHttp.text();
-      console.error(`ASSISTANT TUTO : erreur OpenRouter ${reponseHttp.status} : ${texteErreur}`);
-      return NextResponse.json({ erreur: expliquerErreur(reponseHttp.status, texteErreur) }, { status: 502 });
+    for (const modele of MODELES) {
+      try {
+        const reponseHttp = await fetch(URL_API, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${cleApi}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": process.env.NEXTAUTH_URL ?? "http://localhost:3000",
+            "X-Title": "Webgiverse Outils IA",
+          },
+          body: JSON.stringify({
+            model: modele,
+            max_tokens: MAX_TOKENS_REPONSE,
+            messages: messagesApi,
+          }),
+          signal: AbortSignal.timeout(DELAI_PAR_MODELE_MS),
+        });
+
+        if (reponseHttp.ok) {
+          const donnees = (await reponseHttp.json().catch(() => null)) as
+            | { choices?: Array<{ message?: { content?: string } }> }
+            | null;
+          const candidat = donnees?.choices?.[0]?.message?.content ?? "";
+          if (candidat.trim()) {
+            texte = candidat;
+            break; // ✅ un modèle a répondu
+          }
+          statutEchec = 502;
+          detailEchec = `[${modele}] réponse 200 mais sans texte`;
+          console.error("ASSISTANT TUTO :", detailEchec);
+          continue;
+        }
+
+        // Erreur HTTP du modèle courant
+        const corpsErreur = await reponseHttp.text();
+        statutEchec = reponseHttp.status;
+        detailEchec = `[${modele}] HTTP ${reponseHttp.status} : ${corpsErreur.slice(0, 300)}`;
+        console.error("ASSISTANT TUTO :", detailEchec);
+        if (reponseHttp.status === 401) break; // clé invalide : inutile d'essayer les autres
+        // 402 / 404 / 429 / 5xx → on tente le modèle suivant
+      } catch (erreurModele) {
+        const nom = erreurModele instanceof Error ? erreurModele.name : "Erreur";
+        if (nom === "TimeoutError" || nom === "AbortError") {
+          statutEchec = 504;
+          delaiDepasse = true;
+          detailEchec = `[${modele}] délai de ${DELAI_PAR_MODELE_MS / 1000} s dépassé`;
+        } else {
+          statutEchec = 502;
+          detailEchec = `[${modele}] erreur réseau : ${String(erreurModele).slice(0, 200)}`;
+        }
+        console.error("ASSISTANT TUTO :", detailEchec);
+        continue;
+      }
     }
 
-    const donnees = (await reponseHttp.json().catch(() => null)) as
-      | { choices?: Array<{ message?: { content?: string } }> }
-      | null;
-    const texte: string = donnees?.choices?.[0]?.message?.content ?? "";
-    if (!texte) {
-      console.error("ASSISTANT TUTO : réponse OpenRouter sans texte");
-      return NextResponse.json(
-        { erreur: "L'assistant a renvoyé une réponse vide — réessaie dans un instant." },
-        { status: 502 },
-      );
+    if (texte) {
+      // ── 8. Journal (jamais bloquant) ──────────────────────────────
+      await journaliser(utilisateurId, "assistant_tuto", slug).catch(() => {});
+      return NextResponse.json({ reponse: texte });
     }
 
-    // ── 8. Journal (jamais bloquant) ────────────────────────────────
-    await journaliser(utilisateurId, "assistant_tuto", slug);
-
-    return NextResponse.json({ reponse: texte });
+    // ── 9. Aucun modèle n'a répondu → message précis en JSON ────────
+    const messageErreur = expliquerErreur(statutEchec, detailEchec, delaiDepasse);
+    return NextResponse.json({ erreur: messageErreur }, { status: 502 });
   } catch (erreur) {
     console.error("=== ERREUR ASSISTANT TUTO ===", erreur);
+    const nom = erreur instanceof Error ? erreur.name : "";
     const messageErreur =
-      erreur instanceof Error && erreur.name === "TimeoutError"
+      nom === "TimeoutError"
         ? "L'assistant a mis trop de temps à répondre. Réessaie."
         : "L'assistant est momentanément indisponible. Réessaie dans un instant.";
     return NextResponse.json({ erreur: messageErreur }, { status: 502 });
   }
 }
 
-function expliquerErreur(status: number, texteErreur: string): string {
-  const texte = texteErreur.toLowerCase();
-  if (status === 401) return "Clé OpenRouter invalide. Vérifie OPENROUTER_API_KEY dans le .env.";
+function expliquerErreur(status: number, detail: string, delai: boolean): string {
+  const texte = detail.toLowerCase();
+  if (status === 401)
+    return "Clé OpenRouter invalide. Vérifie OPENROUTER_API_KEY dans le .env (et dans Vercel → Settings → Environment Variables).";
   if (status === 402 || texte.includes("credit") || texte.includes("insufficient"))
-    return "Ce modèle nécessite des crédits. Recharge sur openrouter.ai/credits ou utilise openrouter/free.";
-  if (status === 404 || texte.includes("model"))
-    return `Le modèle "${MODELE}" n'est pas disponible. Modifie la constante MODELE.`;
+    return "Ce modèle nécessite des crédits. Recharge sur openrouter.ai/credits (10 $ débloquent aussi la limite élevée) ou attends la remise à jour de la limite gratuite.";
   if (status === 429)
-    return "Limite du modèle gratuit atteinte. Attends un instant puis réessaie.";
+    return "Limite du modèle gratuit atteinte (environ 20 requêtes/minute et 50/jour sans crédits). Réessaie dans un instant.";
+  if (status === 404 || texte.includes("no endpoints") || texte.includes("not found"))
+    return "Aucun modèle gratuit n'a répondu — ils changent parfois d'identifiant. Définis OPENROUTER_MODELE dans le .env avec un modèle gratuit de openrouter.ai/models (filtre « :free »).";
+  if (delai || status === 504)
+    return "L'assistant a mis trop de temps à répondre. Réessaie dans un instant.";
   if (status === 502 || status === 503)
     return "Le modèle est surchargé. Réessaie dans un instant.";
   return "L'assistant est momentanément indisponible. Réessaie dans un instant.";

@@ -1,8 +1,11 @@
 // components/tutoriels/chat-tutoriel.tsx
-// Lot 35 — ASSISTANT IA DU TUTORIEL : résumé + questions/réponses à partir
-// du contenu du tutoriel. La page ne le rend que pour les Premium, et la
-// route API re-vérifie côté serveur. Conversation éphémère (rien en base),
-// réutilise OPENROUTER_API_KEY déjà en place.
+// Lot 36 — ASSISTANT IA DU TUTORIEL : résumé du tuto + questions/réponses
+// à partir du contenu du tutoriel (titre, chapitres, ressources, extraits).
+// SEUL CHANGEMENT PAR RAPPORT AU LOT 35 : si l'API ne renvoie pas de JSON
+// (route absente → 404 HTML, timeout Vercel → 504 HTML, …), le message
+// d'échec affiche maintenant le CODE HTTP reçu, pour savoir immédiatement
+// d'où vient le problème sans ouvrir les outils de développement.
+// Style et comportement strictement identiques au lot 35.
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -54,7 +57,7 @@ export function ChatTutoriel({ slug, titre }: { slug: string; titre: string }) {
       if (!reponse.ok) {
         setEchec(
           donnees?.erreur ??
-            "L'assistant est momentanément indisponible — réessaie dans un instant.",
+            `L'assistant est momentanément indisponible (erreur ${reponse.status}) — réessaie dans un instant.`,
         );
         setMessages(messages); // retire le message user resté sans réponse
       } else if (donnees?.reponse) {
