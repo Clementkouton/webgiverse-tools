@@ -1,11 +1,17 @@
 // app/dashboard/notes/page.tsx
-// Lot 29 — « MES NOTES » : les notes personnelles prises pendant les
-// tutoriels, chacune accompagnée du tutoriel qui a été suivi
-// (miniature, titre cliquable, niveau, durée, date de mise à jour).
-// Même vocabulaire visuel que « Mes tutoriels » (dashboard Metis).
-// Lectures défensives : si la table NoteTutoriel n'existe pas encore
-// (db push absent) ou si le client Prisma n'est pas régénéré, un
-// encadré orange donne la marche à suivre au lieu de planter.
+// Lot 30 — « MES NOTES » RESPONSIVE sur toutes les tailles d'écran
+// (même comportement que /dashboard/prompts) :
+//   • Chaque note s'empile proprement sur mobile : miniature pleine
+//     largeur 16:9, titre + niveau + durée, boutons d'action, puis le
+//     contenu de la note — plus aucune carte coupée au bord droit ;
+//   • Sur desktop : même rangée qu'avant (miniature, titre, actions,
+//     note en dessous) ;
+//   • min-w-0 sur toute la chaîne + break-words sur le contenu : les
+//     notes longues ou les URL collées ne débordent plus jamais.
+// Les notes restent accompagnées du tutoriel suivi (miniature, titre
+// cliquable, niveau, durée, date de mise à jour) et les lectures
+// défensives sont conservées (encadré orange au lieu de planter si la
+// base n'est pas à jour).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -102,7 +108,7 @@ export default async function PageMesNotes() {
   });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-8 lg:py-10">
       <Link
         href="/dashboard"
         className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
@@ -112,7 +118,7 @@ export default async function PageMesNotes() {
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <NotebookPen className="size-7 text-violet" aria-hidden /> Mes notes
+          <NotebookPen className="size-7 shrink-0 text-violet" aria-hidden /> Mes notes
         </h1>
         <Bouton asChild variante="secondaire">
           <Link href="/tutoriels">Tous les tutoriels</Link>
@@ -122,11 +128,11 @@ export default async function PageMesNotes() {
       {/* ── Résumé (carte dégradée de marque) ─────────────────────── */}
       <Carte className="mt-6 overflow-hidden border-0 bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-[13px] leading-4 font-semibold text-white/70">
               Ton carnet de notes
             </p>
-            <p className="mt-1 font-titre text-[22px] leading-7 font-bold">
+            <p className="mt-1 break-words font-titre text-[22px] leading-7 font-bold">
               {notes.length} note{notes.length > 1 ? "s" : ""} prise
               {notes.length > 1 ? "s" : ""}
               {notes.length > 0 && <span className="text-white/70"> pendant tes tutoriels</span>}
@@ -137,7 +143,7 @@ export default async function PageMesNotes() {
               </p>
             )}
           </div>
-          <NotebookPen className="size-10 text-white/60" aria-hidden />
+          <NotebookPen className="size-10 shrink-0 text-white/60" aria-hidden />
         </div>
       </Carte>
 
@@ -175,22 +181,24 @@ export default async function PageMesNotes() {
       {notes.length > 0 && (
         <section className="mt-8" aria-label="Notes prises pendant les tutoriels">
           <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-            <NotebookPen className="size-4.5 text-violet" aria-hidden /> Tes notes ({notes.length})
+            <NotebookPen className="size-4.5 shrink-0 text-violet" aria-hidden /> Tes notes ({notes.length})
           </h2>
-          <ul className="mt-3 grid gap-3">
+          <ul className="mt-3 flex flex-col gap-3">
             {notes.map((note) => {
               const t = note.tuto;
               const miniature = urlMiniature(t);
               return (
+                // min-w-0 : la carte ne peut jamais forcer la page à déborder
                 <li
                   key={note.id}
-                  className="rounded-carte border border-bordure bg-white p-3.5 shadow-carte"
+                  className="min-w-0 rounded-carte border border-bordure bg-white p-3.5 shadow-carte"
                 >
-                  {/* Ligne d'en-tête : tutoriel associé */}
-                  <div className="flex items-center gap-4">
+                  {/* Rangée du tutoriel associé : empilée sur mobile,
+                      horizontale sur desktop */}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <Link
                       href={`/tutoriels/${t.slug}`}
-                      className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-carte border border-bordure bg-bleu"
+                      className="relative block aspect-video w-full shrink-0 overflow-hidden rounded-carte border border-bordure bg-bleu sm:w-28"
                       aria-label={`Ouvrir le tutoriel ${t.titre}`}
                     >
                       {miniature ? (
@@ -225,7 +233,7 @@ export default async function PageMesNotes() {
 
                     {/* Actions : ouvrir la vidéo + supprimer la note */}
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <Bouton asChild variante="secondaire" taille="sm" className="hidden sm:inline-flex">
+                      <Bouton asChild variante="secondaire" taille="sm">
                         <Link href={`/tutoriels/${t.slug}`}>Reprendre</Link>
                       </Bouton>
                       <form action={supprimerNoteFormulaire}>
@@ -241,8 +249,9 @@ export default async function PageMesNotes() {
                     </div>
                   </div>
 
-                  {/* Contenu de la note */}
-                  <p className="mt-3 whitespace-pre-wrap rounded-champ border border-bordure bg-gris/40 p-3 text-[13.5px] leading-6 text-encre">
+                  {/* Contenu de la note — break-words : même une URL très
+                      longue collée dans la note ne déborde plus */}
+                  <p className="mt-3 break-words whitespace-pre-wrap rounded-champ border border-bordure bg-gris/40 p-3 text-[13.5px] leading-6 text-encre">
                     {note.contenu}
                   </p>
                 </li>

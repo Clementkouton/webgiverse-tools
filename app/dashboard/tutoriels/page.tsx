@@ -1,7 +1,15 @@
 // app/dashboard/tutoriels/page.tsx
-// Lot 19 — « Mes tutoriels » : la progression de l'utilisateur dans la
-// collection vidéo (en cours / terminés), avec une barre de progression
-// globale. Même vocabulaire visuel que le reste du dashboard Metis.
+// Lot 30 — « Mes tutoriels » RESPONSIVE sur toutes les tailles d'écran
+// (même comportement que /dashboard/prompts) :
+//   • Chaque ligne s'empile proprement sur mobile (miniature pleine
+//     largeur 16:9, puis titre, puis boutons d'action sur une rangée) ;
+//   • Sur desktop : même rangée horizontale qu'avant (miniature 112 px
+//     à gauche, titre, actions à droite) ;
+//   • min-w-0 sur toute la chaîne + break-words : PLUS AUCUN
+//     débordement horizontal, les cartes ne sont plus coupées au bord
+//     droit de l'écran et les boutons restent accessibles.
+// Le contenu est inchangé : progression En cours / Terminé, barre de
+// progression globale, retrait avec confirmation.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -85,11 +93,13 @@ export default async function PageMesTutoriels() {
     const t = progression.tuto;
     const miniature = urlMiniature(t);
     return (
-      <li className="flex items-center gap-4 rounded-carte border border-bordure bg-white p-3.5 shadow-carte">
-        {/* Miniature cliquable */}
+      // min-w-0 : la ligne ne peut jamais forcer la page à déborder.
+      <li className="flex min-w-0 flex-col gap-3 rounded-carte border border-bordure bg-white p-3.5 shadow-carte sm:flex-row sm:items-center">
+        {/* Miniature cliquable — pleine largeur 16:9 sur mobile,
+            112 px à gauche sur desktop (comme avant) */}
         <Link
           href={`/tutoriels/${t.slug}`}
-          className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-carte border border-bordure bg-bleu"
+          className="relative block aspect-video w-full shrink-0 overflow-hidden rounded-carte border border-bordure bg-bleu sm:w-28"
           aria-label={`Ouvrir le tutoriel ${t.titre}`}
         >
           {miniature ? (
@@ -125,7 +135,8 @@ export default async function PageMesTutoriels() {
           </div>
         </div>
 
-        {/* Changement de statut rapide + retrait */}
+        {/* Changement de statut rapide + retrait — rangée dédiée sous
+            le titre sur mobile, à droite de la ligne sur desktop */}
         <div className="flex shrink-0 items-center gap-1.5">
           {progression.statut !== "TERMINE" && (
             <form action={majProgressionFormulaire}>
@@ -172,7 +183,7 @@ export default async function PageMesTutoriels() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-8 lg:py-10">
       <Link
         href="/dashboard"
         className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
@@ -182,7 +193,7 @@ export default async function PageMesTutoriels() {
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <MonitorPlay className="size-7 text-violet" aria-hidden /> Mes tutoriels
+          <MonitorPlay className="size-7 shrink-0 text-violet" aria-hidden /> Mes tutoriels
         </h1>
         <Bouton asChild variante="secondaire">
           <Link href="/tutoriels">Tous les tutoriels</Link>
@@ -192,11 +203,11 @@ export default async function PageMesTutoriels() {
       {/* ── Résumé de progression (carte dégradée de marque) ──────── */}
       <Carte className="mt-6 overflow-hidden border-0 bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-[13px] leading-4 font-semibold text-white/70">
               Ta progression dans la collection
             </p>
-            <p className="mt-1 font-titre text-[22px] leading-7 font-bold">
+            <p className="mt-1 break-words font-titre text-[22px] leading-7 font-bold">
               {termines.length} tutoriel{termines.length > 1 ? "s" : ""} terminé
               {termines.length > 1 ? "s" : ""}
               {totalTutos > 0 && <span className="text-white/70"> sur {totalTutos} disponibles</span>}
@@ -207,7 +218,7 @@ export default async function PageMesTutoriels() {
               </p>
             )}
           </div>
-          <p className="font-titre text-[34px] leading-10 font-bold">{pourcentage}%</p>
+          <p className="shrink-0 font-titre text-[34px] leading-10 font-bold">{pourcentage}%</p>
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/20">
           <div
@@ -238,9 +249,9 @@ export default async function PageMesTutoriels() {
       {enCours.length > 0 && (
         <section className="mt-8" aria-label="Tutoriels en cours">
           <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-            <CircleDashed className="size-4.5 text-violet" aria-hidden /> En cours ({enCours.length})
+            <CircleDashed className="size-4.5 shrink-0 text-violet" aria-hidden /> En cours ({enCours.length})
           </h2>
-          <ul className="mt-3 grid gap-3">
+          <ul className="mt-3 flex flex-col gap-3">
             {enCours.map((p) => (
               <LigneTuto key={p.id} progression={p} />
             ))}
@@ -252,9 +263,9 @@ export default async function PageMesTutoriels() {
       {termines.length > 0 && (
         <section className="mt-8" aria-label="Tutoriels terminés">
           <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-            <CheckCircle2 className="size-4.5 text-sky-500" aria-hidden /> Terminés ({termines.length})
+            <CheckCircle2 className="size-4.5 shrink-0 text-sky-500" aria-hidden /> Terminés ({termines.length})
           </h2>
-          <ul className="mt-3 grid gap-3">
+          <ul className="mt-3 flex flex-col gap-3">
             {termines.map((p) => (
               <LigneTuto key={p.id} progression={p} />
             ))}

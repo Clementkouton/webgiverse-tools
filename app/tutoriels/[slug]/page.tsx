@@ -1,13 +1,17 @@
 // app/tutoriels/[slug]/page.tsx
-// Lot 29 — TUTORIELS GRATUITS : la lecture des vidéos est offerte à
-// tous les membres CONNECTÉS (fin de la barrière Premium). Un visiteur
-// non connecté parcourt librement la collection et voit un écran
-// d'invitation sur le lecteur. Le suivi de progression et la prise de
-// notes (privée, visible dans Dashboard → Mes notes) sont inclus :
-// il suffit d'être connecté.
-// La vidéo YouTube est embarquée (iframe youtube-nocookie) : le membre
-// regarde le tuto SANS quitter Webgiverse. La liste des tutoriels reste
-// publique (vitrine), comme sur Aixploria.
+// Lot 30 — CORRECTIF AFFICHAGE de la page tutoriel (tutoriels gratuits) :
+//   1. Le cadre « Mes notes sur ce tutoriel » monte JUSTE SOUS la
+//      progression (l'utilisateur note pendant la vidéo, sans scroller) ;
+//   2. LA DESCRIPTION ET LES RESSOURCES (« Chapitres & ressources »,
+//      issues de la description YouTube raffinée) s'affichent
+//      AU-DESSOUS du cadre de notes ;
+//   3. Anti-débordement : break-words sur le titre, min-w-0 sur la
+//      colonne principale, protection des chapitres/liens/paragraphes
+//      (composant ressources-tuto.tsx durci) — plus aucun texte ne
+//      déborde, quelle que soit la taille d'écran.
+// Le reste est inchangé : tutoriels GRATUITS pour les membres connectés,
+// écran d'invitation pour les visiteurs, progression gratuite, notes
+// privées retrouvées dans Dashboard → Mes notes, vidéo YouTube embarquée.
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -69,7 +73,7 @@ export default async function PageTuto({ params }: { params: Params }) {
     }
   }
 
-  // ── Note personnelle existante sur ce tutoriel (Lot 29) ─────────
+  // ── Note personnelle existante sur ce tutoriel ──────────────────
   // Lecture défensive : si le modèle NoteTutoriel n'est pas encore
   // dans le client Prisma (schéma pas à jour), on renvoie null sans
   // faire planter la page — le bloc-notes affichera la marche à suivre
@@ -168,10 +172,11 @@ export default async function PageTuto({ params }: { params: Params }) {
           )}
         </div>
 
-        {/* ── Titre + progression / fiche résumé ──────────────────── */}
+        {/* ── Titre + notes + description / fiche résumé ──────────── */}
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div>
-            <h1 className="font-titre text-[24px] leading-8 font-bold tracking-tight text-bleu sm:text-[28px] sm:leading-9">
+          {/* min-w-0 : la colonne peut rétrécir, aucun texte ne déborde */}
+          <div className="min-w-0">
+            <h1 className="break-words font-titre text-[24px] leading-8 font-bold tracking-tight text-bleu sm:text-[28px] sm:leading-9">
               {tuto.titre}
             </h1>
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -207,15 +212,9 @@ export default async function PageTuto({ params }: { params: Params }) {
               />
             </div>
 
-            {/* ── Chapitres & ressources : description YouTube
-                raffinée, juste sous la progression ───────────── */}
-            {(() => {
-              const description = parserDescriptionRaffinee(tuto.descriptionRaffinee);
-              return description ? <RessourcesTuto description={description} /> : null;
-            })()}
-
-            {/* ── Notes personnelles (Lot 29) : prise de note pendant
-                la vidéo, retrouvées dans Dashboard → Mes notes ── */}
+            {/* ── NOTES PERSONNELLES (juste sous la progression) :
+                prise de note pendant la vidéo, retrouvées dans
+                Dashboard → Mes notes ───────────────────────────── */}
             <div className="mt-6">
               <BlocNotesTutoriel
                 tutoId={tuto.id}
@@ -224,10 +223,18 @@ export default async function PageTuto({ params }: { params: Params }) {
                 hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
               />
             </div>
+
+            {/* ── DESCRIPTION & RESSOURCES — AU-DESSOUS du cadre de
+                notes : chapitres horodatés, ressources externes et
+                paragraphes utiles tirés de la description YouTube ── */}
+            {(() => {
+              const description = parserDescriptionRaffinee(tuto.descriptionRaffinee);
+              return description ? <RessourcesTuto description={description} /> : null;
+            })()}
           </div>
 
           {/* ── Colonne latérale : fiche résumé (design tuiles) ────── */}
-          <aside className="self-start lg:sticky lg:top-24">
+          <aside className="min-w-0 self-start lg:sticky lg:top-24">
             <div className="overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
               <div className="border-b border-bordure bg-gris/60 px-5 py-4">
                 <h2 className="flex items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
@@ -244,7 +251,7 @@ export default async function PageTuto({ params }: { params: Params }) {
                   { icone: Eye, label: "Vues", contenu: <span className="font-titre text-[15px] leading-5 font-bold text-bleu">{tuto.vues.toLocaleString("fr-FR")}</span> },
                   { icone: CalendarDays, label: "Ajouté le", contenu: <span className="font-titre text-[13px] leading-5 font-bold text-bleu">{ajouteLeCourt}</span> },
                 ].map(({ icone: Icone, label, contenu }) => (
-                  <div key={label} className="rounded-champ border border-bordure bg-gris/50 p-3">
+                  <div key={label} className="min-w-0 rounded-champ border border-bordure bg-gris/50 p-3">
                     <dt className="flex items-center gap-1.5 text-[10.5px] leading-3.5 font-bold uppercase tracking-wider text-encre/70">
                       <Icone className="size-3.5 text-violet" aria-hidden /> {label}
                     </dt>
