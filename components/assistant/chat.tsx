@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowUp, Sparkles } from "lucide-react";
+import { ArrowUp, Bot } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { Carte } from "@/components/ui/carte";
 import { schemaMessages } from "@/lib/schemas";
@@ -95,7 +95,7 @@ export function ChatAssistant() {
     return (
       <>
         <Carte className="p-8 text-center">
-          <Sparkles className="mx-auto size-8 text-sky-500" aria-hidden />
+          <Bot className="mx-auto size-8 text-sky-500" aria-hidden />
           <h2 className="mt-3 text-h3 font-semibold">Le mode conversation est réservé aux membres</h2>
           <p className="mesure mx-auto mt-2 text-encre">
             Connecte-toi pour discuter avec l'assistant — 20 messages par jour inclus.

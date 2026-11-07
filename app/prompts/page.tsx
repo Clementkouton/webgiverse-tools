@@ -9,7 +9,7 @@
 import type { Metadata } from "next";
 import type { ComponentProps } from "react";
 import Link from "next/link";
-import { Lock, Search, Sparkles, TerminalSquare } from "lucide-react";
+import { Bot, Lock, Search, TerminalSquare } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import {
   listerPrompts,
@@ -105,7 +105,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
           <div className="flex items-start gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-sky-500/10">
               {premium ? (
-                <Sparkles className="size-4.5 text-sky-500" aria-hidden />
+                <Bot className="size-4.5 text-sky-500" aria-hidden />
               ) : (
                   <Lock className="size-4.5 text-sky-500" aria-hidden />
               )}
@@ -126,7 +126,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
           {!premium && (
             <Bouton asChild taille="sm">
               <Link href="/tarifs">
-                <Sparkles aria-hidden /> Débloquer l&apos;accès
+                Débloquer l&apos;accès
               </Link>
             </Bouton>
           )}

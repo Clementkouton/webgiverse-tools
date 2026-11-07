@@ -37,7 +37,6 @@ import {
   MonitorPlay,
   NotebookPen,
   Search,
-  Sparkles,
   Star,
   TerminalSquare,
   X,
@@ -96,7 +95,7 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     titre: "Explorer",
     liens: [
       { href: "/outils", libelle: "Annuaire d'outils", icone: Compass },
-      { href: "/assistant", libelle: "Assistant IA", icone: Sparkles },
+      { href: "/assistant", libelle: "Assistant IA", icone: Bot },
       { href: "/comparer", libelle: "Comparateur", icone: ArrowLeftRight },
     ],
   },
@@ -267,7 +266,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
         className="animate-flottant pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-ciel/25 blur-2xl"
       />
       <p className="relative flex items-center gap-1.5 text-[13px] leading-4 font-bold">
-        <Sparkles className="size-4 text-ciel" aria-hidden /> Passe Premium
+          Passe Premium
       </p>
       <p className="relative mt-1 text-[12px] leading-4 text-white/75">
         Favoris illimités, bibliothèque de prompts complète et export PDF dès $2,99/mois.

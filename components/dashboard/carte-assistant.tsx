@@ -1,6 +1,6 @@
 // components/dashboard/carte-assistant.tsx
 import Link from "next/link";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Bot, ArrowRight } from "lucide-react";
 
 export function CarteAssistant() {
   return (
@@ -15,7 +15,7 @@ export function CarteAssistant() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-white/80">
-            <Sparkles className="h-4 w-4" />
+            <Bot className="h-4 w-4" />
             Nouveau
           </p>
           <h3 className="mt-1 text-xl font-bold">

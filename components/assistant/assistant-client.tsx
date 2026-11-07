@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Send, User, Sparkles, Mail, Image as ImageIcon, Presentation, Mic, AlertTriangle, Crown } from "lucide-react";
+import { Send, User, Bot, Mail, Image as ImageIcon, Presentation, Mic, AlertTriangle, Crown } from "lucide-react";
 import { ModeGuide } from "@/components/assistant/mode-guide";
 import { HistoriqueConversations } from "@/components/assistant/historique-conversations";
 
@@ -212,7 +212,7 @@ export function AssistantOnglets({
                     En ligne — recommande uniquement des outils de l'annuaire
                   </p>
                 </div>
-                <Sparkles className="h-5 w-5 text-white/60" />
+                  <Bot className="h-5 w-5 text-white/60" />
               </div>
 
               {/* ── Bandeau quota (plan Découverte) ou Premium ──── */}
@@ -243,7 +243,7 @@ export function AssistantOnglets({
                 {messages.length === 0 && (
                   <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
                     <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg">
-                      <Sparkles className="h-8 w-8" />
+                        <Bot className="h-8 w-8" />
                     </span>
                     <div>
                       <p className="text-lg font-semibold text-gray-800">

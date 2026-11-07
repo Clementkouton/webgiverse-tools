@@ -5,6 +5,8 @@
 // comme les tuiles du template), valeur en gros, tendance ± % vs le
 // mois dernier (badge doux vert menthe / corail) et mini courbe SVG
 // statique rendue côté serveur. Aucun dégradé, aucune librairie.
+// Lot 37 — CORRECTIF responsive : la ligne de contexte peut rétrécir
+// (min-w-0) au lieu de pousser la carte plus large que sa colonne.
 // ─────────────────────────────────────────────────────────────────
 import Link from "next/link";
 import { Minus, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
@@ -102,7 +104,7 @@ export function CarteStatAdmin({
           {tendance !== null && (
             <span
               className={cn(
-                "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-semibold",
+                "inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 font-semibold",
                 montante && "bg-adm-succes-doux text-[#0f9b85]",
                 descendante && "bg-adm-erreur-doux text-[#c94f35]",
                 !montante && !descendante && "bg-gris text-encre",
@@ -118,7 +120,7 @@ export function CarteStatAdmin({
               {montante ? "+" : ""}{tendance} %
             </span>
           )}
-          <span className="truncate text-adm-gris">{contexte ?? libelleTendance}</span>
+          <span className="min-w-0 truncate text-adm-gris">{contexte ?? libelleTendance}</span>
         </span>
       </span>
       {donnees && donnees.length > 1 && <Etincelle donnees={donnees} />}

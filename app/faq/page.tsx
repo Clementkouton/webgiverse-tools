@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, MessageCircle, Sparkles } from "lucide-react";
+import { ArrowRight, MessageCircle, Bot } from "lucide-react";
 import { Accordeon, ItemAccordeon } from "@/components/ui/accordeon";
 import { FAQ_COMPLETE } from "@/content/faq";
 
@@ -31,7 +31,7 @@ const liensUtiles = [
   },
   {
     href: "/assistant",
-    icone: Sparkles,
+    icone: Bot,
     titre: "Lancer l'assistant",
     texte: "Réponds à trois questions, reçois jusqu'à trois outils adaptés à ton besoin.",
   },

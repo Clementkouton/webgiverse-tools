@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Compass,
   Crown,
+  Bot,
   Flame,
   History,
   LayoutDashboard,
@@ -26,7 +27,7 @@ import {
   Plus,
   Search,
   Share2,
-  Sparkles,
+
   Star,
   TerminalSquare,
   ThumbsUp,
@@ -87,7 +88,7 @@ const STYLE_SELECT =
 
 const ICONES_ACTIVITE: Record<string, { icone: LucideIcon; libelle: string }> = {
   favori: { icone: Star, libelle: "Favoris" },
-  assistant: { icone: Sparkles, libelle: "Assistant IA" },
+  assistant: { icone: Bot, libelle: "Assistant IA" },
   avis: { icone: MessageSquareQuote, libelle: "Avis" },
   avis_publie: { icone: MessageSquareQuote, libelle: "Avis publié" },
   vote: { icone: ThumbsUp, libelle: "Recommandation (vote)" },
@@ -554,7 +555,7 @@ export default async function PageDashboard({
             libelle="Points d'activité"
             valeur={score}
             contexte={`Niveau : ${palier.nom}`}
-            icone={Sparkles}
+            icone={Bot}
             teinte="magenta"
             delay={210}
           />
@@ -958,7 +959,7 @@ export default async function PageDashboard({
             </div>
             <Bouton variante="secondaire" asChild>
               <Link href="/assistant">
-                <Sparkles aria-hidden /> Faire le diagnostic
+                  <Bot aria-hidden /> Faire le diagnostic
               </Link>
             </Bouton>
           </Carte>
@@ -1022,7 +1023,7 @@ export default async function PageDashboard({
               href="/assistant"
               className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
             >
-              Ouvrir l'assistant <Sparkles className="size-4" aria-hidden />
+              Ouvrir l'assistant 
             </Link>
           </div>
           <div className="mt-4 grid gap-3">
@@ -1541,7 +1542,7 @@ export default async function PageDashboard({
             <p className="text-legende text-encre">conversations avec l'assistant</p>
             <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
               <Link href="/assistant">
-                <Sparkles aria-hidden /> Continuer
+                <Bot aria-hidden /> Continuer
               </Link>
             </Bouton>
           </Carte>

@@ -112,7 +112,8 @@ export default async function PageMonAbonnement() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="flex items-center gap-2 text-[15px] leading-5 font-semibold">
-                  <Sparkles className="size-5 text-sky-500" aria-hidden /> Plan
+                
+                Plan
                 Découverte (gratuit)
               </p>
               <p className="mt-1.5 text-[14px] leading-5 text-encre">
@@ -131,7 +132,7 @@ export default async function PageMonAbonnement() {
       <section id="plans" className="mt-10 scroll-mt-24">
         <div className="text-center">
           <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
-            <Sparkles className="size-4" aria-hidden /> Choisis ton plan
+            Choisis ton plan
           </p>
           <h2 className="mt-3 text-h3 font-semibold">
             Commence gratuitement, évolue quand tu veux

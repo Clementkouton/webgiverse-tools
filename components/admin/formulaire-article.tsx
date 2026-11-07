@@ -241,7 +241,7 @@ export function FormulaireArticle({
               disabled={iaEnCours || (titre.trim().length < 4 && contenuTexte.trim().length < 20)}
               title="Générer un résumé avec l'IA à partir du titre et du contenu"
             >
-              <Sparkles className="size-4" aria-hidden />
+
               {iaEnCours ? "L'IA rédige…" : "Proposer un résumé (IA)"}
             </Bouton>
           </div>

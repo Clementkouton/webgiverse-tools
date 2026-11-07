@@ -1,20 +1,17 @@
 // app/admin/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// TABLEAU DE BORD ADMIN — VERSION AMÉLIORÉE (Lot 29).
-// Reprend le design « TailwindAdmin » validé et l'enrichit :
-//   • en-tête + période du mois en cours ;
-//   • bannière dégradé indigo → bleu ciel (style du template) ;
-//   • rangée « Pilotage du jour » : KPI temps réel ;
-//   • 4 cartes statistiques avec tendance ± % et mini-courbe 7 jours ;
-//   • NOUVEAU — rangée « Apprendre & audience » : tutoriels (vues,
-//     vidéos en ligne, notes des membres), abonnés newsletter et
-//     codes promo actifs (lectures défensives, jamais bloquantes) ;
-//   • alertes visuelles : liens morts, brouillons oubliés,
-//     descriptions YouTube manquantes ;
-//   • graphique des inscriptions (14 jours) + anneau « par plan » ;
-//   • raccourcis enrichis : Newsletter, Codes promo, Parrainages.
-// Aucun tableau ici : chaque contenu a sa page dans le menu.
-// Aucune librairie ajoutée.
+// TABLEAU DE BORD ADMIN — VERSION AMÉLIORÉE (Lot 37 : responsive).
+// Reprend le design « TailwindAdmin » validé (aucun changement visuel)
+// et corrige :
+//   • DÉBORDEMENTS — toutes les grilles ont désormais une colonne de
+//     base explicite (grid-cols-1) : sans elle, la colonne implicite
+//     prend la largeur du texte le plus long et les lignes sortent
+//     des cartes (visible sur la carte « Descriptions YouTube ») ;
+//   • les textes des raccourcis passent sur 2 lignes au lieu d'être
+//     coupés (« Proposito… » → « Propositions, contacts et avis… ») ;
+//   • CONNEXION — les ~15 requêtes Prisma partent désormais par
+//     vagues de 5 maximum : fini le « Timed out fetching a new
+//     connection from the connection pool » sur Neon.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -87,23 +84,28 @@ export default async function PageAdmin() {
   const ilYa30j = new Date(maintenant);
   ilYa30j.setDate(ilYa30j.getDate() - 30);
 
-  // ── Compteurs ───────────────────────────────────────────────────
-  const [
-    nbUtilisateurs, inscritsMois, inscritsMoisPrec, inscrits14j,
-    nbOutilsPublies, nbOutilsTotal, outilsMois, outilsMoisPrec, outils14j,
-    nbAvis, avisMois, avisMoisPrec, avis14j,
-    abonnementsActifs, premium14j, revenusMois, revenusMoisPrec, paiements14j,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { createdAt: { gte: debutMois } } }),
-    prisma.user.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
-    prisma.user.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
-    prisma.tool.count({ where: { statut: "PUBLIE" } }),
+  // ── Compteurs (par vagues de 5 requêtes maximum) ────────────────
+  // Neon est une base distante : lancer 15+ requêtes simultanées
+  // sature le pool de connexions (5 connexions, timeout 15 s).
+  // On exécute donc 4 petites vagues successives, dans le même ordre.
+  const [nbUtilisateurs, inscritsMois, inscritsMoisPrec, inscrits14j, nbOutilsPublies] =
+    await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { createdAt: { gte: debutMois } } }),
+      prisma.user.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
+      prisma.user.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
+      prisma.tool.count({ where: { statut: "PUBLIE" } }),
+    ]);
+
+  const [nbOutilsTotal, outilsMois, outilsMoisPrec, outils14j, nbAvis] = await Promise.all([
     prisma.tool.count(),
     prisma.tool.count({ where: { createdAt: { gte: debutMois } } }),
     prisma.tool.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
     prisma.tool.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
     prisma.avis.count(),
+  ]);
+
+  const [avisMois, avisMoisPrec, avis14j, abonnementsActifs] = await Promise.all([
     prisma.avis.count({ where: { creeLe: { gte: debutMois } } }),
     prisma.avis.count({ where: { creeLe: { gte: debutMoisPrec, lt: debutMois } } }),
     prisma.avis.findMany({ where: { creeLe: { gte: debut14j } }, select: { creeLe: true } }),
@@ -111,6 +113,9 @@ export default async function PageAdmin() {
       where: { statut: "ACTIF", expireLe: { gt: maintenant } },
       select: { plan: true, debutLe: true },
     }),
+  ]);
+
+  const [premium14j, revenusMois, revenusMoisPrec, paiements14j] = await Promise.all([
     prisma.abonnement.findMany({ where: { debutLe: { gte: debut7j } }, select: { debutLe: true } }),
     prisma.paiement.aggregate({
       where: { statut: "PAYE", creeLe: { gte: debutMois } },
@@ -126,19 +131,19 @@ export default async function PageAdmin() {
     }),
   ]);
 
-  // ── Pilotage du jour + alertes ──────────────────────────────────
+  // ── Pilotage du jour + alertes (2 vagues de 4) ──────────────────
   const whereLienMort = {
     statut: "PUBLIE" as const,
     OR: [{ statutLien: { gte: 400 } }, { statutLien: 0 }],
   };
-  const [
-    inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts,
-    liensMorts, nbJamaisVerifies, nbBrouillonsAnciens, brouillonsAnciens,
-  ] = await Promise.all([
+  const [inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts] = await Promise.all([
     prisma.user.count({ where: { createdAt: { gte: debutJour } } }),
     prisma.avis.count({ where: { creeLe: { gte: ilYa24h } } }),
     prisma.messageContact.count({ where: { traite: false } }),
     prisma.tool.count({ where: whereLienMort }),
+  ]);
+
+  const [liensMorts, nbJamaisVerifies, nbBrouillonsAnciens, brouillonsAnciens] = await Promise.all([
     prisma.tool.findMany({
       where: whereLienMort,
       orderBy: [{ lienVerifieLe: { sort: "desc", nulls: "last" } }],
@@ -287,7 +292,7 @@ export default async function PageAdmin() {
         <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
           Pilotage du jour
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <CarteStatAdmin
             href="/admin/utilisateurs"
             libelle="Inscrits aujourd'hui"
@@ -328,7 +333,7 @@ export default async function PageAdmin() {
         <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
           Ce mois-ci
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <CarteStatAdmin
             href="/admin/utilisateurs"
             libelle="Utilisateurs"
@@ -381,7 +386,7 @@ export default async function PageAdmin() {
         <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
           Apprendre &amp; audience
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <CarteStatAdmin
             href="/admin/tutoriels"
             libelle="Tutoriels au catalogue"
@@ -418,7 +423,7 @@ export default async function PageAdmin() {
       </section>
 
       {/* ── Alertes visuelles ──────────────────────────────────────── */}
-      <section aria-label="Alertes" className="animate-apparition-haut delai-2 mt-6 grid gap-4 lg:grid-cols-2">
+      <section aria-label="Alertes" className="animate-apparition-haut delai-2 mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Liens morts détectés */}
         <Carte className={`p-6 ${nbLiensMorts > 0 ? "border-[#f3c3b5] bg-[#fdf6f4]" : ""}`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -430,7 +435,7 @@ export default async function PageAdmin() {
               >
                 <Link2Off className="size-5" aria-hidden />
               </span>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
                   Liens morts détectés
                 </h3>
@@ -447,9 +452,9 @@ export default async function PageAdmin() {
           </div>
 
           {nbLiensMorts > 0 && (
-            <ul className="mt-4 grid gap-2">
+            <ul className="mt-4 grid grid-cols-1 gap-2">
               {liensMorts.map((outil) => (
-                <li key={outil.id}>
+                <li key={outil.id} className="min-w-0">
                   <Link
                     href={`/admin/outils/${outil.id}`}
                     className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#e0917a]"
@@ -489,7 +494,7 @@ export default async function PageAdmin() {
             >
               <FileWarning className="size-5" aria-hidden />
             </span>
-            <div>
+            <div className="min-w-0">
               <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
                 Brouillons oubliés
               </h3>
@@ -502,9 +507,9 @@ export default async function PageAdmin() {
           </div>
 
           {nbBrouillonsAnciens > 0 && (
-            <ul className="mt-4 grid gap-2">
+            <ul className="mt-4 grid grid-cols-1 gap-2">
               {brouillonsAnciens.map((article) => (
-                <li key={article.id}>
+                <li key={article.id} className="min-w-0">
                   <Link
                     href={`/admin/articles/${article.id}`}
                     className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#dfb95c]"
@@ -526,6 +531,37 @@ export default async function PageAdmin() {
             </ul>
           )}
         </Carte>
+        {/* Raccourcis — enrichis : Newsletter, Codes promo, Parrainages */}
+        <Carte className="animate-apparition-haut delai-1 p-6">
+          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+            Raccourcis
+          </h2>
+          <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {[
+              { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
+              { href: "/admin/newsletter", libelle: "Newsletter", texte: "Campagnes, abonnés et envois" },
+              { href: "/admin/codes-promo", libelle: "Codes promo", texte: "Créer et suivre les réductions" },
+              { href: "/admin/parrainages", libelle: "Parrainages", texte: "Liens d'invitation et récompenses" },
+              { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },
+              { href: "/admin/segments", libelle: "Segments", texte: "Filtres prêts à l'emploi + export CSV" },
+              { href: "/admin/statistiques", libelle: "Statistiques", texte: "Vues par outil, article et prompt" },
+              { href: "/admin/journal", libelle: "Journal d'audit", texte: "Qui a fait quoi, quand" },
+              { href: "/admin/sauvegarde", libelle: "Sauvegarde", texte: "Exporter la base en JSON / CSV" },
+            ].map((r) => (
+              <Link
+                key={r.href}
+                href={r.href}
+                className="group flex items-center justify-between gap-3 rounded-champ border border-bordure bg-white px-4 py-3 transition hover:border-primaire hover:bg-primaire/5"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[14px] leading-5 font-semibold text-adm-sombre group-hover:text-primaire-texte">{r.libelle}</span>
+                  <span className="block text-[12px] leading-4 text-encre line-clamp-2">{r.texte}</span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-adm-gris-clair transition group-hover:translate-x-0.5 group-hover:text-primaire" aria-hidden />
+              </Link>
+            ))}
+          </div>
+        </Carte>
 
         {/* Descriptions YouTube des tutoriels (raffinées) */}
         <Carte className="p-6">
@@ -538,7 +574,7 @@ export default async function PageAdmin() {
               >
                 <CaptionIcon className="size-5" aria-hidden />
               </span>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
                   Descriptions YouTube
                 </h3>
@@ -553,9 +589,9 @@ export default async function PageAdmin() {
           </div>
 
           {nbTutosSansDescription > 0 && (
-            <ul className="mt-4 grid gap-2">
+            <ul className="mt-4 grid grid-cols-1 gap-2">
               {tutosSansDescription.map((tuto) => (
-                <li key={tuto.id}>
+                <li key={tuto.id} className="min-w-0">
                   <Link
                     href="/admin/tutoriels"
                     className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#9db8e8]"
@@ -580,7 +616,7 @@ export default async function PageAdmin() {
       </section>
 
       {/* ── Graphiques : inscriptions 14 jours + raccourcis + plans ── */}
-      <section className="mt-6 grid gap-4 lg:grid-cols-3">
+      <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Carte className="animate-apparition-haut p-6 lg:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -598,37 +634,6 @@ export default async function PageAdmin() {
           </div>
         </Carte>
 
-        {/* Raccourcis — enrichis : Newsletter, Codes promo, Parrainages */}
-        <Carte className="animate-apparition-haut delai-1 p-6">
-          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-            Raccourcis
-          </h2>
-          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-            {[
-              { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
-              { href: "/admin/newsletter", libelle: "Newsletter", texte: "Campagnes, abonnés et envois" },
-              { href: "/admin/codes-promo", libelle: "Codes promo", texte: "Créer et suivre les réductions" },
-              { href: "/admin/parrainages", libelle: "Parrainages", texte: "Liens d'invitation et récompenses" },
-              { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },
-              { href: "/admin/segments", libelle: "Segments", texte: "Filtres prêts à l'emploi + export CSV" },
-              { href: "/admin/statistiques", libelle: "Statistiques", texte: "Vues par outil, article et prompt" },
-              { href: "/admin/journal", libelle: "Journal d'audit", texte: "Qui a fait quoi, quand" },
-              { href: "/admin/sauvegarde", libelle: "Sauvegarde", texte: "Exporter la base en JSON / CSV" },
-            ].map((r) => (
-              <Link
-                key={r.href}
-                href={r.href}
-                className="group flex items-center justify-between gap-3 rounded-champ border border-bordure bg-white px-4 py-3 transition hover:border-primaire hover:bg-primaire/5"
-              >
-                <span className="min-w-0">
-                  <span className="block text-[14px] font-semibold text-adm-sombre group-hover:text-primaire-texte">{r.libelle}</span>
-                  <span className="block truncate text-[12px] text-encre">{r.texte}</span>
-                </span>
-                <ArrowRight className="size-4 shrink-0 text-adm-gris-clair transition group-hover:translate-x-0.5 group-hover:text-primaire" aria-hidden />
-              </Link>
-            ))}
-          </div>
-        </Carte>
 
         <Carte className="animate-apparition-haut delai-1 p-6">
           <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -646,6 +651,7 @@ export default async function PageAdmin() {
             />
           </div>
         </Carte>
+
       </section>
     </div>
   );

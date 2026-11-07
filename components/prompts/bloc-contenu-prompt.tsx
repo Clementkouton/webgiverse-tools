@@ -8,7 +8,7 @@
 //   le lecteur de tutoriels). Le prompt n'est JAMAIS envoyé en clair :
 //   côté serveur, la page ne rend le contenu réel que si premium.
 import Link from "next/link";
-import { Lock, LogIn, Sparkles } from "lucide-react";
+import { Lock, LogIn, Bot } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { BoutonCopier } from "@/components/commun/bouton-copier";
 
@@ -57,7 +57,7 @@ export function BlocContenuPrompt({
               {connecte ? (
                 <Bouton asChild variante="secondaire">
                   <Link href="/tarifs">
-                    <Sparkles aria-hidden /> Passer Premium
+                    Passer Premium
                   </Link>
                 </Bouton>
               ) : (

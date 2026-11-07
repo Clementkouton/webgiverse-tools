@@ -10,7 +10,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Menu, X, Sparkles } from "lucide-react";
+import { ChevronDown, Menu, X, Bot } from "lucide-react";
 import { LienLogo } from "@/components/commun/logo";
 import { Bouton } from "@/components/ui/bouton";
 
@@ -80,7 +80,6 @@ export function Header() {
     <header className="verre justify-between sticky top-0 z-50 border-b border-bordure">
       <div className="mx-0 flex h-16  items-center gap-2 lg:px-8 px-4 sm:gap-3 lg:h-18">
         <LienLogo  />
-
         {/* Navigation desktop */}
         <nav className="ml-auto hidden items-center justify-center gap-1 lg:flex" aria-label="Navigation principale">
           <details className="group relative  items-center justify-center">
@@ -115,7 +114,7 @@ export function Header() {
                 ? "inline-flex items-center gap-1.5 rounded-full bg-sky-500 px-4 py-2.5 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
                 : "inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-sky-500 transition hover:bg-sky-500 hover:text-white"
             }>
-            <Sparkles className="size-4" aria-hidden /> Premium
+            Premium
           </Link>
         </nav>
 
@@ -162,7 +161,7 @@ export function Header() {
             <li>
               <Link href="/tarifs" onClick={() => setMenuOuvert(false)}
                 className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris">
-                <Sparkles className="size-4" aria-hidden /> Passer Premium
+                Passer Premium
               </Link>
             </li>
           </ul>

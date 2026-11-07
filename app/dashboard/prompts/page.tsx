@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   Crown,
   Eye,
-  Sparkles,
   TerminalSquare,
   Trash2,
 } from "lucide-react";
@@ -91,7 +90,7 @@ export default async function PageMesPrompts() {
         </h1>
         <Bouton asChild variante="secondaire">
           <Link href="/prompts">
-            <Sparkles className="size-4" aria-hidden /> Explorer la bibliothèque
+            Explorer la bibliothèque
           </Link>
         </Bouton>
       </div>

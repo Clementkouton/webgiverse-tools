@@ -126,7 +126,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
           {!premium && (
             <Bouton asChild taille="sm">
               <Link href="/tarifs">
-                <Sparkles aria-hidden /> Débloquer l&apos;accès
+                 Débloquer l&apos;accès
               </Link>
             </Bouton>
           )}

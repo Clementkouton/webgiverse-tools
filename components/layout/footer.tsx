@@ -66,9 +66,7 @@ export async function Footer() {
     <footer className="bg-bleu text-white">
       <div className="mx-auto  lg:px-10 px-4  py-12">
         <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-          <Link href="/" aria-label="Webgiverse — accueil">
-            <LienLogoFooter />
-          </Link>
+            <LienLogoFooter />          
           <p className="font-titre text-[15px] leading-5 font-medium text-white/70">
             Apprendre · Créer · Réussir
           </p>

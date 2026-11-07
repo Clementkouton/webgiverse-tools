@@ -7,7 +7,7 @@
 // du titre. Polices inchangées (Space Grotesk titres, Inter texte).
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Bot } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { listerCategories } from "@/lib/queries";
 import { IconeCategorie } from "@/components/commun/icone-categorie";
@@ -84,9 +84,7 @@ export default async function PageCategories() {
         <section className="mt-12 rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-sky-500/10">
-                <Sparkles className="size-5 text-sky-500" aria-hidden />
-              </span>
+              
               <div>
                 <h2 className="font-titre text-[18px] leading-6 font-semibold text-bleu">
                   Tu hésites entre deux catégories ?
@@ -100,7 +98,7 @@ export default async function PageCategories() {
             <div className="flex flex-wrap items-center gap-3">
               <Bouton asChild>
                 <Link href="/assistant">
-                  <Sparkles aria-hidden /> Lancer l&apos;assistant
+                  <Bot aria-hidden /> Lancer l&apos;assistant
                 </Link>
               </Bouton>
               <Bouton variante="secondaire" asChild>

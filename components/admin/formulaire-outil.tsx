@@ -161,7 +161,7 @@ export function FormulaireOutil({
               disabled={iaEnCours || nom.trim().length < 2 || url.trim().length < 8}
               title="Générer la description avec l'IA à partir du nom et de l'URL"
             >
-              <Sparkles className="size-4" aria-hidden />
+
               {iaEnCours ? "L'IA rédige…" : "Générer avec l'IA"}
             </Bouton>
           </div>

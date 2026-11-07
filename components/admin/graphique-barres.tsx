@@ -4,6 +4,10 @@
 // console admin : barres indigo arrondies, valeurs affichées
 // au-dessus, grille légère. 100 % SVG statique rendu côté serveur :
 // aucune librairie, aucun JS client.
+// Lot 37 — CORRECTIF : quand le maximum valait 1, l'axe affichait
+// « 1, 1, 0 » (la ligne médiane 0,5 était arrondie à 1). Désormais
+// la ligne médiane n'apparaît que si son étiquette entière est
+// différente du maximum et de zéro.
 // ─────────────────────────────────────────────────────────────────
 
 type Props = {
@@ -32,11 +36,16 @@ export function GraphiqueBarres({ valeurs, labels, couleur = "#5d87ff" }: Props)
   const h = (v: number) => (v / maxV) * hauteurUtile;
   const cx = (i: number) => MARGE_G + bande * i + bande / 2;
 
-  // Grille : 3 lignes (max, moitié, zéro) avec leur étiquette d'axe.
-  const grille = [1, 0.5, 0].map((ratio) => ({
-    yY: MARGE_H + (1 - ratio) * hauteurUtile,
-    etiq: String(Math.round(maxV * ratio)),
-  }));
+  // Grille : ligne du maximum, ligne médiane (si son étiquette
+  // entière est utile), ligne du zéro.
+  const milieu = Math.round(maxV / 2);
+  const grille = [
+    { yY: MARGE_H, etiq: String(maxV) },
+    ...(milieu > 0 && milieu < maxV
+      ? [{ yY: MARGE_H + hauteurUtile / 2, etiq: String(milieu) }]
+      : []),
+    { yY: MARGE_H + hauteurUtile, etiq: "0" },
+  ];
 
   return (
     <svg

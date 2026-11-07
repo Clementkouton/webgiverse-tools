@@ -121,7 +121,7 @@ export default async function Accueil() {
               <Link href="/outils">Explorer l'annuaire <ArrowRight aria-hidden /></Link>
             </Bouton>
             <Bouton variante="secondaire" taille="lg" asChild>
-              <Link href="/assistant"><Sparkles aria-hidden /> Lancer l'assistant</Link>
+              <Link href="/assistant"> Lancer l'assistant</Link>
             </Bouton>
           </div>
           <dl className="mt-10 flex flex-wrap justify-center gap-8 sm:gap-14">
@@ -410,7 +410,7 @@ export default async function Accueil() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Bouton taille="lg" asChild><Link href="/outils">Explorer l'annuaire <ArrowRight aria-hidden /></Link></Bouton>
-            <Bouton variante="sombre" taille="lg" asChild><Link href="/assistant"><Sparkles aria-hidden /> Lancer l'assistant</Link></Bouton>
+            <Bouton variante="sombre" taille="lg" asChild><Link href="/assistant"> Lancer l'assistant</Link></Bouton>
           </div>
         </div>
       </section>

@@ -1,14 +1,21 @@
 // app/tutoriels/[slug]/page.tsx
-// Lot 30 — CORRECTIF AFFICHAGE de la page tutoriel (tutoriels gratuits) :
-//   1. Le cadre « Mes notes sur ce tutoriel » monte JUSTE SOUS la
-//      progression (l'utilisateur note pendant la vidéo, sans scroller) ;
-//   2. LA DESCRIPTION ET LES RESSOURCES (« Chapitres & ressources »,
-//      issues de la description YouTube raffinée) s'affichent
-//      AU-DESSOUS du cadre de notes ;
-//   3. Anti-débordement : break-words sur le titre, min-w-0 sur la
-//      colonne principale, protection des chapitres/liens/paragraphes
-//      (composant ressources-tuto.tsx durci) — plus aucun texte ne
-//      déborde, quelle que soit la taille d'écran.
+// Lot 31 — LA DESCRIPTION ET LES RESSOURCES SOUS LE CADRE DE NOTES,
+// JAMAIS SILENCIEUSES :
+//   1. Le cadre « Mes notes sur ce tutoriel » reste JUSTE SOUS la
+//      progression (prise de note pendant la vidéo) ;
+//   2. « Chapitres & ressources » (description YouTube raffinée) reste
+//      AU-DESSOUS du cadre de notes — MAIS si la colonne
+//      descriptionRaffinee est encore vide en base (import non fait),
+//      une carte de repli lisible s'affiche À LA MÊME PLACE au lieu de
+//      ne rien montrer : la zone ne disparaît plus, et dès que les
+//      84 descriptions sont importées (script ou SQL du lot 28/31), le
+//      vrai contenu remplace automatiquement le repli — sans toucher
+//      au code ;
+//   3. Anti-débordement conservé : break-words sur le titre, min-w-0
+//      sur la colonne principale, protection des chapitres/liens/
+//      paragraphes (ressources-tuto.tsx durci).
+// Design strictement inchangé : mêmes cartes, mêmes couleurs, mêmes
+// espacements que le Lot 30.
 // Le reste est inchangé : tutoriels GRATUITS pour les membres connectés,
 // écran d'invitation pour les visiteurs, progression gratuite, notes
 // privées retrouvées dans Dashboard → Mes notes, vidéo YouTube embarquée.
@@ -30,6 +37,31 @@ import { PLANS } from "@/lib/plans";
 import { LecteurYoutube } from "@/components/tutoriels/lecteur-youtube";
 import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
 import { parserDescriptionRaffinee } from "@/lib/description-youtube";
+
+/**
+ * Carte de repli — affichée UNIQUEMENT tant que la description YouTube
+ * raffinée n'est pas encore en base pour ce tutoriel (import non fait).
+ * Même style que « Chapitres & ressources » : la zone sous le cadre de
+ * notes reste toujours occupée et explicite.
+ */
+function SectionDescriptionIndisponible() {
+  return (
+    <section
+      aria-label="Description et ressources du tutoriel"
+      className="mt-8 min-w-0 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6"
+    >
+      <h2 className="break-words font-titre text-[17px] leading-6 font-bold text-bleu">
+        Description &amp; ressources
+      </h2>
+      <p className="mt-1 text-[13px] leading-5 text-encre">
+        Les chapitres, les liens utiles et les points clés tirés de la
+        description YouTube de cette vidéo n&apos;ont pas encore été importés.
+        Ils apparaîtront automatiquement ici dès que l&apos;import sera fait —
+        aucune modification de code n&apos;est nécessaire.
+      </p>
+    </section>
+  );
+}
 
 type Params = Promise<{ slug: string }>;
 
@@ -226,10 +258,16 @@ export default async function PageTuto({ params }: { params: Params }) {
 
             {/* ── DESCRIPTION & RESSOURCES — AU-DESSOUS du cadre de
                 notes : chapitres horodatés, ressources externes et
-                paragraphes utiles tirés de la description YouTube ── */}
+                paragraphes utiles tirés de la description YouTube.
+                Tant que l'import n'est pas fait en base, une carte de
+                repli occupe la place (jamais de trou silencieux). ── */}
             {(() => {
               const description = parserDescriptionRaffinee(tuto.descriptionRaffinee);
-              return description ? <RessourcesTuto description={description} /> : null;
+              return description ? (
+                <RessourcesTuto description={description} />
+              ) : (
+                <SectionDescriptionIndisponible />
+              );
             })()}
           </div>
 

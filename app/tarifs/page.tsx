@@ -130,7 +130,7 @@ export default async function PageTarifs() {
 
       <header className="mx-auto max-w-2xl text-center">
         <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
-          <Sparkles className="size-4" aria-hidden /> Webgiverse Premium
+          Webgiverse Premium
         </p>
         <h1 className="mt-4 text-h2 font-titre font-semibold">Tire le meilleur de l&apos;annuaire</h1>
         <p className="mt-3 text-[15px] leading-6 text-encre">

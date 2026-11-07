@@ -9,7 +9,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Bot,  } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { listerOutils, listerCategories } from "@/lib/queries";
 import { Bouton } from "@/components/ui/bouton";
@@ -137,7 +137,7 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="grid size-11 shrink-0 place-items-center rounded-carte bg-violet/10">
-                <Sparkles className="size-5 text-violet" aria-hidden />
+
               </span>
               <div>
                 <h2 className="font-titre text-[18px] leading-6 font-semibold text-bleu">
@@ -152,7 +152,7 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
             <div className="flex flex-wrap items-center gap-3">
               <Bouton asChild>
                 <Link href="/assistant">
-                  <Sparkles aria-hidden /> Lancer l&apos;assistant
+                  <Bot aria-hidden /> Lancer l&apos;assistant
                 </Link>
               </Bouton>
               <Bouton variante="secondaire" asChild>

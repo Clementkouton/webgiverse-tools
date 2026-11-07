@@ -11,8 +11,7 @@ export function LogoWebgiverseFooter({ compacte = false }: { compacte?: boolean 
 
 export function LienLogoFooter() {
   return (
-    <Link href="/" aria-label="Webgiverse Tools — accueil" className="shrink-0">
-      
+    <Link href="/" aria-label="Webgiverse Tools — accueil" className="shrink-0"> 
       <LogoWebgiverseFooter />
     </Link>
   );
