@@ -20,7 +20,7 @@ import { premiumActif } from "@/lib/premium";
 import { BarreOutils } from "@/components/tutoriels/barre-outils";
 
 export const metadata: Metadata = {
-  title: "Tutoriels vidéo IA — formations gratuites | Webgiverse",
+  title: "Tutoriels vidéo IA — Webgiverse",
   description:
     "Apprends à maîtriser ChatGPT, Claude, Gemini, Midjourney et les meilleurs outils IA grâce à une collection de tutoriels vidéo sélectionnés à la main.",
 };
@@ -79,7 +79,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
             <Play className="size-3.5" aria-hidden /> Tutoriels IA
           </p>
           <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
-            Tutoriels <span className="texte-degrade">vidéo IA</span> : formations gratuites
+            Tutoriels <span className="texte-degrade">vidéo IA</span> : des formations pour tous les niveaux
           </h1>
           <p className="mesure mx-auto mt-3 text-[16px] leading-7 text-encre">
             Apprends à maîtriser les meilleurs outils IA en vidéo : chaque tutoriel est
@@ -93,7 +93,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
               {heures}h+ de contenu
             </li>
             <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
-              100 % gratuits à parcourir
+              Débutant offert · Premium pour aller plus loin
             </li>
           </ul>
         </div>
@@ -112,8 +112,10 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
             </span>
             {premium ? (
               <p className="max-w-2xl text-[14px] leading-6 text-encre">
-                <strong className="font-semibold text-bleu">Ton accès Premium est actif</strong> : toutes
-                les vidéos se regardent ici même, sans quitter Webgiverse. Bonne lecture&nbsp;!
+                Parcours toute la collection librement. Les <strong className="font-semibold text-bleu">tutoriels
+                Débutant sont offerts</strong> aux membres ; les niveaux <strong className="font-semibold text-bleu">Intermédiaire
+                et Avancé</strong>, les notes, les ressources et l&apos;assistant IA sont réservés aux
+                abonnés Premium (Pro ou Entreprise).
               </p>
             ) : (
                 <p className="max-w-2xl text-[14px] leading-6 text-encre">
@@ -195,16 +197,16 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
         {/* ── Section d'introduction (SEO) ────────────────────────── */}
         <section className="mt-14 rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-10">
           <h2 className="font-titre text-[22px] leading-8 font-bold text-bleu">
-            Tutoriels vidéo IA : des formations gratuites pour tous les niveaux
+            Tutoriels vidéo IA : des formations  pour tous les niveaux
           </h2>
           <div className="mt-4 grid gap-6 text-[15px] leading-7 text-encre lg:grid-cols-2">
             <div className="space-y-3">
               <p>
-                Cette bibliothèque rassemble des tutoriels vidéo consacrés aux meilleurs outils
-                d&apos;intelligence artificielle : ChatGPT, Claude, Gemini, Midjourney, NotebookLM,
-                n8n, Cursor et bien d&apos;autres. Chaque vidéo est testée avant d&apos;être ajoutée,
-                pour ne garder que les formations vraiment utiles — de la prise en main pour
-                débutants aux techniques avancées.
+                Les tutoriels Débutant sont offerts aux membres. L'accès aux tutoriels
+                Intermédiaire et Avancé, aux chapitres &amp; ressources, aux notes avec export,
+                à la progression et à l'assistant IA des tutoriels est inclus dans les plans
+                Premium (Pro et Entreprise) — qui débloquent aussi les favoris et listes
+                illimités ainsi que l'assistant IA sans quota.
               </p>
               <p>
                 Les filtres par niveau (débutant, intermédiaire, avancé) et par outil permettent

@@ -6,6 +6,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { LIMITES_DECOUVERTE, premiumActif } from "@/lib/premium";
 import { journaliser } from "@/lib/journal";
+import { accesTutoriels } from "@/lib/acces-tutoriels";
+
 
 /** Raisons renvoyées aux composants clients pour afficher le bon message.
  *  « premium » est conservé dans l'union pour compatibilité avec
@@ -16,7 +18,7 @@ export type RaisonApprentissage =
   | "non-connecte"
   | "invalide"
   | "limite" // plan Découverte : quota atteint (favoris de prompts)
-  | "premium" // conservé pour compat — plus renvoyé depuis les tutoriels gratuits
+  | "premium" // Lot 35 : fonction réservée aux abonnés Premium
   | "base" // base de données non à jour (tables absentes)
   | "client" // client Prisma non régénéré (modèles nouveaux inconnus)
   | "indisponible"; // erreur passagère
@@ -153,6 +155,9 @@ export async function majProgressionTuto(
     .safeParse({ tutoId, statut });
   if (!analyse.success) return { ok: false, raison: "invalide" };
 
+  // Lot 35 : le suivi de progression est réservé aux abonnés Premium.
+  const acces = await accesTutoriels(userId);
+  if (!acces.peut("progression")) return { ok: false, raison: "premium" };
   try {
     await prisma.progressionTuto.upsert({
       where: { userId_tutoId: { userId, tutoId: analyse.data.tutoId } },
@@ -176,6 +181,9 @@ export async function retirerProgressionTuto(
   if (!userId) return { ok: false, raison: "non-connecte" };
   const analyse = z.string().min(1).max(64).safeParse(tutoId);
   if (!analyse.success) return { ok: false, raison: "invalide" };
+  // Lot 35 : même verrou que l'ajout (fonction réservée aux Premium).
+  const acces = await accesTutoriels(userId);
+  if (!acces.peut("progression")) return { ok: false, raison: "premium" };
   try {
     await prisma.progressionTuto.deleteMany({ where: { userId, tutoId: analyse.data } });
   } catch (erreur) {

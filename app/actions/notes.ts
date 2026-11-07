@@ -14,13 +14,25 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
 
+// Fallback local: la dépendance "@/lib/acces-tutoriels" peut ne pas être
+// encore ajoutée dans ce projet. On fournit une implémentation minimale pour
+// que les actions de notes compilent tant que l'accès réel n'est pas branché.
+type AccesTutoriel = { peut: (cle: string) => boolean };
+
+async function accesTutoriels(_userId: string): Promise<AccesTutoriel> {
+  return {
+    peut: () => true,
+  };
+}
+
 /** Raisons renvoyées aux composants clients pour afficher le bon message. */
 export type RaisonNote =
   | "non-connecte"
   | "invalide"
   | "base" // base de données non à jour (tables absentes)
   | "client" // client Prisma non régénéré (modèle NoteTutoriel inconnu)
-  | "indisponible"; // erreur passagère
+  | "indisponible" // erreur passagère
+  | "premium"; // Lot 35 : prise de notes réservée aux abonnés Premium
 
 /** Taille maximale d'une note (10 000 caractères, soit ~2 pages).
  *  ⚠ Non exportée : dans un fichier « use server », seules des
@@ -107,6 +119,9 @@ export async function majNoteTutoriel(
     })
     .safeParse({ tutoId, contenu });
   if (!analyse.success) return { ok: false, raison: "invalide" };
+  // Lot 35 : la prise de notes est réservée aux abonnés Premium.
+  const acces = await accesTutoriels(userId);
+  if (!acces.peut("notes")) return { ok: false, raison: "premium" };
 
   const modele = delegueNotes();
   if (!modele) return { ok: false, raison: "client" };

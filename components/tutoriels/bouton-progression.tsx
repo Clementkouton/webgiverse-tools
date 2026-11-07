@@ -1,8 +1,13 @@
+// components/tutoriels/bouton-progression.tsx
+// Lot 19 (correctif) + Lot 35 — suivi de progression réservé aux abonnés
+// PREMIUM : connecté sans abonnement → pastille « Progression Premium »
+// vers /tarifs ; l'action serveur re-vérifie (raison « premium »).
+// Premium → comportement inchangé. Non connecté → invitation.
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, CircleDashed, Loader2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, CircleDashed, Crown, Loader2, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { majProgressionTuto, retirerProgressionTuto } from "@/app/actions/apprentissage";
 
@@ -12,13 +17,13 @@ type Props = {
   tutoId: string;
   statutInitial: StatutProgression;
   connecte: boolean;
+  /** Abonnement Premium (Pro / Entreprise) actif ? */
+  premium: boolean;
   /** Lien de connexion quand l'utilisateur n'est pas connecté. */
   hrefConnexion: string;
-  /** ⚠ Ignoré depuis les tutoriels gratuits — accepté pour compat. */
-  premium?: boolean;
 };
 
-export function BoutonProgression({ tutoId, statutInitial, connecte, hrefConnexion }: Props) {
+export function BoutonProgression({ tutoId, statutInitial, connecte, premium, hrefConnexion }: Props) {
   const [statut, setStatut] = useState<StatutProgression>(statutInitial);
   const [enCours, setEnCours] = useState(false);
   const [echec, setEchec] = useState<string | null>(null);
@@ -31,6 +36,19 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, hrefConnexi
         className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-bordure bg-white px-3.5 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
       >
         <CircleDashed className="size-3.5" aria-hidden /> Suivre ma progression
+      </Link>
+    );
+  }
+
+  // Connecté sans abonnement : pastille Premium (le verrou réel est
+  // côté serveur, dans app/actions/apprentissage.ts).
+  if (!premium) {
+    return (
+      <Link
+        href="/tarifs"
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-violet/30 bg-violet/10 px-3.5 py-1 text-[12px] leading-4 font-semibold text-violet transition hover:border-violet"
+      >
+        <Crown className="size-3.5" aria-hidden /> Progression Premium
       </Link>
     );
   }
@@ -51,8 +69,6 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, hrefConnexi
         else afficherEchec(resultat.raison);
       }
     } catch (erreur) {
-      // L'action ne doit normalement jamais planter, mais si le réseau
-      // coupe : les boutons restent utilisables et l'erreur est affichée.
       console.error("Progression du tutoriel impossible :", erreur);
       setEchec("Action impossible pour le moment — réessaie dans un instant.");
     } finally {
@@ -61,13 +77,13 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, hrefConnexi
   }
 
   function afficherEchec(raison?: string) {
-    if (raison === "base") {
+    if (raison === "premium") {
+      setEchec(
+        "Le suivi de progression est réservé aux abonnés Premium — passe Premium depuis la page Tarifs.",
+      );
+    } else if (raison === "base") {
       setEchec(
         "Fonctionnalité pas encore activée sur la base : lance npx prisma db push dans le terminal du projet, puis recharge la page.",
-      );
-    } else if (raison === "client") {
-      setEchec(
-        "Client Prisma non régénéré : arrête le serveur (Ctrl+C), lance npx prisma generate dans le terminal du projet, puis relance npm run dev.",
       );
     } else {
       setEchec("Action impossible pour le moment — réessaie dans un instant.");

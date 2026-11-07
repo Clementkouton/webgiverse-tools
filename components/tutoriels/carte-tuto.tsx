@@ -5,7 +5,7 @@
 // tags # et compteur de vues. Utilisée par /tutoriels et le bloc
 // « À suivre ensuite » de la page de détail.
 import Link from "next/link";
-import { Eye, Play } from "lucide-react";
+import { Crown, Eye, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
 import type { Tuto } from "@prisma/client";
@@ -13,6 +13,7 @@ import type { Tuto } from "@prisma/client";
 export function CarteTuto({ tuto }: { tuto: Tuto }) {
   const mini = urlMiniature(tuto);
   const niveau = NIVEAUX[tuto.niveau];
+    const tutoPayant = tuto.niveau === "INTERMEDIAIRE" || tuto.niveau === "AVANCE";
 
   return (
     <Link
@@ -47,8 +48,13 @@ export function CarteTuto({ tuto }: { tuto: Tuto }) {
 
       {/* ── Contenu ────────────────────────────────────────────── */}
       <span className="flex flex-1 flex-col p-4">
-        <span>
+        <span className="flex flex-wrap items-center gap-1.5">
           <Badge variante={niveau.variante}>{niveau.libelle}</Badge>
+          {tutoPayant && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+              <Crown className="size-3" aria-hidden /> Premium
+            </span>
+          )}
         </span>
         <h3 className="mt-2 line-clamp-2 font-titre text-[15px] leading-6 font-semibold text-bleu transition group-hover:text-sky-500">
           {tuto.titre}

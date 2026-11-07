@@ -1,48 +1,54 @@
 // app/tutoriels/[slug]/page.tsx
-// Lot 31 — LA DESCRIPTION ET LES RESSOURCES SOUS LE CADRE DE NOTES,
-// JAMAIS SILENCIEUSES :
-//   1. Le cadre « Mes notes sur ce tutoriel » reste JUSTE SOUS la
-//      progression (prise de note pendant la vidéo) ;
-//   2. « Chapitres & ressources » (description YouTube raffinée) reste
-//      AU-DESSOUS du cadre de notes — MAIS si la colonne
-//      descriptionRaffinee est encore vide en base (import non fait),
-//      une carte de repli lisible s'affiche À LA MÊME PLACE au lieu de
-//      ne rien montrer : la zone ne disparaît plus, et dès que les
-//      84 descriptions sont importées (script ou SQL du lot 28/31), le
-//      vrai contenu remplace automatiquement le repli — sans toucher
-//      au code ;
-//   3. Anti-débordement conservé : break-words sur le titre, min-w-0
-//      sur la colonne principale, protection des chapitres/liens/
-//      paragraphes (ressources-tuto.tsx durci).
-// Design strictement inchangé : mêmes cartes, mêmes couleurs, mêmes
-// espacements que le Lot 30.
-// Le reste est inchangé : tutoriels GRATUITS pour les membres connectés,
-// écran d'invitation pour les visiteurs, progression gratuite, notes
-// privées retrouvées dans Dashboard → Mes notes, vidéo YouTube embarquée.
+// Lot 35 — ACCÈS PAR ABONNEMENT sur la page du tutoriel (grille réelle
+// dans lib/acces-tutoriels.ts, verrouillage CÔTÉ SERVEUR) :
+//   · Vidéo Débutant → membre connecté (offert) ;
+//   · Vidéo Intermédiaire / Avancé → abonnés Premium (Pro / Entreprise) ;
+//   · Chapitres & ressources, progression, notes et assistant IA
+//     du tutoriel → réservés aux abonnés Premium, avec des cadres
+//     verrouillés clairs (même charte) + bouton « Tarifs » ;
+//   · L'assistant IA du tutoriel s'affiche SOUS le cadre de notes,
+//     AU-DESSUS de « Chapitres & ressources ».
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, ChevronRight, ClipboardList, Clock, Crown, Eye, Gauge, Lock, LogIn, Play } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronRight,
+  ClipboardList,
+  Clock,
+  Crown,
+  Eye,
+  Gauge,
+  Lock,
+  LogIn,
+  Play,
+  Sparkles,
+} from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { premiumActif } from "@/lib/premium";
+import {
+  accesTutoriels,
+  peutRegarderTuto,
+  tutoNiveauPremium,
+} from "@/lib/acces-tutoriels";
 import { obtenirTuto, tutosSuivants } from "@/lib/queries";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { BoutonProgression } from "@/components/tutoriels/bouton-progression";
 import { BlocNotesTutoriel } from "@/components/tutoriels/bloc-notes-tutoriel";
+import { ChatTutoriel } from "@/components/tutoriels/chat-tutoriel";
 import { RessourcesTuto } from "@/components/tutoriels/ressources-tuto";
 import { PLANS } from "@/lib/plans";
 import { LecteurYoutube } from "@/components/tutoriels/lecteur-youtube";
 import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
 import { parserDescriptionRaffinee } from "@/lib/description-youtube";
+import { cn } from "@/lib/utils";
 
 /**
- * Carte de repli — affichée UNIQUEMENT tant que la description YouTube
- * raffinée n'est pas encore en base pour ce tutoriel (import non fait).
- * Même style que « Chapitres & ressources » : la zone sous le cadre de
- * notes reste toujours occupée et explicite.
+ * Carte de repli (Premium connecté) — la description raffinée n'est pas
+ * encore importée en base pour ce tutoriel : la zone reste occupée.
  */
 function SectionDescriptionIndisponible() {
   return (
@@ -63,6 +69,50 @@ function SectionDescriptionIndisponible() {
   );
 }
 
+/**
+ * Cadre verrouillé (Découverte / visiteur) — même vocabulaire visuel que
+ * les cartes de la page : tuile icône violette, badge « Premium », texte
+ * explicite et bouton vers /tarifs. Le contenu n'est JAMAIS rendu dessous.
+ */
+function CadreVerrouille({
+  titre,
+  className,
+  children,
+}: {
+  titre: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      aria-label={`${titre} — réservé aux abonnés Premium`}
+      className={cn(
+        "min-w-0 rounded-carte border border-bordure bg-white p-5 shadow-carte",
+        className,
+      )}
+    >
+      <p className="flex flex-wrap items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
+        <span
+          className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet"
+          aria-hidden
+        >
+          <Crown className="size-4" />
+        </span>
+        {titre}
+        <span className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+          Premium
+        </span>
+      </p>
+      <div className="mt-2 text-[13px] leading-5 text-encre">{children}</div>
+      <Bouton asChild taille="sm" className="mt-3">
+        <Link href="/tarifs">
+          <Sparkles aria-hidden /> Débloquer avec Premium
+        </Link>
+      </Bouton>
+    </section>
+  );
+}
+
 type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
@@ -71,7 +121,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: tuto ? `${tuto.titre} — Tutoriels IA Webgiverse` : "Tutoriel introuvable",
     description: tuto
-      ? `Tutoriel vidéo gratuit (${formaterDuree(tuto.dureeMin)}, niveau ${NIVEAUX[tuto.niveau].libelle.toLowerCase()}) : ${tuto.titre}.`
+      ? `Tutoriel vidéo (${formaterDuree(tuto.dureeMin)}, niveau ${NIVEAUX[tuto.niveau].libelle.toLowerCase()}) : ${tuto.titre}.`
       : undefined,
   };
 }
@@ -81,19 +131,24 @@ export default async function PageTuto({ params }: { params: Params }) {
   const tuto = await obtenirTuto(slug);
   if (!tuto) notFound();
 
-  // ── Contrôle d'accès (côté serveur) : LA CONNEXION SUFFIT ────────
+  // ── Contrôle d'accès (côté serveur, grille lib/acces-tutoriels.ts) ─
   const session = await auth();
   const utilisateurId = session?.user?.id ?? null;
   const connecte = Boolean(utilisateurId);
-  // Premium n'est plus exigé pour la lecture : il ne sert qu'à
-  // personnaliser l'encart « passe Premium » de la colonne latérale.
-  const premium = utilisateurId ? await premiumActif(utilisateurId) : false;
+  const acces = await accesTutoriels(utilisateurId);
+  const premium = acces.premium;
 
-  // ── Progression personnelle sur ce tutoriel (gratuite) ──────────
-  // Défensif : si la table ProgressionTuto n'existe pas encore
-  // (db push absent), « AUCUN » sans erreur — la page reste affichable.
+  // La vidéo : Débutant = connecté · Inter/Avancé = Premium.
+  const lectureAutorisee = peutRegarderTuto({
+    niveau: tuto.niveau,
+    connecte,
+    premium,
+  });
+  const tutoPayant = tutoNiveauPremium(tuto.niveau);
+
+  // ── Progression personnelle (Premium) — lecture défensive ────────
   let statutInitial: "AUCUN" | "EN_COURS" | "TERMINE" = "AUCUN";
-  if (utilisateurId) {
+  if (utilisateurId && acces.peut("progression")) {
     try {
       const progression = await prisma.progressionTuto.findUnique({
         where: { userId_tutoId: { userId: utilisateurId, tutoId: tuto.id } },
@@ -105,13 +160,9 @@ export default async function PageTuto({ params }: { params: Params }) {
     }
   }
 
-  // ── Note personnelle existante sur ce tutoriel ──────────────────
-  // Lecture défensive : si le modèle NoteTutoriel n'est pas encore
-  // dans le client Prisma (schéma pas à jour), on renvoie null sans
-  // faire planter la page — le bloc-notes affichera la marche à suivre
-  // au moment de l'enregistrement.
+  // ── Note personnelle existante (Premium) — lecture défensive ─────
   let noteInitiale: string | null = null;
-  if (utilisateurId) {
+  if (utilisateurId && acces.peut("notes")) {
     try {
       const delegue = prisma as unknown as {
         noteTutoriel?: {
@@ -130,6 +181,10 @@ export default async function PageTuto({ params }: { params: Params }) {
       noteInitiale = null;
     }
   }
+
+  // Description raffinée (affichage Premium ET compte du cadre verrouillé
+  // — les TITRES ne fuient jamais vers les non-abonnés).
+  const description = parserDescriptionRaffinee(tuto.descriptionRaffinee);
 
   const suivants = await tutosSuivants(tuto.id, tuto.outils);
   const niveau = NIVEAUX[tuto.niveau];
@@ -153,18 +208,40 @@ export default async function PageTuto({ params }: { params: Params }) {
       </nav>
 
       <div className="mx-auto w-full max-w-7xl px-4 py-8">
-        {/* ── Lecteur vidéo (3 états) ─────────────────────────────── */}
+        {/* ── Lecteur vidéo (4 états) ─────────────────────────────── */}
         <div className="relative aspect-video w-full overflow-hidden rounded-carte border border-bordure bg-bleu shadow-carte">
-          {connecte && tuto.youtubeId ? (
-            // Membre connecté + vidéo disponible : lecture intégrée
-            // (lecteur officiel YouTube, écran de secours « Voir sur YouTube »).
+          {lectureAutorisee && tuto.youtubeId ? (
+            // Autorisé + vidéo disponible : lecture intégrée.
             <LecteurYoutube
               youtubeId={tuto.youtubeId}
               titre={tuto.titre}
               miniature={urlMiniature(tuto)}
             />
+          ) : connecte && tutoPayant && !premium ? (
+            // Membre connecté mais niveau Intermédiaire/Avancé sans abonnement.
+            <div className="absolute inset-0 grid place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
+              <div className="max-w-md px-6 py-8 text-center text-white">
+                <Lock className="mx-auto size-10" aria-hidden />
+                <h2 className="mt-4 font-titre text-[20px] leading-7 font-bold">
+                  Réservé aux abonnés Premium
+                </h2>
+                <p className="mx-auto mt-2 text-[14px] leading-6 opacity-90">
+                  Les tutoriels <strong>Intermédiaires</strong> et{" "}
+                  <strong>Avancés</strong> sont inclus dans les plans Pro et
+                  Entreprise. Passe Premium pour regarder « {tuto.titre} »
+                  ici même, avec les notes, les ressources et l&apos;assistant IA.
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                  <Bouton asChild variante="secondaire">
+                    <Link href="/tarifs">
+                      <Sparkles aria-hidden /> Passer Premium
+                    </Link>
+                  </Bouton>
+                </div>
+              </div>
+            </div>
           ) : connecte ? (
-            // Membre connecté mais vidéo pas encore complétée par l'équipe.
+            // Membre autorisé (Débutant) mais vidéo pas encore complétée.
             <div className="absolute inset-0 grid place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
               <div className="px-6 text-center text-white">
                 <Play className="mx-auto size-12" aria-hidden />
@@ -177,17 +254,19 @@ export default async function PageTuto({ params }: { params: Params }) {
               </div>
             </div>
           ) : (
-            // Visiteur non connecté : invitation (les tutoriels sont gratuits).
+            // Visiteur non connecté : invitation (texte selon le niveau).
             <div className="absolute inset-0 grid place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
               <div className="max-w-md px-6 py-8 text-center text-white">
                 <Lock className="mx-auto size-10" aria-hidden />
                 <h2 className="mt-4 font-titre text-[20px] leading-7 font-bold">
-                  Connecte-toi pour suivre ce tutoriel
+                  {tutoPayant
+                    ? "Tutoriel réservé aux abonnés Premium"
+                    : "Connecte-toi pour suivre ce tutoriel"}
                 </h2>
                 <p className="mx-auto mt-2 text-[14px] leading-6 opacity-90">
-                  Les tutoriels Webgiverse sont <strong>gratuits</strong> : crée un compte
-                  (ou connecte-toi) pour regarder « {tuto.titre} » ici même, suivre ta
-                  progression et prendre des notes.
+                  {tutoPayant
+                    ? `« ${tuto.titre} » est un tutoriel ${niveau.libelle.toLowerCase()} inclus dans les plans Pro et Entreprise. Connecte-toi, puis passe Premium pour le regarder ici même.`
+                    : `Les tutoriels Débutant sont offerts : crée un compte (ou connecte-toi) pour regarder « ${tuto.titre} » ici même.`}
                 </p>
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
                   <Bouton asChild variante="secondaire">
@@ -204,7 +283,7 @@ export default async function PageTuto({ params }: { params: Params }) {
           )}
         </div>
 
-        {/* ── Titre + notes + description / fiche résumé ──────────── */}
+        {/* ── Titre + notes + assistant + description / fiche résumé ─ */}
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* min-w-0 : la colonne peut rétrécir, aucun texte ne déborde */}
           <div className="min-w-0">
@@ -219,9 +298,15 @@ export default async function PageTuto({ params }: { params: Params }) {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
                 <Eye className="size-3.5" aria-hidden /> {tuto.vues.toLocaleString("fr-FR")} vues
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-[12px] leading-4 font-semibold text-sky-600">
-                Gratuit
-              </span>
+              {tutoPayant ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-violet/10 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
+                  <Crown className="size-3.5" aria-hidden /> Premium
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-[12px] leading-4 font-semibold text-sky-600">
+                  Gratuit
+                </span>
+              )}
               {tuto.outils.slice(0, 4).map((o: string) => (
                 <Link
                   key={o}
@@ -233,42 +318,73 @@ export default async function PageTuto({ params }: { params: Params }) {
               ))}
             </div>
 
-            {/* ── Progression personnelle — gratuite pour tous les
-                membres connectés depuis les tutoriels gratuits ─── */}
-            <div className="mt-4">
-              <BoutonProgression
-                tutoId={tuto.id}
-                statutInitial={statutInitial}
-                connecte={connecte}
-                hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
-              />
-            </div>
+            {/* ── PROGRESSION — Premium uniquement ─────────────────── */}
+            {acces.peut("progression") ? (
+              <div className="mt-4">
+                <BoutonProgression
+                  tutoId={tuto.id}
+                  statutInitial={statutInitial}
+                  connecte={connecte}
+                  premium={premium}
+                  hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
+                />
+              </div>
+            ) : (
+              <CadreVerrouille titre="Suivre ma progression" className="mt-4">
+                Marque ce tutoriel « En cours » ou « Terminé » et retrouve
+                ton avancée dans ton espace, rubrique Mes tutoriels. Le suivi
+                de progression est inclus dans les plans Pro et Entreprise.
+              </CadreVerrouille>
+            )}
 
-            {/* ── NOTES PERSONNELLES (juste sous la progression) :
-                prise de note pendant la vidéo, retrouvées dans
-                Dashboard → Mes notes ───────────────────────────── */}
-            <div className="mt-6">
-              <BlocNotesTutoriel
-                tutoId={tuto.id}
-                noteInitiale={noteInitiale}
-                connecte={connecte}
-                hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
-              />
-            </div>
+            {/* ── NOTES PERSONNELLES — Premium uniquement ──────────── */}
+            {acces.peut("notes") ? (
+              <div className="mt-6">
+                <BlocNotesTutoriel
+                  tutoId={tuto.id}
+                  tutoTitre={tuto.titre}
+                  noteInitiale={noteInitiale}
+                  connecte={connecte}
+                  premium={premium}
+                  hrefConnexion={`/connexion?suite=/tutoriels/${tuto.slug}`}
+                />
+              </div>
+            ) : (
+              <CadreVerrouille titre="Mes notes sur ce tutoriel" className="mt-6">
+                Prends des notes privées pendant la vidéo, exporte-les en
+                Markdown, TXT ou PDF et retrouve-les dans ton espace, rubrique
+                Mes notes. Inclus dans les plans Pro et Entreprise.
+              </CadreVerrouille>
+            )}
 
-            {/* ── DESCRIPTION & RESSOURCES — AU-DESSOUS du cadre de
-                notes : chapitres horodatés, ressources externes et
-                paragraphes utiles tirés de la description YouTube.
-                Tant que l'import n'est pas fait en base, une carte de
-                repli occupe la place (jamais de trou silencieux). ── */}
-            {(() => {
-              const description = parserDescriptionRaffinee(tuto.descriptionRaffinee);
-              return description ? (
+            {/* ── ASSISTANT IA DU TUTORIEL — Premium uniquement ────── */}
+            {acces.peut("assistantTuto") ? (
+              <div className="mt-6">
+                <ChatTutoriel slug={tuto.slug} titre={tuto.titre} />
+              </div>
+            ) : (
+              <CadreVerrouille titre="Assistant IA du tutoriel" className="mt-6">
+                Pose tes questions sur ce tutoriel, demande un résumé ou un
+                plan d&apos;apprentissage : l&apos;assistant répond à partir du
+                contenu de la vidéo et de sa description. Inclus dans les
+                plans Pro et Entreprise.
+              </CadreVerrouille>
+            )}
+
+            {/* ── DESCRIPTION & RESSOURCES — Premium uniquement ────── */}
+            {acces.peut("descriptionRessources") ? (
+              description ? (
                 <RessourcesTuto description={description} />
               ) : (
                 <SectionDescriptionIndisponible />
-              );
-            })()}
+              )
+            ) : (
+              <CadreVerrouille titre="Chapitres & ressources" className="mt-8">
+                {description
+                  ? `Ce tutoriel comprend ${description.chapitres.length} chapitre${description.chapitres.length > 1 ? "s" : ""} horodaté${description.chapitres.length > 1 ? "s" : ""}, ${description.ressources.length} ressource${description.ressources.length > 1 ? "s" : ""} et des points clés tirés de la description de la vidéo. Débloque-les avec Premium.`
+                  : "Les chapitres horodatés, les liens utiles et les points clés de ce tutoriel sont réservés aux abonnés Premium (Pro ou Entreprise)."}
+              </CadreVerrouille>
+            )}
           </div>
 
           {/* ── Colonne latérale : fiche résumé (design tuiles) ────── */}
@@ -305,10 +421,12 @@ export default async function PageTuto({ params }: { params: Params }) {
                         <Crown className="size-4" />
                       </span>
                       <span>
-                        Les tutoriels sont <strong className="text-bleu">gratuits</strong>. Pour
-                        les favoris illimités, la bibliothèque complète de prompts et
-                        l&apos;assistant IA sans quota : Premium dès{" "}
-                        <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong>.
+                        Les tutoriels <strong className="text-bleu">Débutant</strong> sont
+                        offerts. Passe Premium dès{" "}
+                        <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> pour
+                        débloquer les niveaux Intermédiaire et Avancé, les
+                        chapitres &amp; ressources, les notes avec export, la
+                        progression et l&apos;assistant IA des tutoriels.
                       </span>
                     </p>
                     <Bouton asChild taille="sm" className="mt-3 w-full">

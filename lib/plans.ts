@@ -29,12 +29,14 @@ export const PLANS: Record<ClePlan, Plan> = {
     prix: "$2,99",
     accroche: "Pour explorer l'annuaire sans limite",
     recommande: true,
-    avantages: [
+      avantages: [
+      "Tous les tutoriels vidéo : Débutant, Intermédiaire et Avancé",
+      "Chapitres, ressources et points clés de chaque tuto",
+      "Notes privées sur les tutoriels + export (PDF, Markdown, TXT)",
+      "Assistant IA des tutoriels : résumés et questions/réponses",
+      "Suivi de progression « En cours / Terminé »",
       "Favoris et listes illimités",
-      "Assistant IA illimité",
-      "Badge Premium sur ton profil",
-      "Suggestions d'outils prioritaires (le double)",
-      "Export PDF de tes favoris",
+      "Assistant IA illimité + badge Premium",
     ],
   },
   ENTREPRISE: {
@@ -42,7 +44,7 @@ export const PLANS: Record<ClePlan, Plan> = {
     nom: "Entreprise",
     montant: 799,
     prix: "$7,99",
-    accroche: "Pour les équipes et les passionnés",
+    accroche: "Pour apprendre sans limite",
     recommande: false,
     avantages: [
       "Tous les avantages du plan Pro",
@@ -60,11 +62,12 @@ export const PLAN_DECOUVERTE = {
   nom: "Découverte",
   prix: "$0",
   accroche: "Tout le nécessaire pour commencer",
-    avantages: [
+      avantages: [
     "Accès complet à l'annuaire",
+    "Tutoriels vidéo Débutant offerts",
     "20 favoris et 10 listes",
     "Assistant IA (10 questions/mois)",
-    "Avis, votes et suivi de progression",
+    "Avis et votes",
     "Export PDF de tes favoris",
   ],
 };
