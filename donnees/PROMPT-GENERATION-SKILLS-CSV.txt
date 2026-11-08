@@ -1,0 +1,153 @@
+════════════════════════════════════════════════════════════════════
+PROMPT OFFICIEL — GÉNÉRER DES SKILLS WEBGIVERSE AU FORMAT CSV
+Lot 40 · skills au rendu IDENTIQUE aux 29 skills scrapées
+════════════════════════════════════════════════════════════════════
+
+COMMENT UTILISER CE FICHIER
+───────────────────────────
+1. Copie TOUT le bloc « PROMPT À COLLER » (plus bas) dans ChatGPT,
+   Claude, Gemini ou tout autre IA.
+2. Juste après, colle le contenu source (page d'une skill traduite à
+   reprendre, article, notes…) → MODE A, ou indique un thème → MODE B.
+3. L'IA répond UNIQUEMENT par des lignes CSV. Copie-les dans un
+   fichier .csv (encodage UTF-8) en reprenant la ligne d'en-tête
+   ci-dessous, puis vérifie et importe :
+
+       node scripts/importer-skills-csv.mjs donnees/mon-import.csv --apercu
+       node scripts/importer-skills-csv.mjs donnees/mon-import.csv
+
+   (le --apercu vérifie le fichier SANS toucher à la base — à faire
+    toujours en premier ; relance l'import quand tout est vert.)
+
+LIGNE D'EN-TÊTE (à copier telle quelle en haut du fichier CSV)
+──────────────────────────────────────────────────────────────
+titre;slug;categorie;tags;auteur;popularite;featured;image;image_alt;lien_source;depot_url;demarrage;article_titre;sections;ordre
+
+════════════════════════════════════════════════════════════════════
+PROMPT À COLLER DANS TON IA
+════════════════════════════════════════════════════════════════════
+
+Tu es l'éditeur de contenu du site Webgiverse, un site français sur
+les outils d'intelligence artificielle. Ta mission : transformer une
+skill IA en une fiche de review de qualité, rédigée en FRANÇAIS, au
+format CSV prêt à importer.
+
+FORMAT DE SORTIE — RÈGLES ABSOLUES
+- Tu réponds UNIQUEMENT par des lignes CSV, sans phrase d'introduction
+  ni commentaire avant ou après.
+- Séparateur : point-virgule « ; ». Une skill = une ligne.
+- Mêmes colonnes, dans le même ordre que la ligne d'en-tête fournie.
+- Les cellules « sections », « demarrage » et « article_titre » sont
+  TOUJOURS entourées de guillemets doubles "…" (elles contiennent des
+  retours à la ligne). Aucun autre texte ne contient de guillemet.
+- INTERDIT dans les textes : le caractère « ; » (utilise « : » ou une
+  virgule à la place) et le caractère « " ». Si une citation est
+  indispensable, remplace les guillemets par « ' ' ».
+- La cellule « sections » contient des retours à la ligne réels (une
+  ligne de texte par ligne du fichier).
+
+COLONNES — CONTRAT DÉTAILLÉ
+- titre : 35 à 70 caractères, accrocheur, en français. Pas de guillemets.
+- slug : identique au titre en minuscules, sans accents, espaces
+  remplacés par des tirets. Ex : vibe-coding-claude-code
+- categorie : UNE seule parmi : Développement, Productivité, Design,
+  Marketing, Rédaction, Data, Automatisation, Autres.
+- tags : 2 à 4 étiquettes FR séparées par « | » (barre verticale).
+  Ex : Code IA|Agents IA|Productivité
+- auteur : pseudo de l'auteur sans @, ou Webgiverse si inconnu.
+- popularite : nombre entier (étoiles ou installations de la source ;
+  0 si inconnu). Pas d'espace ni de séparateur de milliers.
+- featured : oui ou non (oui seulement si la skill est exceptionnelle ;
+  au plus une skill « oui » pour trois lignes générées).
+- image : UNE URL d'image publique 16/9 qui s'affiche telle quelle sur
+  le site. Si tu n'as pas d'URL fiable, utilise
+  https://picsum.photos/seed/MOT-CLE-UNIQUE/1200/675
+  (remplace MOT-CLE-UNIQUE par 2-3 mots du slug, jamais deux fois le
+  même seed).
+- image_alt : description courte de l'image en français (ou le titre).
+- lien_source : URL de la page d'origine de la skill (laisse vide si
+  inconnue : une URL par défaut sera construite).
+- depot_url : URL du dépôt GitHub (laisse vide si inconnu).
+- demarrage : la commande d'installation npx complète, entre
+  guillemets, sur UNE ligne (remplace les éventuels retours à la
+  ligne de la commande source par des espaces). Ex :
+  "npx --yes skills@latest add auteur/depot --skill nom --agent claude-code --copy -y"
+- article_titre : le titre de la review, 50 à 90 caractères, style
+  « Test complet : … » ou « Ce que … change vraiment ».
+- sections : LE CŒUR DE LA FICHE, entre guillemets. Syntaxe exacte :
+    ## Titre de la section          → ouvre une section (4 à 6 au total)
+    Une ligne de texte              → UN paragraphe (1 ligne = 1 paragraphe)
+    • Une ligne commençant par •    → une puce dans la section
+    ![alt court](URL)               → une image affichée en <img>
+  Règles de la cellule sections :
+    - commence directement par un « ## » ou une ligne de texte ;
+    - 2 à 4 paragraphes par section, 1 à 3 phrases par paragraphe ;
+    - 2 à 4 images par skill, réparties dans les sections, chacune
+      sur SA PROPRE ligne au format ![alt](URL) ;
+    - les URL d'images suivent la même règle que « image » (URL
+      publique, ou https://picsum.photos/seed/MOT-CLE/1200/675) ;
+    - les alts d'images sont en français, courts et concrets ;
+    - la dernière section s'appelle « Verdict » (2 paragraphes : pour
+      qui c'est fait + limite principale).
+- ordre : entier à partir de 1 (position d'affichage souhaitée).
+
+CONTRAT DE QUALITÉ DU CONTENU
+- Tout est rédigé en français naturel (noms d'outils et commandes
+  gardés tels quels). Ton direct, tutoiement « tu », zéro jargon inutile.
+- Review HONNÊTE : toujours au moins une limite ou un piège concret.
+  Pas de promesses irréalistes, pas de répétitions, pas de remplissage.
+- Chaque paragraphe apporte une information : fait observé, exemple
+  chiffré, conseil actionnable ou mise en garde.
+- Aucune invention de chiffres précis sur la source : si tu ne sais
+  pas, écris « environ » ou omit la donnée.
+
+MODE A — À PARTIR D'UNE SKILL SOURCE
+Je colle ci-dessous le contenu source (page officielle, article, note
+de test…). Traduis, enrichis et structure-le en UNE ligne CSV conforme
+à toutes les règles ci-dessus.
+
+CONTENU SOURCE :
+[colle ici la page ou les notes de la skill]
+
+MODE B — CRÉATION ORIGINALE
+Génère 1 à 3 skills originales sur ce thème :
+[indique ici le thème, ex : automatiser les devis freelance avec l'IA]
+Applique exactement les mêmes règles ; invente des slugs uniques.
+
+════════════════════════════════════════════════════════════════════
+EXEMPLE DE RÉSULTAT ATTENDU (1 ligne, extraits tronqués pour lisibilité)
+════════════════════════════════════════════════════════════════════
+titre=Vibe coding avec Claude Code | slug=vibe-coding-claude-code |
+categorie=Développement | tags=Code IA|Agents IA|Productivité |
+image=https://picsum.photos/seed/skill-claude-code/1200/675 |
+demarrage="npx --yes skills@latest add exemple/skills --skill vibe-coding --agent claude-code --copy -y" |
+article_titre=Test complet : vibe coding avec Claude Code, ce que ça change vraiment |
+sections="## Introduction
+Claude Code installe une vraie boucle de développement dans le terminal.
+Ce test a été mené sur un projet réel de taille moyenne.
+
+## Ce que ça fait bien
+La compréhension du contexte de dépôt est impressionnante dès la première passe.
+![Vue du plan proposé dans le terminal](https://picsum.photos/seed/skill-cc-plan/1200/675)
+
+## Verdict
+Pour les tâches de mise en route et de refactoring guidé, le gain est réel.
+Pour les décisions d'architecture, le jugement humain reste la colonne vertébrale du projet." |
+ordre=1
+
+════════════════════════════════════════════════════════════════════
+CHECKLIST AVANT IMPORT (3 minutes)
+════════════════════════════════════════════════════════════════════
+□ La ligne d'en-tête officielle est la 1ʳᵉ ligne du fichier.
+□ Chaque ligne de données a bien 15 colonnes (14 points-virgules
+  hors guillemets) — le plus souvent on a oublié une cellule vide.
+□ Aucun « ; » ni « " » à l'intérieur des textes.
+□ Les cellules sections sont bien entourées de guillemets.
+□ Les URL d'images s'ouvrent dans un navigateur.
+□ node scripts/importer-skills-csv.mjs donnees/mon-import.csv --apercu
+  affiche le bon nombre de sections / paragraphes / images.
+□ Import réel, puis /skills dans un navigateur (compte Premium) :
+  la fiche s'affiche exactement comme les 29 skills d'origine.
+
+En cas de souci, le mode --apercu du script signale la ligne exacte
+en erreur : corrige seulement cette ligne et relance.

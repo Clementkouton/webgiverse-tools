@@ -1,48 +1,44 @@
 "use client";
 // components/skills/copier-code.tsx
-// ─────────────────────────────────────────────────────────────────
-// Lot 38 (réécriture lot 39) — bouton « Copier » de la commande
-// d'installation d'une skill. Composant CLIENT (uniquement lui).
-// Repli pour les navigateurs sans Clipboard API (execCommand).
-// ─────────────────────────────────────────────────────────────────
+// Lot 40 — commande d'installation avec bouton Copier (identique lot 39).
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
-export function CopierCode({ commande, libelle = "Copier" }: { commande: string; libelle?: string }) {
+export function CopierCode({ commande }: { commande: string }) {
   const [copie, setCopie] = useState(false);
 
   async function copier() {
     try {
       await navigator.clipboard.writeText(commande);
+      setCopie(true);
+      setTimeout(() => setCopie(false), 2000);
     } catch {
-      // Repli navigateurs anciens : sélection manuelle + copie
-      const zone = document.createElement("textarea");
-      zone.value = commande;
-      zone.setAttribute("readonly", "");
-      zone.style.position = "fixed";
-      zone.style.opacity = "0";
-      document.body.appendChild(zone);
-      zone.select();
-      document.execCommand("copy");
-      zone.remove();
+      /* presse-papiers indisponible (permissions, http) : rien à faire */
     }
-    setCopie(true);
-    window.setTimeout(() => setCopie(false), 2000);
   }
 
   return (
-    <button
-      type="button"
-      onClick={copier}
-      aria-live="polite"
-      className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] leading-4 font-semibold transition ${
-        copie
-          ? "bg-white text-ciel-fonce"
-          : "bg-white/10 text-white hover:bg-white/20"
-      }`}
-    >
-      {copie ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
-      {copie ? "Copié !" : libelle}
-    </button>
+    <div className="mt-2 overflow-hidden rounded-carte border border-bordure bg-gris">
+      <div className="flex items-center justify-between gap-3 border-b border-bordure px-4 py-2">
+        <span className="text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase">
+          Installation
+        </span>
+        <button
+          type="button"
+          onClick={copier}
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-bordure bg-white px-3 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+        >
+          {copie ? (
+            <Check className="size-3.5 text-violet" aria-hidden />
+          ) : (
+            <Copy className="size-3.5" aria-hidden />
+          )}
+          {copie ? "Copié" : "Copier"}
+        </button>
+      </div>
+      <pre className="overflow-x-auto px-4 py-3 text-[13px] leading-6 text-bleu">
+        <code>{commande}</code>
+      </pre>
+    </div>
   );
 }

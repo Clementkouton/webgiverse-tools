@@ -1,16 +1,17 @@
 // components/layout/header.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 38 — « Skills » rejoint la navigation principale (desktop et
-// mobile), entre Tutoriels et Premium. État actif violet comme les
-// autres sections. AUCUN autre changement : le comportement existant
-// (Annuaire, recherche, espaces) est strictement identique.
-//
-// ⚠️ C'est le fichier COMPLET du header : remplace tout le contenu de
-// ton components/layout/header.tsx actuel.
+// Lot 40 — 2 correctifs, charte 100 % inchangée :
+//   1. CORRECTIF « L'ONGLET ANNUAIRE NE SE FERME PAS » : le menu
+//      était un <details> HTML → devient un menu à état qui se ferme
+//      au clic extérieur, avec Échap, au changement de page et au
+//      clic sur un lien du menu.
+//   2. NAVIGATION CENTRÉE SUR PC : les 5 liens sont PARFAITEMENT
+//      centrés dans la barre (position absolue centrée).
+// ⚠️ Fichier COMPLET : remplace TOUT ton header.tsx actuel.
 // ─────────────────────────────────────────────────────────────────
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X, Sparkles } from "lucide-react";
 import { LienLogo } from "@/components/commun/logo";
@@ -38,9 +39,13 @@ const BASES_ANNUAIRE = [
 
 export function Header() {
   const [menuOuvert, setMenuOuvert] = useState(false);
+  // Lot 40 — remplace le <details> du menu Annuaire
+  const [annuaireOuvert, setAnnuaireOuvert] = useState(false);
   const [connecte, setConnecte] = useState(false);
   const [estAdmin, setEstAdmin] = useState(false);
   const chemin = usePathname();
+  // Lot 40 — repère du bloc Annuaire pour détecter les clics extérieurs
+  const blocAnnuaireRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/session").then((r) => r.json())
@@ -50,13 +55,37 @@ export function Header() {
       }).catch(() => {});
   }, []);
 
+  // ── Lot 40 · CORRECTIF 1 — fermeture fiable du menu Annuaire ────────
+  // Clic à l'extérieur → ferme. Touche Échap → ferme tout.
+  useEffect(() => {
+    function clicExterieur(e: MouseEvent) {
+      if (blocAnnuaireRef.current && !blocAnnuaireRef.current.contains(e.target as Node)) {
+        setAnnuaireOuvert(false);
+      }
+    }
+    function toucheEchap(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setAnnuaireOuvert(false);
+        setMenuOuvert(false);
+      }
+    }
+    document.addEventListener("mousedown", clicExterieur);
+    document.addEventListener("keydown", toucheEchap);
+    return () => {
+      document.removeEventListener("mousedown", clicExterieur);
+      document.removeEventListener("keydown", toucheEchap);
+    };
+  }, []);
+
+  // ── Lot 40 · changement de page → tout se referme ───────────────────
+  useEffect(() => {
+    setAnnuaireOuvert(false);
+    setMenuOuvert(false);
+  }, [chemin]);
+
   // ── Navigation unique dans le Dashboard ET la Console Admin ──────────
-  // Ces deux espaces possèdent leur propre navigation professionnelle
-  // (menu latéral fixe sur ordinateur, barre supérieure + tiroir sur mobile).
-  // On masque donc ce header général du site sur toutes les pages
-  // commençant par /dashboard ou /admin, pour ne jamais afficher deux barres.
-  // (Le hook usePathname est appelé AVANT ce retour anticipé : les règles
-  // des hooks React sont respectées.)
+  // (hook usePathname et effets appelés AVANT ce retour anticipé :
+  // les règles des hooks React sont respectées.)
   if (chemin.startsWith("/dashboard") || chemin.startsWith("/admin")) return null;
 
   // Le bouton s'adapte au rôle : « Espace Admin » → /admin pour les administrateurs,
@@ -68,7 +97,7 @@ export function Header() {
   const annuaireActif = BASES_ANNUAIRE.some((b) => chemin.startsWith(b));
   const promptsActif = chemin === "/prompts" || chemin.startsWith("/prompts/");
   const tutorielsActif = chemin.startsWith("/tutoriels");
-  const skillsActif = chemin.startsWith("/skills"); // Lot 38
+  const skillsActif = chemin.startsWith("/skills");
   const premiumActif = chemin.startsWith("/tarifs");
 
   /** Classe commune des liens simples : actif = pastille violette. */
@@ -81,38 +110,53 @@ export function Header() {
 
   return (
     <header className="verre sticky top-0 z-50 border-b border-bordure">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-3 lg:h-[72px]">
+      {/* Lot 40 · CORRECTIF 2 — conteneur « relative » pour centrer la nav */}
+      <div className="relative mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-3 lg:h-[72px]">
         <LienLogo />
 
-        {/* Navigation desktop */}
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Navigation principale">
-          <details className="group relative">
-            <summary
-              className={`flex min-h-11 cursor-pointer list-none items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium transition [&::-webkit-details-marker]:hidden ${
+        {/* Navigation desktop — PARFAITEMENT CENTRÉE dans la barre (Lot 40) */}
+        <nav
+          className="absolute top-1/2 left-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 lg:flex"
+          aria-label="Navigation principale"
+        >
+          {/* Lot 40 · menu Annuaire piloté par état (fini le <details>) */}
+          <div className="relative" ref={blocAnnuaireRef}>
+            <button
+              type="button"
+              onClick={() => setAnnuaireOuvert((v) => !v)}
+              aria-expanded={annuaireOuvert}
+              aria-haspopup="true"
+              className={`flex min-h-11 cursor-pointer items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium transition ${
                 annuaireActif
                   ? "bg-violet/10 text-violet"
                   : "text-bleu hover:bg-violet/10 hover:text-violet"
               }`}
             >
               Annuaire
-              <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden />
-            </summary>
-            <div className="absolute top-full left-0 z-20 mt-1 grid w-56 gap-0.5 rounded-carte border border-bordure bg-white p-2 shadow-carte">
-              {LIENS_ANNUAIRE.map((l) => (
-                <Link key={l.href} href={l.href}
-                  className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-violet">
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          </details>
+              <ChevronDown
+                className={`size-4 transition-transform ${annuaireOuvert ? "rotate-180" : ""}`}
+                aria-hidden
+              />
+            </button>
+            {annuaireOuvert && (
+              <div className="absolute top-full left-0 z-30 mt-1 grid w-56 gap-0.5 rounded-carte border border-bordure bg-white p-2 shadow-carte">
+                {LIENS_ANNUAIRE.map((l) => (
+                  <Link key={l.href} href={l.href}
+                    onClick={() => setAnnuaireOuvert(false)}
+                    className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-violet">
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
           <Link href="/prompts" aria-current={promptsActif ? "page" : undefined} className={classeLien(promptsActif)}>
             Prompts IA
           </Link>
           <Link href="/tutoriels" aria-current={tutorielsActif ? "page" : undefined} className={classeLien(tutorielsActif)}>
             Tutoriels
           </Link>
-          {/* Lot 38 — section Skills (réservée aux abonnés) */}
+          {/* Section Skills (réservée aux abonnés) */}
           <Link href="/skills" aria-current={skillsActif ? "page" : undefined}
             className={
               skillsActif
@@ -143,10 +187,7 @@ export function Header() {
         </div>
       </div>
 
-      {/* Menu mobile — mêmes priorités que le desktop : l'annuaire est
-          regroupé sous son étiquette, puis les vitrines (Prompts IA,
-          Tutoriels, Skills) et Premium. Plus de recherche ni de liens
-          secondaires. */}
+      {/* Menu mobile — identique au lot 38 */}
       {menuOuvert && (
         <nav className="border-t border-bordure bg-white px-4 py-4 lg:hidden" aria-label="Navigation mobile">
           <p className="px-3 pb-1 text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase">
