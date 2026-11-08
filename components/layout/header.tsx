@@ -1,13 +1,23 @@
 // components/layout/header.tsx
 // ─────────────────────────────────────────────────────────────────
 // Lot 40 — 2 correctifs, charte 100 % inchangée :
-//   1. CORRECTIF « L'ONGLET ANNUAIRE NE SE FERME PAS » : le menu
-//      était un <details> HTML → devient un menu à état qui se ferme
-//      au clic extérieur, avec Échap, au changement de page et au
-//      clic sur un lien du menu.
-//   2. NAVIGATION CENTRÉE SUR PC : les 5 liens sont PARFAITEMENT
-//      centrés dans la barre (position absolue centrée).
-// ⚠️ Fichier COMPLET : remplace TOUT ton header.tsx actuel.
+//
+//   1. CORRECTIF « L'ONGLET ANNUAIRE NE SE FERME PAS » :
+//      le menu déroulant Annuaire était un <details> HTML : il ne se
+//      referme ni au clic à l'extérieur, ni avec la touche Échap, ni
+//      après un changement de page. Il devient un menu piloté par
+//      état qui se ferme dans ces 3 cas + au clic sur un lien du menu.
+//
+//   2. NAVIGATION CENTRÉE SUR PC : les 5 liens (Annuaire, Prompts IA,
+//      Tutoriels, Skills, Premium) sont désormais PARFAITEMENT
+//      centrés dans la barre (position absolue centrée), quelle que
+//      soit la largeur du logo à gauche et du bouton à droite.
+//
+// Tout le reste est strictement identique au lot 38 : détection de
+// session, masquage sur /dashboard et /admin, menu mobile, pastille
+// Premium, état actif violet.
+// ⚠️ Fichier COMPLET : remplace TOUT le contenu de ton
+//    components/layout/header.tsx actuel.
 // ─────────────────────────────────────────────────────────────────
 "use client";
 import Link from "next/link";
@@ -187,7 +197,9 @@ export function Header() {
         </div>
       </div>
 
-      {/* Menu mobile — identique au lot 38 */}
+      {/* Menu mobile — mêmes priorités que le desktop : l'annuaire est
+          regroupé sous son étiquette, puis les vitrines (Prompts IA,
+          Tutoriels, Skills) et Premium. */}
       {menuOuvert && (
         <nav className="border-t border-bordure bg-white px-4 py-4 lg:hidden" aria-label="Navigation mobile">
           <p className="px-3 pb-1 text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase">

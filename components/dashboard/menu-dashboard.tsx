@@ -1,18 +1,20 @@
 // components/dashboard/menu-dashboard.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 18 — Coquille du dashboard, redesign « Metis » adapté à la
-// charte Webgiverse (polices du site conservées : font-titre + Inter) :
+// Lot 41 — Coquille du dashboard « Metis » adaptée à la charte
+// Webgiverse (polices du site conservées : font-titre + Inter) :
 //   • Barre supérieure collante TOUS ÉCRANS : titre + sous-titre de la
 //     page courante, recherche qui mène à l'annuaire, profil à droite,
 //     déconnexion en un tap sur mobile.
 //   • Barre latérale fixe sur ordinateur, tiroir coulissant animé sur
 //     mobile (fond assombri, fermeture Échap, verrou de défilement).
-//   • Section « Apprendre » : Prompts IA, Tutoriels IA et Mes notes
-//     (notes prises pendant les tutoriels — Lot 29).
+//   • Section « Apprendre » : Prompts IA, Tutoriels IA, Mes notes,
+//     Mes conversations + accès direct à la bibliothèque de skills
+//     (NOUVEAU Lot 41 — entrée « Bibliothèque de skills »).
 //   • Toile gris clair derrière le contenu : les cartes blanches
 //     ressortent comme dans le template Metis.
-// L'état actif suit l'URL (/dashboard?onglet=…) et la route
-// (/dashboard/abonnement).
+// L'état actif suit l'URL (/dashboard?onglet=…) et les routes
+// /dashboard/…. (La future entrée « Skills favoris » sera ajoutée avec
+// le lot épingler/retour d'usage — quand sa route existera.)
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
@@ -36,8 +38,9 @@ import {
   MessageSquareQuote,
   MonitorPlay,
   NotebookPen,
-  Pin,
+  Puzzle,
   Search,
+  Sparkles,
   Star,
   TerminalSquare,
   X,
@@ -47,7 +50,7 @@ import { cn } from "@/lib/utils";
 import { LienLogo } from "@/components/commun/logo";
 import PiedDashboard from "@/components/dashboard/pied-dashboard";
 import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
-import ClocheNotifications  from "@/components/dashboard/cloche-notifications";
+import ClocheNotifications from "@/components/dashboard/cloche-notifications";
 
 type Props = {
   prenom: string;
@@ -85,19 +88,19 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     titre: "Apprendre",
     liens: [
       { href: "/dashboard/prompts", libelle: "Mes prompts", icone: TerminalSquare, route: "/dashboard/prompts" },
-      { href: "/dashboard/skills", libelle: "Mes skills", icone: Pin, route: "/dashboard/skills" },
       { href: "/dashboard/tutoriels", libelle: "Mes tutoriels", icone: MonitorPlay, route: "/dashboard/tutoriels" },
       { href: "/dashboard/notes", libelle: "Mes notes", icone: NotebookPen, route: "/dashboard/notes" },
       { href: "/dashboard/assistant", libelle: "Mes conversations", icone: Bot, route: "/dashboard/assistant" },
       { href: "/prompts", libelle: "Bibliothèque de prompts", icone: Library },
       { href: "/tutoriels", libelle: "Tous les tutoriels", icone: GraduationCap },
+      { href: "/skills", libelle: "Bibliothèque de skills", icone: Puzzle },
     ],
   },
   {
     titre: "Explorer",
     liens: [
       { href: "/outils", libelle: "Annuaire d'outils", icone: Compass },
-      { href: "/assistant", libelle: "Assistant IA", icone: Bot },
+      { href: "/assistant", libelle: "Assistant IA", icone: Sparkles },
       { href: "/comparer", libelle: "Comparateur", icone: ArrowLeftRight },
     ],
   },
@@ -121,7 +124,6 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   parrainage: { titre: "Parrainage", sousTitre: "1 mois offert pour chaque filleul Premium" },
   abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
   prompts: { titre: "Mes prompts", sousTitre: "Les prompts IA que tu as sauvegardés" },
-  skills: { titre: "Mes skills", sousTitre: "Les skills IA que tu as épinglées, avec tes retours d'usage" },
   tutoriels: { titre: "Mes tutoriels", sousTitre: "Ta progression dans la collection vidéo" },
   notes: { titre: "Mes notes", sousTitre: "Tes notes prises pendant les tutoriels" },
   assistant: { titre: "Mes conversations", sousTitre: "Historique de tes échanges avec l'assistant" },
@@ -177,7 +179,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       className="size-10 shrink-0 rounded-full border-2 border-sky-500/30 object-cover"
     />
   ) : (
-    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(120deg,#007FFF,#00d1ff)] font-titre text-[15px] font-bold text-white">
+    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
       {initiale}
     </span>
   );
@@ -217,7 +219,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
           className={cn(
             "group relative flex items-center gap-3 rounded-champ px-3.5 py-2.5 text-[14px] leading-5 font-semibold transition-all duration-200",
             actif
-              ? "bg-[linear-gradient(100deg,#007FFF,#8f6bff)] text-white shadow-[0_4px_14px_rgba(106,59,255,0.35)]"
+              ? "bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] text-white shadow-[0_4px_14px_rgba(106,59,255,0.35)]"
               : "text-bleu hover:bg-gris hover:text-sky-500 active:scale-[0.98]",
           )}
         >
@@ -244,7 +246,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
 
   /** Carte « passe Premium » (ou remerciement) en bas du menu. */
   const cartePlan = premium ? (
-    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#007FFF_100%)] p-4 text-white">
+    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-4 text-white">
       <div
         aria-hidden
         className="animate-flottant-lent pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-ciel/25 blur-2xl"
@@ -263,20 +265,20 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       </Link>
     </div>
   ) : (
-    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#007FFF_100%)] p-4 text-white">
+    <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-4 text-white">
       <div
         aria-hidden
         className="animate-flottant pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-ciel/25 blur-2xl"
       />
       <p className="relative flex items-center gap-1.5 text-[13px] leading-4 font-bold">
-          Passe Premium
+        <Sparkles className="size-4 text-ciel" aria-hidden /> Passe Premium
       </p>
       <p className="relative mt-1 text-[12px] leading-4 text-white/75">
-        Favoris illimités, bibliothèque de prompts complète et export PDF dès $2,99/mois.
+        Favoris illimités, bibliothèque de skills et de prompts complète, export PDF dès $2,99/mois.
       </p>
       <Link
         href="/dashboard/abonnement#plans"
-          className="relative mt-2.5 inline-flex min-h-9 items-center rounded-full bg-white px-3 text-[12px] leading-4 font-bold text-sky-500 transition hover:bg-white/90 active:scale-95"
+        className="relative mt-2.5 inline-flex min-h-9 items-center rounded-full bg-white px-3 text-[12px] leading-4 font-bold text-sky-500 transition hover:bg-white/90 active:scale-95"
       >
         Voir les plans
       </Link>
@@ -435,7 +437,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       >
         <div className="flex items-center justify-between border-b border-bordure px-4 py-3.5">
           <div className="flex items-center gap-2">
-            <span className="grid size-9 place-items-center rounded-champ bg-[linear-gradient(120deg,#007FFF,#00d1ff)] font-titre text-[15px] font-bold text-white">
+            <span className="grid size-9 place-items-center rounded-champ bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
               W
             </span>
             <p className="font-titre text-[15px] font-bold">Webgiverse</p>

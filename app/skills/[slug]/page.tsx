@@ -1,96 +1,163 @@
 // app/skills/[slug]/page.tsx
-// Lot 40 — fiche d'une skill. Fichier COMPLET (l'erreur Vercel
-// « is not a module » venait d'un fichier vide) :
-//   · CORRECTIF IMAGE : couverture ET images de l'article (JSONB
-//     article[].images[]) rendues en vraies <img> avec légende.
-//   · Compteur de vues conservé (lot 39) : after() de Next 15,
-//     l'incrément se fait APRÈS l'envoi de la page, uniquement
-//     pour les abonnés Premium.
-//   · Verrou Premium conservé.
-//   · « À découvrir aussi » : 4 autres skills.
+// ─────────────────────────────────────────────────────────────────
+// Lot 41 — FICHE D'UNE SKILL IA — fichier COMPLET (corrige l'erreur de
+// build Vercel « File ... is not a module », causée par un fichier vide).
+//   · Verrou Premium côté serveur (lib/acces-skills.ts) : sans abonnement
+//     actif, l'article n'est JAMAIS rendu — bloc verrou à la place.
+//   · Images (couverture + article) TOUJOURS rendues en vraies <img>
+//     avec légende et repli dégradé : plus jamais une URL en texte brut
+//     (correctif du bug image).
+//   · Champ JSONB « article » parsé de façon défensive : une image
+//     markdown ![alt](URL) ou une URL d'image seule devient
+//     automatiquement une vraie image.
+//   · Commande d'installation avec bouton « Copier » (composant client).
+//   · Compteur de vues : +1 par consultation Premium, via after()
+//     (Next 15) → exécuté après l'envoi de la page, zéro latence.
+//   · Section « À découvrir aussi » (autres skills).
+// ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import {
   ArrowLeft,
+  CalendarDays,
   ExternalLink,
   Eye,
-  Github,
   Sparkles,
+  Star,
   Terminal,
+  User,
 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { accesSkills } from "@/lib/acces-skills";
 import { obtenirSkill, autresSkills } from "@/lib/queries-skills";
-import { CarteSkill } from "@/components/skills/carte-skill";
 import { BlocVerrouSkills } from "@/components/skills/bloc-verrou-skills";
+import { CarteSkill } from "@/components/skills/carte-skill";
 import { CopierCode } from "@/components/skills/copier-code";
+import { Bouton } from "@/components/ui/bouton";
 
-type Props = { params: Promise<{ slug: string }> };
+type Params = Promise<{ slug: string }>;
 
-/** Structure d'une section de l'article (JSONB Skill.article). */
-type SectionArticle = {
-  titre: string;
-  paragraphes: string[];
-  images: { src: string; alt: string }[];
-};
+type ImageArticle = { src: string; alt: string };
+type SectionArticle = { titre: string; paragraphes: string[]; images: ImageArticle[] };
+
+/** Texte sûr : une valeur non-string devient une chaîne vide. */
+function texte(v: unknown): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
+/** Vrai si la chaîne ressemble à une URL d'image directe. */
+function estUrlImage(v: string): boolean {
+  if (!/^https?:\/\//i.test(v)) return false;
+  if (/\.(png|jpe?g|gif|webp|avif|svg)(\?.*)?$/i.test(v)) return true;
+  return v.includes("pic.openagentskills.dev"); // CDN d'images de la source
+}
+
+/** Image markdown ![alt](URL) — repérée puis retirée du paragraphe. */
+const REGEX_IMAGE_MD = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
 
 /**
- * CORRECTIF IMAGE — parse défensif du champ JSONB « article » :
- * [{titre, paragraphes[], images[{src, alt}]}]. Seules les images
- * http(s) sont gardées ; toute erreur rend un article vide (jamais
- * de crash, jamais d'URL en texte).
+ * Parse défensif du champ JSONB « article » :
+ * [{ titre, paragraphes: string[], images: [{ src, alt }] }]
+ * · accepte une string JSON, un tableau direct ou { sections: [...] } ;
+ * · une image markdown ou une URL d'image seule devient une vraie image ;
+ * · aucune valeur douteuse ne peut faire planter la page ni afficher
+ *   une URL en texte.
  */
 function parserArticle(brut: unknown): SectionArticle[] {
-  if (!Array.isArray(brut)) return [];
+  let donnees: unknown = brut;
+  if (typeof donnees === "string") {
+    try {
+      donnees = JSON.parse(donnees);
+    } catch {
+      return [];
+    }
+  }
+  if (
+    donnees &&
+    typeof donnees === "object" &&
+    !Array.isArray(donnees) &&
+    Array.isArray((donnees as { sections?: unknown }).sections)
+  ) {
+    donnees = (donnees as { sections: unknown }).sections;
+  }
+  if (!Array.isArray(donnees)) return [];
+
   const sections: SectionArticle[] = [];
-  for (const s of brut) {
-    if (!s || typeof s !== "object") continue;
-    const sec = s as Record<string, unknown>;
-    const paragraphes = Array.isArray(sec.paragraphes)
-      ? sec.paragraphes.filter((x): x is string => typeof x === "string")
-      : [];
-    const images = Array.isArray(sec.images)
-      ? sec.images
-          .filter((x): x is Record<string, unknown> => Boolean(x) && typeof x === "object")
-          .map((x) => ({
-            src: typeof x.src === "string" ? x.src : "",
-            alt: typeof x.alt === "string" ? x.alt : "",
-          }))
-          .filter((x) => x.src.startsWith("http"))
-      : [];
-    sections.push({
-      titre: typeof sec.titre === "string" ? sec.titre : "",
-      paragraphes,
-      images,
-    });
+  for (const brutSection of donnees) {
+    if (!brutSection || typeof brutSection !== "object") continue;
+    const s = brutSection as Record<string, unknown>;
+
+    const images: ImageArticle[] = [];
+    const paragraphes: string[] = [];
+
+    for (const brutParagraphe of Array.isArray(s.paragraphes) ? s.paragraphes : []) {
+      let paragraphe = texte(brutParagraphe);
+      if (!paragraphe) continue;
+
+      // 1) images markdown ![alt](URL) → sorties du paragraphe
+      const imagesMarkdown = [...paragraphe.matchAll(REGEX_IMAGE_MD)];
+      for (const m of imagesMarkdown) {
+        images.push({ src: m[2], alt: m[1] });
+      }
+      paragraphe = paragraphe.replace(REGEX_IMAGE_MD, "").trim();
+
+      // 2) une URL d'image seule → une image (jamais un texte d'URL)
+      if (estUrlImage(paragraphe)) {
+        images.push({ src: paragraphe, alt: "" });
+        continue;
+      }
+      if (paragraphe) paragraphes.push(paragraphe);
+    }
+
+    // 3) images déjà structurées du JSONB (src http uniquement)
+    for (const brutImage of Array.isArray(s.images) ? s.images : []) {
+      if (!brutImage || typeof brutImage !== "object") continue;
+      const src = texte((brutImage as Record<string, unknown>).src);
+      if (!src.startsWith("http")) continue;
+      images.push({ src, alt: texte((brutImage as Record<string, unknown>).alt) });
+    }
+
+    const titre = texte(s.titre);
+    if (!titre && paragraphes.length === 0 && images.length === 0) continue;
+    sections.push({ titre, paragraphes, images });
   }
   return sections;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+/** Popularité lisible : 242500 → « 242,5k », 500 → « 500 », 0 → « — ». */
+function etoiles(n: number): string {
+  if (n >= 1000) {
+    return `${(n / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })}k`;
+  }
+  return n > 0 ? String(n) : "—";
+}
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const skill = await obtenirSkill(slug);
-  if (!skill) return { title: "Skill introuvable — Webgiverse" };
   return {
-    title: `${skill.titre} — Skills IA Webgiverse`,
-    description: skill.description.slice(0, 160),
+    title: skill ? `${skill.titre} — Skills IA Webgiverse` : "Skill introuvable",
+    description: skill ? skill.description : undefined,
   };
 }
 
-export default async function PageFicheSkill({ params }: Props) {
+export default async function PageSkill({ params }: { params: Params }) {
   const { slug } = await params;
   const skill = await obtenirSkill(slug);
   if (!skill) notFound();
 
-  // Verrou Premium (source de vérité : lib/acces-skills.ts)
   const session = await auth();
   const acces = await accesSkills(session?.user?.id);
+  const premium = acces.peutAcceder;
 
-  // ── COMPTEUR DE VUES (lot 39, conservé) ─────────────────────────
-  if (acces.peutAcceder) {
+  // ── COMPTEUR DE VUES ─────────────────────────────────────────────
+  // Une seule incrémentation par consultation Premium, exécutée APRÈS
+  // l'envoi de la page (after, Next 15) : zéro latence pour le visiteur.
+  // Défensif : si le champ n'existe pas encore en base, on ignore l'erreur.
+  if (premium) {
     after(async () => {
       try {
         await prisma.skill.update({
@@ -98,210 +165,235 @@ export default async function PageFicheSkill({ params }: Props) {
           data: { vues: { increment: 1 } },
         });
       } catch {
-        /* table occupée ou absente : sans gravité */
+        // table ou champ pas encore à jour → on ignore volontairement
       }
     });
   }
 
-  const classeRetour =
-    "inline-flex items-center gap-1.5 text-[14px] leading-5 font-medium text-encre transition hover:text-violet";
-
-  // ── VERROU — visiteur non connecté ou membre sans abonnement ────
-  if (!acces.peutAcceder) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <Link href="/skills" className={classeRetour}>
-          <ArrowLeft className="size-4" aria-hidden /> Retour aux skills
-        </Link>
-
-        <div className="mt-4 overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
-          {skill.image && (
-            <img
-              src={skill.image}
-              alt=""
-              aria-hidden="true"
-              className="aspect-video max-h-[300px] w-full object-cover blur-[6px]"
-            />
-          )}
-          <div className="p-6 text-center sm:p-8">
-            <span className="inline-flex rounded-full bg-violet/10 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
-              {skill.categorie}
-            </span>
-            <h1 className="font-titre mt-3 text-[24px] leading-8 font-bold text-bleu sm:text-[28px] sm:leading-9">
-              {skill.titre}
-            </h1>
-            <p className="mesure mx-auto mt-2 text-[14px] leading-6 text-encre">
-              {skill.description}
-            </p>
-            <div className="mt-6 flex justify-center">
-              <BlocVerrouSkills connecte={acces.connecte} compact />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── FICHE COMPLÈTE (abonné Premium Pro / Entreprise) ────────────
-  const article = parserArticle(skill.article);
-  const autres = await autresSkills(skill.slug, 4);
+  const sections = premium ? parserArticle(skill.article) : [];
+  const autres = premium ? await autresSkills(skill.slug, 4) : [];
+  const dateAjout = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(skill.creeLe);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 lg:py-12">
-      <Link href="/skills" className={classeRetour}>
-        <ArrowLeft className="size-4" aria-hidden /> Retour aux skills
-      </Link>
+    <div className="mx-auto max-w-5xl px-4 py-8 lg:py-12">
+      {/* ── Fil d'Ariane ───────────────────────────────────────────── */}
+      <nav
+        aria-label="Fil d'Ariane"
+        className="mb-5 flex min-w-0 items-center gap-1.5 text-[13px] leading-5 text-encre"
+      >
+        <Link
+          href="/skills"
+          className="inline-flex shrink-0 items-center gap-1 font-semibold text-violet hover:underline"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden /> Skills
+        </Link>
+        <span aria-hidden>/</span>
+        <span className="min-w-0 truncate">{skill.titre}</span>
+      </nav>
 
-      <article className="mt-4 overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
-        {/* CORRECTIF IMAGE — couverture en <img> direct */}
-        {skill.image && (
-          <img
-            src={skill.image}
-            alt={skill.imageAlt || skill.titre}
-            className="aspect-video max-h-[420px] w-full object-cover"
-          />
-        )}
+      {/* ── En-tête de la fiche ────────────────────────────────────── */}
+      <header className="overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
+        {/* Couverture : URL distante rendue en <img> sur fond dégradé.
+            alt = texte humain : si l'URL casse, jamais l'URL à l'écran. */}
+        <div className="aspect-video w-full bg-[linear-gradient(120deg,#efe9ff,#e6f7ff)]">
+          {skill.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={skill.image}
+              alt={skill.imageAlt || skill.titre}
+              className="size-full object-cover"
+            />
+          ) : (
+            <span className="grid size-full place-items-center text-violet/50" aria-hidden>
+              <Terminal className="size-10" />
+            </span>
+          )}
+        </div>
 
-        <div className="p-6 sm:p-8">
-          {/* Badges */}
+        <div className="p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-violet/10 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
+            <span className="rounded-full bg-violet/10 px-3 py-1 text-[12px] leading-4 font-bold text-violet">
               {skill.categorie}
             </span>
             {skill.featured && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]">
                 <Sparkles className="size-3" aria-hidden /> À la une
               </span>
             )}
-            {skill.auteur && (
-              <span className="rounded-full border border-bordure px-3 py-1 text-[12px] leading-4 font-medium text-encre/80">
-                par {skill.auteur}
+            {!premium && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 px-3 py-1 text-[12px] leading-4 font-bold text-violet">
+                Premium
               </span>
             )}
           </div>
 
-          <h1 className="font-titre mt-4 text-[26px] leading-9 font-bold tracking-tight text-bleu sm:text-[30px] sm:leading-10">
+          <h1 className="mt-3 font-titre text-[26px] leading-8 font-bold tracking-tight text-bleu sm:text-[30px] sm:leading-9">
             {skill.titre}
           </h1>
-          <p className="mt-3 text-[15px] leading-7 text-encre">{skill.description}</p>
+          <p className="mt-2 text-[15px] leading-7 text-encre">{skill.description}</p>
 
-          {/* Métadonnées */}
-          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-bordure pt-4 text-[13px] leading-5 text-encre/70">
-            <span className="inline-flex items-center gap-1.5">
-              <Eye className="size-3.5" aria-hidden />
-              {skill.vues.toLocaleString("fr-FR")} consultation{skill.vues > 1 ? "s" : ""}
-            </span>
-            {skill.lienSource && (
-              <a
-                href={skill.lienSource}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 font-medium text-violet hover:underline"
-              >
-                <ExternalLink className="size-3.5" aria-hidden /> Voir la fiche source
-              </a>
-            )}
-            {skill.depotUrl && (
-              <a
-                href={skill.depotUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 font-medium text-violet hover:underline"
-              >
-                <Github className="size-3.5" aria-hidden /> Dépôt GitHub
-              </a>
-            )}
-          </div>
+          {/* Méta : auteur, popularité, consultations, date */}
+          <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-carte border border-bordure p-3">
+              <dt className="flex items-center gap-1.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-encre">
+                <User className="size-3.5" aria-hidden /> Auteur
+              </dt>
+              <dd className="mt-1 truncate text-[14px] leading-5 font-semibold text-bleu">
+                {skill.auteur || "Communauté"}
+              </dd>
+            </div>
+            <div className="rounded-carte border border-bordure p-3">
+              <dt className="flex items-center gap-1.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-encre">
+                <Star className="size-3.5" aria-hidden /> Popularité
+              </dt>
+              <dd className="mt-1 text-[14px] leading-5 font-semibold text-bleu">
+                {etoiles(skill.popularite)}
+              </dd>
+            </div>
+            <div className="rounded-carte border border-bordure p-3">
+              <dt className="flex items-center gap-1.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-encre">
+                <Eye className="size-3.5" aria-hidden /> Consultations
+              </dt>
+              <dd className="mt-1 text-[14px] leading-5 font-semibold text-bleu">
+                {skill.vues.toLocaleString("fr-FR")}
+              </dd>
+            </div>
+            <div className="rounded-carte border border-bordure p-3">
+              <dt className="flex items-center gap-1.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-encre">
+                <CalendarDays className="size-3.5" aria-hidden /> Ajouté le
+              </dt>
+              <dd className="mt-1 text-[14px] leading-5 font-semibold text-bleu">{dateAjout}</dd>
+            </div>
+          </dl>
 
-          {/* Tags */}
           {skill.tags.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-1.5">
               {skill.tags.map((t) => (
                 <li
                   key={t}
-                  className="rounded-full border border-bordure px-2.5 py-0.5 text-[12px] leading-4 text-encre/80"
+                  className="rounded-full bg-gris px-2.5 py-1 text-[12px] leading-4 font-medium text-encre"
                 >
                   {t}
                 </li>
               ))}
             </ul>
           )}
+        </div>
+      </header>
 
-          {/* Article traduit */}
-          {skill.articleTitre && (
-            <h2 className="font-titre mt-10 text-[20px] leading-7 font-bold text-bleu">
-              {skill.articleTitre}
-            </h2>
+      {/* ── VERROU — visiteur sans abonnement Premium ──────────────── */}
+      {!premium && (
+        <div className="mt-6">
+          <BlocVerrouSkills connecte={acces.connecte} />
+        </div>
+      )}
+
+      {/* ── PREMIUM : installation + liens ─────────────────────────── */}
+      {premium && (skill.demarrage || skill.depotUrl || skill.lienSource) && (
+        <section
+          aria-label="Installation et liens"
+          className="mt-6 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6"
+        >
+          <h2 className="font-titre text-[17px] leading-6 font-bold text-bleu">
+            Installer cette skill
+          </h2>
+          {skill.demarrage && (
+            <>
+              <div className="mt-3 overflow-x-auto rounded-carte bg-[#0b1b3f] p-4">
+                <code className="block whitespace-pre font-mono text-[13px] leading-6 text-white">
+                  {skill.demarrage}
+                </code>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                <CopierCode texte={skill.demarrage} />
+                <span className="text-[12px] leading-4 text-encre">
+                  Colle cette commande dans ton terminal, à la racine de ton projet.
+                </span>
+              </div>
+            </>
           )}
+          {(skill.depotUrl || skill.lienSource) && (
+            <div className="mt-4 flex flex-wrap gap-2.5">
+              {skill.depotUrl && (
+                <Bouton asChild variante="secondaire" taille="sm">
+                  <a href={skill.depotUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink aria-hidden /> Dépôt du code
+                  </a>
+                </Bouton>
+              )}
+              {skill.lienSource && (
+                <a
+                  href={skill.lienSource}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-[14px] leading-5 font-semibold text-violet transition hover:bg-violet/10"
+                >
+                  <ExternalLink className="size-4" aria-hidden /> Fiche d&apos;origine
+                </a>
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
-          <div className="mt-4 space-y-8">
-            {article.map((section, i) => (
-              <section key={i}>
+      {/* ── PREMIUM : article complet ──────────────────────────────── */}
+      {premium &&
+        (sections.length > 0 ? (
+          <article className="mt-6 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-7">
+            {skill.articleTitre && (
+              <h2 className="font-titre text-[20px] leading-7 font-bold text-bleu">
+                {skill.articleTitre}
+              </h2>
+            )}
+            {sections.map((section, i) => (
+              <section key={i} className={i === 0 && !skill.articleTitre ? "mt-0" : "mt-6"}>
                 {section.titre && (
-                  <h3 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+                  <h3 className="font-titre text-[17px] leading-6 font-bold text-bleu">
                     {section.titre}
                   </h3>
                 )}
-                <div className="mt-3 space-y-3">
-                  {section.paragraphes.map((par, j) =>
-                    par.startsWith("•") ? (
-                      <p key={j} className="flex gap-2 text-[14.5px] leading-7 text-encre">
-                        <span aria-hidden="true" className="shrink-0 text-violet">
-                          •
-                        </span>
-                        <span>{par.replace(/^•\s*/, "")}</span>
-                      </p>
-                    ) : (
-                      <p key={j} className="text-[14.5px] leading-7 text-encre">
-                        {par}
-                      </p>
-                    ),
-                  )}
-                </div>
-
-                {/* CORRECTIF IMAGE — images de la section en <img> + légende */}
-                {section.images.length > 0 && (
-                  <div className="mt-4 space-y-4">
-                    {section.images.map((img, k) => (
-                      <figure
-                        key={k}
-                        className="overflow-hidden rounded-carte border border-bordure bg-white"
-                      >
-                        <img
-                          src={img.src}
-                          alt={img.alt || skill.titre}
-                          loading="lazy"
-                          className="w-full object-cover"
-                        />
-                        {img.alt && (
-                          <figcaption className="border-t border-bordure px-4 py-2 text-center text-[12px] leading-4 text-encre/70">
-                            {img.alt}
-                          </figcaption>
-                        )}
-                      </figure>
-                    ))}
-                  </div>
-                )}
+                {section.paragraphes.map((paragraphe, j) => (
+                  <p key={j} className="mt-3 text-[15px] leading-7 text-encre">
+                    {paragraphe}
+                  </p>
+                ))}
+                {section.images.map((image, k) => (
+                  <figure
+                    key={k}
+                    className="mt-4 overflow-hidden rounded-carte border border-bordure bg-white"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.src}
+                      alt={image.alt || skill.titre}
+                      loading="lazy"
+                      className="w-full bg-[linear-gradient(120deg,#efe9ff,#e6f7ff)] object-cover"
+                    />
+                    {image.alt && (
+                      <figcaption className="border-t border-bordure px-4 py-2 text-center text-[12px] leading-4 text-encre">
+                        {image.alt}
+                      </figcaption>
+                    )}
+                  </figure>
+                ))}
               </section>
             ))}
-          </div>
+          </article>
+        ) : (
+          <article className="mt-6 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-7">
+            <h2 className="font-titre text-[17px] leading-6 font-bold text-bleu">Article</h2>
+            <p className="mt-2 text-[14px] leading-6 text-encre">
+              L&apos;article détaillé de cette skill n&apos;est pas encore disponible. Les
+              informations clés (catégorie, tags, commande d&apos;installation et liens) sont déjà
+              affichées ci-dessus.
+            </p>
+          </article>
+        ))}
 
-          {/* Commande d'installation + bouton Copier */}
-          {skill.demarrage && (
-            <div className="mt-10">
-              <h2 className="font-titre flex items-center gap-2 text-[16px] leading-5 font-semibold text-bleu">
-                <Terminal className="size-4 text-violet" aria-hidden /> Installer cette skill
-              </h2>
-              <CopierCode commande={skill.demarrage} />
-            </div>
-          )}
-        </div>
-      </article>
-
-      {/* À découvrir aussi */}
-      {autres.length > 0 && (
-        <section className="mt-12">
-          <h2 className="font-titre text-[20px] leading-7 font-bold text-bleu">
+      {/* ── À découvrir aussi ──────────────────────────────────────── */}
+      {premium && autres.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-titre text-[18px] leading-6 font-bold text-bleu">
             À découvrir aussi
           </h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
