@@ -858,3 +858,36 @@ model CampagneNewsletter {
   creeLe        DateTime  @default(now())
   majLe         DateTime  @updatedAt
 }
+
+// ─────────────────────────────────────────────────────────────────
+// Bibliothèque de Skills IA (/skills) — lot 38.
+// Chaque fiche vient du catalogue openagentskills.dev, traduite en
+// français (titre, description, tags, article complet). Les images
+// restent des URLs distantes affichées directement par le site.
+// Section 100 % Premium : le verrou est dans lib/acces-skills.ts.
+// ─────────────────────────────────────────────────────────────────
+model Skill {
+  id           String   @id @default(cuid())
+  slug         String   @unique // ex: "grill-me"
+  titre        String
+  description  String // aperçu FR de la carte (2-3 phrases)
+  categorie    String // FR, ex: "Productivité", "Développement"
+  tags         String[] @default([]) // FR, ex: ["Code IA", "Compétence d'agent"]
+  auteur       String   @default("") // pseudo GitHub sans @
+  popularite   Int      @default(0) // étoiles du site source (242500)
+  featured     Boolean  @default(false) // mise en avant sur la source
+  image        String   @default("") // URL de la couverture 16:9 (affichée telle quelle)
+  imageAlt     String   @default("")
+  lienSource   String   @default("") // page de la skill sur openagentskills.dev
+  depotUrl     String? // dépôt GitHub de la skill
+  demarrage    String? // commande d'installation (npx …)
+  articleTitre String   @default("") // titre FR de la review
+  article      Json? // [{titre, paragraphes: string[], images: [{src, alt}]}]
+  vues         Int      @default(0) // compteur local de consultations
+  ordre        Int      @default(0) // rang d'affichage manuel
+  creeLe       DateTime @default(now())
+  majLe        DateTime @updatedAt
+
+  @@index([categorie])
+  @@index([popularite])
+}
