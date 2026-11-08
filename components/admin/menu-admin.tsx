@@ -99,6 +99,7 @@ const SECTIONS: { titre: string; liens: LienAdmin[] }[] = [
     titre: "Catalogue",
     liens: [
       { href: "/admin/outils", libelle: "Outils", icone: Wrench },
+      { href: "/admin/skills", libelle: "Skills", icone: Sparkles },
       { href: "/admin/tutoriels", libelle: "Tutoriels", icone: MonitorPlay },
       { href: "/admin/prompts", libelle: "Prompts", icone: TerminalSquare },
       { href: "/admin/articles", libelle: "Articles", icone: Newspaper },

@@ -12,14 +12,21 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://webgiverse.com";
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://webgiverse-tools.vercel.app";
   const [outils, categories, skills] = await Promise.all([
     prisma.tool.findMany({ where: { statut: "PUBLIE" }, select: { slug: true, updatedAt: true } }),
     prisma.category.findMany({ select: { slug: true } }),
     // Lot 38 — défensif : table Skill absente → liste vide, pas d'erreur
-    prisma.skill
-      .findMany({ select: { slug: true, majLe: true } })
-      .catch(() => [] as { slug: string; majLe: Date }[]),
+    (async () => {
+      try {
+        const skillModel = (prisma as unknown as Record<string, {
+          findMany: (args: { select: { slug: true; majLe: true } }) => Promise<{ slug: string; majLe: Date }[]>;
+        } | undefined>)["skill"];
+        return skillModel ? await skillModel.findMany({ select: { slug: true, majLe: true } }) : [];
+      } catch {
+        return [] as { slug: string; majLe: Date }[];
+      }
+    })(),
   ]);
   const statiques = ["", "/outils", "/agents", "/gratuits", "/open-source", "/categories", "/comparer", "/assistant", "/proposer", "/connexion", "/inscription", "/blog", "/actualites", "/tarifs", "/a-propos", "/contact", "/faq", "/annonceurs", "/skills"]
     .map((p) => ({ url: `${base}${p}`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: p === "" ? 1 : p === "/skills" ? 0.9 : 0.7 }));

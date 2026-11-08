@@ -1,240 +1,218 @@
 // app/skills/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 38 — BIBLIOTHÈQUE DE SKILLS IA (/skills), RÉSERVÉE AUX ABONNÉS.
-// · Verrou serveur (lib/acces-skills.ts) : non premium → cartes voilées
-//   (teaser flouté) + bloc « Réservé aux abonnés ».
-// · Recherche + onglets de catégories + pagination serveur
-//   (composant commun Pagination, 12 skills par page).
-// · Charte Webgiverse : accents violets, dégradé de marque, mêmes
-//   espacements que /tutoriels. Aucune couleur ni police ajoutée.
+// Lot 38 (réécriture lot 39) — BIBLIOTHÈQUE DE SKILLS IA (/skills).
+// Section RÉSERVÉE AUX ABONNÉS PREMIUM (Pro / Entreprise) :
+//   · non connecté        → aperçu flouté + bloc « Se connecter »
+//   · connecté sans abo   → aperçu flouté + bloc « Passer Premium »
+//   · Premium             → recherche, onglets de catégories, grille
+//                           de 12 fiches par page, pagination.
+// Tout est calculé côté serveur (lib/acces-skills.ts) : le contenu
+// réservé n'est jamais envoyé au navigateur des non-abonnés.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Blocks, Lock, Search, Sparkles } from "lucide-react";
-import { Bouton } from "@/components/ui/bouton";
-import { Pagination } from "@/components/commun/pagination";
+import { Lock, Search, Sparkles } from "lucide-react";
 import { auth } from "@/auth";
 import { accesSkills } from "@/lib/acces-skills";
-import { listerSkills, categoriesSkills, compterSkillsStats } from "@/lib/queries-skills";
+import {
+  categoriesSkills,
+  compterSkillsStats,
+  listerSkills,
+} from "@/lib/queries-skills";
 import { CarteSkill } from "@/components/skills/carte-skill";
 import { BlocVerrouSkills } from "@/components/skills/bloc-verrou-skills";
+import { Pagination } from "@/components/commun/pagination";
 
 export const metadata: Metadata = {
-  title: "Skills IA en français — bibliothèque réservée aux abonnés | Webgiverse",
+  title: "Bibliothèque de Skills IA — Webgiverse",
   description:
-    "Une bibliothèque de skills IA prêtes à installer pour tes agents : reviews complètes traduites en français, commande d'installation, dépôt GitHub. Réservé aux abonnés Premium.",
+    "Des dizaines de skills IA prêtes à l'emploi, traduites en français : présentation, guide d'installation et commande prête à copier. Réservé aux abonnés Premium.",
 };
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
 
-/** Lit le premier élément d'un paramètre GET (string | string[] | undefined). */
+/** Lit le premier élément d'un paramètre GET. */
 function val(c: string | string[] | undefined): string {
   return (Array.isArray(c) ? c[0] : c) ?? "";
-}
-
-/** Convertit ?page=N en entier ≥ 1 ; toute valeur douteuse → page 1. */
-function numeroPage(valeur: string | string[] | undefined): number {
-  const brut = typeof valeur === "string" ? Math.trunc(Number(valeur)) : NaN;
-  return Number.isFinite(brut) && brut >= 1 ? brut : 1;
 }
 
 export default async function PageSkills({ searchParams }: { searchParams: Params }) {
   const p = await searchParams;
   const q = val(p.q).slice(0, 80);
-  const categorie = val(p.categorie);
-  const page = numeroPage(p.page);
+  const categorie = val(p.categorie).slice(0, 60);
+  const page = Math.max(1, Math.trunc(Number(val(p.page)) || 1));
 
-  // Accès : le verrou est calculé côté serveur, à partir de la base.
+  // ── Accès (verrou côté serveur) ─────────────────────────────────
   const session = await auth();
-  const acces = await accesSkills(session?.user?.id);
+  const acces = await accesSkills(session?.user?.id ?? null);
 
-  // Non-premium : teaser limité à une page. Premium : liste complète paginée.
-  const [{ skills, total, page: pageFinale, pages }, categories, stats] = await Promise.all([
-    listerSkills(acces.peutAcceder ? { q, categorie, page } : { q, categorie, page: 1 }),
+  // ── Données ─────────────────────────────────────────────────────
+  const [resultat, categories, stats] = await Promise.all([
+    listerSkills({ q, categorie, page }),
     categoriesSkills(),
     compterSkillsStats(),
   ]);
 
+  // Aperçu flouté pour les non-abonnés : 3 premières fiches, sans
+  // contenu sensible (titre + image de couverture seulement).
+  const apercu = resultat.skills.slice(0, 3);
+
   return (
     <>
-      {/* ── Héros ───────────────────────────────────────────────── */}
+      {/* ── Héros ─────────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
           <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
-            <Blocks className="size-3.5" aria-hidden /> Skills IA
+            <Sparkles className="size-3.5" aria-hidden /> Bibliothèque de Skills IA
           </p>
           <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
-            Des <span className="texte-degrade">skills prêtes à installer</span> pour tes agents IA
+            Des skills IA prêtes à l&apos;emploi, <span className="texte-degrade">traduites en français</span>
           </h1>
           <p className="mesure mx-auto mt-3 text-[16px] leading-7 text-encre">
-            Chaque skill est analysée, testée et traduite en français : tu sais ce qu&apos;elle fait,
-            ses forces, ses pièges — et tu l&apos;installes en une commande copiée d&apos;un clic.
+            Chaque fiche explique à quoi sert la skill, comment l&apos;installer et comment la brancher
+            sur ton agent : plus besoin de lire la documentation en anglais.
           </p>
-          <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
-              {stats.total} skills traduites
-            </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
-              {stats.categories} catégories
-            </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
-              Réservé aux abonnés Premium
-            </li>
-          </ul>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[13px] leading-5 font-semibold">
+            <span className="rounded-full border border-bordure bg-white px-3.5 py-1.5 text-bleu">
+              {stats.total} skill{stats.total > 1 ? "s" : ""}
+            </span>
+            <span className="rounded-full border border-bordure bg-white px-3.5 py-1.5 text-bleu">
+              {stats.categories} catégorie{stats.categories > 1 ? "s" : ""}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-3.5 py-1.5 text-violet">
+              <Lock className="size-3.5" aria-hidden /> Réservé aux abonnés Premium
+            </span>
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-10 lg:py-12">
-        {/* ── Verrou pour les non-premium ─────────────────────────── */}
-        {!acces.peutAcceder ? (
+      <div className="mx-auto w-full max-w-7xl px-4 py-10">
+        {/* ══ NON PREMIUM : aperçu flouté + bloc verrou ══════════════ */}
+        {!acces.peutAcceder && (
           <>
-            <BlocVerrouSkills variante="page" connecte={acces.connecte} />
-            {/* Teaser : les cartes existent mais voilées, sans liens */}
-            {skills.length > 0 && (
-              <div
-                aria-hidden="true"
-                className="pointer-events-none mt-8 grid select-none gap-4 opacity-50 blur-[3px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              >
-                {skills.slice(0, 8).map((s) => (
-                  <CarteSkill key={s.id} skill={s} />
+            {apercu.length > 0 && (
+              <div aria-hidden="true" className="pointer-events-none grid select-none gap-5 blur-[7px] sm:grid-cols-2 lg:grid-cols-3">
+                {apercu.map((skill) => (
+                  <CarteSkill key={skill.id} skill={skill} />
                 ))}
               </div>
             )}
-          </>
-        ) : (
-          <>
-            {/* ── Barre de recherche ──────────────────────────────── */}
-            <form
-              method="get"
-              action="/skills"
-              className="mb-4 flex flex-col gap-3 rounded-carte border border-bordure bg-white p-4 shadow-carte sm:flex-row sm:items-center"
-            >
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-encre" aria-hidden />
-                <input
-                  name="q"
-                  type="search"
-                  defaultValue={q}
-                  placeholder="Rechercher une skill (PPT, TikTok, design, code…)"
-                  aria-label="Rechercher une skill"
-                  className="min-h-11 w-full rounded-full border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
-                />
+            {apercu.length === 0 && (
+              <div aria-hidden="true" className="grid select-none gap-5 blur-[7px] sm:grid-cols-2 lg:grid-cols-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-72 rounded-carte border border-bordure bg-white shadow-carte" />
+                ))}
               </div>
-              <input type="hidden" name="categorie" value={categorie} />
-              <Bouton type="submit" variante="secondaire" taille="sm" className="sm:hidden">
-                Rechercher
-              </Bouton>
-            </form>
-
-            {/* ── Onglets de catégories ───────────────────────────── */}
-            <div className="mb-8 flex flex-wrap items-center gap-2">
-              {[{ nom: "", total: stats.total }, ...categories].map((c) => {
-                const actif = c.nom === categorie;
-                const href = c.nom
-                  ? `/skills?categorie=${encodeURIComponent(c.nom)}`
-                  : "/skills";
-                return (
-                  <Link
-                    key={c.nom || "toutes"}
-                    href={href}
-                    aria-current={actif ? "page" : undefined}
-                    className={
-                      actif
-                        ? "inline-flex min-h-9 items-center gap-1.5 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                        : "inline-flex min-h-9 items-center gap-1.5 rounded-full border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu transition hover:border-violet hover:text-violet"
-                    }
-                  >
-                    {c.nom || "Toutes"}
-                    <span className={actif ? "text-white/80" : "text-encre/60"}>{c.total}</span>
-                  </Link>
-                );
-              })}
+            )}
+            <div className="mt-8">
+              <BlocVerrouSkills connecte={acces.connecte} />
             </div>
-
-            {/* ── Résultats ───────────────────────────────────────── */}
-            {skills.length === 0 ? (
-              <div className="rounded-carte border border-bordure bg-white p-12 text-center shadow-carte">
-                <p className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-                  Aucune skill trouvée pour cette recherche.
-                </p>
-                <p className="mx-auto mt-2 max-w-md text-[14px] leading-6 text-encre">
-                  Essaie un autre mot-clé ou explore une autre catégorie — la bibliothèque
-                  s&apos;agrandit régulièrement.
-                </p>
-                <Bouton asChild variante="secondaire" className="mt-5">
-                  <Link href="/skills">Réinitialiser les filtres</Link>
-                </Bouton>
-              </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {skills.map((s) => (
-                  <CarteSkill key={s.id} skill={s} />
-                ))}
-              </div>
-            )}
-
-            {/* ── Pagination (composant commun, lot 13) ───────────── */}
-            {skills.length > 0 && (
-              <Pagination page={pageFinale} pages={pages} base="/skills" params={{ q, categorie }} />
-            )}
           </>
         )}
 
-        {/* ── Section d'introduction (SEO) ────────────────────────── */}
-        <section className="mt-14 rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-10">
-          <h2 className="font-titre text-[22px] leading-8 font-bold text-bleu">
-            Des skills IA analysées, traduites et prêtes à installer
-          </h2>
-          <div className="mt-4 grid gap-6 text-[15px] leading-7 text-encre lg:grid-cols-2">
-            <div className="space-y-3">
-              <p>
-                Une « skill » est un module que tu ajoutes à ton agent IA pour lui donner une
-                compétence précise : générer des présentations professionnelles, transformer
-                une base de code en cours, créer des visuels de marque, rédiger des scripts
-                TikTok qui accrochent… Chaque fiche de cette bibliothèque résume ce que la
-                skill fait vraiment, ce que la review a vérifié, et comment l&apos;installer
-                en une commande.
-              </p>
-              <p>
-                Toutes les fiches sont traduites en français : plus besoin de déchiffrer des
-                reviews anglaises. Les images, la commande d&apos;installation et le dépôt
-                GitHub d&apos;origine sont affichés directement ici — tu restes sur Webgiverse
-                jusqu&apos;au moment de cloner ou d&apos;installer.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <p>
-                La bibliothèque est incluse dans les plans Premium (Pro et Entreprise), comme
-                les tutoriels Intermédiaire et Avancé, les notes avec export et l&apos;assistant
-                IA des tutoriels. Ton abonnement débloque donc tout l&apos;écosystème
-                d&apos;apprentissage : annuaire d&apos;outils, prompts, tutoriels et skills.
-              </p>
-              <p>
-                Envie de contribuer ? Tu connais une skill excellente qui manque ici&nbsp;?
-                Propose-la via la page contact&nbsp;: l&apos;équipe la teste et l&apos;ajoute
-                si elle vaut vraiment le coup.
-              </p>
-            </div>
-          </div>
-          <ul className="mt-6 flex flex-wrap gap-2">
-            {["Traduction française complète", "Installation en 1 commande", "Reviews vérifiées", "Mises à jour régulières"].map(
-              (point) => (
-                <li
-                  key={point}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-violet/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-violet"
+        {/* ══ PREMIUM : recherche + onglets + grille + pagination ════ */}
+        {acces.peutAcceder && (
+          <>
+            {/* Recherche (formulaire GET, aucun JavaScript requis) */}
+            <form action="/skills" method="get" className="flex flex-wrap items-center gap-3" role="search">
+              {categorie && <input type="hidden" name="categorie" value={categorie} />}
+              <label htmlFor="recherche-skills" className="sr-only">Rechercher une skill</label>
+              <div className="relative min-w-[240px] flex-1">
+                <Search className="pointer-events-none absolute left-4 top-1/2 size-4.5 -translate-y-1/2 text-encre/50" aria-hidden />
+                <input
+                  id="recherche-skills"
+                  name="q"
+                  type="search"
+                  defaultValue={q}
+                  placeholder="Rechercher une skill, un usage, un tag…"
+                  className="min-h-11 w-full rounded-full border border-bordure bg-white pl-11 pr-4 text-[14px] leading-5 text-bleu placeholder:text-encre/50 focus:border-violet focus:outline-none focus:ring-2 focus:ring-violet"
+                />
+              </div>
+              <button
+                type="submit"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-5 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:opacity-90"
+              >
+                Rechercher
+              </button>
+            </form>
+
+            {/* Onglets de catégories */}
+            {categories.length > 0 && (
+              <nav aria-label="Catégories de skills" className="mt-6 flex flex-wrap items-center gap-2">
+                <Link
+                  href={q ? `/skills?q=${encodeURIComponent(q)}` : "/skills"}
+                  aria-current={!categorie ? "true" : undefined}
+                  className={`rounded-full border px-4 py-2 text-[13px] leading-4 font-semibold transition ${
+                    !categorie
+                      ? "border-violet bg-violet text-white"
+                      : "border-bordure bg-white text-bleu hover:border-violet hover:text-violet"
+                  }`}
                 >
-                  <Sparkles className="size-3.5" aria-hidden /> {point}
-                </li>
-              ),
+                  Toutes
+                </Link>
+                {categories.map((c) => {
+                  const params = new URLSearchParams();
+                  if (q) params.set("q", q);
+                  params.set("categorie", c.nom);
+                  const href = `/skills?${params.toString()}`;
+                  const actif = categorie === c.nom;
+                  return (
+                    <Link
+                      key={c.nom}
+                      href={href}
+                      aria-current={actif ? "true" : undefined}
+                      className={`rounded-full border px-4 py-2 text-[13px] leading-4 font-semibold transition ${
+                        actif
+                          ? "border-violet bg-violet text-white"
+                          : "border-bordure bg-white text-bleu hover:border-violet hover:text-violet"
+                      }`}
+                    >
+                      {c.nom}
+                      <span className={`ml-1.5 text-[11.5px] font-medium ${actif ? "text-white/75" : "text-encre/60"}`}>
+                        {c.total}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </nav>
             )}
-          </ul>
-          {!acces.peutAcceder && (
-            <p className="mt-6 inline-flex items-center gap-2 rounded-carte border border-bordure bg-gris px-4 py-3 text-[14px] leading-6 text-encre">
-              <Lock className="size-4 shrink-0 text-violet" aria-hidden />
-              Les fiches floutées ci-dessus sont un aperçu : passe Premium pour tout débloquer.
-            </p>
-          )}
-        </section>
+
+            {/* Résultat */}
+            {resultat.skills.length > 0 ? (
+              <>
+                <p className="mt-6 text-[13px] leading-5 text-encre">
+                  {resultat.total} skill{resultat.total > 1 ? "s" : ""}
+                  {q && <> pour «&nbsp;<strong className="font-semibold text-bleu">{q}</strong>&nbsp;»</>}
+                  {categorie && <> dans «&nbsp;<strong className="font-semibold text-bleu">{categorie}</strong>&nbsp;»</>}
+                </p>
+                <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {resultat.skills.map((skill) => (
+                    <CarteSkill key={skill.id} skill={skill} />
+                  ))}
+                </div>
+                <Pagination page={resultat.page} pages={resultat.pages} base="/skills" params={{ q, categorie }} />
+              </>
+            ) : (
+              <div className="mt-8 rounded-carte border border-bordure bg-white p-10 text-center shadow-carte">
+                <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-violet/10">
+                  <Search className="size-6 text-violet" aria-hidden />
+                </span>
+                <h2 className="mt-4 font-titre text-[18px] leading-6 font-bold text-bleu">
+                  Aucune skill ne correspond
+                </h2>
+                <p className="mx-auto mt-2 max-w-[420px] text-[14px] leading-6 text-encre">
+                  Essaie d&apos;autres mots-clés, ou choisis une autre catégorie dans les onglets ci-dessus.
+                </p>
+                <Link
+                  href="/skills"
+                  className="mt-5 inline-flex min-h-10 items-center rounded-full border border-bordure bg-white px-5 text-[13.5px] leading-5 font-semibold text-bleu transition hover:border-violet hover:text-violet"
+                >
+                  Réinitialiser la recherche
+                </Link>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </>
   );

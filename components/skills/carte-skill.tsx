@@ -1,75 +1,88 @@
 // components/skills/carte-skill.tsx
-// Lot 38 — carte d'une skill : même vocabulaire visuel que les cartes
-// tutoriels et outils (rounded-carte, bordure, shadow-carte, hover violet) :
-// couverture 16:9 (URL distante affichée telle quelle), badge catégorie,
-// titre, aperçu, tags #, auteur et popularité.
+// ─────────────────────────────────────────────────────────────────
+// Lot 38 (réécriture lot 39) — CARTE d'une skill dans la grille
+// de la bibliothèque /skills. Charte Webgiverse : rounded-carte,
+// border-bordure, shadow-carte, accent violet, dégradé de marque
+// (ciel → violet) en secours si l'image distante manque.
+// Composant SERVEUR : la carte entière est un <Link> (fiche /skills/…).
+// ─────────────────────────────────────────────────────────────────
 import Link from "next/link";
-import { Crown, Star } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import type { Skill } from "@prisma/client";
+import { ArrowRight, Flame, Sparkles } from "lucide-react";
 
-const compacte = new Intl.NumberFormat("fr-FR", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+/** Champs utilisés par la carte (sous-ensemble du modèle Skill). */
+export type SkillCarte = {
+  slug: string;
+  titre: string;
+  description: string;
+  categorie: string;
+  tags: string[];
+  image: string;
+  imageAlt: string;
+  featured: boolean;
+  popularite: number;
+};
 
-export function CarteSkill({ skill }: { skill: Skill }) {
+const NOMBRE = new Intl.NumberFormat("fr-FR");
+
+export function CarteSkill({ skill }: { skill: SkillCarte }) {
   return (
     <Link
       href={`/skills/${skill.slug}`}
-      className="group survol-eleve flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition hover:border-violet"
+      className="group flex flex-col overflow-hidden rounded-carte border border-bordure bg-white shadow-carte transition duration-300 hover:-translate-y-1 hover:border-violet/40 hover:shadow-[0_12px_32px_rgba(106,59,255,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet"
     >
-      {/* ── Couverture 16:9 ────────────────────────────────────── */}
-      <span className="relative block aspect-video w-full overflow-hidden bg-gris">
+      {/* Couverture 16:9 — URL distante affichée telle quelle */}
+      <div className="relative aspect-video w-full overflow-hidden bg-[linear-gradient(120deg,#00d1ff_0%,#6a3bff_70%)]">
         {skill.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={skill.image}
-            alt={skill.imageAlt || `Couverture de la skill ${skill.titre}`}
+            alt={skill.imageAlt || skill.titre}
             loading="lazy"
-            decoding="async"
-            className="size-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            referrerPolicy="no-referrer"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <span className="grid size-full place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
-            <Star className="size-8 text-white" aria-hidden />
+          <span className="absolute inset-0 grid place-items-center">
+            <Sparkles className="size-10 text-white/80" aria-hidden />
           </span>
         )}
         {skill.featured && (
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet shadow-sm">
-            <Crown className="size-3" aria-hidden /> À la une
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] leading-3 font-semibold text-violet shadow-sm">
+            <Sparkles className="size-3" aria-hidden /> À la une
           </span>
         )}
-      </span>
-
-      {/* ── Contenu ────────────────────────────────────────────── */}
-      <span className="flex flex-1 flex-col p-4">
-        <span className="flex flex-wrap items-center gap-1.5">
-          <Badge variante="source">{skill.categorie}</Badge>
-          <span className="inline-flex items-center gap-1 text-[12px] leading-4 font-medium text-encre">
-            <Star className="size-3.5 text-amber-500" aria-hidden />
-            {compacte.format(skill.popularite)}
-          </span>
+        <span className="absolute bottom-3 left-3 rounded-full bg-bleu/80 px-2.5 py-1 text-[11px] leading-3 font-semibold text-white backdrop-blur">
+          {skill.categorie}
         </span>
-        <h3 className="mt-2 line-clamp-2 font-titre text-[15px] leading-6 font-semibold text-bleu transition group-hover:text-violet">
+      </div>
+
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 font-titre text-[16px] leading-6 font-semibold text-bleu transition group-hover:text-violet">
           {skill.titre}
         </h3>
-        <span className="mt-1.5 line-clamp-2 text-[13px] leading-5 text-encre">
-          {skill.description}
-        </span>
-        <span className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
-          {skill.tags.slice(0, 3).map((t) => (
-            <span key={t} className="text-[12px] leading-4 font-medium text-violet">
-              #{t}
-            </span>
-          ))}
-        </span>
-        {skill.auteur && (
-          <span className="mt-auto flex items-center gap-1.5 pt-3 text-[12px] leading-4 text-encre">
-            <span className="font-mono">@{skill.auteur}</span>
-          </span>
+        <p className="mt-2 line-clamp-3 flex-1 text-[13.5px] leading-6 text-encre">{skill.description}</p>
+
+        {skill.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {skill.tags.slice(0, 3).map((t) => (
+              <span key={t} className="rounded-full bg-gris px-2.5 py-1 text-[11px] leading-3 font-medium text-bleu">
+                {t}
+              </span>
+            ))}
+          </div>
         )}
-      </span>
+
+        <div className="mt-4 flex items-center justify-between border-t border-bordure pt-3">
+          <span className="inline-flex items-center gap-1 text-[12.5px] leading-4 font-semibold text-encre">
+            <Flame className="size-3.5 text-violet" aria-hidden />
+            {NOMBRE.format(skill.popularite)} étoiles
+          </span>
+          <span className="inline-flex items-center gap-1 text-[12.5px] leading-4 font-semibold text-violet">
+            Consulter
+            <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" aria-hidden />
+          </span>
+        </div>
+      </div>
     </Link>
   );
 }

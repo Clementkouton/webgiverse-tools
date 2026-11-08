@@ -1,40 +1,48 @@
-// components/skills/copier-code.tsx
-// Lot 38 — bouton « copier » de la commande d'installation (CLIENT).
 "use client";
-import { useRef, useState } from "react";
+// components/skills/copier-code.tsx
+// ─────────────────────────────────────────────────────────────────
+// Lot 38 (réécriture lot 39) — bouton « Copier » de la commande
+// d'installation d'une skill. Composant CLIENT (uniquement lui).
+// Repli pour les navigateurs sans Clipboard API (execCommand).
+// ─────────────────────────────────────────────────────────────────
+import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 
-export function CopierCode({ code }: { code: string }) {
+export function CopierCode({ commande, libelle = "Copier" }: { commande: string; libelle?: string }) {
   const [copie, setCopie] = useState(false);
-  const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function copier() {
     try {
-      await navigator.clipboard.writeText(code);
-      setCopie(true);
-      if (minuteur.current) clearTimeout(minuteur.current);
-      minuteur.current = setTimeout(() => setCopie(false), 2000);
+      await navigator.clipboard.writeText(commande);
     } catch {
-      // Clipboard indisponible (permissions) — le code reste sélectionnable à la main
+      // Repli navigateurs anciens : sélection manuelle + copie
+      const zone = document.createElement("textarea");
+      zone.value = commande;
+      zone.setAttribute("readonly", "");
+      zone.style.position = "fixed";
+      zone.style.opacity = "0";
+      document.body.appendChild(zone);
+      zone.select();
+      document.execCommand("copy");
+      zone.remove();
     }
+    setCopie(true);
+    window.setTimeout(() => setCopie(false), 2000);
   }
 
   return (
     <button
       type="button"
       onClick={copier}
-      aria-label={copie ? "Code copié" : "Copier la commande"}
-      className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-bordure bg-white px-3 text-[13px] leading-5 font-medium text-bleu transition hover:border-violet hover:text-violet"
+      aria-live="polite"
+      className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] leading-4 font-semibold transition ${
+        copie
+          ? "bg-white text-ciel-fonce"
+          : "bg-white/10 text-white hover:bg-white/20"
+      }`}
     >
-      {copie ? (
-        <>
-          <Check className="size-3.5 text-violet" aria-hidden /> Copié&nbsp;!
-        </>
-      ) : (
-        <>
-          <Copy className="size-3.5" aria-hidden /> Copier
-        </>
-      )}
+      {copie ? <Check className="size-3.5" aria-hidden /> : <Copy className="size-3.5" aria-hidden />}
+      {copie ? "Copié !" : libelle}
     </button>
   );
 }
