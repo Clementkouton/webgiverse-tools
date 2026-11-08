@@ -139,6 +139,10 @@ model User {
   notes             NoteMembre[]          @relation("NotesRecues")
   notesRedigees     NoteMembre[]          @relation("NotesRedigees")
   suspensions       SuspensionUser[]
+  // Lot 40 — skills épinglées + retours d'usage
+  skillsFavoris     SkillFavori[]
+  retoursSkills     SkillRetour[]
+
 }
 
 // ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────
@@ -890,4 +894,42 @@ model Skill {
 
   @@index([categorie])
   @@index([popularite])
+}
+
+// ── Skill épinglée (« Mes skills » du dashboard) ───────────────────
+// Un abonné Premium épingle une skill de la bibliothèque pour la
+// retrouver dans son espace. Une ligne = une skill épinglée par un
+// membre (contrainte unique [userId, skillId] : pas de doublon).
+model SkillFavori {
+  id      String   @id @default(cuid())
+  userId  String
+  skillId String
+  creeLe  DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill   Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([skillId])
+}
+
+// ── Retour d'usage sur une skill ───────────────────────────────────
+// L'abonné qui a testé une skill raconte dans quel contexte il l'a
+// utilisée et le résultat obtenu (note 1-5 + recommandation). Un seul
+// retour par membre et par skill ([userId, skillId]), modifiable à
+// volonté (upsert) et supprimable.
+model SkillRetour {
+  id         String   @id @default(cuid())
+  userId     String
+  skillId    String
+  usage      String // contexte d'usage décrit par le membre
+  resultat   String // résultat obtenu
+  note       Int      @default(5) // 1 à 5
+  recommande Boolean  @default(true)
+  creeLe     DateTime @default(now())
+  majLe      DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([skillId])
 }

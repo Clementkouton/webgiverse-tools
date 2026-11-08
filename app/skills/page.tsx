@@ -11,8 +11,10 @@ import { auth } from "@/auth";
 import { accesSkills } from "@/lib/acces-skills";
 import { listerSkills, categoriesSkills, compterSkillsStats } from "@/lib/queries-skills";
 import { CarteSkill } from "@/components/skills/carte-skill";
-import { BlocVerrouSkills } from "@/components/skills/bloc-verrou-skills";
+import { BlocVerrouSkills as BlocVerrouSkillsComponent } from "@/components/skills/bloc-verrou-skills";
 import { Pagination } from "@/components/commun/pagination";
+// Lot 40 — épinglage des skills (« Mes skills » du dashboard)
+import { idsSkillsFavoris } from "@/lib/queries-skills";
 
 export const metadata: Metadata = {
   title: "Skills IA — Webgiverse",
@@ -54,7 +56,9 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
     compterSkillsStats(),
   ]);
   const { skills, page: pageFinale, pages } = resultat;
-
+  // ── Lot 40 — skills déjà épinglées par l'abonné (Set d'ids) ─────
+  // Défensif : table absente → Set vide, la grille s'affiche normalement.
+  const idsFavoris = acces.peutAcceder ? await idsSkillsFavoris(session?.user?.id) : new Set<string>();
   const classeOnglet = (actif: boolean) =>
     `rounded-full border px-4 py-1.5 text-[13px] leading-4 font-medium transition ${
       actif
@@ -210,7 +214,7 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
               ))}
             </div>
             <div className="absolute inset-0 grid place-items-center p-4">
-              <BlocVerrouSkills connecte={acces.connecte} compact />
+              <BlocVerrouSkillsComponent connecte={acces.connecte} compact />
             </div>
           </div>
         )}

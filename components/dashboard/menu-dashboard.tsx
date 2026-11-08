@@ -36,6 +36,7 @@ import {
   MessageSquareQuote,
   MonitorPlay,
   NotebookPen,
+  Pin,
   Search,
   Star,
   TerminalSquare,
@@ -84,6 +85,7 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     titre: "Apprendre",
     liens: [
       { href: "/dashboard/prompts", libelle: "Mes prompts", icone: TerminalSquare, route: "/dashboard/prompts" },
+      { href: "/dashboard/skills", libelle: "Mes skills", icone: Pin, route: "/dashboard/skills" },
       { href: "/dashboard/tutoriels", libelle: "Mes tutoriels", icone: MonitorPlay, route: "/dashboard/tutoriels" },
       { href: "/dashboard/notes", libelle: "Mes notes", icone: NotebookPen, route: "/dashboard/notes" },
       { href: "/dashboard/assistant", libelle: "Mes conversations", icone: Bot, route: "/dashboard/assistant" },
@@ -119,6 +121,7 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   parrainage: { titre: "Parrainage", sousTitre: "1 mois offert pour chaque filleul Premium" },
   abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
   prompts: { titre: "Mes prompts", sousTitre: "Les prompts IA que tu as sauvegardés" },
+  skills: { titre: "Mes skills", sousTitre: "Les skills IA que tu as épinglées, avec tes retours d'usage" },
   tutoriels: { titre: "Mes tutoriels", sousTitre: "Ta progression dans la collection vidéo" },
   notes: { titre: "Mes notes", sousTitre: "Tes notes prises pendant les tutoriels" },
   assistant: { titre: "Mes conversations", sousTitre: "Historique de tes échanges avec l'assistant" },
