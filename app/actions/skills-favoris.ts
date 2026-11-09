@@ -1,13 +1,13 @@
 // app/actions/skills-favoris.ts
 // ─────────────────────────────────────────────────────────────────
-// Lot 49 — RESTAURATION COMPLÈTE du fichier.
+// Lot 50 — RESTAURATION (lot 49) + CONTRAT du bouton épingle.
 // Historique : lot 43 (création), lot 44 (supprimerRetourParSkillFormulaire),
 // lot 47 (basculerSkillFavoriFormulaire — alias de compatibilité),
 // lot 48 (basculerSkillFavori — alias requis par le bouton
-// components/skills/bouton-epingle-skill.tsx), lot 49 (le collage du
-// lot 48 avait REMPLACÉ le contenu du fichier au lieu de s'ajouter à
-// la fin : les 4 fonctions principales avaient disparu — ce fichier
-// restaure TOUT, lot 47 intégral + alias du lot 48).
+// components/skills/bouton-epingle-skill.tsx), lot 49 (restauration
+// complète après un collage qui avait remplacé le fichier), lot 50
+// (le bouton lit la réponse sous la forme { ok, favori, raison } :
+// l'alias basculerSkillFavori renvoie désormais LES DEUX formes).
 // Mêmes règles défensives que app/actions/apprentissage.ts (lot 19) :
 //   · TOUTES les requêtes Prisma sont dans un try/catch : une action ne
 //     plante jamais, le bouton ne reste jamais figé ;
@@ -117,18 +117,36 @@ export async function basculerFavoriSkill(
 }
 
 // ─────────────────────────────────────────────────────────────────
-// NOUVEAU LOT 48 (restauré au lot 49) — basculerSkillFavori : fait
-// EXACTEMENT le même travail que basculerFavoriSkill (bascule
-// l'épingle). Cet alias existe parce que le bouton
-// components/skills/bouton-epingle-skill.tsx l'importe sous ce nom —
-// c'est l'erreur de build « has no exported member
-// 'basculerSkillFavori' » (log du 13:22). Même contrat, mêmes
-// arguments, même valeur renvoyée.
+// LOT 50 — basculerSkillFavori : alias « bilingue » du bouton
+// components/skills/bouton-epingle-skill.tsx.
+//
+// Ce bouton lit la réponse sous la forme (lignes 84-88 du composant) :
+//     resultat.ok      → true si l'épingle a bien été basculée ;
+//     resultat.favori  → nouvel état de l'épingle ;
+//     resultat.raison  → raison d'erreur éventuelle.
+// La fonction basculerFavoriSkill (au-dessus) répond sous la forme :
+//     { epingle: boolean; raison?: RaisonSkills }
+// Cet alias traduit l'une vers l'autre. Il renvoie AUSSI « epingle »
+// (identique à « favori ») par sécurité : tout code qui lirait l'une
+// ou l'autre forme continue de fonctionner.
+// C'est l'erreur de build « Property 'ok' does not exist »
+// (log du 16:29, bouton-epingle-skill.tsx:85) qui a révélé ce contrat.
 // ─────────────────────────────────────────────────────────────────
 export async function basculerSkillFavori(
   skillId: string,
-): Promise<{ epingle: boolean; raison?: RaisonSkills }> {
-  return basculerFavoriSkill(skillId);
+): Promise<{
+  ok: boolean;
+  favori: boolean;
+  epingle: boolean;
+  raison?: RaisonSkills;
+}> {
+  const resultat = await basculerFavoriSkill(skillId);
+  return {
+    ok: !resultat.raison,
+    favori: resultat.epingle,
+    epingle: resultat.epingle,
+    raison: resultat.raison,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────
