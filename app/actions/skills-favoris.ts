@@ -1,12 +1,20 @@
 // app/actions/skills-favoris.ts
 // ─────────────────────────────────────────────────────────────────
-// Lot 43 — Actions serveur des favoris de skills et des retours d'usage.
+// Lot 47 — Actions serveur des favoris de skills et des retours d'usage.
+// Historique : lot 43 (création), lot 44 (supprimerRetourParSkillFormulaire),
+// lot 47 (basculerSkillFavoriFormulaire — alias de compatibilité requis
+// par l'ancienne page app/dashboard/skills/page.tsx, devenue redirection).
 // Mêmes règles défensives que app/actions/apprentissage.ts (lot 19) :
-//   · TOUTES les requêtes Prisma sont dans un try/catch ;
-//   · table absente (P2021/P2022) → raison « base » avec instruction exacte ;
+//   · TOUTES les requêtes Prisma sont dans un try/catch : une action ne
+//     plante jamais, le bouton ne reste jamais figé ;
+//   · table absente (P2021/P2022) → raison « base » avec l'instruction
+//     exacte à lancer ;
 //   · client Prisma non régénéré → raison « client » ;
-//   · verrou Premium côté serveur (lib/premium.ts) : Pro / Entreprise actif.
+//   · verrou Premium : épingler et publier un retour exigent un
+//     abonnement Pro / Entreprise ACTIF (lib/premium.ts).
 // Une seule ligne par membre et par skill (userId + skillId unique).
+// IMPORTANT : dans un fichier « use server », TOUTES les exportations
+// doivent être des fonctions ASYNC — c'est le cas ici.
 // ─────────────────────────────────────────────────────────────────
 "use server";
 
@@ -16,8 +24,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { premiumActif } from "@/lib/premium";
 import { journaliser } from "@/lib/journal";
-
-const prismaCompat = prisma as any;
 
 /** Raisons renvoyées aux composants clients pour afficher le bon message. */
 export type RaisonSkills =
@@ -37,9 +43,9 @@ function raisonDepuisErreur(erreur: unknown, contexte: string): RaisonSkills {
   if (code === "P2021" || code === "P2022") {
     console.error(
       `[skills-favoris] ${contexte} : base de données NON À JOUR (code ${code}).\n` +
-      "→ Passe d'abord la migration prisma/migration-skills-favoris.sql dans le SQL Editor\n" +
-      "  de Neon, colle les modèles dans prisma/schema.prisma puis lance  npx prisma generate\n" +
-      "  (arrête le serveur avant la régénération), et recharge la page.",
+        "→ Passe d'abord la migration prisma/migration-skills-favoris-v2.sql (lot 44)\n" +
+        "  dans le SQL Editor de Neon, puis (serveur arrêté)  npx prisma generate  et\n" +
+        "  recharge la page.",
     );
     return "base";
   }
@@ -52,9 +58,9 @@ function raisonDepuisErreur(erreur: unknown, contexte: string): RaisonSkills {
   ) {
     console.error(
       `[skills-favoris] ${contexte} : CLIENT PRISMA NON RÉGÉNÉRÉ — les modèles SkillFavori /\n` +
-      "SkillRetour sont inconnus du client.\n" +
-      "→ Arrête le serveur, colle les modèles du lot 43 dans prisma/schema.prisma puis\n" +
-      "  lance  npx prisma generate , relance le serveur et recharge la page.",
+        "SkillRetour sont inconnus du client.\n" +
+        "→ Arrête le serveur, vérifie prisma/schema.prisma puis lance  npx prisma generate ,\n" +
+        "  relance le serveur et recharge la page.",
     );
     return "client";
   }
@@ -72,7 +78,8 @@ const MESSAGE_RAISON: Record<RaisonSkills, string> = {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// ÉPINGLER / DÉÉPINGLER une skill (toggle) — bouton client BoutonEpingle.
+// ÉPINGLER / DÉÉPINGLER une skill (toggle) — appelé par le bouton
+// client « Épingler » de la fiche /skills/[slug].
 // ─────────────────────────────────────────────────────────────────
 export async function basculerFavoriSkill(
   skillId: string,
@@ -83,19 +90,19 @@ export async function basculerFavoriSkill(
   if (!(await premiumActif(userId))) return { epingle: false, raison: "premium" };
 
   try {
-    const existant = await prismaCompat.skillFavori.findUnique({
+    const existant = await prisma.skillFavori.findUnique({
       where: { userId_skillId: { userId, skillId } },
       select: { id: true },
     });
 
     if (existant) {
-      await prismaCompat.skillFavori.delete({ where: { id: existant.id } });
+      await prisma.skillFavori.delete({ where: { id: existant.id } });
       revalidatePath("/dashboard/skills-favoris");
       journaliser(userId, "skill_favori_retire", JSON.stringify({ skillId }));
       return { epingle: false };
     }
 
-    await prismaCompat.skillFavori.create({ data: { userId, skillId } });
+    await prisma.skillFavori.create({ data: { userId, skillId } });
     revalidatePath("/dashboard/skills-favoris");
     journaliser(userId, "skill_favori", JSON.stringify({ skillId }));
     return { epingle: true };
@@ -105,7 +112,8 @@ export async function basculerFavoriSkill(
 }
 
 // ─────────────────────────────────────────────────────────────────
-// RETIRER une skill épinglée — action de formulaire (dashboard, corbeille).
+// RETIRER une skill épinglée — action de formulaire (page
+// /dashboard/skills-favoris, bouton corbeille avec confirmation).
 // ─────────────────────────────────────────────────────────────────
 export async function retirerFavoriFormulaire(formData: FormData): Promise<void> {
   const skillId = String(formData.get("skillId") ?? "").trim();
@@ -116,12 +124,25 @@ export async function retirerFavoriFormulaire(formData: FormData): Promise<void>
   if (!userId) return;
 
   try {
-    await prismaCompat.skillFavori.deleteMany({ where: { userId, skillId } });
+    await prisma.skillFavori.deleteMany({ where: { userId, skillId } });
     revalidatePath("/dashboard/skills-favoris");
     journaliser(userId, "skill_favori_retire", JSON.stringify({ skillId }));
   } catch (erreur) {
     raisonDepuisErreur(erreur, "retirerFavoriFormulaire");
   }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// NOUVEAU LOT 47 — basculerSkillFavoriFormulaire : fait EXACTEMENT le
+// même travail que retirerFavoriFormulaire (retire la skill épinglée
+// du membre connecté). Cet alias existe parce que l'ANCIENNE page
+// app/dashboard/skills/page.tsx l'importait alors qu'il n'existait pas
+// — c'est l'erreur de build « has no exported member
+// 'basculerSkillFavoriFormulaire' ». Le fichier est maintenant
+// complet : tout vieux code qui l'importe reste compilable.
+// ─────────────────────────────────────────────────────────────────
+export async function basculerSkillFavoriFormulaire(formData: FormData): Promise<void> {
+  await retirerFavoriFormulaire(formData);
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -183,7 +204,7 @@ export async function envoyerRetourSkill(
     });
     if (!skill) return { succes: false, message: "Cette skill n'existe plus." };
 
-    const dejaLa = await prismaCompat.skillRetour.findUnique({
+    const dejaLa = await prisma.skillRetour.findUnique({
       where: { userId_skillId: { userId, skillId } },
       select: { id: true },
     });
@@ -194,7 +215,7 @@ export async function envoyerRetourSkill(
       };
     }
 
-    await prismaCompat.skillRetour.create({
+    await prisma.skillRetour.create({
       data: { userId, skillId, usage: analyse.data.usage, resultat: analyse.data.resultat, note },
     });
     revalidatePath(`/skills/${skill.slug}`);
@@ -219,7 +240,7 @@ export async function supprimerRetourFormulaire(formData: FormData): Promise<voi
   if (!userId) return;
 
   try {
-    const supprime = await prismaCompat.skillRetour.deleteMany({
+    const supprime = await prisma.skillRetour.deleteMany({
       where: { id: retourId, userId },
     });
     if (supprime.count > 0) {
@@ -230,6 +251,7 @@ export async function supprimerRetourFormulaire(formData: FormData): Promise<voi
     raisonDepuisErreur(erreur, "supprimerRetourFormulaire");
   }
 }
+
 // ─────────────────────────────────────────────────────────────────
 // SUPPRIMER MON RETOUR PAR SKILL — utilisé par « Mes skills »
 // (dashboard) où la carte ne connaît que le skillId, pas l'id du
@@ -249,7 +271,7 @@ export async function supprimerRetourParSkillFormulaire(formData: FormData): Pro
       .findUnique({ where: { id: skillId }, select: { slug: true } })
       .catch(() => null);
 
-    const supprime = await prismaCompat.skillRetour.deleteMany({
+    const supprime = await prisma.skillRetour.deleteMany({
       where: { skillId, userId },
     });
     if (supprime.count > 0) {
