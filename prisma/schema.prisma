@@ -142,8 +142,6 @@ model User {
   // Lot 40 — skills épinglées + retours d'usage
   skillsFavoris     SkillFavori[]
   retoursSkills     SkillRetour[]
-  skillRetours SkillRetour[]
-
 }
 
 // ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────
@@ -893,11 +891,12 @@ model Skill {
   creeLe       DateTime @default(now())
   majLe        DateTime @updatedAt
 
-  @@index([categorie])
-  @@index([popularite])
-  
+  // Lot 44 — relations opposées (OBLIGATOIRES)
   favoris SkillFavori[]
   retours SkillRetour[]
+
+  @@index([categorie])
+  @@index([popularite])
 }
 
 // ─────────────────────────────────────────────────────────────────

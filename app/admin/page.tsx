@@ -1,45 +1,51 @@
 // app/admin/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// TABLEAU DE BORD ADMIN — VERSION AMÉLIORÉE (Lot 37 : responsive).
-// Reprend le design « TailwindAdmin » validé (aucun changement visuel)
-// et corrige :
-//   • DÉBORDEMENTS — toutes les grilles ont désormais une colonne de
-//     base explicite (grid-cols-1) : sans elle, la colonne implicite
-//     prend la largeur du texte le plus long et les lignes sortent
-//     des cartes (visible sur la carte « Descriptions YouTube ») ;
-//   • les textes des raccourcis passent sur 2 lignes au lieu d'être
-//     coupés (« Proposito… » → « Propositions, contacts et avis… ») ;
-//   • CONNEXION — les ~15 requêtes Prisma partent désormais par
-//     vagues de 5 maximum : fini le « Timed out fetching a new
-//     connection from the connection pool » sur Neon.
+// Lot 22 — TABLEAU DE BORD ADMIN « TailwindAdmin » : l'ESSENTIEL.
+//   • en-tête + période du mois en cours ;
+//   • bannière dégradé indigo → bleu ciel (style du template) ;
+//   • 4 cartes statistiques avec pastilles pastel, tendance ± % vs
+//     le mois dernier et mini-courbe des 7 derniers jours ;
+//   • graphique en barres des inscriptions (14 jours) + anneau
+//     « Membres par plan ».
+// Lot 26 — PILOTAGE & DONNÉES :
+//   • rangée « Pilotage du jour » : KPI temps réel (inscrits
+//     aujourd'hui, avis à modérer, Premium actifs, revenus du mois) ;
+//   • alertes visuelles : liens morts détectés (avec vérification en
+//     1 clic) et brouillons d'articles oubliés (30 jours) ;
+//   • raccourcis vers les nouvelles pages Recherches et Segments.
+// Lot 45 — SKILLS DANS LE TABLEAU DE BORD :
+//   • nouvelle rangée « Bibliothèque de skills » : skills publiées,
+//     VUES CUMULÉES des fiches, favoris épinglés, retours d'usage —
+//     chaque carte pointe vers /admin/skills (gestion + tri) ;
+//   • requêtes LECTURE DÉFENSIVE : si la table Skill ou les tables
+//     lot 43 (favoris / retours) n'existent pas encore, le tableau
+//     de bord s'affiche quand même avec des 0 — jamais de crash.
+// Aucun tableau ici : chaque contenu a sa page dans le menu
+// (Outils, Skills, Tutoriels, Prompts, Articles, Propositions, Avis,
+// Utilisateurs, Abonnements). Aucune librairie ajoutée.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  Captions as CaptionIcon,
   Crown,
   Eye,
   FileWarning,
   Link2Off,
-  Mail,
   MessageSquareQuote,
-  MonitorPlay,
+  Pin,
   Sparkles,
-  Tag,
+  ThumbsUp,
   Users,
-  Wallet,
   Wrench,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 import { Carte } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
 import { CarteStatAdmin } from "@/components/admin/carte-stat-admin";
 import { GraphiqueBarres } from "@/components/admin/graphique-barres";
 import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
 import { BoutonVerifierLiens } from "@/components/admin/bouton-verifier-liens";
-import { BoutonRecupererDescriptions } from "@/components/admin/bouton-recuperer-descriptions";
 
 export const metadata: Metadata = { title: "Administration" };
 export const dynamic = "force-dynamic";
@@ -65,6 +71,7 @@ function parJour(dates: Date[], debut: Date, nb: number): number[] {
 function libelleCodeLien(code: number | null): string {
   if (code === null) return "Jamais vérifié";
   if (code === 0) return "Injoignable";
+  if (code === -1) return "Protégé (anti-bot)"; // Lot 27
   return `HTTP ${code}`;
 }
 
@@ -84,28 +91,23 @@ export default async function PageAdmin() {
   const ilYa30j = new Date(maintenant);
   ilYa30j.setDate(ilYa30j.getDate() - 30);
 
-  // ── Compteurs (par vagues de 5 requêtes maximum) ────────────────
-  // Neon est une base distante : lancer 15+ requêtes simultanées
-  // sature le pool de connexions (5 connexions, timeout 15 s).
-  // On exécute donc 4 petites vagues successives, dans le même ordre.
-  const [nbUtilisateurs, inscritsMois, inscritsMoisPrec, inscrits14j, nbOutilsPublies] =
-    await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({ where: { createdAt: { gte: debutMois } } }),
-      prisma.user.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
-      prisma.user.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
-      prisma.tool.count({ where: { statut: "PUBLIE" } }),
-    ]);
-
-  const [nbOutilsTotal, outilsMois, outilsMoisPrec, outils14j, nbAvis] = await Promise.all([
+  // ── Compteurs ───────────────────────────────────────────────────
+  const [
+    nbUtilisateurs, inscritsMois, inscritsMoisPrec, inscrits14j,
+    nbOutilsPublies, nbOutilsTotal, outilsMois, outilsMoisPrec, outils14j,
+    nbAvis, avisMois, avisMoisPrec, avis14j,
+    abonnementsActifs, premium14j, revenusMois, revenusMoisPrec, paiements14j,
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { createdAt: { gte: debutMois } } }),
+    prisma.user.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
+    prisma.user.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
+    prisma.tool.count({ where: { statut: "PUBLIE" } }),
     prisma.tool.count(),
     prisma.tool.count({ where: { createdAt: { gte: debutMois } } }),
     prisma.tool.count({ where: { createdAt: { gte: debutMoisPrec, lt: debutMois } } }),
     prisma.tool.findMany({ where: { createdAt: { gte: debut14j } }, select: { createdAt: true } }),
     prisma.avis.count(),
-  ]);
-
-  const [avisMois, avisMoisPrec, avis14j, abonnementsActifs] = await Promise.all([
     prisma.avis.count({ where: { creeLe: { gte: debutMois } } }),
     prisma.avis.count({ where: { creeLe: { gte: debutMoisPrec, lt: debutMois } } }),
     prisma.avis.findMany({ where: { creeLe: { gte: debut14j } }, select: { creeLe: true } }),
@@ -113,9 +115,6 @@ export default async function PageAdmin() {
       where: { statut: "ACTIF", expireLe: { gt: maintenant } },
       select: { plan: true, debutLe: true },
     }),
-  ]);
-
-  const [premium14j, revenusMois, revenusMoisPrec, paiements14j] = await Promise.all([
     prisma.abonnement.findMany({ where: { debutLe: { gte: debut7j } }, select: { debutLe: true } }),
     prisma.paiement.aggregate({
       where: { statut: "PAYE", creeLe: { gte: debutMois } },
@@ -131,19 +130,19 @@ export default async function PageAdmin() {
     }),
   ]);
 
-  // ── Pilotage du jour + alertes (2 vagues de 4) ──────────────────
+  // ── Lot 26 — pilotage du jour + alertes ─────────────────────────
   const whereLienMort = {
     statut: "PUBLIE" as const,
     OR: [{ statutLien: { gte: 400 } }, { statutLien: 0 }],
   };
-  const [inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts] = await Promise.all([
+  const [
+    inscritsAujourdhui, avis24h, messagesNonTraites, nbLiensMorts,
+    liensMorts, nbJamaisVerifies, nbProteges, nbBrouillonsAnciens, brouillonsAnciens,
+  ] = await Promise.all([
     prisma.user.count({ where: { createdAt: { gte: debutJour } } }),
     prisma.avis.count({ where: { creeLe: { gte: ilYa24h } } }),
     prisma.messageContact.count({ where: { traite: false } }),
     prisma.tool.count({ where: whereLienMort }),
-  ]);
-
-  const [liensMorts, nbJamaisVerifies, nbBrouillonsAnciens, brouillonsAnciens] = await Promise.all([
     prisma.tool.findMany({
       where: whereLienMort,
       orderBy: [{ lienVerifieLe: { sort: "desc", nulls: "last" } }],
@@ -151,6 +150,8 @@ export default async function PageAdmin() {
       take: 5,
     }),
     prisma.tool.count({ where: { statut: "PUBLIE", statutLien: null } }),
+    // Lot 27 — fiches derrière une protection anti-robots (statutLien = -1)
+    prisma.tool.count({ where: { statut: "PUBLIE", statutLien: -1 } }),
     prisma.article.count({ where: { statut: "BROUILLON", majLe: { lt: ilYa30j } } }),
     prisma.article.findMany({
       where: { statut: "BROUILLON", majLe: { lt: ilYa30j } },
@@ -160,53 +161,30 @@ export default async function PageAdmin() {
     }),
   ]);
 
-  // ── Apprendre & audience (lectures défensives, jamais bloquantes) ─
-  // Tutoriels : le modèle Tuto existe dans le schéma → appels directs.
-  const [nbTutos, nbTutosAvecVideo, vuesTutos] = await Promise.all([
-    prisma.tuto.count(),
-    prisma.tuto.count({ where: { youtubeId: { not: null } } }),
-    prisma.tuto.aggregate({ _sum: { vues: true } }),
-  ]);
-
-  // Descriptions YouTube raffinées manquantes (colonne peut manquer
-  // si la base n'est pas à jour → 0, la page reste affichable).
-  const [nbTutosSansDescription, tutosSansDescription] = await Promise.all([
-    prisma.tuto
-      .count({ where: { youtubeId: { not: null }, descriptionRaffinee: { equals: Prisma.AnyNull } } })
-      .catch(() => 0),
-    prisma.tuto
-      .findMany({
-        where: { youtubeId: { not: null }, descriptionRaffinee: { equals: Prisma.AnyNull } },
-        orderBy: { ordre: "asc" },
-        select: { id: true, titre: true },
-        take: 5,
-      })
-      .catch(() => []),
-  ]);
-
-  // Votes « Utile » (modèle VoteAvis, lecture défensive).
+  // Lot 20 — votes « Utile » (lecture défensive, jamais bloquante).
   const delegueVotesAvis = (prisma as any).voteAvis;
   const nbVotesUtile: number = delegueVotesAvis?.count
     ? await delegueVotesAvis.count().catch(() => 0)
     : 0;
 
-  // Abonnés newsletter (modèle ajouté avec la newsletter → défensif).
-  const delegueAbonnes = (prisma as any).abonneNewsletter;
-  const nbAbonnesNewsletter: number = delegueAbonnes?.count
-    ? await delegueAbonnes.count({ where: { actif: true } }).catch(() => 0)
+  // ── Lot 45 — Bibliothèque de skills (lecture défensive) ────────
+  // Si la table Skill (lot 38) ou les tables favoris / retours
+  // (lot 43) n'existent pas encore, on affiche des 0 : jamais de
+  // crash du tableau de bord.
+  const nbSkills = await prisma.skill
+    .count()
+    .catch(() => 0);
+  const vuesSkills = await prisma.skill
+    .aggregate({ _sum: { vues: true } })
+    .then((r) => r._sum.vues ?? 0)
+    .catch(() => 0);
+  const delegueFavorisSkills = (prisma as any).skillFavori;
+  const nbFavorisSkills: number = delegueFavorisSkills?.count
+    ? await delegueFavorisSkills.count().catch(() => 0)
     : 0;
-
-  // Codes promo actifs (défensif).
-  const delegueCodes = (prisma as any).codePromo;
-  const nbCodesPromoActifs: number = delegueCodes?.count
-    ? await delegueCodes.count({ where: { actif: true } }).catch(() => 0)
-    : 0;
-
-  // Notes prises par les membres pendant les tutoriels (défensif :
-  // le modèle NoteTutoriel n'est compté que si la base est à jour).
-  const delegueNotes = (prisma as any).noteTutoriel;
-  const nbNotesMembres: number = delegueNotes?.count
-    ? await delegueNotes.count().catch(() => 0)
+  const delegueRetoursSkills = (prisma as any).skillRetour;
+  const nbRetoursSkills: number = delegueRetoursSkills?.count
+    ? await delegueRetoursSkills.count().catch(() => 0)
     : 0;
 
   // ── Séries journalières (7 derniers jours) + barres (14 jours) ──
@@ -245,18 +223,18 @@ export default async function PageAdmin() {
 
   return (
     <div>
-      {/* ── En-tête + période ───────────────────────────────────────── */}
+      {/* ── En-tête + période ─────────────────────────────────────── */}
       <div className="animate-apparition-haut flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-h3 font-semibold">Tableau de bord</h1>
           <p className="mt-1 text-[14px] leading-6 text-encre">
-            Une vue simple de l&apos;activité de Webgiverse — le détail de chaque contenu vit dans le menu.
+            Une vue simple de l'activité de Webgiverse — le détail de chaque contenu vit dans le menu.
           </p>
         </div>
         <Badge variante="defaut" className="capitalize">{periode}</Badge>
       </div>
 
-      {/* ── Bannière d'activité (dégradé TailwindAdmin) ─────────────── */}
+      {/* ── Bannière d'activité (dégradé TailwindAdmin) ───────────── */}
       <div className="animate-apparition-haut delai-1 relative mt-5 overflow-hidden rounded-carte bg-[linear-gradient(115deg,#5d87ff_0%,#49beff_100%)] p-6 text-white sm:p-7">
         <span aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-white/15 blur-2xl" />
         <span aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-44 rounded-full bg-white/10 blur-2xl" />
@@ -287,12 +265,12 @@ export default async function PageAdmin() {
         </div>
       </div>
 
-      {/* ── Pilotage du jour (KPI temps réel) ───────────────────────── */}
+      {/* ── Lot 26 — Pilotage du jour (KPI temps réel) ────────────── */}
       <section aria-label="Pilotage du jour" className="animate-apparition-haut delai-1 mt-5">
         <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
           Pilotage du jour
         </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <CarteStatAdmin
             href="/admin/utilisateurs"
             libelle="Inscrits aujourd'hui"
@@ -321,19 +299,19 @@ export default async function PageAdmin() {
             href="/admin/abonnements"
             libelle="Revenus du mois"
             valeur={revenusFormates}
-            icone={Wallet}
+            icone={Wrench}
             ton="succes"
             contexte={`tendance ${tendance(revenusCur, revenusPrec) >= 0 ? "+" : ""}${tendance(revenusCur, revenusPrec)} % vs le mois dernier`}
           />
         </div>
       </section>
 
-      {/* ── 4 cartes statistiques avec tendance + sparkline ─────────── */}
+      {/* ── 4 cartes statistiques avec tendance + sparkline ───────── */}
       <section aria-label="Statistiques essentielles" className="animate-apparition-haut delai-2 mt-6">
         <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
           Ce mois-ci
         </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <CarteStatAdmin
             href="/admin/utilisateurs"
             libelle="Utilisateurs"
@@ -381,49 +359,58 @@ export default async function PageAdmin() {
         </div>
       </section>
 
-      {/* ── Apprendre & audience (tutoriels · newsletter · codes promo) ─ */}
-      <section aria-label="Apprendre et audience" className="animate-apparition-haut delai-2 mt-6">
-        <h2 className="mb-2.5 px-1 text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
-          Apprendre &amp; audience
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* ── Lot 45 — Bibliothèque de skills (vues, favoris, retours) ── */}
+      <section aria-label="Bibliothèque de skills" className="animate-apparition-haut delai-2 mt-6">
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 px-1">
+          <h2 className="text-[11px] leading-4 font-bold uppercase tracking-[0.14em] text-adm-gris-clair">
+            Bibliothèque de skills
+          </h2>
+          <Link
+            href="/admin/skills"
+            className="group inline-flex items-center gap-1 text-[12px] leading-4 font-semibold text-bleu transition hover:text-primaire-texte"
+          >
+            Gérer les skills
+            <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" aria-hidden />
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <CarteStatAdmin
-            href="/admin/tutoriels"
-            libelle="Tutoriels au catalogue"
-            valeur={nbTutos}
-            icone={MonitorPlay}
-            ton="info"
-            contexte={`${nbTutosAvecVideo} vidéo${nbTutosAvecVideo > 1 ? "s" : ""} en ligne · ${nbNotesMembres} note${nbNotesMembres > 1 ? "s" : ""} prise${nbNotesMembres > 1 ? "s" : ""} par les membres`}
-          />
-          <CarteStatAdmin
-            href="/admin/tutoriels"
-            libelle="Vues cumulées"
-            valeur={(vuesTutos._sum.vues ?? 0).toLocaleString("fr-FR")}
-            icone={Eye}
-            ton="succes"
-            contexte="collection gratuite pour les membres connectés"
-          />
-          <CarteStatAdmin
-            href="/admin/newsletter"
-            libelle="Abonnés newsletter"
-            valeur={nbAbonnesNewsletter}
-            icone={Mail}
+            href="/admin/skills"
+            libelle="Skills publiées"
+            valeur={nbSkills}
+            icone={Sparkles}
             ton="primaire"
-            contexte="inscrits de la landing + ajoutés à la main"
+            contexte="bibliothèque réservée Premium"
           />
           <CarteStatAdmin
-            href="/admin/codes-promo"
-            libelle="Codes promo actifs"
-            valeur={nbCodesPromoActifs}
-            icone={Tag}
+            href="/admin/skills"
+            libelle="Vues cumulées des skills"
+            valeur={vuesSkills.toLocaleString("fr-FR")}
+            icone={Eye}
+            ton="info"
+            contexte="consultations par les abonnés"
+          />
+          <CarteStatAdmin
+            href="/admin/skills"
+            libelle="Favoris épinglés"
+            valeur={nbFavorisSkills}
+            icone={Pin}
+            ton="succes"
+            contexte="skills épinglées par les membres"
+          />
+          <CarteStatAdmin
+            href="/admin/skills"
+            libelle="Retours d'usage"
+            valeur={nbRetoursSkills}
+            icone={ThumbsUp}
             ton="alerte"
-            contexte="réductions actuellement utilisables"
+            contexte="retours publiés par les membres"
           />
         </div>
       </section>
 
-      {/* ── Alertes visuelles ──────────────────────────────────────── */}
-      <section aria-label="Alertes" className="animate-apparition-haut delai-2 mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* ── Lot 26 — Alertes visuelles ────────────────────────────── */}
+      <section aria-label="Alertes" className="animate-apparition-haut delai-2 mt-6 grid gap-4 lg:grid-cols-2">
         {/* Liens morts détectés */}
         <Carte className={`p-6 ${nbLiensMorts > 0 ? "border-[#f3c3b5] bg-[#fdf6f4]" : ""}`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -435,16 +422,18 @@ export default async function PageAdmin() {
               >
                 <Link2Off className="size-5" aria-hidden />
               </span>
-              <div className="min-w-0">
+              <div>
                 <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
                   Liens morts détectés
                 </h3>
                 <p className="text-[13px] leading-4 text-adm-gris">
                   {nbLiensMorts > 0
-                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe vers un site en défaut`
-                    : nbJamaisVerifies > 0
-                      ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
-                      : "Aucun lien mort : tous les liens vérifiés répondent"}
+                    ? `${nbLiensMorts} fiche${nbLiensMorts > 1 ? "s" : ""} publiée${nbLiensMorts > 1 ? "s" : ""} pointe${nbLiensMorts > 1 ? "nt" : ""} vers un site en défaut`
+                    : nbProteges > 0
+                      ? `Aucun lien mort — ${nbProteges} fiche${nbProteges > 1 ? "s" : ""} derrière une protection anti-bot (non vérifiables)`
+                      : nbJamaisVerifies > 0
+                        ? "Aucun lien mort connu — certaines fiches ne sont pas encore vérifiées"
+                        : "Aucun lien mort : tous les liens vérifiés répondent"}
                 </p>
               </div>
             </div>
@@ -452,9 +441,9 @@ export default async function PageAdmin() {
           </div>
 
           {nbLiensMorts > 0 && (
-            <ul className="mt-4 grid grid-cols-1 gap-2">
+            <ul className="mt-4 grid gap-2">
               {liensMorts.map((outil) => (
-                <li key={outil.id} className="min-w-0">
+                <li key={outil.id}>
                   <Link
                     href={`/admin/outils/${outil.id}`}
                     className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#e0917a]"
@@ -494,7 +483,7 @@ export default async function PageAdmin() {
             >
               <FileWarning className="size-5" aria-hidden />
             </span>
-            <div className="min-w-0">
+            <div>
               <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
                 Brouillons oubliés
               </h3>
@@ -507,9 +496,9 @@ export default async function PageAdmin() {
           </div>
 
           {nbBrouillonsAnciens > 0 && (
-            <ul className="mt-4 grid grid-cols-1 gap-2">
+            <ul className="mt-4 grid gap-2">
               {brouillonsAnciens.map((article) => (
-                <li key={article.id} className="min-w-0">
+                <li key={article.id}>
                   <Link
                     href={`/admin/articles/${article.id}`}
                     className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#dfb95c]"
@@ -531,92 +520,10 @@ export default async function PageAdmin() {
             </ul>
           )}
         </Carte>
-        {/* Raccourcis — enrichis : Newsletter, Codes promo, Parrainages */}
-        <Carte className="animate-apparition-haut delai-1 p-6">
-          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-            Raccourcis
-          </h2>
-          <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            {[
-              { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
-              { href: "/admin/newsletter", libelle: "Newsletter", texte: "Campagnes, abonnés et envois" },
-              { href: "/admin/codes-promo", libelle: "Codes promo", texte: "Créer et suivre les réductions" },
-              { href: "/admin/parrainages", libelle: "Parrainages", texte: "Liens d'invitation et récompenses" },
-              { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },
-              { href: "/admin/segments", libelle: "Segments", texte: "Filtres prêts à l'emploi + export CSV" },
-              { href: "/admin/statistiques", libelle: "Statistiques", texte: "Vues par outil, article et prompt" },
-              { href: "/admin/journal", libelle: "Journal d'audit", texte: "Qui a fait quoi, quand" },
-              { href: "/admin/sauvegarde", libelle: "Sauvegarde", texte: "Exporter la base en JSON / CSV" },
-            ].map((r) => (
-              <Link
-                key={r.href}
-                href={r.href}
-                className="group flex items-center justify-between gap-3 rounded-champ border border-bordure bg-white px-4 py-3 transition hover:border-primaire hover:bg-primaire/5"
-              >
-                <span className="min-w-0">
-                  <span className="block text-[14px] leading-5 font-semibold text-adm-sombre group-hover:text-primaire-texte">{r.libelle}</span>
-                  <span className="block text-[12px] leading-4 text-encre line-clamp-2">{r.texte}</span>
-                </span>
-                <ArrowRight className="size-4 shrink-0 text-adm-gris-clair transition group-hover:translate-x-0.5 group-hover:text-primaire" aria-hidden />
-              </Link>
-            ))}
-          </div>
-        </Carte>
-
-        {/* Descriptions YouTube des tutoriels (raffinées) */}
-        <Carte className="p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span
-                className={`grid size-11 shrink-0 place-items-center rounded-xl ${
-                  nbTutosSansDescription > 0 ? "bg-adm-info-doux text-[#3b6fc9]" : "bg-adm-succes-doux text-[#0f9b85]"
-                }`}
-              >
-                <CaptionIcon className="size-5" aria-hidden />
-              </span>
-              <div className="min-w-0">
-                <h3 className="font-titre text-[16px] leading-6 font-semibold text-adm-sombre">
-                  Descriptions YouTube
-                </h3>
-                <p className="max-w-md text-[13px] leading-4 text-adm-gris">
-                  {nbTutosSansDescription > 0
-                    ? `${nbTutosSansDescription} tutoriel${nbTutosSansDescription > 1 ? "s" : ""} attend${nbTutosSansDescription > 1 ? "ent" : ""} sa description raffinée (chapitres + ressources utiles)`
-                    : "Toutes les vidéos ont leur description raffinée, affichée sous chaque tutoriel"}
-                </p>
-              </div>
-            </div>
-            <BoutonRecupererDescriptions />
-          </div>
-
-          {nbTutosSansDescription > 0 && (
-            <ul className="mt-4 grid grid-cols-1 gap-2">
-              {tutosSansDescription.map((tuto) => (
-                <li key={tuto.id} className="min-w-0">
-                  <Link
-                    href="/admin/tutoriels"
-                    className="group flex items-center justify-between gap-3 rounded-champ border border-adm-bordure bg-white px-3.5 py-2.5 transition hover:border-[#9db8e8]"
-                  >
-                    <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre group-hover:text-[#3b6fc9]">
-                      {tuto.titre}
-                    </span>
-                    <span className="shrink-0 text-[11px] leading-4 font-semibold text-[#3b6fc9]">
-                      sans description
-                    </span>
-                  </Link>
-                </li>
-              ))}
-              {nbTutosSansDescription > tutosSansDescription.length && (
-                <li className="px-1 text-[12px] text-adm-gris">
-                  + {nbTutosSansDescription - tutosSansDescription.length} autre{nbTutosSansDescription - tutosSansDescription.length > 1 ? "s" : ""}
-                </li>
-              )}
-            </ul>
-          )}
-        </Carte>
       </section>
 
       {/* ── Graphiques : inscriptions 14 jours + raccourcis + plans ── */}
-      <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <section className="mt-6 grid gap-4 lg:grid-cols-3">
         <Carte className="animate-apparition-haut p-6 lg:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -634,6 +541,37 @@ export default async function PageAdmin() {
           </div>
         </Carte>
 
+        {/* Raccourcis — Lot 26 : + Recherches & Segments */}
+        <Carte className="animate-apparition-haut delai-1 p-6">
+          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+            Raccourcis
+          </h2>
+          {/* Une seule colonne : à 3 tuiles par ligne, les libellés
+              (« Journal d'audit »…) ne tiennent pas dans 1/3 de page. */}
+          <div className="mt-4 grid gap-2.5">
+            {[
+              { href: "/admin/moderation", libelle: "Modération", texte: "Propositions, contacts et avis en attente" },
+              { href: "/admin/skills", libelle: "Skills", texte: "Bibliothèque IA : tri, à la une, vues" },
+              { href: "/admin/recherches", libelle: "Recherches", texte: "Ce que les visiteurs cherchent" },
+              { href: "/admin/segments", libelle: "Segments", texte: "Filtres prêts à l'emploi + export CSV" },
+              { href: "/admin/statistiques", libelle: "Statistiques", texte: "Vues par outil, article et prompt" },
+              { href: "/admin/journal", libelle: "Journal d'audit", texte: "Qui a fait quoi, quand" },
+              { href: "/admin/sauvegarde", libelle: "Sauvegarde", texte: "Exporter la base en JSON / CSV" },
+            ].map((r) => (
+              <Link
+                key={r.href}
+                href={r.href}
+                className="group flex items-center justify-between gap-3 rounded-champ border border-bordure bg-white px-4 py-3 transition hover:border-primaire hover:bg-primaire/5"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[14px] font-semibold text-adm-sombre group-hover:text-primaire-texte">{r.libelle}</span>
+                  <span className="block truncate text-[12px] text-encre">{r.texte}</span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-adm-gris-clair transition group-hover:translate-x-0.5 group-hover:text-primaire" aria-hidden />
+              </Link>
+            ))}
+          </div>
+        </Carte>
 
         <Carte className="animate-apparition-haut delai-1 p-6">
           <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -651,7 +589,6 @@ export default async function PageAdmin() {
             />
           </div>
         </Carte>
-
       </section>
     </div>
   );
