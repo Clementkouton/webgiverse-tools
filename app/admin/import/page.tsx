@@ -18,10 +18,15 @@
 //   • modèle CSV téléchargeable pour chaque type (public/imports/) ;
 //   • tableau des colonnes attendues (requis ou optionnel), fluide ;
 //   • formulaire d'import (fichier ou collage) + rapport détaillé.
+// Lot 46 — 4ᵉ onglet SKILLS : la bibliothèque Premium /skills passe
+// par la même console (fichier OU collage, rapport ligne par ligne).
+// Même contrat que le script lot 40 : « titre » + « sections »
+// obligatoires, la colonne sections construit l'article JSONB avec le
+// rendu EXACT des skills scrapées. Modèle : public/imports/modele-skills.csv.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, FileSpreadsheet, Info, TerminalSquare, MonitorPlay, Wrench } from "lucide-react";
+import { Download, FileSpreadsheet, Info, TerminalSquare, MonitorPlay, Wrench, Sparkles } from "lucide-react";
 import { Carte } from "@/components/ui/carte";
 import { cn } from "@/lib/utils";
 import { ImportCsv } from "@/components/admin/import-csv";
@@ -29,6 +34,7 @@ import {
   importerOutilsAction,
   importerPromptsAction,
   importerTutorielsAction,
+  importerSkillsAction,
 } from "@/app/actions/import-csv";
 
 export const metadata: Metadata = { title: "Import CSV — Administration" };
@@ -119,6 +125,34 @@ const COLONNES_PROMPTS: Colonne[] = [
   { nom: "slug", note: "Adresse /prompts/… (sinon généré du titre).", exemple: "expert-marketing" },
 ];
 
+// Lot 46 — même contrat que le script scripts/importer-skills-csv.mjs
+// (lot 40) : la colonne « sections » construit le JSONB « article »
+// identique aux 29 skills scrapées ([{titre, paragraphes[], images}]).
+const COLONNES_SKILLS: Colonne[] = [
+  { nom: "titre", requis: true, note: "Titre de la skill (carte + fiche).", exemple: "Vibe coding avec Claude Code" },
+  {
+    nom: "sections",
+    requis: true,
+    note: "LE CONTENU de la fiche : « ## Titre » ouvre une section, chaque ligne devient un paragraphe, une ligne qui commence par « • » devient une puce, « ![alt](https://… ) » insère une image. Plusieurs lignes = mets TOUTE la cellule entre guillemets.",
+    exemple: '"## Pourquoi c\'est fort\nUn paragraphe complet.\n![Capture](https://…/image.jpg)"',
+  },
+  { nom: "description", note: "Aperçu de la carte (sinon déduit du 1er paragraphe hors puces).", exemple: "Ce que le vibe coding change vraiment, testé sur un vrai projet." },
+  { nom: "categorie", note: "Catégorie FR affichée sur la carte (défaut : « Autres »).", exemple: "Développement" },
+  { nom: "tags", note: "Tags FR, « | » entre eux (12 max).", exemple: "Code IA|Agents IA|Productivité" },
+  { nom: "auteur", note: "Pseudo de l'auteur (sans @).", exemple: "Webgiverse" },
+  { nom: "popularite", note: "Étoiles de la source (tri « Plus populaires » de /admin/skills).", exemple: "18400" },
+  { nom: "featured", note: "1 = badge « À la une » sur /skills (bascule possible depuis /admin/skills).", exemple: "1" },
+  { nom: "image", note: "URL de la couverture 16:9 affichée telle quelle.", exemple: "https://…/couverture.jpg" },
+  { nom: "imagealt", note: "Texte alternatif de la couverture (défaut : le titre).", exemple: "Couverture de la review Claude Code" },
+  { nom: "liensource", note: "Page de la skill sur le site source (vide = aucun).", exemple: "https://openagentskills.dev/skills/…" },
+  { nom: "depoturl", note: "Dépôt GitHub de la skill (vide = aucun).", exemple: "https://github.com/auteur/depot" },
+  { nom: "demarrage", note: "Commande d'installation affichée sur la fiche.", exemple: "npx skills add grill-me" },
+  { nom: "articletitre", note: "Titre de la review en haut de la fiche (défaut : le titre).", exemple: "Test complet : vibe coding avec Claude Code" },
+  { nom: "vues", note: "Compteur de vues initial. EN MISE À JOUR : absent = compteur conservé (jamais remis à 0).", exemple: "320" },
+  { nom: "ordre", note: "Rang d'affichage manuel (tri « Ordre par défaut »).", exemple: "1" },
+  { nom: "slug", note: "Adresse /skills/… (sinon généré du titre).", exemple: "vibe-coding-claude-code" },
+];
+
 const ONGLETS: ConfigOnglet[] = [
   {
     cle: "outils",
@@ -153,6 +187,17 @@ const ONGLETS: ConfigOnglet[] = [
     cible: "prompts",
     colonnes: COLONNES_PROMPTS,
   },
+  {
+    cle: "skills",
+    libelle: "Skills",
+    icone: Sparkles,
+    titre: "Importer des skills",
+    description:
+      "Remplis la bibliothèque Premium (/skills) : chaque LIGNE devient une fiche complète. La colonne « sections » construit l'article avec EXACTEMENT le même rendu que les skills scrapées d'origine (couverture, images, puces, bouton Copier).",
+    modele: "/imports/modele-skills.csv",
+    cible: "skills",
+    colonnes: COLONNES_SKILLS,
+  },
 ];
 
 export default async function PageImportAdmin({
@@ -164,7 +209,7 @@ export default async function PageImportAdmin({
   const actif = ONGLETS.find((o) => o.cle === onglet) ?? ONGLETS[0]!;
 
   return (
-    <div className="mx-auto px-4 pb-10 sm:px-6 lg:px-8">
+    <div>
       <div className="animate-apparition-haut">
         <h1 className="text-h3 font-semibold">Import CSV</h1>
         <p className="mt-1 text-[14px] leading-6 text-encre">
@@ -223,7 +268,9 @@ export default async function PageImportAdmin({
                 ? importerOutilsAction
                 : actif.cle === "tutoriels"
                   ? importerTutorielsAction
-                  : importerPromptsAction
+                  : actif.cle === "prompts"
+                    ? importerPromptsAction
+                    : importerSkillsAction
             }
             libelleBouton={`Importer les ${actif.libelle.toLowerCase()}`}
             cible={actif.cible}
@@ -277,7 +324,10 @@ export default async function PageImportAdmin({
               <strong className="font-semibold text-adm-sombre">Astuces :</strong> le nom des
               colonnes ignore majuscules, accents et espaces (« Tarif Min » = <code>tarifmin</code>) ;
               les colonnes en trop sont ignorées ; les cellules qui contiennent un « ; » ou des
-              sauts de ligne doivent être mises entre guillemets doubles.
+              sauts de ligne doivent être mises entre guillemets doubles. Pour les{" "}
+              <strong className="font-semibold text-adm-sombre">skills</strong>, télécharge le
+              modèle : il montre la syntaxe complète de la colonne <code>sections</code> (sections
+              « ## Titre », paragraphes, puces « • », images « ![alt](url) »).
             </span>
           </p>
         </Carte>

@@ -5,20 +5,29 @@
 //   • OUTILS   : /admin/import?onglet=outils    → modèle public/imports/modele-outils.csv
 //   • TUTORIELS: /admin/import?onglet=tutoriels → modèle public/imports/modele-tutoriels.csv
 //   • PROMPTS  : /admin/import?onglet=prompts   → modèle public/imports/modele-prompts.csv
+//   • SKILLS   : /admin/import?onglet=skills    → modèle public/imports/modele-skills.csv
 // Chaque ligne est validée indépendamment : une ligne invalide ne
 // bloque PAS les autres (le rapport cite le numéro de ligne).
 // Déduplication par slug : sans l'option « mettre à jour », une ligne
 // déjà existante est ignorée ; avec l'option, elle est mise à jour —
 // et seules les COLONNES présentes dans le fichier écrasent l'ancien
 // contenu (une colonne absente conserve sa valeur).
-// Lot 34 — CORRECTIF d'affichage : la description raffinée est désormais
-// écrite avec sa STRUCTURE (desc.valeur), plus l'enveloppe { ok, valeur }
-// qui rendait la section « Chapitres & ressources » invisible. La
-// description existante sert à nouveau de base de fusion (2e argument).
 // Lot 23c — lecture des fichiers : UTF-8 strict puis repli
 // Windows-1252 (les CSV d'Excel FR ne sont presque jamais en UTF-8,
 // les accents arrivaient en « DÃ©butant ») + erreursTotal dans le
 // rapport quand plus de 30 lignes sont rejetées.
+// Lot 31 — exigerAdmin() ne lève plus d'exception : les actions
+// répondent un état sérialisable (« Accès réservé… » dans le rapport
+// au lieu d'une erreur E394 générique quand la session a expiré).
+// Lot 46 — SKILLS : même contrat que le script
+// scripts/importer-skills-csv.mjs (lot 40), mais DANS LE NAVIGATEUR :
+// « titre » + « sections » obligatoires, la colonne sections construit
+// le JSONB « article » EXACTEMENT comme les 29 skills scrapées
+// ([{titre, paragraphes[], images[{src, alt}]}]) → rendu identique sur
+// /skills (couverture, images en <img>, puces, bouton Copier).
+// Sans l'option « mettre à jour », un slug déjà en base est ignoré ;
+// le compteur de vues n'est écrasé QUE si la colonne vues est présente
+// dans le fichier (sinon il est conservé).
 // ─────────────────────────────────────────────────────────────────
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
@@ -161,7 +170,7 @@ function etatErreur(message: string): EtatImport {
   return { ok: false, message };
 }
 
-/** Contrôles communs aux 3 imports (auth faite avant). Renvoie soit le CSV, soit une erreur. */
+/** Contrôles communs aux 4 imports (auth faite avant). Renvoie soit le CSV, soit une erreur. */
 function verifierCsv(source: string | null): ReturnType<typeof parserCsv> | EtatImport {
   if (source === null)
     return etatErreur(
@@ -392,8 +401,6 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
           ressources: lit(l, "ressources"),
           paragraphes: lit(l, "paragraphes"),
         },
-        (existant as unknown as { descriptionRaffinee?: Prisma.JsonValue | null } | null)
-          ?.descriptionRaffinee ?? null,
       );
       if (!desc.ok) {
         erreurs.push(`Ligne ${numero} : ${desc.erreur} — ${titre}.`);
@@ -415,11 +422,8 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
         if (col("ordre")) champs.ordre = entier(lit(l, "ordre"), 0);
         if (col("vues")) champs.vues = entier(lit(l, "vues"), 0);
         if (col("nouveau")) champs.nouveau = booleen(lit(l, "nouveau"));
-        // Lot 34 — on écrit la STRUCTURE (chapitres/ressources/paragraphes),
-        // pas l'enveloppe de résultat { ok, valeur } : c'est cette enveloppe
-        // qui empêchait l'affichage « Chapitres & ressources ».
-        if (desc.valeur) {
-          champs.descriptionRaffinee = desc.valeur as unknown as Prisma.InputJsonValue;
+        if (desc) {
+          champs.descriptionRaffinee = desc as unknown as Prisma.InputJsonValue;
         }
 
         await prisma.tuto.update({
@@ -440,8 +444,8 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
             ordre: entier(lit(l, "ordre"), 0),
             vues: entier(lit(l, "vues"), 0),
             nouveau: booleen(lit(l, "nouveau")),
-            ...(desc.valeur
-              ? { descriptionRaffinee: desc.valeur as unknown as Prisma.InputJsonValue }
+            ...(desc
+              ? { descriptionRaffinee: desc as unknown as Prisma.InputJsonValue }
               : {}),
           },
         });
@@ -628,6 +632,206 @@ export async function importerPromptsAction(_etat: EtatImport, donnees: FormData
     majes,
     ignores,
     categoriesCreees,
+    erreurs: erreurs.slice(0, 30),
+    erreursTotal: erreurs.length,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  Import des SKILLS (lot 46) — bibliothèque Premium /skills
+// ─────────────────────────────────────────────────────────────────────
+// Même contrat que le script scripts/importer-skills-csv.mjs (lot 40),
+// mais directement depuis /admin/import (fichier OU collage, rapport
+// ligne par ligne) :
+//   • colonnes obligatoires : titre + sections ;
+//   • la colonne « sections » construit le JSONB « article » EXACTEMENT
+//     comme les 29 skills scrapées → rendu identique sur /skills ;
+//   • sans l'option « mettre à jour », un slug déjà en base est IGNORÉ ;
+//   • le compteur de vues n'est écrasé QUE si la colonne « vues » est
+//     présente dans le fichier (sinon conservé, comme le script).
+
+/** Une section de l'article JSONB d'une skill (structure des 29 skills scrapées). */
+type SectionArticle = {
+  titre: string;
+  paragraphes: string[];
+  images: { src: string; alt: string }[];
+};
+
+/**
+ * Colonne « sections » → article JSONB identique aux skills scrapées :
+ *   ## Titre de section            → ouvre une nouvelle section
+ *   Une ligne                      → un paragraphe (1 ligne = 1 paro.)
+ *   ![alt](https://…)              → une image affichée en <img>
+ *   • une puce en début de ligne   → rendue comme une puce
+ * (même grammaire que le script du lot 40, ligne pour ligne).
+ */
+function parserSections(texte: string): SectionArticle[] {
+  const article: SectionArticle[] = [];
+  let section: SectionArticle | null = null;
+  for (const brut of texte.split("\n")) {
+    const ligne = brut.trim();
+    if (!ligne) continue; // lignes vides ignorées
+    if (ligne.startsWith("##")) {
+      // « ## Titre » ou « ## » (première section sans titre, comme les scrapées)
+      section = { titre: ligne.replace(/^##+\s*/, "").trim(), paragraphes: [], images: [] };
+      article.push(section);
+      continue;
+    }
+    const image = /^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)$/.exec(ligne);
+    if (image) {
+      if (!section) {
+        section = { titre: "", paragraphes: [], images: [] };
+        article.push(section);
+      }
+      section.images.push({ src: image[2], alt: image[1].trim() });
+      continue;
+    }
+    if (!section) {
+      section = { titre: "", paragraphes: [], images: [] };
+      article.push(section);
+    }
+    section.paragraphes.push(ligne);
+  }
+  return article;
+}
+
+/** Aperçu de la carte : description fournie, sinon le 1er paragraphe hors puces (comme le script). */
+function deduireDescriptionSkill(article: SectionArticle[], titre: string): string {
+  const premier = article.flatMap((s) => s.paragraphes).find((p) => !p.startsWith("•"));
+  return (premier || titre).slice(0, 220);
+}
+
+export async function importerSkillsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
+  if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
+
+  const analyse = verifierCsv(await lireSource(donnees));
+  if (!analyse || !("lignes" in analyse)) return analyse;
+  const csv = analyse;
+  const col = (champ: string) => csv.colonnes.has(normaliserEntete(champ));
+  const maj = donnees.get("maj") === "on";
+
+  const existants = await prisma.skill.findMany({ select: { slug: true } });
+  const slugsPris = new Set(existants.map((s) => s.slug));
+  const slugeur = new Sluggeur(slugifier, slugsPris);
+
+  let crees = 0;
+  let majes = 0;
+  let ignores = 0;
+  const erreurs: string[] = [];
+
+  for (let i = 0; i < csv.lignes.length; i++) {
+    const l = csv.lignes[i];
+    const numero = i + 2;
+
+    try {
+      const titre = lit(l, "titre").trim();
+      if (titre.length < 3) {
+        erreurs.push(`Ligne ${numero} : titre trop court ou manquant.`);
+        continue;
+      }
+
+      // « sections » → article JSONB (au moins un paragraphe, une puce
+      // ou une image, comme le script du lot 40)
+      const article = parserSections(lit(l, "sections"));
+      const nbBlocs = article.reduce((n, s) => n + s.paragraphes.length + s.images.length, 0);
+      if (nbBlocs === 0) {
+        erreurs.push(
+          `Ligne ${numero} : colonne « sections » vide (au moins un paragraphe, une puce ou une image) — ${titre}.`
+        );
+        continue;
+      }
+
+      const slugDemande = lit(l, "slug").trim();
+      const slug = slugDemande ? slugifier(slugDemande) : slugeur.de(titre);
+      const existant = slugsPris.has(slug) ? await prisma.skill.findUnique({ where: { slug } }) : null;
+      if (existant && !maj) {
+        ignores++;
+        continue;
+      }
+
+      // Description : colonne fournie, sinon déduite du 1er paragraphe
+      // hors puces (exactement comme le script du lot 40)
+      const descriptionFournie = lit(l, "description").trim();
+      const description = (descriptionFournie || deduireDescriptionSkill(article, titre)).slice(0, 220);
+
+      const articleJson = article as unknown as Prisma.InputJsonValue;
+
+      if (existant) {
+        // MISE À JOUR : seules les colonnes présentes dans le CSV écrasent.
+        // « vues » ABSENTE = compteur conservé (jamais remis à zéro).
+        const champs: Partial<{
+          description: string; categorie: string; tags: string[]; auteur: string;
+          popularite: number; featured: boolean; image: string; imageAlt: string;
+          lienSource: string; depotUrl: string | null; demarrage: string | null;
+          articleTitre: string; article: Prisma.InputJsonValue; ordre: number; vues: number;
+        }> = {};
+        if (col("sections")) {
+          champs.article = articleJson;
+          // l'aperçu suit le contenu quand aucune description n'est fournie
+          if (!descriptionFournie) champs.description = description;
+        }
+        if (col("description")) champs.description = description;
+        if (col("categorie")) champs.categorie = lit(l, "categorie").trim().slice(0, 60) || "Autres";
+        if (col("tags")) champs.tags = decouper(lit(l, "tags"), 12);
+        if (col("auteur")) champs.auteur = lit(l, "auteur").trim().slice(0, 80);
+        if (col("popularite")) champs.popularite = entier(lit(l, "popularite"), 0);
+        if (col("featured")) champs.featured = booleen(lit(l, "featured"));
+        if (col("image")) champs.image = lit(l, "image").trim().slice(0, 500);
+        if (col("imagealt")) champs.imageAlt = lit(l, "imagealt").trim().slice(0, 200) || titre;
+        if (col("liensource")) champs.lienSource = lit(l, "liensource").trim().slice(0, 500);
+        if (col("depoturl")) champs.depotUrl = lit(l, "depoturl").trim().slice(0, 500) || null;
+        if (col("demarrage")) champs.demarrage = lit(l, "demarrage").trim().slice(0, 300) || null;
+        if (col("articletitre")) champs.articleTitre = lit(l, "articletitre").trim().slice(0, 140);
+        if (col("ordre")) champs.ordre = entier(lit(l, "ordre"), 0);
+        if (col("vues")) champs.vues = entier(lit(l, "vues"), 0);
+
+        await prisma.skill.update({
+          where: { id: existant.id },
+          data: {
+            titre: titre.slice(0, 140),
+            ...champs,
+          },
+        });
+        majes++;
+      } else {
+        // CRÉATION : colonnes absentes → valeurs par défaut du modèle
+        await prisma.skill.create({
+          data: {
+            titre: titre.slice(0, 140),
+            slug,
+            description,
+            categorie: lit(l, "categorie").trim().slice(0, 60) || "Autres",
+            tags: decouper(lit(l, "tags"), 12),
+            auteur: lit(l, "auteur").trim().slice(0, 80),
+            popularite: entier(lit(l, "popularite"), 0),
+            featured: booleen(lit(l, "featured")),
+            image: lit(l, "image").trim().slice(0, 500),
+            imageAlt: lit(l, "imagealt").trim().slice(0, 200) || titre,
+            lienSource: lit(l, "liensource").trim().slice(0, 500),
+            depotUrl: lit(l, "depoturl").trim().slice(0, 500) || null,
+            demarrage: lit(l, "demarrage").trim().slice(0, 300) || null,
+            articleTitre: lit(l, "articletitre").trim().slice(0, 140) || titre,
+            article: articleJson,
+            vues: entier(lit(l, "vues"), 0),
+            ordre: entier(lit(l, "ordre"), 0),
+          },
+        });
+        slugsPris.add(slug);
+        crees++;
+      }
+    } catch (e) {
+      erreurs.push(`Ligne ${numero} : erreur inattendue (${e instanceof Error ? e.message : "inconnue"}).`);
+    }
+  }
+
+  revalidatePath("/admin"); revalidatePath("/admin/skills"); revalidatePath("/skills");
+
+  return {
+    ok: true,
+    message: `Import des skills terminé : ${crees} créé(s), ${majes} mis à jour, ${ignores} ignoré(s).`,
+    crees,
+    majes,
+    ignores,
     erreurs: erreurs.slice(0, 30),
     erreursTotal: erreurs.length,
   };
