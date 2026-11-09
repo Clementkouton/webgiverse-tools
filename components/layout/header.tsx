@@ -1,23 +1,17 @@
 // components/layout/header.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 40 — 2 correctifs, charte 100 % inchangée :
+// Lot 42 — reprend le header Lot 40 et ajoute whitespace-nowrap sur
+// chaque lien de la nav : « Prompts IA » ne peut JAMAIS se couper
+// sur deux lignes, même sur un écran PC juste à 1024 px.
 //
-//   1. CORRECTIF « L'ONGLET ANNUAIRE NE SE FERME PAS » :
-//      le menu déroulant Annuaire était un <details> HTML : il ne se
-//      referme ni au clic à l'extérieur, ni avec la touche Échap, ni
-//      après un changement de page. Il devient un menu piloté par
-//      état qui se ferme dans ces 3 cas + au clic sur un lien du menu.
-//
+//   1. CORRECTIF « L'ONGLET ANNUAIRE NE SE FERME PAS » : menu piloté
+//      par état — fermeture au clic extérieur, Échap, changement de page.
 //   2. NAVIGATION CENTRÉE SUR PC : les 5 liens (Annuaire, Prompts IA,
-//      Tutoriels, Skills, Premium) sont désormais PARFAITEMENT
-//      centrés dans la barre (position absolue centrée), quelle que
-//      soit la largeur du logo à gauche et du bouton à droite.
-//
-// Tout le reste est strictement identique au lot 38 : détection de
-// session, masquage sur /dashboard et /admin, menu mobile, pastille
-// Premium, état actif violet.
-// ⚠️ Fichier COMPLET : remplace TOUT le contenu de ton
-//    components/layout/header.tsx actuel.
+//      Tutoriels, Skills, Premium) sont PARFAITEMENT centrés dans la
+//      barre (position absolue centrée).
+//   3. CORRECTIF « TITRE MASQUÉ » : la barre est sticky DANS le flux
+//      → elle ne recouvre plus jamais le contenu des pages.
+// ⚠️ Fichier COMPLET : remplace TOUT le contenu de ton header.tsx.
 // ─────────────────────────────────────────────────────────────────
 "use client";
 import Link from "next/link";
@@ -112,7 +106,7 @@ export function Header() {
 
   /** Classe commune des liens simples : actif = pastille violette. */
   const classeLien = (actif: boolean) =>
-    `rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium transition ${
+    `rounded-full px-4 py-2.5 text-[15px] leading-5 font-medium whitespace-nowrap transition ${
       actif
         ? "bg-violet/10 text-violet"
         : "text-bleu hover:bg-violet/10 hover:text-violet"
@@ -136,7 +130,7 @@ export function Header() {
               onClick={() => setAnnuaireOuvert((v) => !v)}
               aria-expanded={annuaireOuvert}
               aria-haspopup="true"
-              className={`flex min-h-11 cursor-pointer items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium transition ${
+              className={`flex min-h-11 cursor-pointer items-center gap-1 rounded-full px-4 text-[15px] leading-5 font-medium whitespace-nowrap transition ${
                 annuaireActif
                   ? "bg-violet/10 text-violet"
                   : "text-bleu hover:bg-violet/10 hover:text-violet"
@@ -170,16 +164,16 @@ export function Header() {
           <Link href="/skills" aria-current={skillsActif ? "page" : undefined}
             className={
               skillsActif
-                ? "inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-violet"
-                : "inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[15px] leading-5 font-semibold text-violet/80 transition hover:bg-violet/10 hover:text-violet"
+                ? "inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-violet"
+                : "inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-violet/80 transition hover:bg-violet/10 hover:text-violet"
             }>
             <Sparkles className="size-4" aria-hidden /> Skills
           </Link>
           <Link href="/tarifs" aria-current={premiumActif ? "page" : undefined}
             className={
               premiumActif
-                ? "inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                : "inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold text-violet transition hover:bg-violet hover:text-white"
+                ? "inline-flex items-center gap-1.5 rounded-full bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                : "inline-flex items-center gap-1.5 rounded-full bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-violet transition hover:bg-violet hover:text-white"
             }>
             <Sparkles className="size-4" aria-hidden /> Premium
           </Link>

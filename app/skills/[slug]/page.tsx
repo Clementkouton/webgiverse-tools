@@ -1,7 +1,8 @@
 // app/skills/[slug]/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 41 — FICHE D'UNE SKILL IA — fichier COMPLET (corrige l'erreur de
-// build Vercel « File ... is not a module », causée par un fichier vide).
+// Lot 41/42 — FICHE D'UNE SKILL IA — fichier COMPLET (corrige l'erreur
+// de build Vercel « File ... is not a module », causée par un fichier
+// vide).
 //   · Verrou Premium côté serveur (lib/acces-skills.ts) : sans abonnement
 //     actif, l'article n'est JAMAIS rendu — bloc verrou à la place.
 //   · Images (couverture + article) TOUJOURS rendues en vraies <img>

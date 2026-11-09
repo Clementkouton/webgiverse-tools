@@ -1,6 +1,6 @@
 // components/dashboard/menu-dashboard.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 41 — Coquille du dashboard « Metis » adaptée à la charte
+// Lot 41/42 — Coquille du dashboard « Metis » adaptée à la charte
 // Webgiverse (polices du site conservées : font-titre + Inter) :
 //   • Barre supérieure collante TOUS ÉCRANS : titre + sous-titre de la
 //     page courante, recherche qui mène à l'annuaire, profil à droite,
@@ -8,8 +8,7 @@
 //   • Barre latérale fixe sur ordinateur, tiroir coulissant animé sur
 //     mobile (fond assombri, fermeture Échap, verrou de défilement).
 //   • Section « Apprendre » : Prompts IA, Tutoriels IA, Mes notes,
-//     Mes conversations + accès direct à la bibliothèque de skills
-//     (NOUVEAU Lot 41 — entrée « Bibliothèque de skills »).
+//     Mes conversations + accès direct à la bibliothèque de skills.
 //   • Toile gris clair derrière le contenu : les cartes blanches
 //     ressortent comme dans le template Metis.
 // L'état actif suit l'URL (/dashboard?onglet=…) et les routes
@@ -50,7 +49,7 @@ import { cn } from "@/lib/utils";
 import { LienLogo } from "@/components/commun/logo";
 import PiedDashboard from "@/components/dashboard/pied-dashboard";
 import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
-import ClocheNotifications from "@/components/dashboard/cloche-notifications";
+import ClocheNotifications  from "@/components/dashboard/cloche-notifications";
 
 type Props = {
   prenom: string;

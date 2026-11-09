@@ -1,14 +1,20 @@
 // app/skills/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 41 — Bibliothèque de Skills IA (/skills), RÉSERVÉE AUX ABONNÉS
+// Lot 42 — Bibliothèque de Skills IA (/skills), RÉSERVÉE AUX ABONNÉS
 // Premium (Pro / Entreprise) — verrou calculé côté serveur dans
 // lib/acces-skills.ts (impossible à contourner depuis le navigateur).
-//   · Visiteur non connecté  → bloc verrou + aperçu flouté + connexion
-//   · Membre sans abonnement → bloc verrou + aperçu flouté + Premium
-//   · Abonné actif           → recherche, onglets, grille, pagination
-// Les couvertures sont des URLs distantes TOUJOURS rendues en vraies
-// balises <img> (composant CarteSkill) : jamais une URL en texte brut.
-// Fichier COMPLET (remplace tout fichier tronqué ou vide).
+//
+// CORRECTIFS DES BUGS VISIBLES SUR TA CAPTURE (lot 42) :
+//   1. DOUBLE BANDEAU PREMIUM SUPPRIMÉ : le bandeau « La bibliothèque
+//      est réservée… Débloquer l'accès » ne s'affiche PLUS pour les
+//      non-abonnés (ils voient UNIQUEMENT le bloc verrou + l'aperçu
+//      flouté) ; les abonnés voient un bandeau discret « Ton accès
+//      Premium est actif ».
+//   2. TITRE MASQUÉ DERRIÈRE LA NAV : corrigé par le nouveau header
+//      (sticky DANS le flux) → plus aucun chevauchement possible.
+//   3. Les couvertures sont des URLs distantes TOUJOURS rendues en
+//      vraies balises <img> (composant CarteSkill) : jamais une URL
+//      en texte brut (bug image).
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -68,8 +74,10 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
   return (
     <>
       {/* ── Héros ─────────────────────────────────────────────────── */}
+      {/* pt généreux : le header collant étant DANS le flux, le titre
+          ne peut plus passer derrière la barre, même en scrollant. */}
       <section className="hero-verre border-b border-bordure">
-        <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
+        <div className="mx-auto max-w-7xl px-4 pt-12 pb-12 text-center lg:pt-16 lg:pb-16">
           <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
             <Terminal className="size-3.5" aria-hidden /> Skills IA
           </p>
@@ -97,41 +105,26 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-10 lg:py-12">
-        {/* ── Bandeau d'accès Premium ──────────────────────────────── */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4 sm:px-6">
-          <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-violet/10">
-              {premium ? (
+        {/* ── Bandeau « accès Premium actif » — ABONNÉS UNIQUEMENT ──
+            (Lot 42 : il n'apparaît PLUS pour les non-abonnés — c'était
+            le double bandeau de ta capture. Le bloc verrou ci-dessous
+            est désormais leur SEUL message d'invitation.) */}
+        {premium && (
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-4 sm:px-6">
+            <div className="flex items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-violet/10">
                 <Sparkles className="size-4.5 text-violet" aria-hidden />
-              ) : (
-                <Lock className="size-4.5 text-violet" aria-hidden />
-              )}
-            </span>
-            {premium ? (
+              </span>
               <p className="max-w-2xl text-[14px] leading-6 text-encre">
                 <strong className="font-semibold text-bleu">Ton accès Premium est actif</strong> :
                 les {stats.total} skills, leurs images, leurs commandes d&apos;installation et
                 l&apos;intégralité des articles sont débloquées. Bonne exploration&nbsp;!
               </p>
-            ) : (
-              <p className="max-w-2xl text-[14px] leading-6 text-encre">
-                La bibliothèque de skills est{" "}
-                <strong className="font-semibold text-bleu">réservée aux abonnés Premium</strong>{" "}
-                (Pro ou Entreprise) : fiches complètes traduites en français, images et commande
-                d&apos;installation copiable.
-              </p>
-            )}
+            </div>
           </div>
-          {!premium && (
-            <Bouton asChild taille="sm">
-              <Link href="/tarifs">
-                <Sparkles aria-hidden /> Débloquer l&apos;accès
-              </Link>
-            </Bouton>
-          )}
-        </div>
+        )}
 
-        {/* ── NON PREMIUM : bloc verrou + aperçu flouté ─────────────── */}
+        {/* ── NON PREMIUM : bloc verrou (unique) + aperçu flouté ────── */}
         {!premium && (
           <div className="space-y-6">
             <BlocVerrouSkills connecte={acces.connecte} />
