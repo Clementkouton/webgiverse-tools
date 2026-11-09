@@ -1,9 +1,21 @@
 // app/dashboard/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// MON ESPACE — tableau de bord utilisateur enrichi.
+// MON ESPACE — tableau de bord utilisateur, ACCUEIL ÉPURÉ (lot 53).
 // 5 onglets : Aperçu / Favoris / Mes listes / Mes avis / Activité.
 // Navigation par paramètre d'URL (?onglet=…) : tout reste côté
 // serveur, aucune donnée ne se charge inutilement.
+//
+// Lot 53 — l'aperçu ne garde que les STATISTIQUES et l'ESSENTIEL :
+//   · checklist d'onboarding, 6 cartes statistiques, graphiques ;
+//   · rappels « À tester », derniers favoris, raccourcis ;
+//   · accès anticipé aux nouveautés (plan Entreprise, invisible sinon).
+// Tout le reste est DISTRIBUÉ là où il vit déjà :
+//   · Tutoriels à suivre      → /dashboard/tutoriels ;
+//   · Prompts IA populaires   → /dashboard/prompts ;
+//   · Mon abonnement          → /dashboard/abonnement ;
+//   · Mon profil + suggestions « objectif » → /dashboard/profil (lot 53) ;
+//   · Médailles, Vu récemment, Recommandations de l'assistant
+//     → onglet « Activité » de cette même page.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -23,7 +35,6 @@ import {
   MessageSquareQuote,
   MonitorPlay,
   Pencil,
-  Play,
   Plus,
   Search,
   Share2,
@@ -46,7 +57,6 @@ import { LogoOutil } from "@/components/commun/logo-outil";
 import { SelecteurStatut } from "@/components/dashboard/selecteur-statut";
 import { EditeurNote } from "@/components/dashboard/editeur-note";
 import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
-import { FormulaireProfil } from "@/components/dashboard/formulaire-profil";
 import { EditeurAvis } from "@/components/dashboard/editeur-avis";
 import {
   ajouterDansListeFormulaire,
@@ -64,7 +74,6 @@ import BoutonExportPdf from "@/components/pdf/bouton-export-pdf";
 import { CarteStatistique } from "@/components/dashboard/carte-statistique";
 import { GraphiqueActivite } from "@/components/dashboard/graphique-activite";
 import { GraphiqueRepartition } from "@/components/dashboard/graphique-repartition";
-import { urlMiniature, formaterDuree, NIVEAUX } from "@/lib/tutos-utils";
 // Lot 20 — engagement & rétention
 import { calculerOnboarding, calculerStreak } from "@/lib/engagement";
 import { synchroniserNotificationsTutos } from "@/lib/notifications";
@@ -207,7 +216,7 @@ export default async function PageDashboard({
   }
   const streak = calculerStreak(activitesRecents.map((a) => a.creeLe));
 
-  // ── Abonnement (chargé une seule fois pour l'en-tête ET l'onglet Aperçu) ──
+  // ── Abonnement (chargé une seule fois pour l'en-tête) ──────────
   const prismaAbonnement = (prisma as any).abonnement;
   const abonnementEnTete = prismaAbonnement?.findUnique
     ? await prismaAbonnement
@@ -221,7 +230,7 @@ export default async function PageDashboard({
   const planNomEnTete = abonnementEnTeteActif
     ? (PLANS[abonnementEnTete.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Pro")
     : "Découverte";
-    const premium = Boolean(abonnementEnTeteActif);
+  const premium = Boolean(abonnementEnTeteActif);
   // Plan Entreprise = promesses spécifiques : accès anticipé aux nouveautés
   // et historique d'activité étendu (voir /tarifs et lib/plans.ts).
   const planEntreprise = Boolean(
@@ -311,32 +320,8 @@ export default async function PageDashboard({
   // ── Contenu selon l'onglet actif ───────────────────────────────
   let contenu: React.ReactNode = null;
 
-  /* ══════════════ ONGLET APERÇU ══════════════ */
+  /* ══════════════ ONGLET APERÇU (épuré — lot 53) ══════════════ */
   if (ongletActif === "apercu") {
-    const [recommandations, suggestions] = await Promise.all([
-      prisma.recommendation.findMany({
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: 4,
-      }),
-      utilisateur?.objectif
-        ? prisma.tool.findMany({
-            where: { statut: "PUBLIE", objectifs: { has: utilisateur.objectif } },
-            orderBy: [{ misEnAvant: "desc" }, { createdAt: "desc" }],
-            take: premium ? 6 : 3,
-            select: {
-              id: true,
-              nom: true,
-              slug: true,
-              logo: true,
-              description: true,
-              tarif: true,
-              gratuit: true,
-            },
-          })
-        : Promise.resolve([]),
-    ]);
-
     // ── Accès anticipé aux nouveautés (plan Entreprise) : les derniers
     // outils publiés qui ne sont pas encore mis en avant, visibles ici
     // avant leur passage à la une — promesse affichée sur /tarifs. ──
@@ -356,14 +341,6 @@ export default async function PageDashboard({
           },
         })
       : [];
-
-    // ── Abonnement déjà chargé dans l'en-tête commun (lecture défensive) ──
-    const abonnementActif =
-      abonnementEnTete &&
-      abonnementEnTete.statut === "ACTIF" &&
-      abonnementEnTete.expireLe > new Date()
-        ? abonnementEnTete
-        : null;
 
     // ── Données du tableau de bord (style Metis) — toutes défensives :
     //    si une table est absente ou vide, l'aperçu reste affichable. ──
@@ -441,37 +418,6 @@ export default async function PageDashboard({
       take: 5,
     });
 
-    const tutosPopulaires = await prisma.tuto.findMany({
-      orderBy: [{ vues: "desc" }],
-      take: 3,
-      select: {
-        slug: true,
-        titre: true,
-        dureeMin: true,
-        niveau: true,
-        miniature: true,
-        youtubeId: true,
-        vues: true,
-      },
-    });
-
-    const deleguePrompt = (prisma as any).prompt;
-    const promptsPopulaires = deleguePrompt?.findMany
-      ? await deleguePrompt
-          .findMany({
-            orderBy: [{ vues: "desc" }],
-            take: 4,
-            select: {
-              slug: true,
-              titre: true,
-              emoji: true,
-              vues: true,
-              categorie: { select: { nom: true } },
-            },
-          })
-          .catch(() => [])
-      : [];
-
     const formateurJour = new Intl.DateTimeFormat("fr-FR", {
       day: "numeric",
       month: "short",
@@ -483,44 +429,6 @@ export default async function PageDashboard({
         <div className="mt-8">
           <ChecklistOnboarding onboarding={onboarding} />
         </div>
-
-        {/* ── Lot 20 — Rangée de badges SOUS les stat cards ────────── */}
-        <Carte className="animate-apparition-haut delai-1 mt-6 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Tes médailles</h2>
-            <Link
-              href="/dashboard?onglet=activite"
-              className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
-            >
-              {badges.filter((b) => b.obtenu).length} / {badges.length} débloquées →
-            </Link>
-          </div>
-          <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-            {badges.map((b) => (
-              <div
-                key={b.titre}
-                title={b.description}
-                className={`flex w-32 shrink-0 flex-col items-center gap-1.5 rounded-carte border p-3.5 text-center transition ${
-                  b.obtenu
-                    ? "border-transparent bg-[linear-gradient(140deg,rgba(106,59,255,0.12),rgba(0,209,255,0.10))] shadow-[0_4px_14px_rgba(106,59,255,0.18)]"
-                    : "border-bordure bg-gris/60 opacity-60"
-                }`}
-              >
-                <span
-                  className={`grid size-10 place-items-center rounded-full text-[18px] ${
-                    b.obtenu
-                      ? "bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-white"
-                      : "bg-white text-encre"
-                  }`}
-                >
-                  {b.obtenu ? <b.icone className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
-                </span>
-                <p className="font-titre text-[12px] leading-4 font-semibold text-bleu">{b.titre}</p>
-                <p className="text-[11px] leading-3.5 text-encre">{b.description}</p>
-              </div>
-            ))}
-          </div>
-        </Carte>
 
         {/* ── Cartes statistiques (style Metis) ───────────────────── */}
         <section aria-label="Mes statistiques" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -637,9 +545,12 @@ export default async function PageDashboard({
           <CarteRappelsATester outils={outilsEnAttente} />
         </div>
 
-        {/* ── Derniers favoris (tableau style Metis) + Tutoriels ──── */}
-        <section className="mt-6 grid gap-4 lg:grid-cols-3">
-          <Carte className="animate-apparition-haut overflow-hidden p-0 lg:col-span-2">
+        {/* ── Derniers favoris (tableau style Metis) ──────────────── */}
+        {/* Lot 53 : la carte « Tutoriels à suivre » qui partageait cette
+            rangée vit maintenant sur /dashboard/tutoriels — le tableau
+            passe en pleine largeur. */}
+        <section className="mt-6">
+          <Carte className="animate-apparition-haut overflow-hidden p-0">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bordure px-5 pt-5 pb-4">
               <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
                 Derniers favoris
@@ -714,256 +625,7 @@ export default async function PageDashboard({
               </div>
             )}
           </Carte>
-
-          {/* Tutoriels à suivre (les plus vus) */}
-          <Carte className="animate-apparition-haut delai-1 p-5">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-                Tutoriels à suivre
-              </h2>
-              <Link
-                href="/tutoriels"
-                className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
-              >
-                Tous →
-              </Link>
-            </div>
-            {tutosPopulaires.length > 0 ? (
-              <ul className="mt-4 grid gap-4">
-                {tutosPopulaires.map((t) => {
-                  const niveau = NIVEAUX[t.niveau];
-                  const mini = urlMiniature(t);
-                  return (
-                    <li key={t.slug}>
-                      <Link href={`/tutoriels/${t.slug}`} className="group flex items-center gap-3">
-                        <span className="relative block aspect-video w-24 shrink-0 overflow-hidden rounded-champ bg-bleu">
-                          {mini ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={mini}
-                              alt=""
-                              loading="lazy"
-                              className="size-full object-cover transition duration-300 group-hover:scale-105"
-                            />
-                          ) : (
-                            <span className="grid size-full place-items-center bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)]">
-                              <Play className="size-5 text-white" aria-hidden />
-                            </span>
-                          )}
-                          <span className="absolute right-1 bottom-1 rounded bg-black/75 px-1.5 text-[10px] leading-3.5 font-semibold text-white">
-                            {formaterDuree(t.dureeMin)}
-                          </span>
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="line-clamp-2 block text-[13px] leading-4 font-semibold text-bleu group-hover:text-sky-500">
-                            {t.titre}
-                          </span>
-                          <span className="mt-1 block text-[12px] leading-4 text-encre">
-                            {niveau.libelle} · {t.vues.toLocaleString("fr-FR")} vues
-                          </span>
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="mt-6 mb-2 text-[14px] leading-6 text-encre">
-                Les tutoriels vidéo apparaîtront ici dès leur publication.
-              </p>
-            )}
-          </Carte>
         </section>
-
-        {/* ── Prompts IA populaires ────────────────────────────────── */}
-        <section className="mt-6">
-          <Carte className="animate-apparition-haut p-5 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-                  Prompts IA populaires
-                </h2>
-                <p className="mt-0.5 text-[13px] leading-4 text-encre">
-                  Les prompts les plus consultés — lecture et copie réservées aux
-                  abonnés Premium.
-                </p>
-              </div>
-              <Link
-                href="/prompts"
-                className="inline-flex min-h-10 shrink-0 items-center rounded-full border border-sky-500 bg-sky-500/5 px-4 text-[13px] leading-4 font-semibold text-sky-500 transition hover:bg-sky-500 hover:text-white"
-              >
-                Explorer la bibliothèque
-              </Link>
-            </div>
-            {promptsPopulaires.length > 0 ? (
-              <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {promptsPopulaires.map(
-                  (p: { slug: string; titre: string; emoji: string; vues: number; categorie?: { nom: string } | null }) => (
-                    <li key={p.slug}>
-                      <Link
-                        href={`/prompts/${p.slug}`}
-                        className="group flex h-full items-start gap-3 rounded-carte border border-bordure p-4 transition hover:border-sky-500"
-                      >
-                        <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-[18px]">
-                          {p.emoji || "✨"}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="line-clamp-2 block text-[14px] leading-5 font-semibold text-bleu group-hover:text-sky-500">
-                            {p.titre}
-                          </span>
-                          <span className="mt-1 block text-[12px] leading-4 text-encre">
-                            {p.categorie?.nom ?? "Prompt"} · {p.vues.toLocaleString("fr-FR")} vues
-                          </span>
-                        </span>
-                      </Link>
-                    </li>
-                  ),
-                )}
-              </ul>
-            ) : (
-              <p className="mt-4 text-[14px] leading-6 text-encre">
-                La bibliothèque de prompts s&apos;affichera ici dès que les
-                données seront disponibles.
-              </p>
-            )}
-          </Carte>
-        </section>
-
-        {/* Mon abonnement Premium */}
-        <Carte className="animate-apparition-haut delai-2 mt-8 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-sky-500/10 text-sky-500">
-                <Crown className="size-5" aria-hidden />
-              </span>
-              <div className="min-w-0">
-                <h2 className="text-h3 font-semibold">Mon abonnement</h2>
-                {abonnementActif ? (
-                  <p className="mt-1 text-legende text-encre">
-                    Plan{" "}
-                    {PLANS[abonnementActif.plan as "PRO" | "ENTREPRISE"]?.nom ?? "Pro"} actif
-                    jusqu&apos;au{" "}
-                    {new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(
-                      abonnementActif.expireLe,
-                    )}
-                    {abonnementActif.annuleLe
-                      ? " — renouvellement arrêté, tu gardes tes jours payés"
-                      : " — se renouvelle automatiquement à la fin de la période"}
-                  </p>
-                ) : abonnementEnTete ? (
-                  <p className="mt-1 text-legende text-encre">
-                    Ton abonnement Premium n&apos;est plus actif. Renouvelle-le en un clic pour
-                    retrouver tes avantages.
-                  </p>
-                ) : (
-                  <p className="mt-1 text-legende text-encre">
-                        Tu es sur le plan Découverte (gratuit). Passe Premium pour débloquer favoris,
-                        listes et assistant illimités, et plus encore.
-                  </p>
-                )}
-              </div>
-            </div>
-            {abonnementActif ? (
-              <div className="flex shrink-0 items-center gap-2">
-                <Badge variante="magenta">
-                  <Crown className="size-3.5" aria-hidden /> Premium
-                </Badge>
-                <Bouton variante="secondaire" taille="sm" asChild>
-                  <Link href="/dashboard/abonnement">Gérer mon abonnement</Link>
-                </Bouton>
-              </div>
-            ) : (
-              <Bouton taille="sm" asChild className="shrink-0">
-                <Link href="/dashboard/abonnement#plans">
-                  {abonnementEnTete ? "Renouveler Premium" : "Voir les plans"}
-                </Link>
-              </Bouton>
-            )}
-          </div>
-        </Carte>
-
-        {/* Mon profil */}
-        <Carte className="animate-apparition-haut delai-4 mt-8 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-h3 font-semibold">Mon profil</h2>
-            <Bouton variante="secondaire" taille="sm" asChild>
-              <Link href="/assistant">Refaire le diagnostic</Link>
-            </Bouton>
-          </div>
-          <FormulaireProfil
-            nomInitial={utilisateur?.name ?? ""}
-            objectifInitial={utilisateur?.objectif ?? ""}
-            niveauInitial={utilisateur?.niveau ?? ""}
-            budgetInitial={utilisateur?.budget ?? ""}
-          />
-        </Carte>
-
-        {/* Suggestions liées à l'objectif */}
-        {utilisateur?.objectif && suggestions.length > 0 ? (
-          <section className="mt-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-h3 font-semibold">Pour ton objectif « {utilisateur.objectif} »</h2>
-                {premium && (
-                  <Badge variante="magenta">
-                    <Crown className="size-3.5" aria-hidden /> Priorité Premium · le double
-                  </Badge>
-                )}
-              </div>
-              <Link
-                href="/outils"
-                className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
-              >
-                Voir l'annuaire <ChevronRight className="size-4" aria-hidden />
-              </Link>
-            </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
-              {suggestions.map((o, index) => (
-                <Carte
-                  key={o.id}
-                  className="animate-apparition-haut survol-carte p-5"
-                  style={{ animationDelay: `${index * 90}ms` }}
-                >
-                  <div className="flex items-start gap-3">
-                    <LogoOutil nom={o.nom} logo={o.logo} />
-                    <div className="min-w-0">
-                      <Link
-                        href={`/outil/${o.slug}`}
-                        className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500"
-                      >
-                        {o.nom}
-                      </Link>
-                      <p className="text-legende text-encre">
-                        {o.gratuit ? "Version gratuite disponible" : o.tarif}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="mesure mt-3 line-clamp-2 text-[14px] leading-5 text-encre">{o.description}</p>
-                  <Link
-                    href={`/outil/${o.slug}`}
-                    className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] leading-5 font-semibold text-sky-500 hover:underline"
-                  >
-                    Découvrir <ChevronRight className="size-4" aria-hidden />
-                  </Link>
-                </Carte>
-              ))}
-            </div>
-          </section>
-        ) : (
-          <Carte className="mt-8 flex flex-wrap items-center justify-between gap-4 p-6">
-            <div>
-              <h2 className="font-titre text-[17px] leading-6 font-semibold">Personnalise tes recommandations</h2>
-              <p className="mt-1 text-legende text-encre">
-                Indique ton objectif ci-dessus ou lance le diagnostic : le dashboard t'orientera vers les bons outils.
-              </p>
-            </div>
-            <Bouton variante="secondaire" asChild>
-              <Link href="/assistant">
-                  <Bot aria-hidden /> Faire le diagnostic
-              </Link>
-            </Bouton>
-          </Carte>
-        )}
 
         {/* Accès anticipé aux nouveautés (plan Entreprise) */}
         {planEntreprise && nouveauxEntreprise.length > 0 && (
@@ -1011,65 +673,6 @@ export default async function PageDashboard({
             </div>
           </section>
         )}
-
-        {/* Vu récemment (version compacte) */}
-        <VuRecemment variante="compacte" />
-
-        {/* Recommandations de l'assistant */}
-        <section className="mt-10">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-h3 font-semibold">Dernières recommandations de l'assistant</h2>
-            <Link
-              href="/assistant"
-              className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
-            >
-              Ouvrir l'assistant 
-            </Link>
-          </div>
-          <div className="mt-4 grid gap-3">
-            {recommandations.map((r) => {
-              let outilsReco: { slug: string; nom: string }[] = [];
-              try {
-                outilsReco = r.mode === "guide" ? JSON.parse(r.reponse) : [];
-              } catch {
-                /* réponse texte */
-              }
-              return (
-                <Carte key={r.id} className="p-5">
-                  <p className="flex flex-wrap items-center gap-2 text-legende text-encre">
-                    {formateurDate.format(r.createdAt)}
-                    <Badge>{r.mode === "guide" ? "Diagnostic guidé" : "Conversation"}</Badge>
-                  </p>
-                  {outilsReco.length > 0 ? (
-                    <ul className="mt-2 flex flex-wrap gap-2">
-                      {outilsReco.map((o) => (
-                        <li key={o.slug}>
-                          <Link
-                            href={`/outil/${o.slug}`}
-                            className="inline-flex rounded-full border border-sky-500 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-medium text-sky-500 hover:bg-sky-500/10"
-                          >
-                            {o.nom}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mesure mt-2 line-clamp-3 text-[14px] leading-5 text-encre">{r.reponse}</p>
-                  )}
-                </Carte>
-              );
-            })}
-            {recommandations.length === 0 && (
-              <Carte className="p-6 text-encre">
-                L'assistant ne t'a encore rien recommandé.{" "}
-                <Link href="/assistant" className="font-semibold text-sky-500 hover:underline">
-                  Lance-le ici
-                </Link>
-                .
-              </Carte>
-            )}
-          </div>
-        </section>
 
         {/* Raccourcis */}
         <section className="mt-10" aria-label="Raccourcis">
@@ -1514,7 +1117,7 @@ export default async function PageDashboard({
     );
   }
 
-  /* ══════════════ ONGLET ACTIVITÉ ══════════════ */
+  /* ══════════════ ONGLET ACTIVITÉ (enrichi — lot 53) ══════════════ */
   if (ongletActif === "activite") {
     let activites: { id: string; type: string; details: string | null; creeLe: Date }[] = [];
     try {
@@ -1532,79 +1135,184 @@ export default async function PageDashboard({
       where: { utilisateurId: userId },
     });
 
-    contenu = (
-      <section className="mt-8 grid gap-6 lg:grid-cols-3">
-        {/* Conversations avec l'assistant */}
-        <div className="grid content-start gap-4">
-          <Carte className="p-5">
-            <h2 className="font-titre text-[17px] leading-6 font-semibold">Tes conversations IA</h2>
-            <p className="mt-2 font-titre text-[32px] leading-10 font-bold">{nbConversations}</p>
-            <p className="text-legende text-encre">conversations avec l'assistant</p>
-            <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
-              <Link href="/assistant">
-                <Bot aria-hidden /> Continuer
-              </Link>
-            </Bouton>
-          </Carte>
-          <Carte className="p-5">
-            <h2 className="font-titre text-[17px] leading-6 font-semibold">Rappel</h2>
-            <ul className="mt-3 grid gap-2 text-[14px] leading-5 text-encre">
-              <li>⭐ Ajoute un outil en favori depuis n'importe quelle carte.</li>
-              <li>📝 Publie un avis pour aider la communauté.</li>
-              <li>👍 Vote pour recommander tes outils préférés.</li>
-              <li>✅ Marque tes favoris « Adoptés » quand tu les valides.</li>
-            </ul>
-          </Carte>
-        </div>
+    // Lot 53 — historique des recommandations de l'assistant, déplacé
+    // de l'accueil : c'est de l'activité IA, à sa place ici.
+    const recommandations = await prisma.recommendation.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+    });
 
-        {/* Journal d'activité */}
-        <div className="lg:col-span-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-h3 font-semibold">Journal d&apos;activité</h2>
-            {planEntreprise ? (
-              <Badge variante="magenta">
-                <Crown className="size-3.5" aria-hidden /> Étendu · 200 entrées
-              </Badge>
-            ) : (
-              <Badge variante="source">Les 25 dernières</Badge>
-            )}
+    contenu = (
+      <>
+        <section className="mt-8 grid gap-6 lg:grid-cols-3">
+          {/* Conversations avec l'assistant */}
+          <div className="grid content-start gap-4">
+            <Carte className="p-5">
+              <h2 className="font-titre text-[17px] leading-6 font-semibold">Tes conversations IA</h2>
+              <p className="mt-2 font-titre text-[32px] leading-10 font-bold">{nbConversations}</p>
+              <p className="text-legende text-encre">conversations avec l'assistant</p>
+              <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
+                <Link href="/assistant">
+                  <Bot aria-hidden /> Continuer
+                </Link>
+              </Bouton>
+            </Carte>
+            <Carte className="p-5">
+              <h2 className="font-titre text-[17px] leading-6 font-semibold">Rappel</h2>
+              <ul className="mt-3 grid gap-2 text-[14px] leading-5 text-encre">
+                <li>⭐ Ajoute un outil en favori depuis n'importe quelle carte.</li>
+                <li>📝 Publie un avis pour aider la communauté.</li>
+                <li>👍 Vote pour recommander tes outils préférés.</li>
+                <li>✅ Marque tes favoris « Adoptés » quand tu les valides.</li>
+              </ul>
+            </Carte>
           </div>
-          <div className="mt-4 grid gap-2.5">
-            {activites.map((a) => {
-              const meta = ICONES_ACTIVITE[a.type] ?? { icone: History, libelle: "Activité" };
+
+          {/* Journal d'activité */}
+          <div className="lg:col-span-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-h3 font-semibold">Journal d&apos;activité</h2>
+              {planEntreprise ? (
+                <Badge variante="magenta">
+                  <Crown className="size-3.5" aria-hidden /> Étendu · 200 entrées
+                </Badge>
+              ) : (
+                <Badge variante="source">Les 25 dernières</Badge>
+              )}
+            </div>
+            <div className="mt-4 grid gap-2.5">
+              {activites.map((a) => {
+                const meta = ICONES_ACTIVITE[a.type] ?? { icone: History, libelle: "Activité" };
+                return (
+                  <Carte key={a.id} className="flex items-center gap-3 p-4">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-sky-500">
+                      <meta.icone className="size-5" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] leading-5 font-semibold">{meta.libelle}</p>
+                      {a.details && (
+                        <p className="truncate text-[13px] leading-4 text-encre">
+                          {formaterDetails(a.type, a.details)}
+                        </p>
+                      )}
+                    </div>
+                    <p className="shrink-0 text-[12px] leading-4 text-encre">
+                      {formateurDate.format(a.creeLe)}
+                    </p>
+                  </Carte>
+                );
+              })}
+              {activites.length === 0 && (
+                <Carte className="p-6 text-encre">
+                  Aucune activité enregistrée pour le moment. Ajoute un favori, publie un avis ou discute avec
+                  l'assistant : tout apparaîtra ici automatiquement.
+                </Carte>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Lot 53 — Tes médailles (déplacées de l'accueil) ─────── */}
+        <Carte className="animate-apparition-haut mt-6 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">Tes médailles</h2>
+            <span className="text-[13px] leading-4 font-semibold text-encre">
+              {badges.filter((b) => b.obtenu).length} / {badges.length} débloquées
+            </span>
+          </div>
+          <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+            {badges.map((b) => (
+              <div
+                key={b.titre}
+                title={b.description}
+                className={`flex w-32 shrink-0 flex-col items-center gap-1.5 rounded-carte border p-3.5 text-center transition ${
+                  b.obtenu
+                    ? "border-transparent bg-[linear-gradient(140deg,rgba(106,59,255,0.12),rgba(0,209,255,0.10))] shadow-[0_4px_14px_rgba(106,59,255,0.18)]"
+                    : "border-bordure bg-gris/60 opacity-60"
+                }`}
+              >
+                <span
+                  className={`grid size-10 place-items-center rounded-full text-[18px] ${
+                    b.obtenu
+                      ? "bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-white"
+                      : "bg-white text-encre"
+                  }`}
+                >
+                  {b.obtenu ? <b.icone className="size-5" aria-hidden /> : <Lock className="size-4" aria-hidden />}
+                </span>
+                <p className="font-titre text-[12px] leading-4 font-semibold text-bleu">{b.titre}</p>
+                <p className="text-[11px] leading-3.5 text-encre">{b.description}</p>
+              </div>
+            ))}
+          </div>
+        </Carte>
+
+        {/* ── Lot 53 — Recommandations de l'assistant (déplacées de
+            l'accueil) ─────────────────────────────────────────────── */}
+        <section className="mt-10">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-h3 font-semibold">Dernières recommandations de l'assistant</h2>
+            <Link
+              href="/assistant"
+              className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline"
+            >
+              Ouvrir l'assistant
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {recommandations.map((r) => {
+              let outilsReco: { slug: string; nom: string }[] = [];
+              try {
+                outilsReco = r.mode === "guide" ? JSON.parse(r.reponse) : [];
+              } catch {
+                /* réponse texte */
+              }
               return (
-                <Carte key={a.id} className="flex items-center gap-3 p-4">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-gris text-sky-500">
-                    <meta.icone className="size-5" aria-hidden />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[15px] leading-5 font-semibold">{meta.libelle}</p>
-                    {a.details && (
-                      <p className="truncate text-[13px] leading-4 text-encre">
-                        {formaterDetails(a.type, a.details)}
-                      </p>
-                    )}
-                  </div>
-                  <p className="shrink-0 text-[12px] leading-4 text-encre">
-                    {formateurDate.format(a.creeLe)}
+                <Carte key={r.id} className="p-5">
+                  <p className="flex flex-wrap items-center gap-2 text-legende text-encre">
+                    {formateurDate.format(r.createdAt)}
+                    <Badge>{r.mode === "guide" ? "Diagnostic guidé" : "Conversation"}</Badge>
                   </p>
+                  {outilsReco.length > 0 ? (
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {outilsReco.map((o) => (
+                        <li key={o.slug}>
+                          <Link
+                            href={`/outil/${o.slug}`}
+                            className="inline-flex rounded-full border border-sky-500 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-medium text-sky-500 hover:bg-sky-500/10"
+                          >
+                            {o.nom}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mesure mt-2 line-clamp-3 text-[14px] leading-5 text-encre">{r.reponse}</p>
+                  )}
                 </Carte>
               );
             })}
-            {activites.length === 0 && (
+            {recommandations.length === 0 && (
               <Carte className="p-6 text-encre">
-                Aucune activité enregistrée pour le moment. Ajoute un favori, publie un avis ou discute avec
-                l'assistant : tout apparaîtra ici automatiquement.
+                L'assistant ne t'a encore rien recommandé.{" "}
+                <Link href="/assistant" className="font-semibold text-sky-500 hover:underline">
+                  Lance-le ici
+                </Link>
+                .
               </Carte>
             )}
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* ── Lot 53 — Vu récemment (déplacé de l'accueil) ────────── */}
+        <VuRecemment variante="compacte" />
+      </>
     );
   }
 
   return (
-        <div className="mx-auto w-full max-w-7xl px-4 py-10 lg:py-12">
+    <div className="mx-auto w-full max-w-7xl px-4 py-10 lg:py-12">
       {enTete}
       {contenu}
     </div>
