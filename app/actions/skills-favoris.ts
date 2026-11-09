@@ -83,19 +83,19 @@ export async function basculerFavoriSkill(
   if (!(await premiumActif(userId))) return { epingle: false, raison: "premium" };
 
   try {
-    const existant = await prisma.skillFavori.findUnique({
+    const existant = await prismaCompat.skillFavori.findUnique({
       where: { userId_skillId: { userId, skillId } },
       select: { id: true },
     });
 
     if (existant) {
-      await prisma.skillFavori.delete({ where: { id: existant.id } });
+      await prismaCompat.skillFavori.delete({ where: { id: existant.id } });
       revalidatePath("/dashboard/skills-favoris");
       journaliser(userId, "skill_favori_retire", JSON.stringify({ skillId }));
       return { epingle: false };
     }
 
-    await prisma.skillFavori.create({ data: { userId, skillId } });
+    await prismaCompat.skillFavori.create({ data: { userId, skillId } });
     revalidatePath("/dashboard/skills-favoris");
     journaliser(userId, "skill_favori", JSON.stringify({ skillId }));
     return { epingle: true };
@@ -116,7 +116,7 @@ export async function retirerFavoriFormulaire(formData: FormData): Promise<void>
   if (!userId) return;
 
   try {
-    await prisma.skillFavori.deleteMany({ where: { userId, skillId } });
+    await prismaCompat.skillFavori.deleteMany({ where: { userId, skillId } });
     revalidatePath("/dashboard/skills-favoris");
     journaliser(userId, "skill_favori_retire", JSON.stringify({ skillId }));
   } catch (erreur) {
@@ -183,7 +183,7 @@ export async function envoyerRetourSkill(
     });
     if (!skill) return { succes: false, message: "Cette skill n'existe plus." };
 
-    const dejaLa = await prisma.skillRetour.findUnique({
+    const dejaLa = await prismaCompat.skillRetour.findUnique({
       where: { userId_skillId: { userId, skillId } },
       select: { id: true },
     });
@@ -194,7 +194,7 @@ export async function envoyerRetourSkill(
       };
     }
 
-    await prisma.skillRetour.create({
+    await prismaCompat.skillRetour.create({
       data: { userId, skillId, usage: analyse.data.usage, resultat: analyse.data.resultat, note },
     });
     revalidatePath(`/skills/${skill.slug}`);
@@ -219,7 +219,7 @@ export async function supprimerRetourFormulaire(formData: FormData): Promise<voi
   if (!userId) return;
 
   try {
-    const supprime = await prisma.skillRetour.deleteMany({
+    const supprime = await prismaCompat.skillRetour.deleteMany({
       where: { id: retourId, userId },
     });
     if (supprime.count > 0) {
@@ -228,5 +228,36 @@ export async function supprimerRetourFormulaire(formData: FormData): Promise<voi
     }
   } catch (erreur) {
     raisonDepuisErreur(erreur, "supprimerRetourFormulaire");
+  }
+}
+// ─────────────────────────────────────────────────────────────────
+// SUPPRIMER MON RETOUR PAR SKILL — utilisé par « Mes skills »
+// (dashboard) où la carte ne connaît que le skillId, pas l'id du
+// retour. Le where double (skillId + userId) garantit qu'un membre
+// ne peut supprimer que SON retour.
+// ─────────────────────────────────────────────────────────────────
+export async function supprimerRetourParSkillFormulaire(formData: FormData): Promise<void> {
+  const skillId = String(formData.get("skillId") ?? "").trim();
+  if (!skillId) return;
+
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return;
+
+  try {
+    const skill = await prisma.skill
+      .findUnique({ where: { id: skillId }, select: { slug: true } })
+      .catch(() => null);
+
+    const supprime = await prismaCompat.skillRetour.deleteMany({
+      where: { skillId, userId },
+    });
+    if (supprime.count > 0) {
+      if (skill?.slug) revalidatePath(`/skills/${skill.slug}`);
+      revalidatePath("/dashboard/skills-favoris");
+      journaliser(userId, "skill_retour_supprime", JSON.stringify({ skillId }));
+    }
+  } catch (erreur) {
+    raisonDepuisErreur(erreur, "supprimerRetourParSkillFormulaire");
   }
 }

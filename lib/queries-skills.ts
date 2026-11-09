@@ -11,6 +11,9 @@
 import { prisma } from "@/lib/prisma";
 import type { Skill } from "@prisma/client";
 
+// Models ajoutés après la génération actuelle du client Prisma.
+const prismaLot40 = prisma as unknown as Record<string, any>;
+
 const PAR_PAGE = 12;
 
 export type FiltresSkills = {
@@ -117,11 +120,11 @@ export async function compterSkillsStats(): Promise<{ total: number; categories:
 export async function idsSkillsFavoris(userId: string | null | undefined): Promise<Set<string>> {
   if (!userId) return new Set();
   try {
-    const lignes = await prisma.skillFavori.findMany({
+    const lignes = await prismaLot40.skillFavori.findMany({
       where: { userId },
       select: { skillId: true },
     });
-    return new Set(lignes.map((l) => l.skillId));
+    return new Set(lignes.map((l: { skillId: string }) => l.skillId));
   } catch {
     return new Set();
   }
@@ -134,7 +137,7 @@ export async function skillFavorie(
 ): Promise<boolean> {
   if (!userId) return false;
   try {
-    const ligne = await prisma.skillFavori.findUnique({
+    const ligne = await prismaLot40.skillFavori.findUnique({
       where: { userId_skillId: { userId, skillId } },
       select: { id: true },
     });
@@ -147,7 +150,7 @@ export async function skillFavorie(
 /** Skills épinglées d'un membre, pour la page « Mes skills ». */
 export async function favorisSkills(userId: string) {
   try {
-    return await prisma.skillFavori.findMany({
+    return await prismaLot40.skillFavori.findMany({
       where: { userId },
       orderBy: { creeLe: "desc" },
       select: {
@@ -176,8 +179,7 @@ export type RetourSkill = {
   id: string;
   usage: string;
   resultat: string;
-  note: number;
-  recommande: boolean;
+  note: number | null; // facultative : null si le membre n'a pas noté  recommande: boolean;
   creeLe: Date;
   majLe: Date;
   pseudo: string;
@@ -193,7 +195,7 @@ function pseudoDepuis(name: string | null, email: string): { pseudo: string; ini
 /** Retours d'usage des MEMBRES sur une skill (fiche /skills/…). */
 export async function retoursSkill(skillId: string, exclureUserId?: string | null): Promise<RetourSkill[]> {
   try {
-    const lignes = await prisma.skillRetour.findMany({
+    const lignes = await prismaLot40.skillRetour.findMany({
       where: { skillId, ...(exclureUserId ? { userId: { not: exclureUserId } } : {}) },
       orderBy: { majLe: "desc" },
       take: 24,
@@ -208,7 +210,7 @@ export async function retoursSkill(skillId: string, exclureUserId?: string | nul
         user: { select: { name: true, email: true } },
       },
     });
-    return lignes.map((l) => ({
+    return lignes.map((l: { id: any; usage: any; resultat: any; note: any; recommande: any; creeLe: any; majLe: any; user: { name: string | null; email: string; }; }) => ({
       id: l.id,
       usage: l.usage,
       resultat: l.resultat,
@@ -227,10 +229,10 @@ export async function retoursSkill(skillId: string, exclureUserId?: string | nul
 export async function monRetourSkill(
   userId: string | null | undefined,
   skillId: string,
-): Promise<{ id: string; usage: string; resultat: string; note: number; recommande: boolean } | null> {
+): Promise<{ id: string; usage: string; resultat: string; note: number | null; recommande: boolean } | null> {
   if (!userId) return null;
   try {
-    const ligne = await prisma.skillRetour.findUnique({
+    const ligne = await prismaLot40.skillRetour.findUnique({
       where: { userId_skillId: { userId, skillId } },
       select: { id: true, usage: true, resultat: true, note: true, recommande: true },
     });
@@ -242,14 +244,13 @@ export async function monRetourSkill(
 
 /** Retours du membre sur TOUTES ses skills épinglées (« Mes skills »). */
 export async function retoursMembrePourSkills(userId: string, skillIds: string[]) {
-  const vide = new Map<string, { usage: string; resultat: string; note: number; recommande: boolean }>();
-  if (skillIds.length === 0) return vide;
+  const vide = new Map<string, { usage: string; resultat: string; note: number | null; recommande: boolean }>();  if (skillIds.length === 0) return vide;
   try {
-    const lignes = await prisma.skillRetour.findMany({
+    const lignes = await prismaLot40.skillRetour.findMany({
       where: { userId, skillId: { in: skillIds } },
       select: { skillId: true, usage: true, resultat: true, note: true, recommande: true },
     });
-    return new Map(lignes.map((l) => [l.skillId, { usage: l.usage, resultat: l.resultat, note: l.note, recommande: l.recommande }]));
+    return new Map(lignes.map((l: { skillId: any; usage: any; resultat: any; note: any; recommande: any; }) => [l.skillId, { usage: l.usage, resultat: l.resultat, note: l.note, recommande: l.recommande }]));
   } catch {
     return vide;
   }
@@ -258,7 +259,7 @@ export async function retoursMembrePourSkills(userId: string, skillIds: string[]
 /** Note moyenne des retours d'une skill (affichée sur la fiche). */
 export async function noteMoyenneSkill(skillId: string): Promise<{ moyenne: number; total: number }> {
   try {
-    const agg = await prisma.skillRetour.aggregate({
+    const agg = await prismaLot40.skillRetour.aggregate({
       where: { skillId },
       _avg: { note: true },
       _count: { _all: true },

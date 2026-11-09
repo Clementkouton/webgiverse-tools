@@ -142,6 +142,7 @@ model User {
   // Lot 40 — skills épinglées + retours d'usage
   skillsFavoris     SkillFavori[]
   retoursSkills     SkillRetour[]
+  skillRetours SkillRetour[]
 
 }
 
@@ -894,15 +895,14 @@ model Skill {
 
   @@index([categorie])
   @@index([popularite])
+  
+  favoris SkillFavori[]
+  retours SkillRetour[]
 }
 
 // ─────────────────────────────────────────────────────────────────
 // Lot 43 — Skills : favoris épinglés + retours d'usage.
-// ET ajoute aussi :
-//   · modèle User  →  skillFavoris  SkillFavori[]
-//                      skillRetours SkillRetour[]
-//   · modèle Skill →  favoris SkillFavori[]
-//                     retours SkillRetour[]
+
 // ─────────────────────────────────────────────────────────────────
 model SkillFavori {
   id      String   @id @default(cuid())
@@ -917,15 +917,17 @@ model SkillFavori {
 }
 
 model SkillRetour {
-  id       String   @id @default(cuid())
-  userId   String
-  skillId  String
-  usage    String // contexte d'usage (obligatoire, 20 à 2000 caractères)
-  resultat String // résultat obtenu (obligatoire, 20 à 2000 caractères)
-  note     Int? // note facultative de 1 à 5
-  creeLe   DateTime @default(now())
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skill    Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userId     String
+  skillId    String
+  usage      String // contexte d'usage (obligatoire, 20 à 2000 caractères)
+  resultat   String // résultat obtenu (obligatoire, 20 à 2000 caractères)
+  note       Int? // note facultative de 1 à 5
+  recommande Boolean  @default(true) // le membre recommande cette skill
+  creeLe     DateTime @default(now())
+  majLe      DateTime @updatedAt // utilisé par lib/queries-skills.ts (tri « retours récents »)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([userId, skillId])
   @@index([skillId])
