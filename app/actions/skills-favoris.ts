@@ -1,30 +1,35 @@
-"use server";
 // app/actions/skills-favoris.ts
 // ─────────────────────────────────────────────────────────────────
-// Lot 40 — ACTIONS SERVEUR « Mes skills » : épingler une skill de la
-// bibliothèque dans son espace + rédiger un retour d'usage (contexte
-// d'utilisation, résultat obtenu, note 1-5, recommandation).
-//
-// RÈGLE D'ACCÈS : la bibliothèque /skills est réservée aux abonnés
-// Premium (lib/acces-skills.ts). Épingler et noter suivent la même
-// règle : la vérification est faite ICI, côté serveur, à chaque
-// action — impossible de la contourner depuis le client.
-//
-// Garde-fous (mêmes conventions que app/actions/apprentissage.ts) :
-//   · base      → tables absentes : « npx prisma db push » à lancer
-//   · client    → client Prisma non régénéré : « npx prisma generate »
-//   · premium   → fonction réservée aux abonnés
-//   · invalide / indisponible → messages courts, jamais de crash
+// Lot 43 — Actions serveur des favoris de skills et des retours d'usage.
+// Mêmes règles défensives que app/actions/apprentissage.ts (lot 19) :
+//   · TOUTES les requêtes Prisma sont dans un try/catch ;
+//   · table absente (P2021/P2022) → raison « base » avec instruction exacte ;
+//   · client Prisma non régénéré → raison « client » ;
+//   · verrou Premium côté serveur (lib/premium.ts) : Pro / Entreprise actif.
+// Une seule ligne par membre et par skill (userId + skillId unique).
 // ─────────────────────────────────────────────────────────────────
+"use server";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { accesSkills } from "@/lib/acces-skills";
+import { premiumActif } from "@/lib/premium";
 import { journaliser } from "@/lib/journal";
 
+const prismaCompat = prisma as any;
+
 /** Raisons renvoyées aux composants clients pour afficher le bon message. */
-export type RaisonSkills = "non-connecte" | "invalide" | "premium" | "base" | "client" | "indisponible";
+export type RaisonSkills =
+  | "non-connecte"
+  | "premium"
+  | "invalide"
+  | "base"
+  | "client"
+  | "indisponible";
+
+/** État du formulaire de retour d'usage (useActionState côté client). */
+export type EtatRetour = { succes: boolean; message: string };
 
 /** Traduit une erreur Prisma en raison affichable + trace dans le terminal. */
 function raisonDepuisErreur(erreur: unknown, contexte: string): RaisonSkills {
@@ -32,83 +37,52 @@ function raisonDepuisErreur(erreur: unknown, contexte: string): RaisonSkills {
   if (code === "P2021" || code === "P2022") {
     console.error(
       `[skills-favoris] ${contexte} : base de données NON À JOUR (code ${code}).\n` +
-        "→ Dans le projet : arrête le serveur puis lance  npx prisma db push\n" +
-        "  (crée les tables SkillFavori / SkillRetour du Lot 40), relance le serveur et recharge la page.",
+      "→ Passe d'abord la migration prisma/migration-skills-favoris.sql dans le SQL Editor\n" +
+      "  de Neon, colle les modèles dans prisma/schema.prisma puis lance  npx prisma generate\n" +
+      "  (arrête le serveur avant la régénération), et recharge la page.",
     );
     return "base";
   }
-
   const brut = erreur instanceof Error ? erreur.message : String(erreur ?? "");
   if (
     (brut.includes("of undefined") || brut.includes("of null")) &&
-    /(findUnique|findMany|findFirst|upsert|create|createMany|delete|deleteMany|update|updateMany|count|aggregate)/.test(brut)
+    /(findUnique|findMany|findFirst|upsert|create|createMany|delete|deleteMany|update|updateMany|count|aggregate)/.test(
+      brut,
+    )
   ) {
     console.error(
-      `[skills-favoris] ${contexte} : CLIENT PRISMA NON RÉGÉNÉRÉ — il ne connaît pas les\n` +
-        "  modèles SkillFavori / SkillRetour ajoutés au Lot 40.\n" +
-        "→ Dans le projet, DANS L'ORDRE :\n" +
-        "    1. arrête le serveur (Ctrl+C)\n" +
-        "    2. npx prisma db push\n" +
-        "    3. Remove-Item -Recurse -Force node_modules\\.prisma\n" +
-        "    4. npx prisma generate\n" +
-        "    5. npm run dev",
+      `[skills-favoris] ${contexte} : CLIENT PRISMA NON RÉGÉNÉRÉ — les modèles SkillFavori /\n` +
+      "SkillRetour sont inconnus du client.\n" +
+      "→ Arrête le serveur, colle les modèles du lot 43 dans prisma/schema.prisma puis\n" +
+      "  lance  npx prisma generate , relance le serveur et recharge la page.",
     );
     return "client";
   }
-
   console.error(`[skills-favoris] ${contexte} :`, erreur);
   return "indisponible";
 }
 
-async function userIdConnecte(): Promise<string | null> {
-  try {
-    const session = await auth();
-    return session?.user?.id ?? null;
-  } catch (erreur) {
-    console.error("[skills-favoris] Session illisible :", erreur);
-    return null;
-  }
-}
+const MESSAGE_RAISON: Record<RaisonSkills, string> = {
+  "non-connecte": "Connecte-toi pour épingler une skill.",
+  premium: "Épingler des skills et partager tes retours est réservé aux abonnés Premium.",
+  invalide: "Formulaire incomplet : vérifie tes réponses.",
+  base: "La base de données n'est pas encore à jour (migration du lot 43 à passer).",
+  client: "Le client Prisma doit être régénéré : npx prisma generate.",
+  indisponible: "Action momentanément indisponible, réessaie dans un instant.",
+};
 
-/** Rafraîchit toutes les pages qui affichent l'épinglage ou les retours. */
-function rafraichir(skillSlug?: string) {
-  revalidatePath("/dashboard/skills");
-  revalidatePath("/skills");
-  if (skillSlug) revalidatePath(`/skills/${skillSlug}`);
-}
-
-/** La skill existe-t-elle et l'action est-elle permise ? */
-async function gardePremium(userId: string): Promise<RaisonSkills | null> {
-  const acces = await accesSkills(userId);
-  if (!acces.peutAcceder) return "premium";
-  return null;
-}
-
-/* ════════════════════════════════════════════════════════════════
-   1) ÉPINGLER / DÉTACHER UNE SKILL (bascule)
-   ════════════════════════════════════════════════════════════════ */
-
-export async function basculerSkillFavori(skillId: string): Promise<{
-  ok: boolean;
-  favori?: boolean;
-  raison?: RaisonSkills;
-}> {
-  const userId = await userIdConnecte();
-  if (!userId) return { ok: false, raison: "non-connecte" };
-
-  const idValide = z.string().min(1).max(64).safeParse(skillId);
-  if (!idValide.success) return { ok: false, raison: "invalide" };
+// ─────────────────────────────────────────────────────────────────
+// ÉPINGLER / DÉÉPINGLER une skill (toggle) — bouton client BoutonEpingle.
+// ─────────────────────────────────────────────────────────────────
+export async function basculerFavoriSkill(
+  skillId: string,
+): Promise<{ epingle: boolean; raison?: RaisonSkills }> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return { epingle: false, raison: "non-connecte" };
+  if (!(await premiumActif(userId))) return { epingle: false, raison: "premium" };
 
   try {
-    const verrou = await gardePremium(userId);
-    if (verrou) return { ok: false, raison: verrou };
-
-    const skill = await prisma.skill.findUnique({
-      where: { id: skillId },
-      select: { slug: true },
-    });
-    if (!skill) return { ok: false, raison: "invalide" };
-
     const existant = await prisma.skillFavori.findUnique({
       where: { userId_skillId: { userId, skillId } },
       select: { id: true },
@@ -116,109 +90,143 @@ export async function basculerSkillFavori(skillId: string): Promise<{
 
     if (existant) {
       await prisma.skillFavori.delete({ where: { id: existant.id } });
-      rafraichir(skill.slug);
-      return { ok: true, favori: false };
+      revalidatePath("/dashboard/skills-favoris");
+      journaliser(userId, "skill_favori_retire", JSON.stringify({ skillId }));
+      return { epingle: false };
     }
 
     await prisma.skillFavori.create({ data: { userId, skillId } });
+    revalidatePath("/dashboard/skills-favoris");
     journaliser(userId, "skill_favori", JSON.stringify({ skillId }));
-    rafraichir(skill.slug);
-    return { ok: true, favori: true };
+    return { epingle: true };
   } catch (erreur) {
-    return { ok: false, raison: raisonDepuisErreur(erreur, "basculerSkillFavori") };
+    return { epingle: false, raison: raisonDepuisErreur(erreur, "basculerFavoriSkill") };
   }
 }
 
-/** Variante <form> (boutons des pages serveur, ex. « Mes skills »). */
-export async function basculerSkillFavoriFormulaire(donnees: FormData): Promise<void> {
-  const skillId = String(donnees.get("skillId") ?? "");
-  await basculerSkillFavori(skillId);
-}
+// ─────────────────────────────────────────────────────────────────
+// RETIRER une skill épinglée — action de formulaire (dashboard, corbeille).
+// ─────────────────────────────────────────────────────────────────
+export async function retirerFavoriFormulaire(formData: FormData): Promise<void> {
+  const skillId = String(formData.get("skillId") ?? "").trim();
+  if (!skillId) return;
 
-/* ════════════════════════════════════════════════════════════════
-   2) RETOUR D'USAGE : enregistrer / mettre à jour
-   ════════════════════════════════════════════════════════════════ */
-
-const SCHEMA_RETOUR = z.object({
-  skillId: z.string().min(1).max(64),
-  usage: z.string().trim().min(10, "Décris ton contexte d'usage (10 caractères minimum).").max(2000),
-  resultat: z.string().trim().min(10, "Décris le résultat obtenu (10 caractères minimum).").max(2000),
-  note: z.number().int().min(1).max(5),
-  recommande: z.boolean(),
-});
-
-export async function enregistrerRetourSkill(donnees: FormData): Promise<{
-  ok: boolean;
-  raison?: RaisonSkills;
-  message?: string;
-}> {
-  const userId = await userIdConnecte();
-  if (!userId) return { ok: false, raison: "non-connecte" };
-
-  const brut = {
-    skillId: String(donnees.get("skillId") ?? ""),
-    usage: String(donnees.get("usage") ?? ""),
-    resultat: String(donnees.get("resultat") ?? ""),
-    note: Number(donnees.get("note") ?? 5),
-    recommande: String(donnees.get("recommande") ?? "oui") === "oui",
-  };
-  const parse = SCHEMA_RETOUR.safeParse(brut);
-  if (!parse.success) {
-    return { ok: false, raison: "invalide", message: parse.error.issues[0]?.message ?? undefined };
-  }
-  const { skillId, usage, resultat, note, recommande } = parse.data;
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return;
 
   try {
-    const verrou = await gardePremium(userId);
-    if (verrou) return { ok: false, raison: verrou };
+    await prisma.skillFavori.deleteMany({ where: { userId, skillId } });
+    revalidatePath("/dashboard/skills-favoris");
+    journaliser(userId, "skill_favori_retire", JSON.stringify({ skillId }));
+  } catch (erreur) {
+    raisonDepuisErreur(erreur, "retirerFavoriFormulaire");
+  }
+}
 
+// ─────────────────────────────────────────────────────────────────
+// PUBLIER UN RETOUR D'USAGE — action de formulaire (useActionState).
+// Un seul retour par membre et par skill ; note facultative 1 à 5.
+// ─────────────────────────────────────────────────────────────────
+const schemaRetour = z.object({
+  usage: z
+    .string()
+    .trim()
+    .min(20, "Décris l'usage en au moins 20 caractères.")
+    .max(2000, "L'usage ne doit pas dépasser 2000 caractères."),
+  resultat: z
+    .string()
+    .trim()
+    .min(20, "Décris le résultat obtenu en au moins 20 caractères.")
+    .max(2000, "Le résultat ne doit pas dépasser 2000 caractères."),
+});
+
+export async function envoyerRetourSkill(
+  _etatPrecedent: EtatRetour,
+  formData: FormData,
+): Promise<EtatRetour> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) {
+    return { succes: false, message: MESSAGE_RAISON["non-connecte"] };
+  }
+  if (!(await premiumActif(userId))) {
+    return { succes: false, message: MESSAGE_RAISON.premium };
+  }
+
+  const skillId = String(formData.get("skillId") ?? "").trim();
+  if (!skillId) return { succes: false, message: MESSAGE_RAISON.invalide };
+
+  const analyse = schemaRetour.safeParse({
+    usage: String(formData.get("usage") ?? ""),
+    resultat: String(formData.get("resultat") ?? ""),
+  });
+  if (!analyse.success) {
+    return { succes: false, message: analyse.error.issues[0]?.message ?? MESSAGE_RAISON.invalide };
+  }
+
+  // Note facultative : vide → null, sinon entier de 1 à 5.
+  const noteBrute = String(formData.get("note") ?? "").trim();
+  let note: number | null = null;
+  if (noteBrute) {
+    const n = Number(noteBrute);
+    if (!Number.isInteger(n) || n < 1 || n > 5) {
+      return { succes: false, message: "La note doit être comprise entre 1 et 5." };
+    }
+    note = n;
+  }
+
+  try {
     const skill = await prisma.skill.findUnique({
       where: { id: skillId },
       select: { slug: true },
     });
-    if (!skill) return { ok: false, raison: "invalide" };
+    if (!skill) return { succes: false, message: "Cette skill n'existe plus." };
 
-    await prisma.skillRetour.upsert({
+    const dejaLa = await prisma.skillRetour.findUnique({
       where: { userId_skillId: { userId, skillId } },
-      update: { usage, resultat, note, recommande },
-      create: { userId, skillId, usage, resultat, note, recommande },
+      select: { id: true },
     });
+    if (dejaLa) {
+      return {
+        succes: false,
+        message: "Tu as déjà partagé un retour pour cette skill (un seul par skill).",
+      };
+    }
+
+    await prisma.skillRetour.create({
+      data: { userId, skillId, usage: analyse.data.usage, resultat: analyse.data.resultat, note },
+    });
+    revalidatePath(`/skills/${skill.slug}`);
+    revalidatePath("/dashboard/skills-favoris");
     journaliser(userId, "skill_retour", JSON.stringify({ skillId, note }));
-    rafraichir(skill.slug);
-    return { ok: true };
+    return { succes: true, message: "Merci ! Ton retour d'usage est publié." };
   } catch (erreur) {
-    return { ok: false, raison: raisonDepuisErreur(erreur, "enregistrerRetourSkill") };
+    return { succes: false, message: MESSAGE_RAISON[raisonDepuisErreur(erreur, "envoyerRetourSkill")] };
   }
 }
 
-/* ════════════════════════════════════════════════════════════════
-   3) SUPPRIMER SON RETOUR
-   ════════════════════════════════════════════════════════════════ */
+// ─────────────────────────────────────────────────────────────────
+// SUPPRIMER MON RETOUR — le where double (id + userId) garantit qu'un
+// membre ne peut supprimer que SON retour.
+// ─────────────────────────────────────────────────────────────────
+export async function supprimerRetourFormulaire(formData: FormData): Promise<void> {
+  const retourId = String(formData.get("retourId") ?? "").trim();
+  if (!retourId) return;
 
-export async function supprimerRetourSkill(donnees: FormData): Promise<{ ok: boolean; raison?: RaisonSkills }> {
-  const userId = await userIdConnecte();
-  if (!userId) return { ok: false, raison: "non-connecte" };
-
-  const idBrut = String(donnees.get("skillId") ?? "");
-  const skillId = z.string().min(1).max(64).safeParse(idBrut);
-  if (!skillId.success) return { ok: false, raison: "invalide" };
-  const id = skillId.data;
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return;
 
   try {
-    const verrou = await gardePremium(userId);
-    if (verrou) return { ok: false, raison: verrou };
-
-    const skill = await prisma.skill.findUnique({
-      where: { id },
-      select: { slug: true },
+    const supprime = await prisma.skillRetour.deleteMany({
+      where: { id: retourId, userId },
     });
-
-    await prisma.skillRetour.deleteMany({
-      where: { userId, skillId: id }, // deleteMany : aucune erreur si absent
-    });
-    if (skill) rafraichir(skill.slug);
-    return { ok: true };
+    if (supprime.count > 0) {
+      revalidatePath("/dashboard/skills-favoris");
+      journaliser(userId, "skill_retour_supprime", JSON.stringify({ retourId }));
+    }
   } catch (erreur) {
-    return { ok: false, raison: raisonDepuisErreur(erreur, "supprimerRetourSkill") };
+    raisonDepuisErreur(erreur, "supprimerRetourFormulaire");
   }
 }

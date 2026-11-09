@@ -36,13 +36,14 @@ import {
   Menu,
   MessageSquareQuote,
   MonitorPlay,
-  NotebookPen,
-  Puzzle,
   Search,
   Sparkles,
   Star,
   TerminalSquare,
   X,
+  NotebookPen,
+  Pin,
+  Puzzle,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/dashboard/tutoriels", libelle: "Mes tutoriels", icone: MonitorPlay, route: "/dashboard/tutoriels" },
       { href: "/dashboard/notes", libelle: "Mes notes", icone: NotebookPen, route: "/dashboard/notes" },
       { href: "/dashboard/assistant", libelle: "Mes conversations", icone: Bot, route: "/dashboard/assistant" },
+      { href: "/dashboard/skills-favoris", libelle: "Skills favoris", icone: Pin, route: "/dashboard/skills-favoris" },
       { href: "/prompts", libelle: "Bibliothèque de prompts", icone: Library },
       { href: "/tutoriels", libelle: "Tous les tutoriels", icone: GraduationCap },
       { href: "/skills", libelle: "Bibliothèque de skills", icone: Puzzle },
@@ -126,6 +128,7 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   tutoriels: { titre: "Mes tutoriels", sousTitre: "Ta progression dans la collection vidéo" },
   notes: { titre: "Mes notes", sousTitre: "Tes notes prises pendant les tutoriels" },
   assistant: { titre: "Mes conversations", sousTitre: "Historique de tes échanges avec l'assistant" },
+  "skills-favoris": { titre: "Mes skills favoris", sousTitre: "Skills épinglées et retours d'usage" },
   export: { titre: "Export premium", sousTitre: "Tes favoris et tes listes en PDF ou CSV" },
 };
 

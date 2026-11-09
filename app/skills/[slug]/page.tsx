@@ -1,20 +1,24 @@
 // app/skills/[slug]/page.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 41/42 — FICHE D'UNE SKILL IA — fichier COMPLET (corrige l'erreur
-// de build Vercel « File ... is not a module », causée par un fichier
-// vide).
-//   · Verrou Premium côté serveur (lib/acces-skills.ts) : sans abonnement
-//     actif, l'article n'est JAMAIS rendu — bloc verrou à la place.
+// Lot 43 — FICHE D'UNE SKILL IA — fichier COMPLET.
+//   · La LISTE /skills est en libre parcours ; le DÉTAIL (cette fiche)
+//     reste RÉSERVÉ AUX ABONNÉS PREMIUM : sans abonnement actif, le
+//     visiteur voit l'en-tête (couverture, description, méta) puis le
+//     bloc verrou — JAMAIS l'article, la commande d'installation ni
+//     les retours d'usage.
 //   · Images (couverture + article) TOUJOURS rendues en vraies <img>
-//     avec légende et repli dégradé : plus jamais une URL en texte brut
-//     (correctif du bug image).
+//     avec légende et repli dégradé : plus jamais une URL en texte brut.
 //   · Champ JSONB « article » parsé de façon défensive : une image
 //     markdown ![alt](URL) ou une URL d'image seule devient
 //     automatiquement une vraie image.
 //   · Commande d'installation avec bouton « Copier » (composant client).
+//   · NOUVEAU Lot 43 (Premium) :
+//       – bouton « Épingler » → « Mes skills favoris » du dashboard ;
+//       – formulaire « Ton retour d'usage » (contexte + résultat + note
+//         facultative) — un seul retour par membre et par skill ;
+//       – « Retours de la communauté » : les retours publiés.
 //   · Compteur de vues : +1 par consultation Premium, via after()
 //     (Next 15) → exécuté après l'envoi de la page, zéro latence.
-//   · Section « À découvrir aussi » (autres skills).
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -25,18 +29,29 @@ import {
   CalendarDays,
   ExternalLink,
   Eye,
+  MessageSquareQuote,
   Sparkles,
   Star,
   Terminal,
+  Trash2,
   User,
 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { accesSkills } from "@/lib/acces-skills";
 import { obtenirSkill, autresSkills } from "@/lib/queries-skills";
+import {
+  estEpingleSkill,
+  listerRetoursSkill,
+  monRetourSkill,
+} from "@/lib/skills-favoris";
+import { supprimerRetourFormulaire } from "@/app/actions/skills-favoris";
 import { BlocVerrouSkills } from "@/components/skills/bloc-verrou-skills";
 import { CarteSkill } from "@/components/skills/carte-skill";
 import { CopierCode } from "@/components/skills/copier-code";
+import { BoutonEpingle } from "@/components/skills/bouton-epingle";
+import { FormulaireRetour } from "@/components/skills/formulaire-retour";
+import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
 import { Bouton } from "@/components/ui/bouton";
 
 type Params = Promise<{ slug: string }>;
@@ -62,10 +77,6 @@ const REGEX_IMAGE_MD = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
 /**
  * Parse défensif du champ JSONB « article » :
  * [{ titre, paragraphes: string[], images: [{ src, alt }] }]
- * · accepte une string JSON, un tableau direct ou { sections: [...] } ;
- * · une image markdown ou une URL d'image seule devient une vraie image ;
- * · aucune valeur douteuse ne peut faire planter la page ni afficher
- *   une URL en texte.
  */
 function parserArticle(brut: unknown): SectionArticle[] {
   let donnees: unknown = brut;
@@ -136,6 +147,25 @@ function etoiles(n: number): string {
   return n > 0 ? String(n) : "—";
 }
 
+const formatteurDate = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
+
+/** Rangée de 5 étoiles (note d'un retour d'usage). */
+function Etoiles({ note }: { note: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5" aria-label={`Note : ${note} sur 5`}>
+      {[1, 2, 3, 4, 5].map((v) => (
+        <Star
+          key={v}
+          className={
+            v <= note ? "size-3.5 fill-amber-400 text-amber-400" : "size-3.5 text-encre/25"
+          }
+          aria-hidden
+        />
+      ))}
+    </span>
+  );
+}
+
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const skill = await obtenirSkill(slug);
@@ -153,11 +183,9 @@ export default async function PageSkill({ params }: { params: Params }) {
   const session = await auth();
   const acces = await accesSkills(session?.user?.id);
   const premium = acces.peutAcceder;
+  const userId = session?.user?.id;
 
   // ── COMPTEUR DE VUES ─────────────────────────────────────────────
-  // Une seule incrémentation par consultation Premium, exécutée APRÈS
-  // l'envoi de la page (after, Next 15) : zéro latence pour le visiteur.
-  // Défensif : si le champ n'existe pas encore en base, on ignore l'erreur.
   if (premium) {
     after(async () => {
       try {
@@ -171,9 +199,14 @@ export default async function PageSkill({ params }: { params: Params }) {
     });
   }
 
+  // ── Lot 43 — épinglage + retours d'usage (Premium uniquement) ────
+  const epingle = premium ? await estEpingleSkill(userId, skill.id) : false;
+  const monRetour = premium ? await monRetourSkill(userId, skill.id) : null;
+  const retours = premium ? await listerRetoursSkill(skill.id, 8) : [];
+
   const sections = premium ? parserArticle(skill.article) : [];
   const autres = premium ? await autresSkills(skill.slug, 4) : [];
-  const dateAjout = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(skill.creeLe);
+  const dateAjout = formatteurDate.format(skill.creeLe);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 lg:py-12">
@@ -194,8 +227,7 @@ export default async function PageSkill({ params }: { params: Params }) {
 
       {/* ── En-tête de la fiche ────────────────────────────────────── */}
       <header className="overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
-        {/* Couverture : URL distante rendue en <img> sur fond dégradé.
-            alt = texte humain : si l'URL casse, jamais l'URL à l'écran. */}
+        {/* Couverture : URL distante rendue en <img> sur fond dégradé. */}
         <div className="aspect-video w-full bg-[linear-gradient(120deg,#efe9ff,#e6f7ff)]">
           {skill.image ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -224,6 +256,12 @@ export default async function PageSkill({ params }: { params: Params }) {
             {!premium && (
               <span className="inline-flex items-center gap-1 rounded-full border border-violet/30 px-3 py-1 text-[12px] leading-4 font-bold text-violet">
                 Premium
+              </span>
+            )}
+            {/* Lot 43 — épingler dans « Mes skills favoris » (Premium) */}
+            {premium && (
+              <span className="ml-auto">
+                <BoutonEpingle skillId={skill.id} epingleInitial={epingle} />
               </span>
             )}
           </div>
@@ -282,7 +320,8 @@ export default async function PageSkill({ params }: { params: Params }) {
         </div>
       </header>
 
-      {/* ── VERROU — visiteur sans abonnement Premium ──────────────── */}
+      {/* ── VERROU — visiteur sans abonnement Premium : le DÉTAIL
+          (article, installation, retours) n'est jamais rendu ─────── */}
       {!premium && (
         <div className="mt-6">
           <BlocVerrouSkills connecte={acces.connecte} />
@@ -390,6 +429,117 @@ export default async function PageSkill({ params }: { params: Params }) {
             </p>
           </article>
         ))}
+
+      {/* ── PREMIUM : ton retour d'usage (lot 43) ──────────────────── */}
+      {premium && (
+        <section
+          aria-label="Ton retour d'usage"
+          className="mt-6 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6"
+        >
+          <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-bold text-bleu">
+            <MessageSquareQuote className="size-4.5 text-violet" aria-hidden /> Ton retour
+            d&apos;usage
+          </h2>
+
+          {monRetour ? (
+            <>
+              <p className="mt-2 text-[13px] leading-5 text-encre">
+                Publié le {formatteurDate.format(monRetour.creeLe)}
+                {typeof monRetour.note === "number" && (
+                  <>
+                    {" · "}
+                    <Etoiles note={monRetour.note} />
+                  </>
+                )}
+              </p>
+              <div className="mt-3 grid gap-3">
+                <div className="rounded-carte border border-bordure bg-[#f9faff] p-4">
+                  <p className="text-[11px] leading-4 font-bold uppercase tracking-wide text-encre">
+                    Usage
+                  </p>
+                  <p className="mt-1 text-[14px] leading-6 text-encre">{monRetour.usage}</p>
+                </div>
+                <div className="rounded-carte border border-bordure bg-[#f9faff] p-4">
+                  <p className="text-[11px] leading-4 font-bold uppercase tracking-wide text-encre">
+                    Résultat obtenu
+                  </p>
+                  <p className="mt-1 text-[14px] leading-6 text-encre">{monRetour.resultat}</p>
+                </div>
+              </div>
+              <form action={supprimerRetourFormulaire} className="mt-4">
+                <input type="hidden" name="retourId" value={monRetour.id} />
+                <BoutonConfirmer
+                  message="Supprimer ton retour d'usage sur cette skill ?"
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-bordure bg-white px-3.5 text-[12px] leading-4 font-semibold text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                >
+                  <Trash2 className="size-3.5" aria-hidden /> Supprimer mon retour
+                </BoutonConfirmer>
+              </form>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-[13px] leading-5 text-encre">
+                Testé cette skill&nbsp;? Partage ton contexte d&apos;usage et le résultat obtenu :
+                ton retour guide les autres abonnés.
+              </p>
+              <div className="mt-4">
+                <FormulaireRetour skillId={skill.id} />
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* ── PREMIUM : retours de la communauté (lot 43) ────────────── */}
+      {premium && retours.length > 0 && (
+        <section
+          aria-label="Retours de la communauté"
+          className="mt-6 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6"
+        >
+          <h2 className="font-titre text-[17px] leading-6 font-bold text-bleu">
+            Retours de la communauté{" "}
+            <span className="text-encre">({retours.length})</span>
+          </h2>
+          <ul className="mt-4 grid gap-3">
+            {retours.map((retour) => {
+              const auteur = retour.user?.name?.trim() || "Membre";
+              return (
+                <li
+                  key={retour.id}
+                  className="rounded-carte border border-bordure bg-[#f9faff] p-4"
+                >
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {retour.user?.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={retour.user.image}
+                        alt=""
+                        className="size-8 shrink-0 rounded-full border border-bordure object-cover"
+                      />
+                    ) : (
+                      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-[12px] font-bold text-white" aria-hidden>
+                        {auteur.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <p className="text-[13px] leading-4 font-semibold text-bleu">{auteur}</p>
+                    {typeof retour.note === "number" && <Etoiles note={retour.note} />}
+                    <span className="ml-auto text-[12px] leading-4 text-encre">
+                      {formatteurDate.format(retour.creeLe)}
+                    </span>
+                  </div>
+                  <p className="mt-2.5 text-[14px] leading-6 text-encre">
+                    <strong className="font-semibold text-bleu">Usage :</strong> {retour.usage}
+                  </p>
+                  <p className="mt-1.5 text-[14px] leading-6 text-encre">
+                    <strong className="font-semibold text-bleu">Résultat :</strong>{" "}
+                    {retour.resultat}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* ── À découvrir aussi ──────────────────────────────────────── */}
       {premium && autres.length > 0 && (

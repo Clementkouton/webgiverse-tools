@@ -896,10 +896,14 @@ model Skill {
   @@index([popularite])
 }
 
-// ── Skill épinglée (« Mes skills » du dashboard) ───────────────────
-// Un abonné Premium épingle une skill de la bibliothèque pour la
-// retrouver dans son espace. Une ligne = une skill épinglée par un
-// membre (contrainte unique [userId, skillId] : pas de doublon).
+// ─────────────────────────────────────────────────────────────────
+// Lot 43 — Skills : favoris épinglés + retours d'usage.
+// ET ajoute aussi :
+//   · modèle User  →  skillFavoris  SkillFavori[]
+//                      skillRetours SkillRetour[]
+//   · modèle Skill →  favoris SkillFavori[]
+//                     retours SkillRetour[]
+// ─────────────────────────────────────────────────────────────────
 model SkillFavori {
   id      String   @id @default(cuid())
   userId  String
@@ -912,23 +916,16 @@ model SkillFavori {
   @@index([skillId])
 }
 
-// ── Retour d'usage sur une skill ───────────────────────────────────
-// L'abonné qui a testé une skill raconte dans quel contexte il l'a
-// utilisée et le résultat obtenu (note 1-5 + recommandation). Un seul
-// retour par membre et par skill ([userId, skillId]), modifiable à
-// volonté (upsert) et supprimable.
 model SkillRetour {
-  id         String   @id @default(cuid())
-  userId     String
-  skillId    String
-  usage      String // contexte d'usage décrit par le membre
-  resultat   String // résultat obtenu
-  note       Int      @default(5) // 1 à 5
-  recommande Boolean  @default(true)
-  creeLe     DateTime @default(now())
-  majLe      DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  id       String   @id @default(cuid())
+  userId   String
+  skillId  String
+  usage    String // contexte d'usage (obligatoire, 20 à 2000 caractères)
+  resultat String // résultat obtenu (obligatoire, 20 à 2000 caractères)
+  note     Int? // note facultative de 1 à 5
+  creeLe   DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill    Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
 
   @@unique([userId, skillId])
   @@index([skillId])
