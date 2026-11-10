@@ -38,6 +38,26 @@ import { journaliser } from "@/lib/journal";
 import { envoyerEmail } from "@/lib/email";
 import { MAX_MEMBRES_EQUIPE } from "@/lib/premium";
 
+// Le modèle existe dans le schéma ; cette déclaration locale permet au
+// fichier de compiler si les types du client Prisma n'ont pas été régénérés.
+const membreEntreprise = (
+  prisma as unknown as {
+    membreEntreprise: {
+      findUnique(args: {
+        where: { membreId: string };
+        select: { id: true };
+      }): Promise<{ id: string } | null>;
+      count(args: { where: { titulaireId: string } }): Promise<number>;
+      create(args: {
+        data: { titulaireId: string; membreId: string };
+      }): Promise<unknown>;
+      deleteMany(args: {
+        where: { membreId: string; titulaireId?: string };
+      }): Promise<{ count: number }>;
+    };
+  }
+).membreEntreprise;
+
 async function userIdConnecte() {
   const session = await auth();
   return session?.user?.id ?? null;
@@ -148,20 +168,20 @@ export async function ajouterMembreFormulaire(donnees: FormData) {
   // exception interceptée par le catch).
   let verdict: "ok" | "deja-siege" | "limite" | "base" = "ok";
   try {
-    const dejaSiege = await prisma.membreEntreprise.findUnique({
+    const dejaSiege = await membreEntreprise.findUnique({
       where: { membreId: membre.id },
       select: { id: true },
     });
     if (dejaSiege) {
       verdict = "deja-siege";
     } else {
-      const nbMembres = await prisma.membreEntreprise.count({
+      const nbMembres = await membreEntreprise.count({
         where: { titulaireId: userId },
       });
       if (nbMembres >= MAX_MEMBRES_EQUIPE) {
         verdict = "limite";
       } else {
-        await prisma.membreEntreprise.create({
+        await membreEntreprise.create({
           data: { titulaireId: userId, membreId: membre.id },
         });
       }
@@ -208,7 +228,7 @@ export async function retirerMembreFormulaire(donnees: FormData) {
 
   let verdict: "retire" | "introuvable" | "base" = "retire";
   try {
-    const resultat = await prisma.membreEntreprise.deleteMany({
+    const resultat = await membreEntreprise.deleteMany({
       where: { membreId: membreId.data, titulaireId: userId },
     });
     if (resultat.count === 0) verdict = "introuvable";
@@ -238,7 +258,7 @@ export async function quitterEquipeFormulaire() {
   try {
     // Lot 58 ① — le point manquant entre membreEntreprise et
     // deleteMany est rétabli : l'appel plantait avant d'atteindre la base.
-    const resultat = await prisma.membreEntreprise.deleteMany({
+    const resultat = await membreEntreprise.deleteMany({
       where: { membreId: userId },
     });
     if (resultat.count === 0) verdict = "introuvable";

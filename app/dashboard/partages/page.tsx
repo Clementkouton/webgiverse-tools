@@ -159,7 +159,7 @@ export default async function PartagesPage({
 
     // Tables liées en SQL pur (sans relation Prisma) : on charge les
     // noms des utilisateurs et des listes séparément, puis on assemble.
-    const idsUsers = [...new Set(lignesPartage.map((p) => p.userId))];
+    const idsUsers = [...new Set(lignesPartage.map((p: { userId: string }) => p.userId))] as string[];
     const utilisateurs = await prisma.user.findMany({
       where: { id: { in: idsUsers } },
       select: { id: true, name: true, email: true },
@@ -167,22 +167,24 @@ export default async function PartagesPage({
     const utilisateurParId = new Map(utilisateurs.map((u) => [u.id, u]));
     const listeParId = new Map(mesListes.map((l) => [l.id, l]));
 
-    partages = lignesPartage.flatMap((p) => {
-      const utilisateur = utilisateurParId.get(p.userId);
-      const liste = listeParId.get(p.listId);
-      if (!utilisateur || !liste) return [];
-      return [
-        {
-          id: p.id,
-          listId: p.listId,
-          role: p.role,
-          creeLe: p.creeLe,
-          email: utilisateur.email,
-          nom: utilisateur.name,
-          listeNom: liste.nom,
-        },
-      ];
-    });
+    partages = lignesPartage.flatMap(
+      (p: { id: string; userId: string; listId: string; role: string; creeLe: Date }) => {
+        const utilisateur = utilisateurParId.get(p.userId);
+        const liste = listeParId.get(p.listId);
+        if (!utilisateur || !liste) return [];
+        return [
+          {
+            id: p.id,
+            listId: p.listId,
+            role: p.role,
+            creeLe: p.creeLe,
+            email: utilisateur.email,
+            nom: utilisateur.name,
+            listeNom: liste.nom,
+          },
+        ];
+      }
+    );
 
     const sieges = await prismaDefensif.membreEntreprise.findMany({
       where: { titulaireId: userId },
