@@ -388,16 +388,6 @@ model Vote {
   @@index([outilId])
 }
 
-model List {
-  id          String     @id @default(cuid())
-  userId      String
-  nom         String
-  createdAt   DateTime   @default(now())
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items       ListItem[]
-  slug        String?    @unique
-  estPublique Boolean    @default(false)
-}
 
 model ListItem {
   id        String   @id @default(cuid())
@@ -939,6 +929,29 @@ model SkillRetour {
 // ne peut occuper qu'un seul siège à la fois). Les liens vers User
 // sont gérés en SQL pur (migration Neon) pour ne pas toucher au
 // modèle User.
+
+
+model List {
+  id        String     @id @default(cuid())
+  userId    String
+  nom       String
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     ListItem[]
+  slug               String?  @unique
+  estPublique        Boolean  @default(false)
+  vues               Int      @default(0)
+  logoUrl            String?
+  descriptionPartage String?
+}
+// Lot 54 — Sièges d'équipe du plan Entreprise.
+// Un abonné Entreprise (le « titulaire ») peut offrir jusqu'à
+// MAX_MEMBRES_EQUIPE sièges (voir lib/premium.ts). Chaque siège
+// pointe vers un compte User existant (membreId unique : un compte
+// ne peut occuper qu'un seul siège à la fois). Les liens vers User
+// sont gérés en SQL pur (migration Neon) pour ne pas toucher au
+// modèle User.
+
 model MembreEntreprise {
   id          String   @id @default(cuid())
   titulaireId String
@@ -946,4 +959,56 @@ model MembreEntreprise {
   creeLe      DateTime @default(now())
 
   @@index([titulaireId])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// À COLLER TOUT EN BAS DE prisma/schema.prisma
+// (après le dernier modèle existant — ne remplace RIEN, ne touche
+//  PAS au modèle List ni à MembreEntreprise s'il est déjà là)
+// Lot 57 — Niveau 3 Entreprise : idées 19, 20, 21 et 22.
+// ─────────────────────────────────────────────────────────────────
+
+// Idée 19 — Listes d'équipe : un collaborateur invité par le
+// titulaire sur une liste précise. role : "LECTEUR" (consulte la
+// liste depuis « Listes partagées avec moi ») ou "EDITEUR" (peut
+// en plus ajouter/retirer des outils de la liste). Un couple
+// (listId, userId) unique : on ne peut pas être invité deux fois
+// sur la même liste. Liens vers List/User gérés en SQL pur
+// (migration Neon) pour ne pas toucher aux modèles existants.
+model MembreListe {
+  id     String   @id @default(cuid())
+  listId String
+  userId String
+  role   String   @default("LECTEUR")
+  creeLe DateTime @default(now())
+
+  @@unique([listId, userId])
+  @@index([userId])
+}
+
+// Idée 21 — Clés d'API de lecture. La clé n'est JAMAIS stockée en
+// clair : on ne garde que son hash SHA-256 (cleHash) et ses 11
+// premiers caractères (prefixe, ex. « wg_1a2b3c4d ») pour
+// l'affichage. revoqueeLe : null = clé active.
+model CleApi {
+  id                  String    @id @default(cuid())
+  userId              String
+  nom                 String
+  cleHash             String    @unique
+  prefixe             String
+  derniereUtilisation DateTime?
+  creeLe              DateTime  @default(now())
+  revoqueeLe          DateTime?
+
+  @@index([userId])
+}
+
+// Idée 22 — Modèles de listes : marque une liste publique comme
+// « modèle » que d'autres utilisateurs (Entreprise) peuvent cloner
+// en un clic dans leur propre dashboard. Table annexe : la liste
+// garde tous ses champs habituels, rien ne change pour elle.
+model ModeleListe {
+  id     String   @id @default(cuid())
+  listId String   @unique
+  creeLe DateTime @default(now())
 }

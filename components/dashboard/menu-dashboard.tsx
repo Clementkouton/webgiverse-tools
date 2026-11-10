@@ -44,6 +44,7 @@ import {
   Pin,
   Puzzle,
   Search,
+  Share,
   Sparkles,
   Star,
   TerminalSquare,
@@ -109,6 +110,13 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/outils", libelle: "Annuaire d'outils", icone: Compass },
       { href: "/assistant", libelle: "Assistant IA", icone: Sparkles },
       { href: "/comparer", libelle: "Comparateur", icone: ArrowLeftRight },
+    ],
+  },
+  {
+    titre: "Mon équipe ",
+    liens: [
+      { href: "/dashboard/entreprise", libelle: "Espace Entreprise", icone: Crown, route: "/dashboard/entreprise" },
+      { href: "/dashboard/listes-partagees", libelle: "Listes partagées", icone: Share, route: "/dashboard/listes-partagees" },
     ],
   },
   {

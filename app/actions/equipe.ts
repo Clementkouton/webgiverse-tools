@@ -19,7 +19,10 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
 import { envoyerEmail } from "@/lib/email";
-import { MAX_MEMBRES_EQUIPE } from "@/lib/premium";
+
+// Fallback local : la constante est utilisée ici comme règle métier, mais
+// le module premium.ts ne l'exporte pas toujours dans les branches/prébuilds.
+const MAX_MEMBRES_EQUIPE = Number(process.env.MAX_MEMBRES_EQUIPE ?? 5);
 
 // Le client Prisma peut être généré avant l'ajout du modèle dans le schéma.
 // Ce type local permet au fichier de compiler en attendant sa régénération.

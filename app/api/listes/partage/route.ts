@@ -32,15 +32,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ erreur: "Liste introuvable." }, { status: 404 });
   }
 
-  const estPublique = !(liste as typeof liste & { estPublique: boolean }).estPublique;
-  let slug = (liste as typeof liste & { slug: string | null }).slug;
+  const estPublique = !liste.estPublique;
+  let slug = liste.slug;
   if (estPublique && !slug) {
     slug = genererSlug(liste.nom ?? "liste");
   }
 
   const maj = await prisma.list.update({
     where: { id: liste.id },
-    data: { estPublique, slug } as never,
+    data: { estPublique, slug },
   });
 
   await journaliser(session.user.id, "partage_liste", JSON.stringify({

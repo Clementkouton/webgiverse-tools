@@ -87,8 +87,15 @@ export async function quotaAssistant(
  *  pas encore passée) → GRATUIT, jamais d'erreur. */
 async function planViaEquipe(utilisateurId: string): Promise<NiveauPlan> {
   try {
-    const prismaAny = prisma as any;
-    const siege = await prismaAny.membreEntreprise?.findUnique?.({
+    const membreEntreprise = (prisma as unknown as {
+      membreEntreprise: {
+        findUnique(args: {
+          where: { membreId: string };
+          select: { titulaireId: true };
+        }): Promise<{ titulaireId: string } | null>;
+      };
+    }).membreEntreprise;
+    const siege = await membreEntreprise.findUnique({
       where: { membreId: utilisateurId },
       select: { titulaireId: true },
     });
