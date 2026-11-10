@@ -931,3 +931,19 @@ model SkillRetour {
   @@unique([userId, skillId])
   @@index([skillId])
 }
+
+// Lot 54 — Sièges d'équipe du plan Entreprise.
+// Un abonné Entreprise (le « titulaire ») peut offrir jusqu'à
+// MAX_MEMBRES_EQUIPE sièges (voir lib/premium.ts). Chaque siège
+// pointe vers un compte User existant (membreId unique : un compte
+// ne peut occuper qu'un seul siège à la fois). Les liens vers User
+// sont gérés en SQL pur (migration Neon) pour ne pas toucher au
+// modèle User.
+model MembreEntreprise {
+  id          String   @id @default(cuid())
+  titulaireId String
+  membreId    String   @unique
+  creeLe      DateTime @default(now())
+
+  @@index([titulaireId])
+}

@@ -5,8 +5,11 @@
 // Navigation par paramètre d'URL (?onglet=…) : tout reste côté
 // serveur, aucune donnée ne se charge inutilement.
 //
-// Lot 54 — l'aperçu fait DÉCOUVRIR LES 4 ÉLÉMENTS du site, chacun
+// Lot 53 — l'aperçu fait DÉCOUVRIR LES 4 ÉLÉMENTS du site, chacun
 // avec sa propre section et son accès direct :
+//   · « L'univers en chiffres » : statistique générale des 4 éléments
+//     (outils, tutoriels, prompts, skills) — 4 tuiles cliquables juste
+//     sous la checklist, pour donner envie d'explorer chaque univers ;
 //   · « Mes outils »      : favoris récents AVEC détails (catégorie,
 //     tarif, statut, note, description) — remplace le tableau sec ;
 //   · « Tutoriels vidéo » : reprendre les tutos en cours, sinon les
@@ -90,7 +93,7 @@ import { calculerOnboarding, calculerStreak } from "@/lib/engagement";
 import { synchroniserNotificationsTutos } from "@/lib/notifications";
 import { ChecklistOnboarding } from "@/components/dashboard/checklist-onboarding";
 import { CarteRappelsATester } from "@/components/dashboard/carte-rappels-a-tester";
-// Lot 54 — cartes réutilisées des bibliothèques (style identique au site)
+// Lot 53 — cartes réutilisées des bibliothèques (style identique au site)
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
 import { CartePrompt } from "@/components/prompts/carte-prompt";
 import { CarteSkill } from "@/components/skills/carte-skill";
@@ -434,7 +437,7 @@ export default async function PageDashboard({
       take: 4,
     });
 
-    // ── Lot 54 — Section « Tutoriels vidéo » : on reprend les tutos
+    // ── Lot 53 — Section « Tutoriels vidéo » : on reprend les tutos
     // EN_COURS (triés par rang), puis on complète avec les tutoriels
     // recommandés non terminés. Défensif : table absente → vide. ──
     let progresTutos: { tutoId: string; statut: string }[] = [];
@@ -474,7 +477,7 @@ export default async function PageDashboard({
     }
     const nbTutosEnCours = progresTutos.filter((p) => p.statut === "EN_COURS").length;
 
-    // ── Lot 54 — Section « Prompts IA » : derniers prompts
+    // ── Lot 53 — Section « Prompts IA » : derniers prompts
     // sauvegardés, sinon les plus populaires de la bibliothèque. ──
     type PromptCarte = {
       slug: string;
@@ -532,7 +535,7 @@ export default async function PageDashboard({
     const promptsAffiches =
       derniersPromptsFavoris.length > 0 ? derniersPromptsFavoris : suggestionsPrompts;
 
-    // ── Lot 54 — Section « Skills IA » : skills épinglées + retours
+    // ── Lot 53 — Section « Skills IA » : skills épinglées + retours
     // d'usage (abonnés Premium seulement, même règle que /skills).
     // DÉFENSIF : si la migration SQL des tables SkillFavori/SkillRetour
     // n'a pas encore été passée dans Neon, tout tombe à zéro sans crash.
@@ -565,12 +568,58 @@ export default async function PageDashboard({
         : [];
     const skillsAffichees = skillsEpingles.length > 0 ? skillsEpingles : suggestionsSkills;
 
+    // ── Lot 53 — Statistique générale : l'étendue des 4 éléments du
+    // site, pour donner envie d'explorer chaque univers. Défensif :
+    // skills (client/tables non régénérés) → 0, jamais de crash. ──
+    const nbOutilsSite = await prisma.tool
+      .count({ where: { statut: "PUBLIE" } })
+      .catch(() => 0);
+    const nbTutosSite = await prisma.tuto.count().catch(() => 0);
+    const nbPromptsSite = await prisma.prompt.count().catch(() => 0);
+    const nbSkillsSite = prismaSkill?.count
+      ? await prismaSkill.count().catch(() => 0)
+      : 0;
+
     contenu = (
       <>
         {/* ── Lot 20 — Checklist d'onboarding (jauge de complétion) ── */}
         <div className="mt-8">
           <ChecklistOnboarding onboarding={onboarding} />
         </div>
+
+        {/* ── Lot 53 — Statistique générale : l'univers Webgiverse en
+            4 chiffres, chaque tuile mène à son univers. ── */}
+        <section aria-label="L'univers Webgiverse en chiffres" className="mt-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { href: "/outils", valeur: nbOutilsSite, libelle: "Outils dans l'annuaire", sousTexte: "Trouve ta pépite IA", icone: Compass },
+              { href: "/tutoriels", valeur: nbTutosSite, libelle: "Tutoriels vidéo", sousTexte: "Apprends pas à pas", icone: MonitorPlay },
+              { href: "/prompts", valeur: nbPromptsSite, libelle: "Prompts prêts à copier", sousTexte: "Inspire-toi des meilleurs", icone: TerminalSquare },
+              { href: "/skills", valeur: nbSkillsSite, libelle: "Skills IA (agents)", sousTexte: "Prêts à l'emploi · Premium", icone: Bot },
+            ].map((u) => (
+              <Link
+                key={u.href}
+                href={u.href}
+                className="survol-carte group flex items-start gap-3 rounded-carte border border-bordure bg-white p-5 shadow-carte"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-champ bg-[linear-gradient(120deg,rgba(106,59,255,0.12),rgba(0,209,255,0.14))] text-sky-500 transition-transform duration-300 group-hover:scale-110">
+                  <u.icone className="size-5" aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-titre text-[22px] leading-7 font-bold text-bleu">
+                    {u.valeur}
+                  </span>
+                  <span className="block text-[14px] leading-5 font-semibold group-hover:text-sky-500">
+                    {u.libelle}
+                  </span>
+                  <span className="mt-0.5 block text-[13px] leading-4 text-encre">
+                    {u.sousTexte}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {/* ── Cartes statistiques (style Metis) ───────────────────── */}
         <section aria-label="Mes statistiques" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -629,7 +678,7 @@ export default async function PageDashboard({
           />
         </section>
 
-        {/* ══════ Lot 54 — LES 4 ÉLÉMENTS DU SITE, chacun avec sa section ══════ */}
+        {/* ══════ Lot 53 — LES 4 ÉLÉMENTS DU SITE, chacun avec sa section ══════ */}
 
         {/* ── 1. Mes outils : favoris récents avec détails (remplace
             l'ancien tableau « Derniers favoris », plus riche et plus
@@ -924,7 +973,7 @@ export default async function PageDashboard({
           <CarteRappelsATester outils={outilsEnAttente} />
         </div>
 
-        {/* Lot 54 : l'ancien tableau « Derniers favoris » est remplacé
+        {/* Lot 53 : l'ancien tableau « Derniers favoris » est remplacé
             par la section « Mes outils » détaillée, plus haut dans
             l'aperçu (voir LES 4 ÉLÉMENTS DU SITE). */}
 

@@ -3,6 +3,10 @@
 // Source de vérité pour l'application RÉELLE des plans d'abonnement.
 // Le plan Découverte (gratuit) a des limites ; les plans Pro et
 // Entreprise n'en ont pas. Toutes les actions/API passent par ici.
+//
+// Lot 54 — sièges d'équipe : un membre invité par un titulaire
+// Entreprise actif bénéficie automatiquement des mêmes avantages
+// que le plan Entreprise (voir planActif / premiumActif ci-dessous).
 // ─────────────────────────────────────────────────────────────────
 import { prisma } from "@/lib/prisma";
 
@@ -14,22 +18,18 @@ export const LIMITES_DECOUVERTE = {
   assistantMois: 10, // questions de chat libre par mois calendaire
 } as const;
 
+/** Lot 54 — nombre maximum de sièges offerts par un abonnement
+ *  Entreprise (hors le titulaire lui-même). Pour l'ajuster, change
+ *  uniquement cette valeur : la page « Mon équipe » et les vérifications
+ *  suivent automatiquement. */
+export const MAX_MEMBRES_EQUIPE = 4;
+
+/** Niveau réellement bénéficié : abonnement personnel OU siège d'équipe. */
+export type NiveauPlan = "GRATUIT" | "PRO" | "ENTREPRISE";
+
 /** Renvoie true si l'utilisateur a un abonnement ACTIF non expiré. */
 export async function premiumActif(utilisateurId: string): Promise<boolean> {
-  try {
-    const abonnement = await prisma.abonnement.findUnique({
-      where: { utilisateurId },
-      select: { statut: true, expireLe: true },
-    });
-    return Boolean(
-      abonnement &&
-        abonnement.statut === "ACTIF" &&
-        abonnement.expireLe > new Date()
-    );
-  } catch {
-    // Table Abonnement absente (db push pas encore lancé) → plan gratuit
-    return false;
-  }
+  return (await planActif(utilisateurId)) !== "GRATUIT";
 }
 
 /** 1er jour du mois en cours (UTC) — le quota assistant repart de zéro chaque mois. */
@@ -77,4 +77,70 @@ export async function quotaAssistant(
       restantes: LIMITES_DECOUVERTE.assistantMois,
     };
   }
+}
+
+// ── Lot 54 — niveau de plan réel ────────────────────────────────
+
+/** Niveau reçu via un siège d'équipe : ENTREPRISE si le membre occupe
+ *  un siège dont le titulaire a un abonnement Entreprise ACTIF non
+ *  expiré, sinon GRATUIT. Défensif : table absente (migration lot 54
+ *  pas encore passée) → GRATUIT, jamais d'erreur. */
+async function planViaEquipe(utilisateurId: string): Promise<NiveauPlan> {
+  try {
+    const prismaAny = prisma as any;
+    const siege = await prismaAny.membreEntreprise?.findUnique?.({
+      where: { membreId: utilisateurId },
+      select: { titulaireId: true },
+    });
+    if (!siege) return "GRATUIT";
+
+    const abonnementTitulaire = await prisma.abonnement.findUnique({
+      where: { utilisateurId: siege.titulaireId },
+      select: { plan: true, statut: true, expireLe: true },
+    });
+    if (
+      abonnementTitulaire &&
+      abonnementTitulaire.plan === "ENTREPRISE" &&
+      abonnementTitulaire.statut === "ACTIF" &&
+      abonnementTitulaire.expireLe > new Date()
+    ) {
+      return "ENTREPRISE";
+    }
+  } catch {
+    // Table MembreEntreprise absente ou Abonnement absente → plan gratuit
+  }
+  return "GRATUIT";
+}
+
+/**
+ * Le niveau le plus élevé dont bénéficie l'utilisateur :
+ * 1) son abonnement personnel actif (Pro ou Entreprise) ;
+ * 2) à défaut, un siège d'équipe Entreprise actif (lot 54).
+ * Défensif : si les tables n'existent pas encore → GRATUIT.
+ */
+export async function planActif(utilisateurId: string): Promise<NiveauPlan> {
+  try {
+    const abonnement = await prisma.abonnement.findUnique({
+      where: { utilisateurId },
+      select: { plan: true, statut: true, expireLe: true },
+    });
+    if (
+      abonnement &&
+      abonnement.statut === "ACTIF" &&
+      abonnement.expireLe > new Date()
+    ) {
+      return abonnement.plan === "ENTREPRISE" ? "ENTREPRISE" : "PRO";
+    }
+  } catch {
+    // Table Abonnement absente (db push pas encore lancé) → on continue
+  }
+  return planViaEquipe(utilisateurId);
+}
+
+/** true si l'utilisateur bénéficie du plan Entreprise
+ *  (abonnement personnel actif OU siège d'équipe actif). */
+export async function entrepriseActif(
+  utilisateurId: string
+): Promise<boolean> {
+  return (await planActif(utilisateurId)) === "ENTREPRISE";
 }

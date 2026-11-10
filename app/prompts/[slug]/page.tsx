@@ -94,7 +94,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
         </ol>
       </nav>
 
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:py-10">
+      <div className="mx-auto grid w-full max-w-7xl  px-4 py-8  lg:py-10">
         {/* ── Colonne principale : titre + contenu ────────────────── */}
         <div>
           <h1 className="flex items-start gap-3 font-titre text-[24px] leading-8 font-bold tracking-tight text-bleu sm:text-[28px] sm:leading-9">
@@ -149,32 +149,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
               slug={prompt.slug}
             />
           </section>
-
-          {/* ── Comment l'utiliser ────────────────────────────────── */}
-          {prompt.utilisation && (
-            <section aria-label="Comment utiliser ce prompt" className="mt-8 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
-              <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-                <Variable className="size-4.5 text-violet" aria-hidden /> Comment l&apos;utiliser
-              </h2>
-              <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
-                {prompt.utilisation}
-              </p>
-            </section>
-          )}
-
-          {/* ── Conseils ──────────────────────────────────────────── */}
-          {prompt.conseils && (
-            <section aria-label="Conseils d'utilisation" className="mt-4 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
-              <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-                <ListChecks className="size-4.5 text-violet" aria-hidden /> Conseils pour de meilleurs résultats
-              </h2>
-              <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
-                {prompt.conseils}
-              </p>
-            </section>
-          )}
-        </div>
-
+          
         {/* ── Colonne latérale : fiche résumé ─────────────────────── */}
         <aside className="space-y-4">
           <div className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
@@ -229,6 +204,32 @@ export default async function PagePrompt({ params }: { params: Params }) {
             )}
           </div>
         </aside>
+
+          {/* ── Comment l'utiliser ────────────────────────────────── */}
+          {prompt.utilisation && (
+            <section aria-label="Comment utiliser ce prompt" className="mt-8 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
+              <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
+                <Variable className="size-4.5 text-violet" aria-hidden /> Comment l&apos;utiliser
+              </h2>
+              <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
+                {prompt.utilisation}
+              </p>
+            </section>
+          )}
+
+          {/* ── Conseils ──────────────────────────────────────────── */}
+          {prompt.conseils && (
+            <section aria-label="Conseils d'utilisation" className="mt-4 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
+              <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
+                <ListChecks className="size-4.5 text-violet" aria-hidden /> Conseils pour de meilleurs résultats
+              </h2>
+              <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
+                {prompt.conseils}
+              </p>
+            </section>
+          )}
+        </div>
+
       </div>
 
       {/* ── À essayer aussi ───────────────────────────────────────── */}
