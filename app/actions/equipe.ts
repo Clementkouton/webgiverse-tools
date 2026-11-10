@@ -9,6 +9,23 @@
 // (migration SQL lot 54 pas passée), on renvoie vers la page avec
 // ?message=base au lieu de faire planter.
 // ⚠️ Fichier "use server" : chaque export DOIT être une fonction async.
+//
+// Lot 58 — CORRECTIF COMPLET (3 changements, rien d'autre) :
+//   ① quitterEquipeFormulaire : le point manquant est rétabli
+//     (prisma.membreEntreprisedeleteMany → prisma.membreEntreprise
+//     .deleteMany) — l'appel plantait avant d'atteindre la base et
+//     faisait échouer la vérification des types du build.
+//   ② L'alias local « membreEntreprise » (cast mort depuis que les
+//     actions appellent prisma.membreEntreprise directement) est
+//     supprimé : c'était lui qui valait undefined tant que le client
+//     Prisma n'était pas régénéré — cause du TypeError d'origine
+//     (« Cannot read properties of undefined (reading 'findUnique') »).
+//   ③ Le succès de l'ajout redirige vers ?message=ajoute : la page
+//     /dashboard/equipe affiche son message vert sous la clé
+//     « ajoute », pas sous « ok » (le succès était donc invisible).
+// Le modèle MembreEntreprise est déclaré dans prisma/schema.prisma :
+// après « npx prisma generate », prisma.membreEntreprise est typé
+// nativement — plus aucun cast nécessaire ici.
 // ─────────────────────────────────────────────────────────────────
 "use server";
 
@@ -19,30 +36,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
 import { envoyerEmail } from "@/lib/email";
-
-// Fallback local : la constante est utilisée ici comme règle métier, mais
-// le module premium.ts ne l'exporte pas toujours dans les branches/prébuilds.
-const MAX_MEMBRES_EQUIPE = Number(process.env.MAX_MEMBRES_EQUIPE ?? 5);
-
-// Le client Prisma peut être généré avant l'ajout du modèle dans le schéma.
-// Ce type local permet au fichier de compiler en attendant sa régénération.
-type MembreEntrepriseDelegate = {
-  findUnique(args: {
-    where: { membreId: string };
-    select: { id: true };
-  }): Promise<{ id: string } | null>;
-  count(args: { where: { titulaireId: string } }): Promise<number>;
-  create(args: {
-    data: { titulaireId: string; membreId: string };
-  }): Promise<unknown>;
-  deleteMany(args: {
-    where: { membreId: string; titulaireId?: string };
-  }): Promise<{ count: number }>;
-};
-
-const membreEntreprise = (prisma as unknown as {
-  membreEntreprise: MembreEntrepriseDelegate;
-}).membreEntreprise;
+import { MAX_MEMBRES_EQUIPE } from "@/lib/premium";
 
 async function userIdConnecte() {
   const session = await auth();
@@ -154,20 +148,20 @@ export async function ajouterMembreFormulaire(donnees: FormData) {
   // exception interceptée par le catch).
   let verdict: "ok" | "deja-siege" | "limite" | "base" = "ok";
   try {
-    const dejaSiege = await membreEntreprise.findUnique({
+    const dejaSiege = await prisma.membreEntreprise.findUnique({
       where: { membreId: membre.id },
       select: { id: true },
     });
     if (dejaSiege) {
       verdict = "deja-siege";
     } else {
-      const nbMembres = await membreEntreprise.count({
+      const nbMembres = await prisma.membreEntreprise.count({
         where: { titulaireId: userId },
       });
       if (nbMembres >= MAX_MEMBRES_EQUIPE) {
         verdict = "limite";
       } else {
-        await membreEntreprise.create({
+        await prisma.membreEntreprise.create({
           data: { titulaireId: userId, membreId: membre.id },
         });
       }
@@ -195,7 +189,9 @@ export async function ajouterMembreFormulaire(donnees: FormData) {
   }
 
   revalidatePath("/dashboard/equipe");
-  redirect(`/dashboard/equipe?message=${verdict}`);
+  // Lot 58 ③ — la page affiche le succès sous la clé « ajoute » :
+  // l'ancien ?message=ok ne correspondait à aucune carte de la page.
+  redirect(`/dashboard/equipe?message=${verdict === "ok" ? "ajoute" : verdict}`);
 }
 
 /** Libère un siège de son équipe (titulaire uniquement). */
@@ -212,7 +208,7 @@ export async function retirerMembreFormulaire(donnees: FormData) {
 
   let verdict: "retire" | "introuvable" | "base" = "retire";
   try {
-    const resultat = await membreEntreprise.deleteMany({
+    const resultat = await prisma.membreEntreprise.deleteMany({
       where: { membreId: membreId.data, titulaireId: userId },
     });
     if (resultat.count === 0) verdict = "introuvable";
@@ -240,7 +236,9 @@ export async function quitterEquipeFormulaire() {
 
   let verdict: "parti" | "introuvable" | "base" = "parti";
   try {
-    const resultat = await membreEntreprise.deleteMany({
+    // Lot 58 ① — le point manquant entre membreEntreprise et
+    // deleteMany est rétabli : l'appel plantait avant d'atteindre la base.
+    const resultat = await prisma.membreEntreprise.deleteMany({
       where: { membreId: userId },
     });
     if (resultat.count === 0) verdict = "introuvable";

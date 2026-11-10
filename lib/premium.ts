@@ -1,12 +1,16 @@
 // lib/premium.ts
 // ─────────────────────────────────────────────────────────────────
-// Source de vérité pour l'application RÉELLE des plans d'abonnement.
-// Le plan Découverte (gratuit) a des limites ; les plans Pro et
-// Entreprise n'en ont pas. Toutes les actions/API passent par ici.
-//
-// Lot 54 — sièges d'équipe : un membre invité par un titulaire
-// Entreprise actif bénéficie automatiquement des mêmes avantages
-// que le plan Entreprise (voir planActif / premiumActif ci-dessous).
+// VERSION FUSIONNÉE lots 54 + 55 + 56 — source de vérité pour
+// l'application RÉELLE des plans d'abonnement.
+// Contient TOUT :
+//   - les limites du plan Découverte (LIMITES_DECOUVERTE) ;
+//   - le quota mensuel de l'assistant (quotaAssistant) ;
+//   - les sièges d'équipe du lot 54 (MAX_MEMBRES_EQUIPE, planActif) ;
+//   - le test Entreprise du lot 55 (entrepriseActif).
+// Remplace sans risque les versions livrées par les lots 54 et 55
+// (elles se contredisaient : la version du lot 55 perdait la
+// logique des sièges).
+// Défensif partout : table absente → plan gratuit, jamais de crash.
 // ─────────────────────────────────────────────────────────────────
 import { prisma } from "@/lib/prisma";
 
@@ -20,17 +24,12 @@ export const LIMITES_DECOUVERTE = {
 
 /** Lot 54 — nombre maximum de sièges offerts par un abonnement
  *  Entreprise (hors le titulaire lui-même). Pour l'ajuster, change
- *  uniquement cette valeur : la page « Mon équipe » et les vérifications
- *  suivent automatiquement. */
+ *  uniquement cette valeur : la page « Mon équipe » et les
+ *  vérifications suivent automatiquement. */
 export const MAX_MEMBRES_EQUIPE = 4;
 
 /** Niveau réellement bénéficié : abonnement personnel OU siège d'équipe. */
 export type NiveauPlan = "GRATUIT" | "PRO" | "ENTREPRISE";
-
-/** Renvoie true si l'utilisateur a un abonnement ACTIF non expiré. */
-export async function premiumActif(utilisateurId: string): Promise<boolean> {
-  return (await planActif(utilisateurId)) !== "GRATUIT";
-}
 
 /** 1er jour du mois en cours (UTC) — le quota assistant repart de zéro chaque mois. */
 export function debutDuMois(): Date {
@@ -48,53 +47,26 @@ export type QuotaAssistant = {
   restantes: number | null;
 };
 
-/** Compte les questions de chat libre du mois pour savoir si on bloque. */
-export async function quotaAssistant(
-  utilisateurId: string
-): Promise<QuotaAssistant> {
-  const premium = await premiumActif(utilisateurId);
-  if (premium) {
-    return { premium: true, utilisees: 0, restantes: null };
-  }
-  try {
-    const utilisees = await prisma.message.count({
-      where: {
-        role: "user",
-        conversation: { utilisateurId },
-        creeLe: { gte: debutDuMois() },
-      },
-    });
-    return {
-      premium: false,
-      utilisees,
-      restantes: Math.max(0, LIMITES_DECOUVERTE.assistantMois - utilisees),
-    };
-  } catch {
-    // Tables absentes (db push pas encore lancé) → on ne bloque personne
-    return {
-      premium: false,
-      utilisees: 0,
-      restantes: LIMITES_DECOUVERTE.assistantMois,
-    };
-  }
-}
-
 // ── Lot 54 — niveau de plan réel ────────────────────────────────
 
 /** Niveau reçu via un siège d'équipe : ENTREPRISE si le membre occupe
  *  un siège dont le titulaire a un abonnement Entreprise ACTIF non
  *  expiré, sinon GRATUIT. Défensif : table absente (migration lot 54
- *  pas encore passée) → GRATUIT, jamais d'erreur. */
+ *  pas encore passée ou client pas régénéré) → GRATUIT, jamais d'erreur. */
 async function planViaEquipe(utilisateurId: string): Promise<NiveauPlan> {
   try {
+    // Le client Prisma peut ne pas encore inclure ce modèle si le client
+    // n'a pas été régénéré après la migration.
     const membreEntreprise = (prisma as unknown as {
-      membreEntreprise: {
+      membreEntreprise?: {
         findUnique(args: {
           where: { membreId: string };
           select: { titulaireId: true };
         }): Promise<{ titulaireId: string } | null>;
       };
     }).membreEntreprise;
+    if (!membreEntreprise) return "GRATUIT";
+
     const siege = await membreEntreprise.findUnique({
       where: { membreId: utilisateurId },
       select: { titulaireId: true },
@@ -144,10 +116,52 @@ export async function planActif(utilisateurId: string): Promise<NiveauPlan> {
   return planViaEquipe(utilisateurId);
 }
 
-/** true si l'utilisateur bénéficie du plan Entreprise
- *  (abonnement personnel actif OU siège d'équipe actif). */
+/** Renvoie true si l'utilisateur bénéficie d'un plan payant
+ *  (abonnement actif OU siège d'équipe actif). */
+export async function premiumActif(utilisateurId: string): Promise<boolean> {
+  return (await planActif(utilisateurId)) !== "GRATUIT";
+}
+
+/**
+ * Renvoie true si l'utilisateur bénéficie du plan Entreprise
+ * (abonnement personnel actif OU siège d'équipe actif).
+ * Lot 55 — privilèges listes : lien personnalisé, page en-marque,
+ * badge « ✓ Entreprise », statistiques de vues, QR code…
+ * Tout privilège réservé à l'Entreprise passe par ici.
+ */
 export async function entrepriseActif(
   utilisateurId: string
 ): Promise<boolean> {
   return (await planActif(utilisateurId)) === "ENTREPRISE";
+}
+
+/** Compte les questions de chat libre du mois pour savoir si on bloque. */
+export async function quotaAssistant(
+  utilisateurId: string
+): Promise<QuotaAssistant> {
+  const premium = await premiumActif(utilisateurId);
+  if (premium) {
+    return { premium: true, utilisees: 0, restantes: null };
+  }
+  try {
+    const utilisees = await prisma.message.count({
+      where: {
+        role: "user",
+        conversation: { utilisateurId },
+        creeLe: { gte: debutDuMois() },
+      },
+    });
+    return {
+      premium: false,
+      utilisees,
+      restantes: Math.max(0, LIMITES_DECOUVERTE.assistantMois - utilisees),
+    };
+  } catch {
+    // Tables absentes (db push pas encore lancé) → on ne bloque personne
+    return {
+      premium: false,
+      utilisees: 0,
+      restantes: LIMITES_DECOUVERTE.assistantMois,
+    };
+  }
 }
