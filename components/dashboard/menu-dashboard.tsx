@@ -1,23 +1,17 @@
 // components/dashboard/menu-dashboard.tsx
 // ─────────────────────────────────────────────────────────────────
-// Coquille du dashboard « Metis » adaptée à la charte Webgiverse
-// (polices du site conservées : font-titre + Inter) :
-//   • Barre supérieure collante TOUS ÉCRANS : titre + sous-titre de la
-//     page courante, recherche qui mène à l'annuaire, profil à droite,
-//     déconnexion en un tap sur mobile.
-//   • Barre latérale fixe sur ordinateur, tiroir coulissant animé sur
-//     mobile (fond assombri, fermeture Échap, verrou de défilement).
-//   • Section « Mon espace » : Tableau de bord, Favoris, Mes listes,
-//     Mes avis, Activité, Mon profil (NOUVEAU Lot 53 — onglet ?onglet=profil),
-//     Notifications, Parrainage.
-//   • Section « Apprendre » : Prompts IA, Tutoriels IA, Mes notes,
-//     Mes conversations + Lot 43 : entrée « Skills favoris »
-//     (/dashboard/skills-favoris — skills épinglées + retours d'usage)
-//     et accès directs aux bibliothèques du site.
-//   • Toile gris clair derrière le contenu : les cartes blanches
-//     ressortent comme dans le template Metis.
-// L'état actif suit l'URL (/dashboard?onglet=…) et les routes
-// /dashboard/….
+// LOT 59 — Menu de l'espace personnel avec les 5 pages Entreprise :
+//   • Mon équipe            (/dashboard/equipe            — lot 54/58)
+//   • Listes partagées avec moi (/dashboard/listes-partagees)
+//   • Partage des listes    (/dashboard/partages          — idée 19/20)
+//   • Clés d'API            (/dashboard/cles-api          — idée 21)
+//   • Modèles de listes     (/dashboard/modeles-listes    — idée 22)
+// regroupées dans une section « Entreprise » (visible par tout le
+// monde : chaque page affiche elle-même sa carte « réservé au plan »
+// ou son état vide, exactement comme la page Mon équipe le fait déjà).
+// Conserve à l'identique le reste du lot 43/53 : barre supérieure
+// collante tous écrans, tiroir mobile animé, onglets ?onglet=… du
+// tableau de bord, carte plan, cloche des notifications, pied dédié.
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
@@ -34,7 +28,9 @@ import {
   GraduationCap,
   Handshake,
   History,
+  Key,
   LayoutDashboard,
+  LayoutTemplate,
   Library,
   ListChecks,
   Menu,
@@ -44,11 +40,12 @@ import {
   Pin,
   Puzzle,
   Search,
-  Share,
+  Share2,
   Sparkles,
   Star,
   TerminalSquare,
-  User,
+  UserPlus,
+  Users,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -86,9 +83,18 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/dashboard?onglet=listes", libelle: "Mes listes", icone: ListChecks, onglet: "listes" },
       { href: "/dashboard?onglet=avis", libelle: "Mes avis", icone: MessageSquareQuote, onglet: "avis" },
       { href: "/dashboard?onglet=activite", libelle: "Activité", icone: History, onglet: "activite" },
-      { href: "/dashboard?onglet=profil", libelle: "Mon profil", icone: User, onglet: "profil" },
       { href: "/dashboard/notifications", libelle: "Notifications", icone: Bell, route: "/dashboard/notifications" },
       { href: "/dashboard/parrainage", libelle: "Parrainage", icone: Handshake, route: "/dashboard/parrainage" },
+    ],
+  },
+  {
+    titre: "Entreprise",
+    liens: [
+      { href: "/dashboard/equipe", libelle: "Mon équipe", icone: Users, route: "/dashboard/equipe" },
+      { href: "/dashboard/listes-partagees", libelle: "Listes partagées avec moi", icone: Share2, route: "/dashboard/listes-partagees" },
+      { href: "/dashboard/partages", libelle: "Partage des listes", icone: UserPlus, route: "/dashboard/partages" },
+      { href: "/dashboard/cles-api", libelle: "Clés d'API", icone: Key, route: "/dashboard/cles-api" },
+      { href: "/dashboard/modeles-listes", libelle: "Modèles de listes", icone: LayoutTemplate, route: "/dashboard/modeles-listes" },
     ],
   },
   {
@@ -113,13 +119,6 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     ],
   },
   {
-    titre: "Mon équipe ",
-    liens: [
-      { href: "/dashboard/entreprise", libelle: "Espace Entreprise", icone: Crown, route: "/dashboard/entreprise" },
-      { href: "/dashboard/listes-partagees", libelle: "Listes partagées", icone: Share, route: "/dashboard/listes-partagees" },
-    ],
-  },
-  {
     titre: "Abonnement",
     liens: [
       { href: "/dashboard/abonnement", libelle: "Mon abonnement", icone: Crown, route: "/dashboard/abonnement" },
@@ -135,7 +134,6 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   listes: { titre: "Mes listes", sousTitre: "Organise tes outils par projet ou par client" },
   avis: { titre: "Mes avis", sousTitre: "Tes retours d'expérience sur les outils testés" },
   activite: { titre: "Mon activité", sousTitre: "Historique de tes actions" },
-  profil: { titre: "Mon profil", sousTitre: "Objectif, badges et recommandations" },
   notifications: { titre: "Notifications", sousTitre: "Nouveautés, votes sur tes avis et récompenses" },
   parrainage: { titre: "Parrainage", sousTitre: "1 mois offert pour chaque filleul Premium" },
   abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
@@ -145,6 +143,11 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   assistant: { titre: "Mes conversations", sousTitre: "Historique de tes échanges avec l'assistant" },
   "skills-favoris": { titre: "Mes skills favoris", sousTitre: "Skills épinglées et retours d'usage" },
   export: { titre: "Export premium", sousTitre: "Tes favoris et tes listes en PDF ou CSV" },
+  equipe: { titre: "Mon équipe", sousTitre: "Les sièges de ton plan Entreprise" },
+  "listes-partagees": { titre: "Listes partagées avec moi", sousTitre: "Les listes de ton équipe accessibles à ton compte" },
+  partages: { titre: "Partage des listes", sousTitre: "Partage tes listes avec les membres de ton équipe" },
+  "cles-api": { titre: "Clés d'API", sousTitre: "Accès de lecture aux données de ton compte" },
+  "modeles-listes": { titre: "Modèles de listes", sousTitre: "Catalogue des listes publiées à cloner en un clic" },
 };
 
 export default function MenuDashboard({ prenom, image, premium, pied, children }: Props) {
@@ -156,7 +159,8 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
   const ongletActif =
     chemin === "/dashboard" ? (params.get("onglet") ?? "apercu") : null;
   // Sous-pages du dashboard (/dashboard/abonnement, /prompts, /tutoriels,
-  // /notes, /assistant, /export) : la clé de titre = dernier segment.
+  // /notes, /assistant, /export, /equipe, /partages…) : la clé de titre
+  // = dernier segment.
   const segment = chemin.startsWith("/dashboard/")
     ? chemin.slice("/dashboard/".length).split("/")[0]
     : null;
