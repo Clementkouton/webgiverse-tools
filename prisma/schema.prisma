@@ -990,6 +990,7 @@ model MembreListe {
 // clair : on ne garde que son hash SHA-256 (cleHash) et ses 11
 // premiers caractères (prefixe, ex. « wg_1a2b3c4d ») pour
 // l'affichage. revoqueeLe : null = clé active.
+
 model CleApi {
   id                  String    @id @default(cuid())
   userId              String

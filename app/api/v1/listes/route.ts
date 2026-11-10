@@ -1,137 +1,101 @@
 // app/api/v1/listes/route.ts
 // ─────────────────────────────────────────────────────────────────
-// Lot 57 — Niveau 3 Entreprise : idée 21 (API de lecture).
-// GET /api/v1/listes
-//   En-tête : Authorization: Bearer wg_xxxxxxxx…
-//   Réponse : les listes PUBLIQUES du propriétaire de la clé
-//   (nom, lien, nombre d'outils, date de partage).
-// La clé est vérifiée par son hash SHA-256 ; rate limit simple en
-// mémoire (30 appels par minute et par clé) ; CORS ouvert en
-// lecture seule (c'est une API publique de consultation).
+// Lot 57 — idée 21 : la route API de lecture, protégée par clé
+// d'API (voir /dashboard/cles-api). Elle ne demande PAS de session
+// NextAuth : c'est tout l'intérêt d'une clé d'API (script, n8n,
+// tableur…). Le middleware du projet ne protège que /dashboard et
+// /admin : cette route est donc accessible, mais rien n'est lisible
+// sans une clé valide.
+//
+//   GET /api/v1/listes
+//   En-tête : Authorization: Bearer wg_…
+//   Réponse 200 : { proprietaire, nbListes, listes: [...] }
+//   Réponse 401 : clé absente, inconnue ou révoquée
+//   Réponse 405 : autre méthode
+//
+// Lecture seule par conception : seule la méthode GET est exportée.
+// Chaque appel met à jour « derniereUtilisation » de la clé (jamais
+// bloquant).
 // ─────────────────────────────────────────────────────────────────
-
 import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-const APPELS_MAX = 30;
-const FENETRE_MS = 60_000;
-
-/** Rate limit en mémoire : suffisant sur un seul serveur, sans
- *  dépendance. Les horodatages hors fenêtre sont purgés à l'appel. */
-const appels = new Map<string, number[]>();
-function rateLimitOk(cleId: string): boolean {
-  const maintenant = Date.now();
-  const horodatages = (appels.get(cleId) ?? []).filter(
-    (t) => maintenant - t < FENETRE_MS
-  );
-  if (horodatages.length >= APPELS_MAX) {
-    appels.set(cleId, horodatages);
-    return false;
-  }
-  horodatages.push(maintenant);
-  appels.set(cleId, horodatages);
-  return true;
-}
-
-function reponseJson(corps: unknown, statut: number, entetesSupplementaires?: Record<string, string>) {
-  return Response.json(corps, {
-    status: statut,
-    headers: {
-      "Cache-Control": "no-store",
-      "Access-Control-Allow-Origin": "*",
-      ...entetesSupplementaires,
-    },
-  });
-}
-
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization",
-    },
-  });
-}
-
 export async function GET(requete: Request) {
-  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-
-  // 1) Extraction de la clé du header Authorization.
   const entete = requete.headers.get("authorization") ?? "";
-  const cle = entete.startsWith("Bearer ") ? entete.slice(7).trim() : "";
-  if (!cle.startsWith("wg_") || cle.length < 10) {
-    return reponseJson(
-      { erreur: "Clé manquante ou invalide. Format attendu : Authorization: Bearer wg_…" },
-      401
+  const cle = entete.startsWith("Bearer ") ? entete.slice(7).trim() : null;
+
+  if (!cle || !cle.startsWith("wg_")) {
+    return Response.json(
+      { erreur: "Clé d'API absente ou invalide. En-tête attendu : Authorization: Bearer wg_…" },
+      { status: 401 }
     );
   }
 
-  // 2) Vérification par le hash (la clé en clair n'est pas stockée).
+  // La clé présentée est hachée puis comparée au hash stocké : une
+  // fuite de la base ne révèle jamais aucune clé utilisable.
   const cleHash = createHash("sha256").update(cle).digest("hex");
-  let cleApi: { id: string; userId: string; revoqueeLe: Date | null } | null = null;
+
   try {
-    cleApi = await prisma.cleApi.findUnique({
+    const cleApiModel = (prisma as any).apiKey ?? (prisma as any).cleApi;
+    const cleApi = await cleApiModel.findUnique({
       where: { cleHash },
-      select: { id: true, userId: true, revoqueeLe: true },
+      select: { id: true, userId: true, nom: true, prefixe: true, revoqueeLe: true },
     });
-  } catch (erreur) {
-    console.error("API v1 (base) :", erreur);
-    return reponseJson({ erreur: "Service momentanément indisponible." }, 503);
-  }
-  if (!cleApi || cleApi.revoqueeLe) {
-    return reponseJson({ erreur: "Clé inconnue ou révoquée." }, 401);
-  }
+    if (!cleApi || cleApi.revoqueeLe) {
+      return Response.json({ erreur: "Clé inconnue ou révoquée." }, { status: 401 });
+    }
 
-  // 3) Rate limit (30 appels / minute / clé).
-  if (!rateLimitOk(cleApi.id)) {
-    return reponseJson(
-      { erreur: "Trop d'appels : 30 requêtes par minute maximum." },
-      429,
-      { "Retry-After": "60" }
-    );
-  }
-
-  // 4) Horodatage de la dernière utilisation (jamais bloquant).
-  try {
-    await prisma.cleApi.update({
-      where: { id: cleApi.id },
-      data: { derniereUtilisation: new Date() },
-    });
-  } catch {
-    // statistique non essentielle
-  }
-
-  // 5) Listes publiques du propriétaire de la clé.
-  try {
     const listes = await prisma.list.findMany({
-      where: { userId: cleApi.userId, estPublique: true },
+      where: { userId: cleApi.userId },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
         nom: true,
         slug: true,
+        estPublique: true,
         createdAt: true,
-        _count: { select: { items: true } },
+        items: {
+          select: {
+            tool: { select: { nom: true, slug: true, url: true, tarif: true, logo: true } },
+          },
+        },
       },
     });
-    return reponseJson(
-      {
-        listes: listes.map((liste) => ({
-          nom: liste.nom,
-          slug: liste.slug,
-          url: `${base}/listes/${liste.slug ?? liste.id}`,
-          nbOutils: liste._count.items,
-          partageeLe: liste.createdAt.toISOString(),
+
+    // Statistique d'usage de la clé (jamais bloquant).
+    cleApiModel
+      .update({
+        where: { id: cleApi.id },
+        data: { derniereUtilisation: new Date() },
+      })
+      .catch(() => { });
+
+    return Response.json({
+      proprietaire: cleApi.prefixe,
+      nbListes: listes.length,
+      listes: listes.map((liste) => ({
+        id: liste.id,
+        nom: liste.nom,
+        slug: liste.slug,
+        publique: liste.estPublique,
+        creeLe: liste.createdAt,
+        nbOutils: liste.items.length,
+        outils: liste.items.map((item) => ({
+          nom: item.tool.nom,
+          slug: item.tool.slug,
+          url: item.tool.url,
+          tarif: item.tool.tarif,
+          logo: item.tool.logo,
         })),
-      },
-      200
-    );
+      })),
+    });
   } catch (erreur) {
     console.error("API v1 (listes) :", erreur);
-    return reponseJson({ erreur: "Service momentanément indisponible." }, 503);
+    return Response.json(
+      { erreur: "Base indisponible — réessaie dans un instant." },
+      { status: 500 }
+    );
   }
 }
