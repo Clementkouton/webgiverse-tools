@@ -1,6 +1,23 @@
 // app/dashboard/page.tsx
 // ─────────────────────────────────────────────────────────────────
 // MON ESPACE — tableau de bord utilisateur, ACCUEIL ÉPURÉ (lot 53).
+// LOT 60 — onglet « Mes listes » redessiné (même charte, aucune
+// couleur ni composant nouveau) :
+//   · cartes plus larges : 2 colonnes en desktop, 3 sur grand écran
+//     (elles étaient écrasées sur 3 colonnes dès 1024 px) ;
+//   · en-tête de carte : pastille initiales en dégradé (comme les
+//     logos d'outils), nom sur UNE ligne (truncate), date de création
+//     en dessous, badge compteur violet/gris à droite — fini le
+//     titre écrasé par « 0 outil » collé à la fin du nom ;
+//   · outils affichés avec leur logo (LogoOutil), rangées douces au
+//     survol, 6 visibles puis « + N autres » si la liste est longue ;
+//   · état vide en encadré pointillés avec lien direct vers les
+//     favoris (au lieu d'une phrase grise perdue) ;
+//   · renommage REPLIÉ par défaut (formulaire natif <details>, sans
+//     JavaScript nouveau) au lieu du bloc toujours déployé ;
+//   · UN SEUL bouton Supprimer (pill rouge en bas) — le bouton rond
+//     en doublon en haut à droite disparaît ;
+//   · le partage public reste en bas de carte (composant intact).
 // 5 onglets : Aperçu / Favoris / Mes listes / Mes avis / Activité.
 // Navigation par paramètre d'URL (?onglet=…) : tout reste côté
 // serveur, aucune donnée ne se charge inutilement.
@@ -58,6 +75,7 @@ import {
   ThumbsUp,
   Trash2,
   User,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { auth } from "@/auth";
@@ -129,6 +147,13 @@ const ICONES_ACTIVITE: Record<string, { icone: LucideIcon; libelle: string }> = 
 const formateurDate = new Intl.DateTimeFormat("fr-FR", {
   dateStyle: "medium",
   timeStyle: "short",
+});
+
+// Lot 60 — date de création courte pour les cartes de listes (« 4 novembre 2026 »).
+const formateurDateListe = new Intl.DateTimeFormat("fr-FR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
 });
 
 // ── Rend les détails du journal lisibles ───────────────────────
@@ -1272,104 +1297,158 @@ export default async function PageDashboard({
             required
             minLength={2}
             maxLength={60}
-            className="min-h-11 w-full max-w-sm flex-1 rounded-champ border border-bordure bg-white px-4 text-[15px] leading-5 focus:border-sky-500 focus:outline-none"
+            className="min-h-11 w-full max-w-xl flex-1 rounded-champ border border-bordure bg-white px-4 text-[15px] leading-5 focus:border-sky-500 focus:outline-none"
           />
-          <Bouton variante="secondaire" type="submit">
+          <Bouton variante="primaire" type="submit">
             <Plus aria-hidden /> Créer la liste
           </Bouton>
         </form>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {listes.map((liste) => (
-            <Carte key={liste.id} className="flex flex-col p-5">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-titre text-[17px] leading-6 font-semibold">
-                  <ListChecks className="mr-1 inline size-4 text-sky-500" aria-hidden />
-                  {liste.nom}
-                  <span className="ml-2 text-[12px] leading-4 font-normal text-encre">
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {listes.map((liste) => {
+            // Pastille initiales : même génération que LogoOutil.
+            const initiales =
+              liste.nom
+                .split(/[\s:.-]+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((m) => m[0])
+                .join("")
+                .toUpperCase() || "L";
+            const outilsAffiches = liste.items.slice(0, 6);
+            const autres = liste.items.length - outilsAffiches.length;
+            return (
+              <Carte key={liste.id} className="flex flex-col p-5">
+                {/* En-tête : pastille + nom sur une ligne + compteur en badge */}
+                <div className="flex items-center gap-3">
+                  <div
+                    aria-hidden
+                    className="grid size-11 shrink-0 place-items-center rounded-champ bg-[linear-gradient(135deg,#00d1ff,#6a3bff)] font-titre text-[15px] font-bold text-white"
+                  >
+                    {initiales}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-titre text-[16px] leading-6 font-semibold">
+                      {liste.nom}
+                    </h3>
+                    <p className="mt-0.5 text-[12px] leading-4 text-encre">
+                      Créée le {formateurDateListe.format(liste.createdAt)}
+                    </p>
+                  </div>
+                  <Badge variante={liste.items.length > 0 ? "source" : "defaut"} className="shrink-0">
                     {liste.items.length} outil{liste.items.length > 1 ? "s" : ""}
-                  </span>
-                </h3>
-                <form action={supprimerListeFormulaire}>
-                  <input type="hidden" name="listeId" value={liste.id} />
-                  <BoutonConfirmer
-                    type="submit"
-                    message={`Supprimer la liste « ${liste.nom} » ?`}
-                    aria-label={`Supprimer la liste ${liste.nom}`}
-                    className="grid size-9 place-items-center rounded-full text-encre hover:bg-gris hover:text-red-600"
-                  >
-                    <Trash2 className="size-4" aria-hidden />
-                  </BoutonConfirmer>
-                </form>
-              </div>
-              <ul className="mt-3 grid gap-1.5">
-                {liste.items.map((item) => (
-                  <li key={item.id} className="flex items-center justify-between gap-2 text-[15px] leading-5">
-                    <Link
-                      href={`/outil/${item.tool.slug}`}
-                      className="min-h-9 py-1.5 font-medium text-sky-500 hover:underline"
-                    >
-                      {item.tool.nom}
-                    </Link>
-                    <form action={retirerDeListeFormulaire}>
-                      <input type="hidden" name="itemId" value={item.id} />
-                      <button
-                        type="submit"
-                        aria-label={`Retirer ${item.tool.nom} de la liste`}
-                        className="grid size-9 place-items-center rounded-full text-encre hover:text-red-600"
-                      >
-                        ×
-                      </button>
-                    </form>
-                  </li>
-                ))}
-                {liste.items.length === 0 && (
-                  <li className="text-[14px] leading-5 text-encre">
-                    Liste vide — ajoute des outils depuis tes favoris.
-                  </li>
-                )}
-              </ul>
-              <form action={renommerListeFormulaire} className="mt-4 border-t border-bordure pt-4">
-                <input type="hidden" name="listeId" value={liste.id} />
-                <p className="flex items-center gap-1.5 text-[12px] leading-4 font-semibold uppercase tracking-wide text-encre">
-                  <Pencil className="size-3.5 text-sky-500" aria-hidden /> Renommer la liste
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    name="nom"
-                    defaultValue={liste.nom}
-                    required
-                    minLength={2}
-                    maxLength={60}
-                    aria-label={`Nouveau nom pour la liste ${liste.nom}`}
-                    className="min-h-11 flex-1 rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 focus:border-sky-500 focus:outline-none"
-                  />
-                  <Bouton variante="secondaire" taille="sm" type="submit">
-                    <Pencil aria-hidden />
-                  </Bouton>
+                  </Badge>
                 </div>
-              </form>
-              <div className="mt-4 flex items-center justify-between gap-2 border-t border-bordure pt-4">
-                <BoutonPartageListe listeId={liste.id} />
-                <form action={supprimerListeFormulaire}>
-                  <input type="hidden" name="listeId" value={liste.id} />
-                  <BoutonConfirmer
-                    type="submit"
-                    message={`Supprimer la liste « ${liste.nom} » définitivement ?`}
-                    aria-label={`Supprimer la liste ${liste.nom}`}
-                    className="inline-flex min-h-11 items-center gap-2 px-4 text-[14px] leading-5 font-semibold text-red-600 transition hover:bg-red-50"
-                  >
-                    <Trash2 aria-hidden /> Supprimer
-                  </BoutonConfirmer>
-                </form>
-              </div>
-            </Carte>
-          ))}
+
+                {/* Outils : logo + nom + retirer (6 max, le reste en résumé) */}
+                {liste.items.length === 0 ? (
+                  <div className="mt-4 rounded-champ border border-dashed border-bordure bg-gris/40 p-4 text-center">
+                    <p className="text-[14px] leading-5 font-semibold text-bleu">Liste vide</p>
+                    <p className="mt-1 text-[13px] leading-5 text-encre">
+                      Ajoute des outils depuis{" "}
+                      <Link
+                        href="/dashboard?onglet=favoris"
+                        className="font-semibold text-sky-500 hover:underline"
+                      >
+                        tes favoris
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="mt-4 grid gap-1">
+                    {outilsAffiches.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center gap-2.5 rounded-champ p-1 transition hover:bg-gris/60"
+                      >
+                        <LogoOutil nom={item.tool.nom} logo={item.tool.logo} />
+                        <Link
+                          href={`/outil/${item.tool.slug}`}
+                          className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium text-sky-500 hover:underline"
+                        >
+                          {item.tool.nom}
+                        </Link>
+                        <form action={retirerDeListeFormulaire}>
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <button
+                            type="submit"
+                            aria-label={`Retirer ${item.tool.nom} de la liste`}
+                            className="grid size-8 shrink-0 place-items-center rounded-full text-encre/60 transition hover:bg-white hover:text-red-600"
+                          >
+                            <X className="size-4" aria-hidden />
+                          </button>
+                        </form>
+                      </li>
+                    ))}
+                    {autres > 0 && (
+                      <li className="px-1.5 py-1 text-[13px] leading-5 text-encre">
+                        + {autres} autre{autres > 1 ? "s" : ""} outil{autres > 1 ? "s" : ""} dans la liste
+                      </li>
+                    )}
+                  </ul>
+                )}
+
+                {/* Actions : renommage replié + suppression, partage en dessous */}
+                <div className="mt-auto border-t border-bordure pt-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <details className="min-w-0">
+                      <summary
+                        className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded-full border border-bordure bg-white px-3 text-[13px] leading-4 font-semibold text-bleu transition hover:border-violet hover:text-violet [&::-webkit-details-marker]:hidden"
+                      >
+                        <Pencil className="size-3.5 text-sky-500" aria-hidden /> Renommer
+                      </summary>
+                      <form action={renommerListeFormulaire} className="mt-2 grid w-full max-w-xs gap-2">
+                        <input type="hidden" name="listeId" value={liste.id} />
+                        <input
+                          name="nom"
+                          defaultValue={liste.nom}
+                          required
+                          minLength={2}
+                          maxLength={60}
+                          aria-label={`Nouveau nom pour la liste ${liste.nom}`}
+                          className="min-h-10 w-full rounded-champ border border-bordure bg-white px-3 text-[14px] leading-5 focus:border-sky-500 focus:outline-none"
+                        />
+                        <Bouton variante="primaire" taille="sm" type="submit">
+                          Enregistrer le nom
+                        </Bouton>
+                      </form>
+                    </details>
+                    <form action={supprimerListeFormulaire}>
+                      <input type="hidden" name="listeId" value={liste.id} />
+                      <BoutonConfirmer
+                        type="submit"
+                        message={`Supprimer la liste « ${liste.nom} » définitivement ?`}
+                        aria-label={`Supprimer la liste ${liste.nom}`}
+                        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-red-300 bg-white px-3 text-[13px] leading-4 font-semibold text-red-700 transition hover:bg-red-50"
+                      >
+                        <Trash2 className="size-4" aria-hidden /> Supprimer
+                      </BoutonConfirmer>
+                    </form>
+                  </div>
+                  <BoutonPartageListe listeId={liste.id} />
+                </div>
+              </Carte>
+            );
+          })}
           {listes.length === 0 && (
-            <Carte className="p-8 text-center md:col-span-2 lg:col-span-3">
-              <p className="text-encre">
-                Aucune liste pour l'instant. Crée ta première liste ci-dessus, puis ajoute des outils depuis l'onglet Favoris.
-              </p>
+            <Carte className="col-span-full flex flex-col items-center gap-3 p-10 text-center">
+              <div
+                aria-hidden
+                className="grid size-14 place-items-center rounded-carte bg-[linear-gradient(135deg,#00d1ff,#6a3bff)] text-white"
+              >
+                <ListChecks className="size-7" aria-hidden />
+              </div>
+              <div>
+                <p className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+                  Aucune liste pour l'instant
+                </p>
+                <p className="mx-auto mt-1.5 max-w-md text-[14px] leading-5 text-encre">
+                  Crée ta première liste ci-dessus, puis ajoute des outils depuis l'onglet Favoris.
+                  Une liste regroupe des outils par projet, par client ou par objectif — et peut
+                  être partagée en public.
+                </p>
+              </div>
             </Carte>
           )}
         </div>
