@@ -5,17 +5,28 @@
 // Navigation par paramètre d'URL (?onglet=…) : tout reste côté
 // serveur, aucune donnée ne se charge inutilement.
 //
-// Lot 53 — l'aperçu ne garde que les STATISTIQUES et l'ESSENTIEL :
-//   · checklist d'onboarding, 6 cartes statistiques, graphiques ;
-//   · rappels « À tester », derniers favoris, raccourcis ;
-//   · accès anticipé aux nouveautés (plan Entreprise, invisible sinon).
-// Tout le reste est DISTRIBUÉ là où il vit déjà :
-//   · Tutoriels à suivre      → /dashboard/tutoriels ;
-//   · Prompts IA populaires   → /dashboard/prompts ;
-//   · Mon abonnement          → /dashboard/abonnement ;
-//   · Mon profil + suggestions « objectif » → /dashboard/profil (lot 53) ;
+// Lot 54 — l'aperçu fait DÉCOUVRIR LES 4 ÉLÉMENTS du site, chacun
+// avec sa propre section et son accès direct :
+//   · « Mes outils »      : favoris récents AVEC détails (catégorie,
+//     tarif, statut, note, description) — remplace le tableau sec ;
+//   · « Tutoriels vidéo » : reprendre les tutos en cours, sinon les
+//     recommandés de la collection ;
+//   · « Prompts IA »      : derniers prompts sauvegardés, sinon les
+//     plus populaires de la bibliothèque ;
+//   · « Skills IA »       : skills épinglées (+ retours d'usage) pour
+//     les abonnés Premium, invitation à s'abonner sinon — la section
+//     skills apparaît enfin sur la page d'accueil du dashboard.
+// La checklist d'onboarding (« Bienvenue à bord 🚀 »), les 6 cartes
+// statistiques, les graphiques et les rappels restent en place.
+// Le reste vit déjà là où il est :
+//   · Mes prompts (gestion) → /dashboard/prompts ;
+//   · Mes tutoriels         → /dashboard/tutoriels ;
+//   · Mes skills            → /dashboard/skills-favoris ;
+//   · Mon abonnement        → /dashboard/abonnement ;
 //   · Médailles, Vu récemment, Recommandations de l'assistant
 //     → onglet « Activité » de cette même page.
+// Tout est DÉFENSIF : si une table n'existe pas encore en base
+// (migration SQL non passée), la section reste affichable — jamais de crash.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -79,6 +90,11 @@ import { calculerOnboarding, calculerStreak } from "@/lib/engagement";
 import { synchroniserNotificationsTutos } from "@/lib/notifications";
 import { ChecklistOnboarding } from "@/components/dashboard/checklist-onboarding";
 import { CarteRappelsATester } from "@/components/dashboard/carte-rappels-a-tester";
+// Lot 54 — cartes réutilisées des bibliothèques (style identique au site)
+import { CarteTuto } from "@/components/tutoriels/carte-tuto";
+import { CartePrompt } from "@/components/prompts/carte-prompt";
+import { CarteSkill } from "@/components/skills/carte-skill";
+import type { Skill, Tuto } from "@prisma/client";
 
 export const metadata: Metadata = { title: "Mon espace" };
 
@@ -415,13 +431,139 @@ export default async function PageDashboard({
         },
       },
       orderBy: { updatedAt: "desc" },
-      take: 5,
+      take: 4,
     });
 
-    const formateurJour = new Intl.DateTimeFormat("fr-FR", {
-      day: "numeric",
-      month: "short",
-    });
+    // ── Lot 54 — Section « Tutoriels vidéo » : on reprend les tutos
+    // EN_COURS (triés par rang), puis on complète avec les tutoriels
+    // recommandés non terminés. Défensif : table absente → vide. ──
+    let progresTutos: { tutoId: string; statut: string }[] = [];
+    let tutosAffiches: Tuto[] = [];
+    try {
+      progresTutos = prismaProgressionTuto?.findMany
+        ? await prismaProgressionTuto
+            .findMany({ where: { userId }, select: { tutoId: true, statut: true } })
+            .catch(() => [])
+        : [];
+      const tutosEnCours = progresTutos.filter((p) => p.statut === "EN_COURS");
+      const tutosTerminesIds = new Set(
+        progresTutos.filter((p) => p.statut === "TERMINE").map((p) => p.tutoId),
+      );
+      if (tutosEnCours.length > 0) {
+        tutosAffiches = await prisma.tuto
+          .findMany({
+            where: { id: { in: tutosEnCours.map((p) => p.tutoId) } },
+            orderBy: { ordre: "asc" },
+            take: 3,
+          })
+          .catch(() => []);
+      }
+      if (tutosAffiches.length < 3) {
+        const exclus = [...tutosTerminesIds, ...tutosAffiches.map((t) => t.id)];
+        const complets = await prisma.tuto
+          .findMany({
+            where: { id: { notIn: exclus } },
+            orderBy: [{ ordre: "asc" }, { vues: "desc" }],
+            take: 3 - tutosAffiches.length,
+          })
+          .catch(() => []);
+        tutosAffiches = [...tutosAffiches, ...complets];
+      }
+    } catch {
+      tutosAffiches = [];
+    }
+    const nbTutosEnCours = progresTutos.filter((p) => p.statut === "EN_COURS").length;
+
+    // ── Lot 54 — Section « Prompts IA » : derniers prompts
+    // sauvegardés, sinon les plus populaires de la bibliothèque. ──
+    type PromptCarte = {
+      slug: string;
+      titre: string;
+      emoji: string;
+      description: string;
+      type: "TEXTE" | "IMAGE" | "CODE";
+      vues: number;
+      nouveau: boolean;
+      categorie: { nom: string; slug: string } | null;
+    };
+    const derniersPromptsFavoris: PromptCarte[] = prismaPromptFavori?.findMany
+      ? await prismaPromptFavori
+          .findMany({
+            where: { userId },
+            orderBy: { creeLe: "desc" },
+            take: 3,
+            select: {
+              prompt: {
+                select: {
+                  slug: true,
+                  titre: true,
+                  emoji: true,
+                  description: true,
+                  type: true,
+                  vues: true,
+                  nouveau: true,
+                  categorie: { select: { nom: true, slug: true } },
+                },
+              },
+            },
+          })
+          .then((lignes: { prompt: PromptCarte }[]) => lignes.map((l) => l.prompt))
+          .catch(() => [])
+      : [];
+    const suggestionsPrompts: PromptCarte[] =
+      derniersPromptsFavoris.length > 0
+        ? []
+        : await prisma.prompt
+            .findMany({
+              orderBy: { vues: "desc" },
+              take: 3,
+              select: {
+                slug: true,
+                titre: true,
+                emoji: true,
+                description: true,
+                type: true,
+                vues: true,
+                nouveau: true,
+                categorie: { select: { nom: true, slug: true } },
+              },
+            })
+            .catch(() => []);
+    const promptsAffiches =
+      derniersPromptsFavoris.length > 0 ? derniersPromptsFavoris : suggestionsPrompts;
+
+    // ── Lot 54 — Section « Skills IA » : skills épinglées + retours
+    // d'usage (abonnés Premium seulement, même règle que /skills).
+    // DÉFENSIF : si la migration SQL des tables SkillFavori/SkillRetour
+    // n'a pas encore été passée dans Neon, tout tombe à zéro sans crash.
+    const prismaSkillFavori = (prisma as any).skillFavori;
+    const prismaSkillRetour = (prisma as any).skillRetour;
+    const prismaSkill = (prisma as any).skill;
+    let skillsEpingles: Skill[] = [];
+    let nbRetoursSkills = 0;
+    if (premium) {
+      skillsEpingles = prismaSkillFavori?.findMany
+        ? await prismaSkillFavori
+            .findMany({
+              where: { userId },
+              orderBy: { creeLe: "desc" },
+              take: 3,
+              include: { skill: true },
+            })
+            .then((lignes: { skill: Skill }[]) => lignes.map((l) => l.skill))
+            .catch(() => [])
+        : [];
+      nbRetoursSkills = prismaSkillRetour?.count
+        ? await prismaSkillRetour.count({ where: { userId } }).catch(() => 0)
+        : 0;
+    }
+    const suggestionsSkills: Skill[] =
+      premium && skillsEpingles.length === 0 && prismaSkill?.findMany
+        ? await prismaSkill
+            .findMany({ orderBy: [{ ordre: "asc" }, { popularite: "desc" }], take: 3 })
+            .catch(() => [])
+        : [];
+    const skillsAffichees = skillsEpingles.length > 0 ? skillsEpingles : suggestionsSkills;
 
     contenu = (
       <>
@@ -487,6 +629,243 @@ export default async function PageDashboard({
           />
         </section>
 
+        {/* ══════ Lot 54 — LES 4 ÉLÉMENTS DU SITE, chacun avec sa section ══════ */}
+
+        {/* ── 1. Mes outils : favoris récents avec détails (remplace
+            l'ancien tableau « Derniers favoris », plus riche et plus
+            invitant : catégorie, tarif, statut, note, description). ── */}
+        <section className="mt-8" aria-label="Mes outils">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-h3 font-semibold">Mes outils</h2>
+              <p className="mesure mt-1 text-legende text-encre">
+                Tes favoris récents — statut, tarif et détails en un coup d&apos;œil.
+              </p>
+            </div>
+            <Link
+              href="/dashboard?onglet=favoris"
+              className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
+            >
+              Tout voir →
+            </Link>
+          </div>
+          {derniersFavoris.length > 0 ? (
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {derniersFavoris.map((f, index) => {
+                const metaStatut =
+                  f.statut === "ADOPTE"
+                    ? { libelle: "Adopté", variante: "source" as const }
+                    : f.statut === "EN_COURS"
+                      ? { libelle: "En cours", variante: "agent" as const }
+                      : { libelle: "À tester", variante: "defaut" as const };
+                return (
+                  <Carte
+                    key={f.id}
+                    className="animate-apparition-haut survol-carte p-5"
+                    style={{ animationDelay: `${index * 80}ms` }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <LogoOutil nom={f.tool.nom} logo={f.tool.logo} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/outil/${f.tool.slug}`}
+                            className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500"
+                          >
+                            {f.tool.nom}
+                          </Link>
+                          <Badge variante={metaStatut.variante}>{metaStatut.libelle}</Badge>
+                        </div>
+                        <p className="text-legende text-encre">
+                          {f.tool.categories[0]?.categorie.nom ?? "Outil"}
+                          {f.tool.gratuit ? " · version gratuite" : ` · ${f.tool.tarif}`}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mesure mt-3 line-clamp-2 text-[14px] leading-5 text-encre">
+                      {f.tool.description}
+                    </p>
+                    {f.note && (
+                      <p className="mesure mt-2 truncate text-[12px] leading-4 text-encre">
+                        Ma note : {f.note}
+                      </p>
+                    )}
+                    <Link
+                      href={`/outil/${f.tool.slug}`}
+                      className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] leading-5 font-semibold text-sky-500 hover:underline"
+                    >
+                      Ouvrir la fiche <ChevronRight className="size-4" aria-hidden />
+                    </Link>
+                  </Carte>
+                );
+              })}
+            </div>
+          ) : (
+            <Carte className="animate-apparition-haut p-8 text-center md:col-span-2">
+              <p className="text-[14px] leading-6 text-encre">
+                Aucun favori pour le moment. Explore l&apos;annuaire et garde tes
+                découvertes ici.
+              </p>
+              <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
+                <Link href="/outils">Explorer l&apos;annuaire</Link>
+              </Bouton>
+            </Carte>
+          )}
+        </section>
+
+        {/* ── 2. Tutoriels vidéo : reprendre les tutos en cours, sinon
+            les recommandés de la collection. ───────────────────────── */}
+        <section className="mt-8" aria-label="Tutoriels vidéo">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-h3 font-semibold">Tutoriels vidéo</h2>
+              <p className="mesure mt-1 text-legende text-encre">
+                {nbTutosEnCours > 0
+                  ? `Reprends là où tu t'es arrêté : ${nbTutosEnCours} tutoriel${nbTutosEnCours > 1 ? "s" : ""} en cours.`
+                  : nbTutosTermines > 0
+                    ? `${nbTutosTermines} tutoriel${nbTutosTermines > 1 ? "s" : ""} terminé${nbTutosTermines > 1 ? "s" : ""} — la suite t'attend.`
+                    : "Apprends pas à pas avec la collection vidéo, du premier prompt aux workflows avancés."}
+              </p>
+            </div>
+            <Link
+              href="/dashboard/tutoriels"
+              className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
+            >
+              Tout voir →
+            </Link>
+          </div>
+          {tutosAffiches.length > 0 ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {tutosAffiches.map((t, index) => (
+                <div
+                  key={t.id}
+                  className="animate-apparition-haut"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <CarteTuto tuto={t} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Carte className="p-8 text-center">
+              <p className="text-[14px] leading-6 text-encre">
+                Aucun tutoriel publié pour le moment. La collection vidéo arrive
+                ici dès qu&apos;elle est en ligne.
+              </p>
+              <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
+                <Link href="/tutoriels">Voir les tutoriels</Link>
+              </Bouton>
+            </Carte>
+          )}
+        </section>
+
+        {/* ── 3. Prompts IA : derniers prompts sauvegardés, sinon les
+            plus populaires de la bibliothèque. ─────────────────────── */}
+        <section className="mt-8" aria-label="Prompts IA">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-h3 font-semibold">Prompts IA</h2>
+              <p className="mesure mt-1 text-legende text-encre">
+                {derniersPromptsFavoris.length > 0
+                  ? "Tes derniers prompts sauvegardés, prêts à copier."
+                  : "Explore la bibliothèque et sauvegarde tes premiers prompts pour les retrouver ici."}
+              </p>
+            </div>
+            <Link
+              href="/dashboard/prompts"
+              className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
+            >
+              Tout voir →
+            </Link>
+          </div>
+          {promptsAffiches.length > 0 ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {promptsAffiches.map((p, index) => (
+                <div
+                  key={p.slug}
+                  className="animate-apparition-haut"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <CartePrompt prompt={p} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Carte className="p-8 text-center">
+              <p className="text-[14px] leading-6 text-encre">
+                Aucun prompt disponible pour le moment. La bibliothèque
+                s&apos;étoffe au fil des mises à jour.
+              </p>
+              <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
+                <Link href="/prompts">Explorer la bibliothèque</Link>
+              </Bouton>
+            </Carte>
+          )}
+        </section>
+
+        {/* ── 4. Skills IA : skills épinglées (+ retours d'usage) pour
+            les abonnés Premium ; invitation à s'abonner sinon — la
+            section skills apparaît enfin sur l'accueil du dashboard. ── */}
+        <section className="mt-8" aria-label="Skills IA">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-h3 font-semibold">Skills IA</h2>
+              <p className="mesure mt-1 text-legende text-encre">
+                {premium
+                  ? skillsEpingles.length > 0
+                    ? `Tes skills épinglées${nbRetoursSkills > 0 ? ` — ${nbRetoursSkills} retour${nbRetoursSkills > 1 ? "s" : ""} d'usage publié${nbRetoursSkills > 1 ? "s" : ""}` : ""}`
+                    : "Épingle des skills depuis la bibliothèque pour les retrouver ici."
+                  : "Agents IA prêts à l'emploi — bibliothèque réservée aux abonnés Premium."}
+              </p>
+            </div>
+            {premium && (
+              <Link
+                href="/dashboard/skills-favoris"
+                className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
+              >
+                Tout voir →
+              </Link>
+            )}
+          </div>
+          {premium && skillsAffichees.length > 0 ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {skillsAffichees.map((s, index) => (
+                <div
+                  key={s.id}
+                  className="animate-apparition-haut"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <CarteSkill skill={s} />
+                </div>
+              ))}
+            </div>
+          ) : premium ? (
+            <Carte className="p-8 text-center">
+              <p className="text-[14px] leading-6 text-encre">
+                Aucune skill épinglée pour l&apos;instant. Explore la bibliothèque et
+                épingle ta première compétence.
+              </p>
+              <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
+                <Link href="/skills">Explorer la bibliothèque</Link>
+              </Bouton>
+            </Carte>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-carte border border-violet/30 bg-violet/5 p-5">
+              <p className="min-w-0 text-[14px] leading-5 text-bleu">
+                Les <strong className="font-semibold">skills IA</strong> (agents prêts à
+                l&apos;emploi, traduits en français) sont réservées aux abonnés Premium :
+                épingle-les et partage tes retours d&apos;usage.
+              </p>
+              <Bouton asChild taille="sm">
+                <Link href="/dashboard/abonnement#plans">
+                  Passer Premium <Crown className="ml-1.5 size-4" aria-hidden />
+                </Link>
+              </Bouton>
+            </div>
+          )}
+        </section>
+
+
         {/* ── Graphiques : activité 7 jours + favoris par statut ──── */}
         <section className="mt-6 grid gap-4 lg:grid-cols-3">
           <Carte className="animate-apparition-haut p-6 lg:col-span-2">
@@ -545,87 +924,9 @@ export default async function PageDashboard({
           <CarteRappelsATester outils={outilsEnAttente} />
         </div>
 
-        {/* ── Derniers favoris (tableau style Metis) ──────────────── */}
-        {/* Lot 53 : la carte « Tutoriels à suivre » qui partageait cette
-            rangée vit maintenant sur /dashboard/tutoriels — le tableau
-            passe en pleine largeur. */}
-        <section className="mt-6">
-          <Carte className="animate-apparition-haut overflow-hidden p-0">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bordure px-5 pt-5 pb-4">
-              <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-                Derniers favoris
-              </h2>
-              <Link
-                href="/dashboard?onglet=favoris"
-                className="text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
-              >
-                Tout voir →
-              </Link>
-            </div>
-            {derniersFavoris.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[520px] text-left">
-                  <thead>
-                    <tr className="border-b border-bordure bg-gris/50 text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase">
-                      <th scope="col" className="px-5 py-2.5">Outil</th>
-                      <th scope="col" className="px-3 py-2.5">Catégorie</th>
-                      <th scope="col" className="px-3 py-2.5">Statut</th>
-                      <th scope="col" className="px-5 py-2.5 text-right">Mis à jour</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {derniersFavoris.map((f) => {
-                      const metaStatut =
-                        f.statut === "ADOPTE"
-                          ? { libelle: "Adopté", variante: "source" as const }
-                          : f.statut === "EN_COURS"
-                            ? { libelle: "En cours", variante: "agent" as const }
-                            : { libelle: "À tester", variante: "defaut" as const };
-                      return (
-                        <tr key={f.id} className="border-b border-bordure/60 last:border-0">
-                          <td className="px-5 py-3">
-                            <Link href={`/outil/${f.tool.slug}`} className="flex items-center gap-2.5">
-                              <LogoOutil nom={f.tool.nom} logo={f.tool.logo} />
-                              <span className="min-w-0">
-                                <span className="block max-w-[200px] truncate text-[14px] leading-5 font-semibold text-bleu hover:text-sky-500">
-                                  {f.tool.nom}
-                                </span>
-                                {f.note && (
-                                  <span className="block max-w-[200px] truncate text-[12px] leading-4 text-encre">
-                                    {f.note}
-                                  </span>
-                                )}
-                              </span>
-                            </Link>
-                          </td>
-                          <td className="px-3 py-3 text-[13px] leading-4 text-encre">
-                            {f.tool.categories[0]?.categorie.nom ?? "—"}
-                          </td>
-                          <td className="px-3 py-3">
-                            <Badge variante={metaStatut.variante}>{metaStatut.libelle}</Badge>
-                          </td>
-                          <td className="px-5 py-3 text-right text-[13px] leading-4 text-encre">
-                            {formateurJour.format(f.updatedAt)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="p-8 text-center">
-                <p className="text-[14px] leading-6 text-encre">
-                  Aucun favori pour le moment. Explore l&apos;annuaire et garde
-                  tes découvertes ici.
-                </p>
-                <Bouton variante="secondaire" taille="sm" className="mt-4" asChild>
-                  <Link href="/outils">Explorer l&apos;annuaire</Link>
-                </Bouton>
-              </div>
-            )}
-          </Carte>
-        </section>
+        {/* Lot 54 : l'ancien tableau « Derniers favoris » est remplacé
+            par la section « Mes outils » détaillée, plus haut dans
+            l'aperçu (voir LES 4 ÉLÉMENTS DU SITE). */}
 
         {/* Accès anticipé aux nouveautés (plan Entreprise) */}
         {planEntreprise && nouveauxEntreprise.length > 0 && (

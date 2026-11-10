@@ -1,19 +1,23 @@
 // components/dashboard/menu-dashboard.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 41/42 — Coquille du dashboard « Metis » adaptée à la charte
-// Webgiverse (polices du site conservées : font-titre + Inter) :
+// Coquille du dashboard « Metis » adaptée à la charte Webgiverse
+// (polices du site conservées : font-titre + Inter) :
 //   • Barre supérieure collante TOUS ÉCRANS : titre + sous-titre de la
 //     page courante, recherche qui mène à l'annuaire, profil à droite,
 //     déconnexion en un tap sur mobile.
 //   • Barre latérale fixe sur ordinateur, tiroir coulissant animé sur
 //     mobile (fond assombri, fermeture Échap, verrou de défilement).
+//   • Section « Mon espace » : Tableau de bord, Favoris, Mes listes,
+//     Mes avis, Activité, Mon profil (NOUVEAU Lot 53 — onglet ?onglet=profil),
+//     Notifications, Parrainage.
 //   • Section « Apprendre » : Prompts IA, Tutoriels IA, Mes notes,
-//     Mes conversations + accès direct à la bibliothèque de skills.
+//     Mes conversations + Lot 43 : entrée « Skills favoris »
+//     (/dashboard/skills-favoris — skills épinglées + retours d'usage)
+//     et accès directs aux bibliothèques du site.
 //   • Toile gris clair derrière le contenu : les cartes blanches
 //     ressortent comme dans le template Metis.
 // L'état actif suit l'URL (/dashboard?onglet=…) et les routes
-// /dashboard/…. (La future entrée « Skills favoris » sera ajoutée avec
-// le lot épingler/retour d'usage — quand sa route existera.)
+// /dashboard/….
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
@@ -36,21 +40,22 @@ import {
   Menu,
   MessageSquareQuote,
   MonitorPlay,
+  NotebookPen,
+  Pin,
+  Puzzle,
   Search,
   Sparkles,
   Star,
   TerminalSquare,
+  User,
   X,
-  NotebookPen,
-  Pin,
-  Puzzle,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LienLogo } from "@/components/commun/logo";
 import PiedDashboard from "@/components/dashboard/pied-dashboard";
 import { BoutonDeconnexionBarre } from "@/components/auth/bouton-deconnexion";
-import ClocheNotifications  from "@/components/dashboard/cloche-notifications";
+import ClocheNotifications from "@/components/dashboard/cloche-notifications";
 
 type Props = {
   prenom: string;
@@ -80,6 +85,7 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/dashboard?onglet=listes", libelle: "Mes listes", icone: ListChecks, onglet: "listes" },
       { href: "/dashboard?onglet=avis", libelle: "Mes avis", icone: MessageSquareQuote, onglet: "avis" },
       { href: "/dashboard?onglet=activite", libelle: "Activité", icone: History, onglet: "activite" },
+      { href: "/dashboard?onglet=profil", libelle: "Mon profil", icone: User, onglet: "profil" },
       { href: "/dashboard/notifications", libelle: "Notifications", icone: Bell, route: "/dashboard/notifications" },
       { href: "/dashboard/parrainage", libelle: "Parrainage", icone: Handshake, route: "/dashboard/parrainage" },
     ],
@@ -121,6 +127,7 @@ const TITRES: Record<string, { titre: string; sousTitre: string }> = {
   listes: { titre: "Mes listes", sousTitre: "Organise tes outils par projet ou par client" },
   avis: { titre: "Mes avis", sousTitre: "Tes retours d'expérience sur les outils testés" },
   activite: { titre: "Mon activité", sousTitre: "Historique de tes actions" },
+  profil: { titre: "Mon profil", sousTitre: "Objectif, badges et recommandations" },
   notifications: { titre: "Notifications", sousTitre: "Nouveautés, votes sur tes avis et récompenses" },
   parrainage: { titre: "Parrainage", sousTitre: "1 mois offert pour chaque filleul Premium" },
   abonnement: { titre: "Mon abonnement", sousTitre: "Plan, statut et gestion" },
