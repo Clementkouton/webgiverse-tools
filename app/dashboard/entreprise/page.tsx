@@ -7,6 +7,12 @@
 // gestion des sièges : un siège reçu ne suffit pas). Défensif : si
 // la migration SQL du lot 57 n'est pas passée, bandeau rouge, pas
 // de crash.
+// LOT 66 — 1) les résultats des requêtes défensives (membreListe,
+//   modeleListe, lues via prismaCompat « any ») sont désormais
+//   typés explicitement : le build strict TypeScript passe ;
+//   2) la limite de clés affichée passe de 3 à 5 pour être
+//   cohérente avec l'action serveur (MAX_CLES_ACTIVES = 5 dans
+//   app/actions/cles-api.ts) et la page /dashboard/cles-api.
 // ─────────────────────────────────────────────────────────────────
 
 import type { Metadata } from "next";
@@ -110,7 +116,7 @@ const MESSAGES: Record<string, { ok: boolean; texte: string }> = {
   },
   "cles-limite": {
     ok: false,
-    texte: "Tu as déjà 3 clés actives. Révoque-en une avant d'en créer une nouvelle.",
+    texte: "Tu as déjà 5 clés actives. Révoque-en une avant d'en créer une nouvelle.",
   },
   "cles-nom-invalide": {
     ok: false,
@@ -203,9 +209,19 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
     derniereUtilisation: Date | null;
     revoqueeLe: Date | null;
   };
+  // LOT 66 — typage explicite : prismaCompat est « any », sans ce
+  // typage les paramètres des .map() sont « any » implicite et le
+  // build strict échoue.
+  type LienMembre = {
+    listId: string;
+    userId: string;
+    role: string;
+    creeLe: Date;
+  };
+  type ModeleLigne = { listId: string };
   let cles: LigneCle[] = [];
   try {
-    const liens = idsMesListes.length
+    const liens: LienMembre[] = idsMesListes.length
       ? await prismaCompat.membreListe.findMany({
           where: { listId: { in: idsMesListes } },
           orderBy: { creeLe: "asc" },
@@ -229,7 +245,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
       depuis: lien.creeLe,
     }));
 
-    const modeles = idsMesListes.length
+    const modeles: ModeleLigne[] = idsMesListes.length
       ? await prismaCompat.modeleListe.findMany({
           where: { listId: { in: idsMesListes } },
           select: { listId: true },
@@ -554,7 +570,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
       <Carte className="mt-6 p-6">
         <p className={titreSection}>
           <KeyRound className="size-5 text-violet" aria-hidden /> Clés d&apos;API
-          de lecture ({clesActives.length}/3 actives)
+          de lecture ({clesActives.length}/5 actives)
         </p>
         <p className="mt-1 text-[13px] leading-5 text-encre/70">
           Permet à un site ou un outil externe de lire tes listes publiques

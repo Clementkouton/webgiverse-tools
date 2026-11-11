@@ -195,12 +195,22 @@ export default async function PageTuto({ params }: { params: Params }) {
   let historiqueChat: { role: "user" | "assistant"; contenu: string }[] = [];
   if (utilisateurId && acces.peut("assistantTuto")) {
     try {
-      const messagesBdd = await prisma.messageChatTutoriel.findMany({
+      const delegueChat = prisma as unknown as {
+        messageChatTutoriel?: {
+          findMany: (args: {
+            where: { userId: string; tutoId: string };
+            orderBy: { creeLe: "desc" };
+            take: number;
+            select: { role: true; contenu: true };
+          }) => Promise<{ role: string; contenu: string }[]>;
+        };
+      };
+      const messagesBdd = (await delegueChat.messageChatTutoriel?.findMany({
         where: { userId: utilisateurId, tutoId: tuto.id },
         orderBy: { creeLe: "desc" },
         take: 50,
         select: { role: true, contenu: true },
-      });
+      })) ?? [];
       historiqueChat = messagesBdd
         .reverse()
         .map((m) => ({
@@ -462,6 +472,7 @@ export default async function PageTuto({ params }: { params: Params }) {
                   <ChatTutoriel
                     slug={tuto.slug}
                     titre={tuto.titre}
+                    messagesInitiaux={historiqueChat}
                   />
                 </div>
               ) : (

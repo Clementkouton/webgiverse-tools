@@ -40,16 +40,6 @@ export default async function PageMesPrompts() {
   const userId = session.user.id;
 
   const premium = await premiumActif(userId);
-  const promptsExport = favoris.map((favori) => ({
-    nom: favori.prompt.titre,
-    titre: favori.prompt.titre,
-    slug: favori.prompt.slug,
-    categorie: favori.prompt.categorie.nom,
-    description: favori.prompt.description,
-    contenu: premium ? favori.prompt.contenu : null,
-    modeles: favori.prompt.modeles,
-    conseils: favori.prompt.conseils || null,
-  })) as any[];
 
   // Lecture défensive : si le db push n'a pas encore créé la table
   // PromptFavori, la page reste affichable avec un état vide.
@@ -112,17 +102,14 @@ export default async function PageMesPrompts() {
           <Badge variante="defaut">{favoris.length}</Badge>
         </h1>
         <div className="flex flex-wrap items-center gap-3">
-          {/* Lot 62 — export PDF des prompts sauvegardés */}
+          {/* Lot 62 — export PDF des prompts sauvegardés.
+              LOT 66 — appel corrigé : le composant attend une prop
+              « prompts » (type PromptExport), pas « outils » — le bloc
+              orphelin « promptsExport » (utilisé avant sa déclaration)
+              est supprimé. */}
           {favoris.length > 0 && (
             <BoutonExportPdfPrompts
-              titre="Mes prompts"
-              sousTitre={
-                premium
-                  ? "Prompts sauvegardés"
-                  : "Contenu complet réservé au plan Premium"
-              }
-              outils={favoris.map((favori) => ({
-                nom: favori.prompt.titre,
+              prompts={favoris.map((favori) => ({
                 titre: favori.prompt.titre,
                 slug: favori.prompt.slug,
                 categorie: favori.prompt.categorie.nom,
@@ -130,7 +117,7 @@ export default async function PageMesPrompts() {
                 contenu: premium ? favori.prompt.contenu : null,
                 modeles: favori.prompt.modeles,
                 conseils: favori.prompt.conseils || null,
-              })) as any}
+              }))}
               libelle="Exporter mes prompts en PDF"
               fichier="mes-prompts-webgiverse"
             />
