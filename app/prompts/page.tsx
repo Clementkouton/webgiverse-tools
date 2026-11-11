@@ -1,321 +1,228 @@
-// app/prompts/page.tsx
-// Lot 17 — Bibliothèque de prompts IA : héros avec chiffres réels,
-// bandeau d'accès Premium (lecture + copie réservées aux abonnés
-// Pro / Entreprise), barre de filtres (recherche, catégorie, type,
-// tri), onglets « Catégories / Métiers » (correctif : deux filtres
-// bien séparés, style godofprompt), grille paginée (16 par page) et
-// section d'introduction. Charte Webgiverse inchangée : accents
-// violets, dégradé de marque sur le mot-clé du titre.
+// app/dashboard/prompts/page.tsx
+// Lot 19 — « Mes prompts » : la liste des prompts IA sauvegardés par
+// l'utilisateur (favoris de prompts). Page du dashboard (barre latérale
+// Metis fournie par app/dashboard/layout.tsx), style cohérent avec
+// /dashboard/abonnement : cartes blanches, font-titre, charte inchangée.
+// Lot 62 — les prompts sauvegardés sont maintenant EXPORTABLES EN PDF
+// (bouton en haut de page, même charte que l'export des listes) :
+//   • Premium → le PDF inclut le contenu complet de chaque prompt,
+//     les modèles conseillés et les conseils d'usage ;
+//   • plan Découverte → le PDF liste les prompts mais affiche une note
+//     « contenu complet réservé au Premium » (même paywall que le site).
 import type { Metadata } from "next";
-import type { ComponentProps } from "react";
 import Link from "next/link";
-import { Bot, Lock, Search, TerminalSquare } from "lucide-react";
-import { Bouton } from "@/components/ui/bouton";
+import { redirect } from "next/navigation";
 import {
-  listerPrompts,
-  listerPromptCategories,
-  compterPromptStats,
-  compterPromptsParRole,
-} from "@/lib/queries";
-import { CartePrompt } from "@/components/prompts/carte-prompt";
-import { OngletsFiltres } from "@/components/prompts/onglets-filtres";
-import { SelectAuto } from "@/components/tutoriels/select-auto";
-import { Pagination } from "@/components/commun/pagination";
+  ChevronLeft,
+  Crown,
+  Eye,
+  TerminalSquare,
+  Trash2,
+} from "lucide-react";
 import { auth } from "@/auth";
-import { premiumActif } from "@/lib/premium";
-import { TRIS_PROMPTS, nomRole } from "@/lib/prompts-utils";
+import { prisma } from "@/lib/prisma";
+import { premiumActif, LIMITES_DECOUVERTE } from "@/lib/premium";
+import { Carte } from "@/components/ui/carte";
+import { Bouton } from "@/components/ui/bouton";
+import { Badge } from "@/components/ui/badge";
+import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
+import BoutonExportPdfPrompts from "@/components/pdf/bouton-export-pdf-prompts";
+import { retirerPromptFormulaire } from "@/app/actions/apprentissage";
 
-export const metadata: Metadata = {
-  title: "Bibliothèque de prompts IA — catalogue métier | Webgiverse",
-  description:
-    "Des centaines de prompts IA prêts à l'emploi, en français, classés par catégorie et par métier : marketing, code, SEO, vente… Testés sur ChatGPT, Claude, Gemini et Midjourney.",
-};
+export const metadata: Metadata = { title: "Mes prompts — Webgiverse" };
+export const dynamic = "force-dynamic";
 
-type Params = Promise<Record<string, string | string[] | undefined>>;
+const formatteurDate = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" });
 
-/** Lit le premier élément d'un paramètre GET (string | string[] | undefined). */
-function val(c: string | string[] | undefined): string {
-  return (Array.isArray(c) ? c[0] : c) ?? "";
-}
-
-const PASTILLE =
-  "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-bordure bg-white px-4 text-[13px] leading-4 font-medium text-bleu transition hover:border-sky-500 hover:text-sky-500";
-
-export default async function PagePrompts({ searchParams }: { searchParams: Params }) {
-  const p = await searchParams;
-  const q = val(p.q).slice(0, 80);
-  const categorie = val(p.categorie);
-  const role = val(p.role);
-  const type = val(p.type);
-  const tri = val(p.tri);
-  const page = Math.max(1, Math.trunc(Number(val(p.page)) || 1));
-
-  const [resultat, categories, stats, compteurRoles] = await Promise.all([
-    listerPrompts({ q, categorie, role, type, tri, page }),
-    listerPromptCategories(),
-    compterPromptStats(),
-    compterPromptsParRole(),
-  ]);
-  const { prompts, page: pageFinale, pages } = resultat;
-
-  // État Premium du visiteur : le bandeau s'adapte (un abonné Pro /
-  // Entreprise ne doit pas voir une pub pour s'abonner).
+export default async function PageMesPrompts() {
   const session = await auth();
-  const premium = session?.user?.id ? await premiumActif(session.user.id) : false;
+  if (!session?.user?.id) redirect("/connexion?suite=/dashboard/prompts");
+  const userId = session.user.id;
 
-  const types = [
-    { valeur: "", libelle: "Tous les types" },
-    { valeur: "texte", libelle: "Texte" },
-    { valeur: "image", libelle: "Image" },
-    { valeur: "code", libelle: "Code" },
-  ];
+  const premium = await premiumActif(userId);
+
+  // Lecture défensive : si le db push n'a pas encore créé la table
+  // PromptFavori, la page reste affichable avec un état vide.
+  type FavoriPrompt = {
+    id: string;
+    creeLe: Date;
+    prompt: {
+      id: string;
+      slug: string;
+      titre: string;
+      emoji: string;
+      description: string;
+      vues: number;
+      contenu: string;
+      modeles: string[];
+      conseils: string;
+      categorie: { nom: string; slug: string };
+    };
+  };
+  let favoris: FavoriPrompt[] = [];
+  try {
+    favoris = (await prisma.promptFavori.findMany({
+      where: { userId },
+      orderBy: { creeLe: "desc" },
+      select: {
+        id: true,
+        creeLe: true,
+        prompt: {
+          select: {
+            id: true,
+            slug: true,
+            titre: true,
+            emoji: true,
+            description: true,
+            vues: true,
+            contenu: true,
+            modeles: true,
+            conseils: true,
+            categorie: { select: { nom: true, slug: true } },
+          },
+        },
+      },
+    })) as FavoriPrompt[];
+  } catch {
+    favoris = [];
+  }
 
   return (
-    <>
-      {/* ── Héros ───────────────────────────────────────────────── */}
-      <section className="hero-verre border-b border-bordure">
-        <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
-            <TerminalSquare className="size-3.5" aria-hidden /> Bibliothèque de prompts
-          </p>
-          <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
-            Des <span className="texte-degrade">prompts IA</span> prêts à l&apos;emploi, en français
-          </h1>
-          <p className="mesure mx-auto mt-3 text-[16px] leading-7 text-encre">
-            Des prompts métiers testés sur ChatGPT, Claude, Gemini et Midjourney : choisis ta
-            catégorie, copie, remplace les variables et lance-toi — sans repartir de zéro.
-          </p>
-          <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
-              {stats.total} prompts
-            </li>
-            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
-              {stats.categories} catégories
-            </li>
-            <li className="rounded-full border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
-              24 métiers couverts
-            </li>
-          </ul>
-        </div>
-      </section>
+    <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
+      <Link
+        href="/dashboard"
+        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+      >
+        <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
+      </Link>
 
-      <div className="mx-auto max-w-7xl px-4 py-10 lg:py-12">
-        {/* ── Bandeau d'accès Premium ─────────────────────────────── */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-3 rounded-carte border border-sky-500/30 bg-sky-500/5 p-4 sm:px-6">
-          <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-carte bg-sky-500/10">
-              {premium ? (
-                <Bot className="size-4.5 text-sky-500" aria-hidden />
-              ) : (
-                  <Lock className="size-4.5 text-sky-500" aria-hidden />
-              )}
-            </span>
-            {premium ? (
-              <p className="max-w-2xl text-[14px] leading-6 text-encre">
-                <strong className="font-semibold text-bleu">Ton accès Premium est actif</strong> :
-                lis et copie tous les prompts complets, sans limite. Bonne productivité&nbsp;!
-              </p>
-            ) : (
-              <p className="max-w-2xl text-[14px] leading-6 text-encre">
-                Parcours tout le catalogue librement. La <strong className="font-semibold text-bleu">lecture
-                et la copie des prompts sont réservées aux abonnés Premium</strong> (Pro ou
-                Entreprise) — comme les tutoriels vidéo.
-              </p>
-            )}
-          </div>
-          {!premium && (
-            <Bouton asChild taille="sm">
-              <Link href="/tarifs">
-                Débloquer l&apos;accès
-              </Link>
-            </Bouton>
-          )}
-        </div>
-
-        {/* ── Barre de filtres ───────────────────────────────────── */}
-        <form
-          method="get"
-          action="/prompts"
-          className="mb-6 flex flex-col gap-3 rounded-carte border border-bordure bg-white p-4 shadow-carte sm:flex-row sm:items-center"
-        >
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-encre" aria-hidden />
-            <input
-              name="q"
-              type="search"
-              defaultValue={q}
-              placeholder="Rechercher un prompt (email de vente, plan de cours, image produit…)"
-              aria-label="Rechercher un prompt"
-              className="min-h-11 w-full rounded-full border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="flex items-center gap-2 text-h2 font-semibold">
+          <TerminalSquare className="size-7 text-violet" aria-hidden /> Mes prompts
+          <Badge variante="defaut">{favoris.length}</Badge>
+        </h1>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Lot 62 — export PDF des prompts sauvegardés */}
+          {favoris.length > 0 && (
+            <BoutonExportPdfPrompts
+              prompts={favoris.map((favori) => ({
+                titre: favori.prompt.titre,
+                slug: favori.prompt.slug,
+                categorie: favori.prompt.categorie.nom,
+                description: favori.prompt.description,
+                // Le contenu complet reste réservé au plan Premium
+                contenu: premium ? favori.prompt.contenu : null,
+                modeles: favori.prompt.modeles,
+                conseils: favori.prompt.conseils || null,
+              }))}
+              libelle="Exporter mes prompts en PDF"
+              fichier="mes-prompts-webgiverse"
             />
-          </div>
-          <input type="hidden" name="categorie" value={categorie} />
-          <input type="hidden" name="role" value={role} />
-          <SelectAuto nom="type" valeur={type} libelle="Filtrer par type" options={types} />
-          <SelectAuto
-            nom="tri"
-            valeur={tri || "pertinence"}
-            libelle="Trier les prompts"
-            options={TRIS_PROMPTS}
-          />
-          <Bouton type="submit" variante="secondaire" taille="sm" className="sm:hidden">
-            Filtrer
+          )}
+          <Bouton asChild variante="secondaire">
+            <Link href="/prompts">
+              Explorer la bibliothèque
+            </Link>
           </Bouton>
-        </form>
-
-        {/* ── Onglets « Catégories / Métiers » ────────────────────── */}
-        {/* Correctif : les deux familles de filtres étaient collées sans
-            repère visuel. Deux onglets (style godofprompt) les séparent
-            désormais. L'onglet ouvert au chargement suit le filtre actif
-            de l'URL (?categorie=… ouvre Catégories, ?role=… ouvre Métiers). */}
-        <OngletsFiltres
-          ongletInitial={categorie ? "categories" : role ? "metiers" : "categories"}
-          totalCategories={categories.length}
-          totalMetiers={compteurRoles.length}
-          panneauCategories={
-            <nav aria-label="Catégories de prompts" className="flex flex-wrap items-center gap-2">
-              <Link
-                href={hrefSans("categorie", { q, categorie, role, type, tri })}
-                className={
-                  !categorie
-                    ? "inline-flex min-h-11 items-center rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                    : `${PASTILLE} border-sky-500 bg-sky-500/5 text-sky-500`
-                }
-              >
-                Toutes
-              </Link>
-              {categories.map((c: { slug: string; nom: string; _count: { prompts: number } }) =>
-                c.slug === categorie ? (
-                  <span
-                    key={c.slug}
-                    aria-current="true"
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                  >
-                    {c.nom} <span className="opacity-80">{c._count.prompts}</span>
-                  </span>
-                ) : (
-                  <Link
-                    key={c.slug}
-                    href={`/prompts?categorie=${encodeURIComponent(c.slug)}`}
-                    className={PASTILLE}
-                  >
-                    {c.nom} <span className="text-encre/60">{c._count.prompts}</span>
-                  </Link>
-                ),
-              )}
-            </nav>
-          }
-          panneauMetiers={
-            <nav aria-label="Métiers" className="flex flex-wrap items-center gap-2">
-              {compteurRoles.slice(0, 12).map((r: { slug: string; total: number }) =>
-                r.slug === role ? (
-                  <span
-                    key={r.slug}
-                    aria-current="true"
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-sky-500 bg-sky-500/10 px-4 text-[13px] leading-4 font-semibold text-sky-500"
-                  >
-                    {nomRole(r.slug)} <span className="opacity-70">{r.total}</span>
-                  </span>
-                ) : (
-                  <Link
-                    key={r.slug}
-                    href={`/prompts/roles/${encodeURIComponent(r.slug)}`}
-                    className={PASTILLE}
-                  >
-                    {nomRole(r.slug)} <span className="text-encre/60">{r.total}</span>
-                  </Link>
-                ),
-              )}
-              <Link href="/prompts/roles" className="text-[13px] font-semibold text-sky-500 hover:underline">
-                Tous les métiers →
-              </Link>
-            </nav>
-          }
-        />
-
-        {/* ── Résultats ───────────────────────────────────────────── */}
-        {prompts.length === 0 ? (
-          <div className="rounded-carte border border-bordure bg-white p-12 text-center shadow-carte">
-            <p className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-              Aucun prompt trouvé pour cette recherche.
-            </p>
-            <p className="mx-auto mt-2 max-w-md text-[14px] leading-6 text-encre">
-              Essaie un autre mot-clé, change de type ou explore une autre catégorie — le
-              catalogue s&apos;agrandit chaque semaine.
-            </p>
-            <Bouton asChild variante="secondaire" className="mt-5">
-              <Link href="/prompts">Réinitialiser les filtres</Link>
-            </Bouton>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {prompts.map((prompt: ComponentProps<typeof CartePrompt>["prompt"], index: number) => (
-              <CartePrompt key={index} prompt={prompt} />
-            ))}
-          </div>
-        )}
-
-        {/* ── Pagination ──────────────────────────────────────────── */}
-        {prompts.length > 0 && (
-          <Pagination
-            page={pageFinale}
-            pages={pages}
-            base="/prompts"
-            params={{ q, categorie, role, type, tri }}
-          />
-        )}
-
-        {/* ── Section d'introduction (SEO) ────────────────────────── */}
-        <section className="mt-14 rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-10">
-          <h2 className="font-titre text-[22px] leading-8 font-bold text-bleu">
-            Une bibliothèque de prompts français pour chaque métier
-          </h2>
-          <div className="mt-4 grid gap-6 text-[15px] leading-7 text-encre lg:grid-cols-2">
-            <div className="space-y-3">
-              <p>
-                Un bon prompt fait la différence entre une réponse générique et un livrable
-                exploitable. Chaque prompt de cette bibliothèque fixe le rôle de l&apos;IA, le
-                contexte, la tâche et le format de sortie : tu obtiens un résultat utilisable dès
-                la première exécution, sur ChatGPT, Claude, Gemini, Grok ou Mistral.
-              </p>
-              <p>
-                Les catégories suivent les vrais besoins : marketing et réseaux sociaux, code et
-                développement, SEO, vente, éducation, finance, juridique, ressources humaines…
-                Les prompts d&apos;image ciblent Midjourney, Flux et Nano Banana ; les prompts de
-                code sont prêts pour Claude et ChatGPT.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <p>
-                Le principe est toujours le même : ouvre un prompt, copie-le, remplace les
-                variables entre accolades <code className="rounded bg-gris px-1.5 py-0.5 font-mono text-[13px]">{"{{ainsi}}"}</code>{" "}
-                par ton produit, ton audience ou ton sujet — la structure, elle, ne change pas.
-                C&apos;est elle qui fait le travail.
-              </p>
-              <p>
-                La lecture et la copie des prompts complets sont incluses dans les plans Premium
-                (Pro et Entreprise), avec les tutoriels vidéo, les favoris illimités et
-                l&apos;assistant IA sans quota — tout ce qu&apos;il faut pour avancer vite.
-              </p>
-            </div>
-          </div>
-        </section>
+        </div>
       </div>
-    </>
-  );
-}
+      <p className="mt-1 text-encre">
+        {premium
+          ? "Tes prompts sauvegardés, prêts à être copiés. Illimité avec ton plan Premium."
+          : `Les prompts que tu as sauvegardés depuis la bibliothèque. Limite du plan Découverte : ${LIMITES_DECOUVERTE.prompts}.`}
+      </p>
 
-/** Lien « Toutes » : conserve les filtres en cours, retire la catégorie. */
-function hrefSans(
-  cle: string,
-  params: Record<string, string | string[] | undefined>,
-): string {
-  const usp = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (k === cle || k === "page" || v === undefined) continue;
-    const valeur = Array.isArray(v) ? v[0] : v;
-    if (valeur) usp.set(k, valeur);
-  }
-  const qs = usp.toString();
-  return qs ? `/prompts?${qs}` : "/prompts";
+      {/* ── État vide ─────────────────────────────────────────────── */}
+      {favoris.length === 0 && (
+        <Carte className="mt-8 p-10 text-center">
+          <span className="text-4xl" aria-hidden>
+            ✨
+          </span>
+          <h2 className="mt-3 font-titre text-[18px] leading-6 font-semibold text-bleu">
+            Aucun prompt sauvegardé pour l&apos;instant
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-[14px] leading-6 text-encre">
+            Parcours la bibliothèque de prompts IA et clique sur « Sauvegarder »
+            sur une fiche : il apparaîtra ici, prêt à être copié en un clic.
+          </p>
+          <Bouton asChild className="mt-5">
+            <Link href="/prompts">Découvrir les prompts IA</Link>
+          </Bouton>
+        </Carte>
+      )}
+
+      {/* ── Grille des prompts sauvegardés ────────────────────────── */}
+      {favoris.length > 0 && (
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {favoris.map((favori) => (
+            <li
+              key={favori.id}
+              className="survol-carte flex flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span
+                  aria-hidden
+                  className="grid size-11 shrink-0 place-items-center rounded-carte bg-violet/10 text-[20px]"
+                >
+                  {favori.prompt.emoji}
+                </span>
+                {/* Retirer des favoris */}
+                <form action={retirerPromptFormulaire}>
+                  <input type="hidden" name="promptId" value={favori.prompt.id} />
+                  <BoutonConfirmer
+                    message={`Retirer « ${favori.prompt.titre} » de tes prompts sauvegardés ?`}
+                    aria-label={`Retirer ${favori.prompt.titre}`}
+                    className="grid size-9 place-items-center rounded-full border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                  >
+                    <Trash2 className="size-4" aria-hidden />
+                  </BoutonConfirmer>
+                </form>
+              </div>
+
+              <h2 className="mt-3 font-titre text-[15px] leading-5 font-semibold text-bleu">
+                <Link
+                  href={`/prompts/${favori.prompt.slug}`}
+                  className="transition hover:text-violet"
+                >
+                  {favori.prompt.titre}
+                </Link>
+              </h2>
+              <p className="mt-1 line-clamp-2 text-[13px] leading-5 text-encre">
+                {favori.prompt.description}
+              </p>
+
+              <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
+                <Link
+                  href={`/prompts/categorie/${favori.prompt.categorie.slug}`}
+                  className="rounded-full border border-violet/30 bg-violet/5 px-2.5 py-0.5 text-[11px] leading-4 font-semibold text-violet transition hover:border-violet"
+                >
+                  {favori.prompt.categorie.nom}
+                </Link>
+                <span className="inline-flex items-center gap-1 text-[11px] leading-4 text-encre">
+                  <Eye className="size-3" aria-hidden /> {favori.prompt.vues.toLocaleString("fr-FR")}
+                </span>
+                <span className="ml-auto text-[11px] leading-4 text-encre">
+                  {formatteurDate.format(favori.creeLe)}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* ── Rappel upsell pour le plan Découverte ─────────────────── */}
+      {!premium && favoris.length >= LIMITES_DECOUVERTE.prompts && (
+        <Carte className="mt-8 flex flex-wrap items-center gap-4 border-violet/30 bg-violet/5 p-5">
+          <Crown className="size-6 shrink-0 text-violet" aria-hidden />
+          <p className="min-w-0 flex-1 text-[14px] leading-6 text-encre">
+            Tu as atteint la limite de <strong className="text-bleu">{LIMITES_DECOUVERTE.prompts} prompts</strong> du
+            plan Découverte. Passe Premium pour sauvegarder sans limite et copier tous les prompts.
+          </p>
+          <Bouton asChild taille="sm">
+            <Link href="/tarifs">Voir les tarifs</Link>
+          </Bouton>
+        </Carte>
+      )}
+    </div>
+  );
 }
