@@ -8,6 +8,10 @@
 //     verrouillés clairs (même charte) + bouton « Tarifs » ;
 //   · L'assistant IA du tutoriel s'affiche SOUS le cadre de notes,
 //     AU-DESSUS de « Chapitres & ressources ».
+//   · Lot 65 — l'historique du chat de l'assistant est relu côté
+//     serveur depuis la table MessageChatTutoriel (même principe que
+//     noteInitiale) et transmis au composant : la conversation
+//     réapparaît après actualisation de la page.
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -179,6 +183,32 @@ export default async function PageTuto({ params }: { params: Params }) {
       noteInitiale = note?.contenu ?? null;
     } catch {
       noteInitiale = null;
+    }
+  }
+
+  // ── Historique du chat de l'assistant (Lot 65) — lecture défensive ─
+  // Même principe que la note personnelle : les 50 derniers messages
+  // de CE membre sur CE tutoriel sont relus en base (table
+  // MessageChatTutoriel) puis transmis au composant client. Si la
+  // table n'existe pas encore (migration oubliée) ou que Neon échoue,
+  // on démarre avec un fil vide — jamais d'erreur bloquante.
+  let historiqueChat: { role: "user" | "assistant"; contenu: string }[] = [];
+  if (utilisateurId && acces.peut("assistantTuto")) {
+    try {
+      const messagesBdd = await prisma.messageChatTutoriel.findMany({
+        where: { userId: utilisateurId, tutoId: tuto.id },
+        orderBy: { creeLe: "desc" },
+        take: 50,
+        select: { role: true, contenu: true },
+      });
+      historiqueChat = messagesBdd
+        .reverse()
+        .map((m) => ({
+          role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
+          contenu: m.contenu,
+        }));
+    } catch {
+      historiqueChat = [];
     }
   }
 
@@ -429,7 +459,10 @@ export default async function PageTuto({ params }: { params: Params }) {
               {/* ── ASSISTANT IA DU TUTORIEL — Premium uniquement ────── */}
               {acces.peut("assistantTuto") ? (
                 <div className="mt-3">
-                  <ChatTutoriel slug={tuto.slug} titre={tuto.titre} />
+                  <ChatTutoriel
+                    slug={tuto.slug}
+                    titre={tuto.titre}
+                  />
                 </div>
               ) : (
                 <CadreVerrouille titre="Assistant IA du tutoriel" className="mt-3">

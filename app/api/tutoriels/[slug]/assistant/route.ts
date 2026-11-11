@@ -13,6 +13,15 @@
 //      reçoit une page HTML (404/504) sans explication. Chaque échec
 //      renvoie un message précis, et tout est loggué côté serveur avec le
 //      préfixe « ASSISTANT TUTO : » (visible dans Vercel → Logs).
+// Lot 65 — LA CONVERSATION N'EST PLUS ÉPHÉMÈRE :
+//   1. L'historique de contexte n'est plus envoyé par le front : les
+//      6 derniers messages sont relus dans la table dédiée
+//      MessageChatTutoriel (même principe que NoteTutoriel).
+//   2. Dès qu'un échange aboutit, la question ET la réponse sont
+//      enregistrées au fil de l'eau (createMany ; échec de
+//      sauvegarde non bloquant : la réponse reste toujours affichée).
+//   3. À l'ouverture de la page, le fil est rechargé côté serveur
+//      (page.tsx) — plus rien ne disparaît à l'actualisation.
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -38,7 +47,7 @@ const MODELES = Array.from(
   ),
 );
 const MAX_MESSAGE = 1000; // caractères
-const MAX_HISTORIQUE = 6; // messages renvoyés par le front
+const MAX_HISTORIQUE = 6; // messages de contexte relus en base (Lot 65)
 const MAX_TOKENS_REPONSE = 700;
 const DELAI_PAR_MODELE_MS = 25000; // 25 s par modèle (60 s dispo côté Vercel)
 
@@ -90,7 +99,7 @@ export async function POST(
   try {
     // ── 1. Corps de la requête ──────────────────────────────────────
     const corps = (await requete.json().catch(() => null)) as
-      | { message?: unknown; historique?: unknown }
+      | { message?: unknown }
       | null;
     const message = typeof corps?.message === "string" ? corps.message.trim() : "";
     if (!message) {
@@ -129,6 +138,7 @@ export async function POST(
     const tuto = await prisma.tuto.findUnique({
       where: { slug },
       select: {
+        id: true, // Lot 65 — nécessaire pour lier les messages au tuto
         titre: true,
         niveau: true,
         dureeMin: true,
@@ -140,19 +150,27 @@ export async function POST(
       return NextResponse.json({ erreur: "Tutoriel introuvable." }, { status: 404 });
     }
 
-    // ── 4. Historique renvoyé par le front (6 derniers, assaini) ────
-    const historique = Array.isArray(corps?.historique)
-      ? (corps.historique as unknown[])
-          .slice(-MAX_HISTORIQUE)
-          .map((m) => {
-            const entree = m as { role?: unknown; contenu?: unknown };
-            return {
-              role: entree?.role === "assistant" ? ("assistant" as const) : ("user" as const),
-              contenu: typeof entree?.contenu === "string" ? entree.contenu.slice(0, 1500).trim() : "",
-            };
-          })
-          .filter((m) => m.contenu.length > 0)
-      : [];
+    // ── 4. Historique relu depuis la base (Lot 65) ──────────────────
+    // Le front n'envoie plus l'historique : source de vérité unique
+    // = table MessageChatTutoriel. On prend les 6 derniers messages
+    // de CE membre sur CE tutoriel (du plus récent au plus ancien,
+    // puis remis dans l'ordre chronologique pour le modèle IA).
+    // Si la table est absente (migration oubliée) : fil vide, la
+    // conversation fonctionne quand même, sans crash.
+    let historique: { role: string; contenu: string }[] = [];
+    try {
+      const historiqueBdd = await prisma.messageChatTutoriel.findMany({
+        where: { userId: utilisateurId, tutoId: tuto.id },
+        orderBy: { creeLe: "desc" },
+        take: MAX_HISTORIQUE,
+        select: { role: true, contenu: true },
+      });
+      historique = historiqueBdd
+        .reverse()
+        .filter((m) => m.role === "user" || m.role === "assistant");
+    } catch (erreurHistorique) {
+      console.error("ASSISTANT TUTO : lecture de l'historique impossible :", erreurHistorique);
+    }
 
     // ── 5. Clé OpenRouter ───────────────────────────────────────────
     const cleApi = process.env.OPENROUTER_API_KEY;
@@ -177,7 +195,7 @@ Règles :
 - Ne mentionne jamais de clés API ni de détails techniques internes.
 
 CONTENU DU TUTORIEL :
-${contexteTuto(tuto)}`;
+ ${contexteTuto(tuto)}`;
 
     const messagesApi = [
       { role: "system", content: consigneSysteme },
@@ -247,7 +265,28 @@ ${contexteTuto(tuto)}`;
     }
 
     if (texte) {
-      // ── 8. Journal (jamais bloquant) ──────────────────────────────
+      // ── 8. Sauvegarde de l'échange en base (Lot 65) ───────────────
+      // Au fil de l'eau : question + réponse enregistrées ensemble
+      // dès que la réponse aboutit — jamais de question orpheline
+      // (si le modèle échoue, rien n'est enregistré, exactement
+      // comme dans l'affichage qui retire la question sans réponse).
+      // Échec de sauvegarde NON bloquant : la réponse reste affichée
+      // quoi qu'il arrive ; seul le rechargement perdrait l'échange.
+      try {
+        await prisma.messageChatTutoriel.createMany({
+          data: [
+            { userId: utilisateurId, tutoId: tuto.id, role: "user", contenu: message },
+            { userId: utilisateurId, tutoId: tuto.id, role: "assistant", contenu: texte },
+          ],
+        });
+      } catch (erreurSauvegarde) {
+        console.error(
+          "ASSISTANT TUTO : sauvegarde de la conversation impossible :",
+          erreurSauvegarde,
+        );
+      }
+
+      // ── 8bis. Journal (jamais bloquant) ───────────────────────────
       await journaliser(utilisateurId, "assistant_tuto", slug).catch(() => {});
       return NextResponse.json({ reponse: texte });
     }

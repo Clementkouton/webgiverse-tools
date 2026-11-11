@@ -11,6 +11,12 @@
 //      a whitespace-nowrap en dur, ici on le dérompte via tailwind-merge).
 //   3. Fil de discussion : overflow-x-hidden de sécurité + min-w-0 sur
 //      les bulles — aucun élément ne peut plus pousser la carte en largeur.
+// Lot 65 — HISTORIQUE PERSISTANT (aucun changement visuel) :
+//   1. Nouvelle prop messagesInitiaux : la page du tutoriel relit la
+//      conversation dans la table MessageChatTutoriel (comme la note
+//      personnelle) et la transmet ici — le fil réapparaît après F5.
+//   2. La requête n'envoie plus l'historique : la route relit elle-même
+//      les 6 derniers messages en base (source de vérité unique).
 // Style strictement identique à la charte (mêmes couleurs, mêmes arrondis).
 "use client";
 
@@ -28,9 +34,19 @@ const SUGGESTIONS = [
   "Fais-moi un plan d'apprentissage à partir de ce tutoriel",
 ];
 
-export function ChatTutoriel({ slug, titre }: { slug: string; titre: string }) {
+export function ChatTutoriel({
+  slug,
+  titre,
+  messagesInitiaux = [],
+}: {
+  slug: string;
+  titre: string;
+  messagesInitiaux?: MessageChat[];
+}) {
   const [ouvert, setOuvert] = useState(true);
-  const [messages, setMessages] = useState<MessageChat[]>([]);
+  // Lot 65 — le fil démarre avec l'historique relu en base par la page
+  // (50 derniers messages) ; vide au premier passage sur ce tuto.
+  const [messages, setMessages] = useState<MessageChat[]>(messagesInitiaux);
   const [champ, setChamp] = useState("");
   const [enCours, setEnCours] = useState(false);
   const [echec, setEchec] = useState<string | null>(null);
@@ -48,14 +64,16 @@ export function ChatTutoriel({ slug, titre }: { slug: string; titre: string }) {
     setChamp("");
     setEnCours(true);
 
-    const historique = messages.slice(-6);
+    // Lot 65 — plus d'historique envoyé au serveur : la route le relit
+    // dans la table MessageChatTutoriel (elle enregistrera elle-même
+    // cet échange dès que la réponse aboutira).
     setMessages([...messages, { role: "user", contenu: message }]);
 
     try {
       const reponse = await fetch(`/api/tutoriels/${encodeURIComponent(slug)}/assistant`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, historique }),
+        body: JSON.stringify({ message }),
       });
       const donnees = (await reponse.json().catch(() => null)) as
         | { reponse?: string; erreur?: string }

@@ -142,6 +142,8 @@ model User {
   // Lot 40 — skills épinglées + retours d'usage
   skillsFavoris     SkillFavori[]
   retoursSkills     SkillRetour[]
+  // Lot 65 — historique des conversations avec l'assistant IA des tutoriels
+  messagesChatTutos MessageChatTutoriel[]
 }
 
 // ── Parrainage : « lien ?ref=… → 1 mois offert » ────────────────────
@@ -503,6 +505,7 @@ model Tuto {
   majLe               DateTime          @updatedAt
   progressions        ProgressionTuto[]
   notes               NoteTutoriel[]
+  messagesChat        MessageChatTutoriel[]
 
   @@index([niveau])
   @@index([vues])
@@ -714,6 +717,26 @@ model NoteTutoriel {
 
   @@unique([userId, tutoId])
   @@index([tutoId])
+}
+
+// Lot 65 — HISTORIQUE DES CONVERSATIONS AVEC L'ASSISTANT IA DES
+// TUTORIELS : une ligne = un message (question du membre ou réponse
+// de l'assistant) enregistré au fil de l'eau dès qu'un échange
+// aboutit. Même principe que NoteTutoriel : table liée au membre et
+// au tutoriel (suppression en cascade). À l'ouverture de la page, le
+// fil de discussion est rechargé depuis cette table — plus aucune
+// conversation perdue lors d'une actualisation (F5).
+model MessageChatTutoriel {
+  id      String   @id @default(cuid())
+  userId  String
+  tutoId  String
+  role    String // "user" (question du membre) ou "assistant" (réponse)
+  contenu String   @db.Text
+  creeLe  DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tuto    Tuto     @relation(fields: [tutoId], references: [id], onDelete: Cascade)
+
+  @@index([userId, tutoId])
 }
 
 // ── Newsletter (console admin) ──────────────────────────────────────
@@ -1012,18 +1035,4 @@ model ModeleListe {
   id     String   @id @default(cuid())
   listId String   @unique
   creeLe DateTime @default(now())
-}
-
-// Ajoute ceci dans prisma/schema.prisma
-
-model MessageChatTutoriel {
-  id        String   @id @default(cuid())
-  userId    String
-  tutoId    String
-  role      String   // "user" ou "assistant"
-  contenu   String   @db.Text
-  creeLe    DateTime @default(now())
-
-  // Index pour accélérer les recherches par utilisateur et par tutoriel
-  @@index([userId, tutoId])
 }
