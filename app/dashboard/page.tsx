@@ -1,5 +1,13 @@
 // app/dashboard/page.tsx
 // ─────────────────────────────────────────────────────────────────
+// LOT 64 — CORRECTION D'AFFICHE « Mes listes » : la grille des outils
+// d'une liste était déclarée sans grid-cols-1 — sa colonne unique
+// prenait la largeur du nom d'outil le plus long et DÉBORDAIT de la
+// carte (boutons × poussés à l'extérieur). Correctifs :
+//   · grilles à une colonne de la page → grid grid-cols-1 (outils
+//     d'une liste, rappels de l'onglet Activité, journal d'activité) ;
+//   · rangée outil → min-w-0 + nom tronqué AVEC titre au survol.
+// Aucun changement de style, de couleur ni de composant.
 // MON ESPACE — tableau de bord utilisateur, ACCUEIL ÉPURÉ (lot 53).
 // LOT 60 — onglet « Mes listes » redessiné (même charte, aucune
 // couleur ni composant nouveau) :
@@ -1357,15 +1365,16 @@ export default async function PageDashboard({
                     </p>
                   </div>
                 ) : (
-                  <ul className="mt-4 grid gap-1">
+                  <ul className="mt-4 grid grid-cols-1 gap-1">
                     {outilsAffiches.map((item) => (
                       <li
                         key={item.id}
-                        className="flex items-center gap-2.5 rounded-champ p-1 transition hover:bg-gris/60"
+                        className="flex min-w-0 items-center gap-2.5 rounded-champ p-1 transition hover:bg-gris/60"
                       >
                         <LogoOutil nom={item.tool.nom} logo={item.tool.logo} />
                         <Link
                           href={`/outil/${item.tool.slug}`}
+                          title={item.tool.nom}
                           className="min-w-0 flex-1 truncate text-[14px] leading-5 font-medium text-sky-500 hover:underline"
                         >
                           {item.tool.nom}
@@ -1590,7 +1599,7 @@ export default async function PageDashboard({
             </Carte>
             <Carte className="p-5">
               <h2 className="font-titre text-[17px] leading-6 font-semibold">Rappel</h2>
-              <ul className="mt-3 grid gap-2 text-[14px] leading-5 text-encre">
+              <ul className="mt-3 grid grid-cols-1 gap-2 text-[14px] leading-5 text-encre">
                 <li>⭐ Ajoute un outil en favori depuis n'importe quelle carte.</li>
                 <li>📝 Publie un avis pour aider la communauté.</li>
                 <li>👍 Vote pour recommander tes outils préférés.</li>
@@ -1611,7 +1620,7 @@ export default async function PageDashboard({
                 <Badge variante="source">Les 25 dernières</Badge>
               )}
             </div>
-            <div className="mt-4 grid gap-2.5">
+            <div className="mt-4 grid grid-cols-1 gap-2.5">
               {activites.map((a) => {
                 const meta = ICONES_ACTIVITE[a.type] ?? { icone: History, libelle: "Activité" };
                 return (
