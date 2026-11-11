@@ -1013,3 +1013,17 @@ model ModeleListe {
   listId String   @unique
   creeLe DateTime @default(now())
 }
+
+// Ajoute ceci dans prisma/schema.prisma
+
+model MessageChatTutoriel {
+  id        String   @id @default(cuid())
+  userId    String
+  tutoId    String
+  role      String   // "user" ou "assistant"
+  contenu   String   @db.Text
+  creeLe    DateTime @default(now())
+
+  // Index pour accélérer les recherches par utilisateur et par tutoriel
+  @@index([userId, tutoId])
+}
