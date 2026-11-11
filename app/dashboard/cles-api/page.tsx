@@ -64,11 +64,16 @@ export default async function ClesApiPage({
     ) {
       avantage = true;
     } else {
-      const siege = await prisma.membreEntreprise.findFirst({
-        where: { membreId: userId },
-        select: { id: true },
-      });
-      avantage = Boolean(siege);
+      const membreEntrepriseModel = (prisma as any)?.membreEntreprise;
+      if (membreEntrepriseModel) {
+        const siege = await membreEntrepriseModel.findFirst({
+          where: { membreId: userId },
+          select: { id: true },
+        });
+        avantage = Boolean(siege);
+      } else {
+        avantage = false;
+      }
     }
   } catch {
     avantage = false;
@@ -109,8 +114,15 @@ export default async function ClesApiPage({
     creeLe: Date;
     revoqueeLe: Date | null;
   }[] = [];
+
+  const cleApiModel = (prisma as any)?.cleApi;
+
   try {
-    cles = await prisma.cleApi.findMany({
+    if (!cleApiModel) {
+      throw new Error("Modèle Prisma 'cleApi' introuvable");
+    }
+
+    cles = await cleApiModel.findMany({
       where: { userId },
       orderBy: { creeLe: "desc" },
       select: {

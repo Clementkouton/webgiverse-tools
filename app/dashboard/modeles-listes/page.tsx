@@ -86,10 +86,13 @@ export default async function ModelesListesPage({
     ) {
       avantage = true;
     } else {
-      const siege = await prisma.membreEntreprise.findFirst({
-        where: { membreId: userId },
-        select: { id: true },
-      });
+      const membreEntreprise = (prisma as any).membreEntreprise;
+      const siege = membreEntreprise
+        ? await membreEntreprise.findFirst({
+            where: { membreId: userId },
+            select: { id: true },
+          })
+        : null;
       avantage = Boolean(siege);
     }
   } catch {
@@ -114,10 +117,16 @@ export default async function ModelesListesPage({
   try {
     // Tables liées en SQL pur (sans relation Prisma) : on charge les
     // modèles, puis les listes publiques correspondantes, puis on assemble.
+    const prismaModeleListe = (prisma as any).modeleListe;
+    if (!prismaModeleListe) {
+      throw new Error("Table ModeleListe absente");
+    }
+
     const modeles: Array<{
-        creeLe: any;
-        id: any; listId: string 
-}> = await prisma.modeleListe.findMany({
+      creeLe: any;
+      id: any;
+      listId: string;
+    }> = await prismaModeleListe.findMany({
       orderBy: { creeLe: "desc" },
     });
     const idsModeles = modeles.map((m: { listId: string }) => m.listId);

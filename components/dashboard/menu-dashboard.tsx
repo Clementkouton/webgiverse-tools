@@ -88,16 +88,6 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
     ],
   },
   {
-    titre: "Entreprise",
-    liens: [
-      { href: "/dashboard/equipe", libelle: "Mon équipe", icone: Users, route: "/dashboard/equipe" },
-      { href: "/dashboard/listes-partagees", libelle: "Listes partagées avec moi", icone: Share2, route: "/dashboard/listes-partagees" },
-      { href: "/dashboard/partages", libelle: "Partage des listes", icone: UserPlus, route: "/dashboard/partages" },
-      { href: "/dashboard/cles-api", libelle: "Clés d'API", icone: Key, route: "/dashboard/cles-api" },
-      { href: "/dashboard/modeles-listes", libelle: "Modèles de listes", icone: LayoutTemplate, route: "/dashboard/modeles-listes" },
-    ],
-  },
-  {
     titre: "Apprendre",
     liens: [
       { href: "/dashboard/prompts", libelle: "Mes prompts", icone: TerminalSquare, route: "/dashboard/prompts" },
@@ -116,6 +106,16 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
       { href: "/outils", libelle: "Annuaire d'outils", icone: Compass },
       { href: "/assistant", libelle: "Assistant IA", icone: Sparkles },
       { href: "/comparer", libelle: "Comparateur", icone: ArrowLeftRight },
+    ],
+  },
+  {
+    titre: "Entreprise",
+    liens: [
+      { href: "/dashboard/equipe", libelle: "Mon équipe", icone: Users, route: "/dashboard/equipe" },
+      { href: "/dashboard/listes-partagees", libelle: "Listes partagées avec moi", icone: Share2, route: "/dashboard/listes-partagees" },
+      { href: "/dashboard/partages", libelle: "Partage des listes", icone: UserPlus, route: "/dashboard/partages" },
+      { href: "/dashboard/cles-api", libelle: "Clés d'API", icone: Key, route: "/dashboard/cles-api" },
+      { href: "/dashboard/modeles-listes", libelle: "Modèles de listes", icone: LayoutTemplate, route: "/dashboard/modeles-listes" },
     ],
   },
   {

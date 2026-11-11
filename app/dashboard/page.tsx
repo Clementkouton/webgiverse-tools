@@ -1399,7 +1399,7 @@ export default async function PageDashboard({
                         <Pencil className="size-3.5 text-sky-500" aria-hidden /> Renommer
                       </summary>
                       <form action={renommerListeFormulaire} className="mt-2 grid w-full max-w-xs gap-2">
-                        <input type="hidden" name="listeId" value={liste.id} />
+                        <input className=" w-full" type="hidden" name="listeId" value={liste.id} />
                         <input
                           name="nom"
                           defaultValue={liste.nom}
@@ -1422,7 +1422,7 @@ export default async function PageDashboard({
                         aria-label={`Supprimer la liste ${liste.nom}`}
                         className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-red-300 bg-white px-3 text-[13px] leading-4 font-semibold text-red-700 transition hover:bg-red-50"
                       >
-                        <Trash2 className="size-4" aria-hidden /> Supprimer
+                        <Trash2 className="size-4" aria-hidden /> 
                       </BoutonConfirmer>
                     </form>
                   </div>
