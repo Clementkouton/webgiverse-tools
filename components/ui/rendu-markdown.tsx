@@ -1,5 +1,20 @@
 // components/ui/rendu-markdown.tsx
 // ─────────────────────────────────────────────────────────────────
+// LOT 67 — CORRECTIF DU PLANTAGE « Cannot read properties of
+// undefined (reading 'trim') » (components/ui/rendu-markdown.tsx:187).
+//
+// Cause : la ligne 187 lisait p2[2] alors que le regex des puces
+// RX_PUCE = /^\s*[-*•]\s+(.*)$/ n'a qu'UN SEUL groupe de capture
+// (p2[1]). Le groupe 2 n'existe donc jamais → undefined → crash
+// dès qu'une réponse de l'assistant contient une liste à puces
+// (« - », « * » ou « • »). Le regex numéroté RX_NUMERO, lui, a bien
+// deux groupes (le numéro + le texte), d'où la confusion avec n2[2].
+//
+// Correctif : UNE SEULE ligne change —
+//   avant : else if (!ordonnee && p2) items.push(p2[2].trim());
+//   après : else if (!ordonnee && p2) items.push(p2[1].trim());
+// Tout le reste du fichier est strictement identique au lot 64.
+// ─────────────────────────────────────────────────────────────────
 // LOT 64 — RENDU MARKDOWN LÉGER, SANS AUCUNE DÉPENDANCE NOUVELLE.
 // Les réponses des assistants IA arrivent en Markdown (« ## Titre »,
 // **gras**, listes « - », `code`, liens). Jusqu'ici elles étaient
@@ -184,7 +199,7 @@ function decouperBlocs(source: string): Bloc[] {
         const p2 = RX_PUCE.exec(lignes[i]);
         const n2 = RX_NUMERO.exec(lignes[i]);
         if (ordonnee && n2) items.push(n2[2].trim());
-        else if (!ordonnee && p2) items.push(p2[2].trim());
+        else if (!ordonnee && p2) items.push(p2[1].trim()); // LOT 67 : groupe 1 (le texte), pas p2[2]
         else if (!lignes[i].trim()) break; // ligne vide = fin de liste
         else if (/^\s+\S/.test(lignes[i]) && items.length > 0) {
           // Ligne indentée = suite de l'item précédent → recollée.
