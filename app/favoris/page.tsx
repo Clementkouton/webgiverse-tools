@@ -55,6 +55,7 @@ export default function PageFavoris() {
       tarif: f.tool.tarif ?? "",
       slug: f.tool.slug,
       gratuit: Boolean(f.tool.gratuit),
+      logo: f.tool?.logo ?? null, // Lot 63 — logo transmis au PDF
       note: f.note ?? null,
       statut: f.statut ?? undefined,
     }));

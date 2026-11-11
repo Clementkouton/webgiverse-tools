@@ -3,6 +3,12 @@
 // l'utilisateur (favoris de prompts). Page du dashboard (barre latérale
 // Metis fournie par app/dashboard/layout.tsx), style cohérent avec
 // /dashboard/abonnement : cartes blanches, font-titre, charte inchangée.
+// Lot 62 — les prompts sauvegardés sont maintenant EXPORTABLES EN PDF
+// (bouton en haut de page, même charte que l'export des listes) :
+//   • Premium → le PDF inclut le contenu complet de chaque prompt,
+//     les modèles conseillés et les conseils d'usage ;
+//   • plan Découverte → le PDF liste les prompts mais affiche une note
+//     « contenu complet réservé au Premium » (même paywall que le site).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -20,6 +26,7 @@ import { Carte } from "@/components/ui/carte";
 import { Bouton } from "@/components/ui/bouton";
 import { Badge } from "@/components/ui/badge";
 import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
+import BoutonExportPdfPrompts from "@/components/pdf/bouton-export-pdf-prompts";
 import { retirerPromptFormulaire } from "@/app/actions/apprentissage";
 
 export const metadata: Metadata = { title: "Mes prompts — Webgiverse" };
@@ -46,6 +53,9 @@ export default async function PageMesPrompts() {
       emoji: string;
       description: string;
       vues: number;
+      contenu: string;
+      modeles: string[];
+      conseils: string;
       categorie: { nom: string; slug: string };
     };
   };
@@ -65,6 +75,9 @@ export default async function PageMesPrompts() {
             emoji: true,
             description: true,
             vues: true,
+            contenu: true,
+            modeles: true,
+            conseils: true,
             categorie: { select: { nom: true, slug: true } },
           },
         },
@@ -88,11 +101,30 @@ export default async function PageMesPrompts() {
           <TerminalSquare className="size-7 text-violet" aria-hidden /> Mes prompts
           <Badge variante="defaut">{favoris.length}</Badge>
         </h1>
-        <Bouton asChild variante="secondaire">
-          <Link href="/prompts">
-            Explorer la bibliothèque
-          </Link>
-        </Bouton>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Lot 62 — export PDF des prompts sauvegardés */}
+          {favoris.length > 0 && (
+            <BoutonExportPdfPrompts
+              prompts={favoris.map((favori) => ({
+                titre: favori.prompt.titre,
+                slug: favori.prompt.slug,
+                categorie: favori.prompt.categorie.nom,
+                description: favori.prompt.description,
+                // Le contenu complet reste réservé au plan Premium
+                contenu: premium ? favori.prompt.contenu : null,
+                modeles: favori.prompt.modeles,
+                conseils: favori.prompt.conseils || null,
+              }))}
+              libelle="Exporter mes prompts en PDF"
+              fichier="mes-prompts-webgiverse"
+            />
+          )}
+          <Bouton asChild variante="secondaire">
+            <Link href="/prompts">
+              Explorer la bibliothèque
+            </Link>
+          </Bouton>
+        </div>
       </div>
       <p className="mt-1 text-encre">
         {premium

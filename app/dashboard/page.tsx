@@ -1123,6 +1123,7 @@ export default async function PageDashboard({
               tarif: f.tool.tarif,
               slug: f.tool.slug,
               gratuit: f.tool.gratuit,
+              logo: f.tool.logo, // Lot 63 — logo transmis au PDF
               note: f.note,
               statut: f.statut,
             }))}

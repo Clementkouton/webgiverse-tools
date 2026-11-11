@@ -99,7 +99,8 @@ export default async function PageListePublique({ params }: Props) {
       {/* Lot 62 — en-tête redessiné : bandeau dégradé de marque, logo
          avec filet complet (fallback initiales), badges, titre et
          compteurs. La charte (dégradé, font-titre, rounded-carte) est
-         conservée. */}
+         conservée. Lot 63 : LogoMarque est incassable (images qui
+         échouent avant l'hydratation React incluses). */}
       <header className="mb-10 overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
         <div
           aria-hidden
@@ -140,7 +141,7 @@ export default async function PageListePublique({ params }: Props) {
           )}
 
           {/* Lot 55 — idée 17 : export PDF de la liste (propriétaire Entreprise)
-             Lot 62 : les LOGOS des outils sont maintenant transmis au PDF */}
+             Lot 63 : le logo de la liste rejoint aussi le BANDEAU du PDF */}
           {estProprietaire && entreprise && cartes.length > 0 && (
             <div className="mt-4">
               <BoutonExportPdf
@@ -159,6 +160,7 @@ export default async function PageListePublique({ params }: Props) {
                   gratuit: c.gratuit,
                   logo: c.logo || null,
                 }))}
+                logoMarque={liste.logoUrl}
                 libelle="Exporter la liste en PDF"
                 fichier={`liste-${slug}`}
               />
