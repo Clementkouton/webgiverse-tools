@@ -339,7 +339,7 @@ export default async function PageTuto({ params }: { params: Params }) {
         </div>
 
         {/* ── Titre + notes + assistant + description / fiche résumé ─ */}
-        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* min-w-0 : la colonne peut rétrécir, aucun texte ne déborde */}
           <div className="min-w-0">
             <h1 className="break-words font-titre text-[24px] leading-8 font-bold tracking-tight text-bleu sm:text-[28px] sm:leading-9">
@@ -483,7 +483,7 @@ export default async function PageTuto({ params }: { params: Params }) {
               
               {/* ── ASSISTANT IA DU TUTORIEL — Premium uniquement ────── */}
               {acces.peut("assistantTuto") ? (
-                <div className="mt-3">
+                <div className="mt-3 min-w-0 rounded-carte border border-bordure bg-white shadow-carte *:focus-within:border-primaire/50 *:focus-within:ring-1 *:focus-within:ring-primaire/30  ">
                   <ChatTutoriel
                     slug={tuto.slug}
                     titre={tuto.titre}

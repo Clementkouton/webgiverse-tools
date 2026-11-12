@@ -115,12 +115,6 @@ export default async function PagePrompt({ params }: { params: Params }) {
             <span className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
               <Eye className="size-3.5" aria-hidden /> {prompt.vues.toLocaleString("fr-FR")} vues
             </span>
-            <BoutonFavoriPrompt
-              promptId={prompt.id}
-              favoriInitial={favoriInitial}
-              connecte={connecte}
-              hrefConnexion={`/connexion?suite=/prompts/${prompt.slug}`}
-            />
             {prompt.roles.map((r: string) => (
               <Link
                 key={r}
@@ -140,7 +134,16 @@ export default async function PagePrompt({ params }: { params: Params }) {
               <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
                 <TerminalSquare className="size-4.5 text-violet" aria-hidden /> Le prompt
               </h2>
-              <ActionsPrompt contenu={prompt.contenu} premium={premium} />
+              <div className="flex flex-wrap items-center gap-2">
+                <BoutonFavoriPrompt
+                  promptId={prompt.id}
+                  favoriInitial={favoriInitial}
+                  connecte={connecte}
+                  hrefConnexion={`/connexion?suite=/prompts/${prompt.slug}`}
+                />
+                <ActionsPrompt contenu={prompt.contenu} premium={premium} />
+
+              </div>
             </div>
             <BlocContenuPrompt
               contenu={prompt.contenu}

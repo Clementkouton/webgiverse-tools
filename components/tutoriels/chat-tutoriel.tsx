@@ -31,7 +31,7 @@ type MessageChat = { role: "user" | "assistant"; contenu: string };
 const SUGGESTIONS = [
   "Résume-moi ce tutoriel en quelques points",
   "De quels outils ai-je besoin pour suivre ce tutoriel ?",
-  "Fais-moi un plan d'apprentissage à partir de ce tutoriel",
+  "Fais-moi un plan d'apprentissage pour ce tutoriel",
 ];
 
 export function ChatTutoriel({
@@ -105,15 +105,15 @@ export function ChatTutoriel({
 
   return (
     <section
-      aria-label="Assistant IA du tutoriel"
-      className="min-w-0 rounded-carte border border-bordure bg-white p-5 shadow-carte"
+      aria-label="Assistant IA du tutoriel" 
+      className="min-w-0  rounded-carte border border-bordure bg-white p-5 shadow-carte *:focus-within:border-primaire/50 *:focus-within:ring-1 *:focus-within:ring-primaire/30  "
     >
       {/* ── En-tête (repliable) ───────────────────────────────────── */}
       <button
         type="button"
         onClick={() => setOuvert((v) => !v)}
         aria-expanded={ouvert}
-        className="flex w-full flex-wrap items-center gap-2.5 text-left"
+        className="flex w-full flex-wrap items-center gap-2.5 text-left *:focus-visible:outline-none"
       >
         <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
           <Sparkles className="size-4" />
@@ -171,7 +171,7 @@ export function ChatTutoriel({
 
           {/* ── Suggestions (avant la 1re question) ────────────────── */}
           {messages.length === 0 && !enCours && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="  mt-3 flex flex-wrap  gap-2 *:focus-within:outline-none relative">
               {SUGGESTIONS.map((s) => (
                 <Bouton
                   key={s}
@@ -179,7 +179,7 @@ export function ChatTutoriel({
                   taille="sm"
                   // Lot 64 — whitespace-normal : le libellé long revient à
                   // la ligne au lieu de déborder hors de la carte.
-                  className="min-h-9 whitespace-normal px-3 py-1.5 text-left text-[12px] leading-4"
+                  className="min-h-9 relative whitespace-normal px-3 py-1.5 text-left text-[12px] leading-4"
                   onClick={() => void envoyer(s)}
                 >
                   {s}
