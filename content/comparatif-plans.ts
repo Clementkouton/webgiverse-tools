@@ -3,6 +3,14 @@
 // ⚠️ Chaque ligne DOIT rester fidèle aux avantages annoncés dans
 // lib/plans.ts (PLAN_DECOUVERTE + PLANS) : pas de promesse inventée.
 // Une cellule vaut soit `true` / `false` (coche ou trait), soit un texte court.
+//
+// Lot 74 — lignes ajoutées pour refléter les bibliothèques réelles :
+// · Prompts /prompts : parcours libre pour tous, lecture + copie du
+//   contenu complet réservées Premium (Pro et Entreprise).
+// · Skills /skills : parcours libre pour tous, fiches détaillées
+//   (review, installation, retours) réservées Premium.
+// · Tutoriels : Débutant offert en Découverte, Intermédiaire et
+//   Avancé réservés Premium.
 
 export type CelluleComparatif = string | boolean;
 
@@ -17,6 +25,24 @@ export const LIGNES_COMPARATIF: LigneComparatif[] = [
   {
     label: "Accès complet à l'annuaire",
     decouverte: true,
+    pro: true,
+    entreprise: true,
+  },
+  {
+    label: "Tutoriels vidéo intermédiaires et avancés",
+    decouverte: false,
+    pro: true,
+    entreprise: true,
+  },
+  {
+    label: "Bibliothèque de prompts (lecture + copie)",
+    decouverte: "Parcours seulement",
+    pro: "Illimités",
+    entreprise: "Illimités",
+  },
+  {
+    label: "Fiches détaillées des skills IA",
+    decouverte: false,
     pro: true,
     entreprise: true,
   },

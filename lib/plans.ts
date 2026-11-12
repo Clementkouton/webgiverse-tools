@@ -3,6 +3,13 @@
 // Le montant du paiement est TOUJOURS lu ici côté serveur, jamais envoyé par le client.
 // Le montant est stocké en CENTIMES (299 = 2,99 USD) ; il est converti en unité
 // principale (2,99) uniquement au moment de l'appel à l'API Moneroo.
+//
+// Lot 74 — les avantages de chaque plan sont alignés sur les fonctionnalités
+// réellement présentes dans l'application : bibliothèque de prompts /prompts
+// (lecture + copie réservées Premium), bibliothèque de skills /skills (fiches
+// détaillées réservées Premium, parcours libre pour tous), tutoriels vidéo
+// (Débutant offert, Intermédiaire et Avancé réservés Premium), assistant IA
+// (10 questions/mois en Découverte, illimité en Premium).
 
 export type ClePlan = "PRO" | "ENTREPRISE";
 
@@ -27,16 +34,16 @@ export const PLANS: Record<ClePlan, Plan> = {
     nom: "Pro",
     montant: 299,
     prix: "$2,99",
-    accroche: "Pour explorer l'annuaire sans limite",
+    accroche: "Prompts, skills, tutoriels et assistant sans limite",
     recommande: true,
-      avantages: [
+    avantages: [
+      "Bibliothèque de prompts : lecture et copie illimitées",
+      "Fiches détaillées des skills IA : review, installation, retours d'usage",
       "Tous les tutoriels vidéo : Débutant, Intermédiaire et Avancé",
       "Chapitres, ressources et points clés de chaque tuto",
       "Notes privées sur les tutoriels + export (PDF, Markdown, TXT)",
-      "Assistant IA des tutoriels : résumés et questions/réponses",
-      "Suivi de progression « En cours / Terminé »",
       "Favoris et listes illimités",
-      "Assistant IA illimité + badge Premium",
+      "Assistant IA illimité (annuaire + tutoriels) + badge Premium",
     ],
   },
   ENTREPRISE: {
@@ -44,10 +51,10 @@ export const PLANS: Record<ClePlan, Plan> = {
     nom: "Entreprise",
     montant: 799,
     prix: "$7,99",
-    accroche: "Pour apprendre sans limite",
+    accroche: "Pour les équipes et les gros consommateurs d'IA",
     recommande: false,
     avantages: [
-      "Tous les avantages du plan Pro",
+      "Tous les avantages du plan Pro (prompts, skills, tutoriels, assistant)",
       "Alertes hebdomadaires des nouveaux outils",
       "Accès anticipé aux nouveautés",
       "Historique d'activité étendu (200 entrées)",
@@ -62,9 +69,10 @@ export const PLAN_DECOUVERTE = {
   nom: "Découverte",
   prix: "$0",
   accroche: "Tout le nécessaire pour commencer",
-      avantages: [
+  avantages: [
     "Accès complet à l'annuaire",
     "Tutoriels vidéo Débutant offerts",
+    "Parcours libre des bibliothèques prompts et skills",
     "20 favoris et 10 listes",
     "Assistant IA (10 questions/mois)",
     "Avis et votes",

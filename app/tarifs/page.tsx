@@ -9,6 +9,11 @@
 //      connecté sans Premium → tester / contact, Premium → gérer l'abonnement.
 //      Un client Premium ne doit JAMAIS voir « Crée ton compte gratuit ».
 //   4) Dates affichées en UTC : plus de décalage d'un jour selon le serveur.
+// Lot 74 — les textes d'en-tête et les métadonnées annoncent les
+// fonctionnalités réelles des plans (bibliothèque de prompts, fiches
+// détaillées des skills IA, tutoriels vidéo). Les cartes des plans et le
+// tableau comparatif sont alimentés par lib/plans.ts et
+// content/comparatif-plans.ts, mis à jour dans ce lot.
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -41,7 +46,7 @@ import { FAQ_TARIFS } from "@/content/faq-tarifs";
 export const metadata: Metadata = {
   title: "Premium — Tarifs — Webgiverse Tools",
   description:
-    "Plan Découverte gratuit, Pro à $2,99/mois, Entreprise à $7,99/mois : comparez les plans en détail, payez par Mobile Money ou carte bancaire, activation automatique, sans engagement.",
+    "Plan Découverte gratuit, Pro à $2,99/mois, Entreprise à $7,99/mois : comparez les fonctionnalités (prompts, skills IA, tutoriels vidéo, assistant), payez par Mobile Money ou carte bancaire, activation automatique, sans engagement.",
 };
 export const dynamic = "force-dynamic";
 
@@ -134,9 +139,10 @@ export default async function PageTarifs() {
         </p>
         <h1 className="mt-4 text-h2 font-titre font-semibold">Tire le meilleur de l&apos;annuaire</h1>
         <p className="mt-3 text-[15px] leading-6 text-encre">
-          Passe Premium pour débloquer tes favoris, soutenir le projet et profiter d&apos;avantages
-          exclusifs. Paiement sécurisé via Chariow : Mobile Money (MTN, Moov, Orange, Wave…) et
-          cartes Visa / Mastercard — tu peux payer depuis n&apos;importe quel pays.
+          Passe Premium pour débloquer la bibliothèque de prompts (lecture et copie), les fiches
+          détaillées des skills IA, tous les tutoriels vidéo et tes favoris sans limite. Paiement
+          sécurisé via Chariow : Mobile Money (MTN, Moov, Orange, Wave…) et cartes Visa /
+          Mastercard — tu peux payer depuis n&apos;importe quel pays.
         </p>
         <p className="mt-3 flex items-center justify-center gap-2 text-[13px] leading-5 font-medium text-sky-500">
           <Mail className="size-4 shrink-0" aria-hidden />
@@ -351,7 +357,7 @@ export default async function PageTarifs() {
             </span>
             <h3 className="mt-3 font-titre text-[16px] leading-6 font-semibold">Sans engagement</h3>
             <p className="mt-1.5 text-[14px] leading-5 text-encre">
-              Prépayé 30 jours, aucune reconduction automatique. À l&apos;échéance, tu repasses
+              Prépayé 30 jours, aucune reconduction automatique. À l'échéance, tu repasses
               sur le plan gratuit — tes favoris sont conservés.
             </p>
           </Carte>

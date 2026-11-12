@@ -11,7 +11,13 @@
 // (coupure réseau, compute Neon endormi, pool de connexions saturé), les
 // requêtes de l'accueil ne font plus planter la page : chaque section
 // alimentée par la base disparaît proprement et les sections statiques
-// (prompts, témoignages, plans, actu, blog, FAQ, newsletter) s'affichent.
+// (témoignages, plans, actu, blog, FAQ, newsletter) s'affichent.
+// Lot 74 — la section Prompts est branchée sur la base de données :
+// elle affiche les 4 prompts les plus consultés de la bibliothèque
+// /prompts (cartes réelles, aperçu public, contenu complet réservé aux
+// abonnés Premium sur les fiches). Nouvelle section « Skills IA » avec
+// les 4 premières skills de /skills. Compteurs du héros enrichis avec
+// les totaux réels de prompts et de skills.
 import Link from "next/link";
 import { ArrowRight, ChevronRight, ExternalLink, Play, Search, Sparkles, Star } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
@@ -20,13 +26,24 @@ import { Carte } from "@/components/ui/carte";
 import { Accordeon, ItemAccordeon } from "@/components/ui/accordeon";
 import CarteOutilView from "@/components/outil/carte-outil";
 import { CarteTuto } from "@/components/tutoriels/carte-tuto";
-import { BoutonCopier } from "@/components/commun/bouton-copier";
 import { FormulaireNewsletter } from "@/components/commun/formulaire-newsletter";
 import { SectionPlans } from "@/components/tarifs/section-plans";
 import { BandeauSponsor } from "@/components/public/bandeau-sponsor";
-import { ACTU, ARTICLES, FAQ, PROMPTS } from "@/content/accueil";
+import { CartePrompt } from "@/components/prompts/carte-prompt";
+import { CarteSkill } from "@/components/skills/carte-skill";
+import { ACTU, ARTICLES, FAQ } from "@/content/accueil";
 import { TEMOIGNAGES } from "@/content/temoignages";
-import { compterStats, listerCategories, outilsMisEnAvant, listerOutils, listerTutos, compterTutoStats } from "@/lib/queries";
+import {
+  compterStats,
+  listerCategories,
+  outilsMisEnAvant,
+  listerOutils,
+  listerTutos,
+  compterTutoStats,
+  promptsPopulaires,
+  compterPromptStats,
+} from "@/lib/queries";
+import { listerSkills, compterSkillsStats } from "@/lib/queries-skills";
 import VuRecemment from "@/components/visites/vu-recemment";
 
 // La section Premium lit la session elle-même (dans SectionPlans) pour
@@ -54,11 +71,17 @@ type StatsAccueil = Awaited<ReturnType<typeof compterStats>>;
 type ResultatOutils = Awaited<ReturnType<typeof listerOutils>>;
 type StatsTutos = Awaited<ReturnType<typeof compterTutoStats>>;
 type ResultatTutos = Awaited<ReturnType<typeof listerTutos>>;
+type StatsPrompts = Awaited<ReturnType<typeof compterPromptStats>>;
+type StatsSkills = Awaited<ReturnType<typeof compterSkillsStats>>;
+type ResultatSkills = Awaited<ReturnType<typeof listerSkills>>;
 
 const STATS_ACCUEIL_VIDE: StatsAccueil = { outils: 0, agents: 0, categories: 0 };
 const RESULTAT_OUTILS_VIDE: ResultatOutils = { outils: [], total: 0, page: 1, pages: 1 };
 const STATS_TUTOS_VIDE: StatsTutos = { total: 0, minutes: 0 };
 const RESULTAT_TUTOS_VIDE: ResultatTutos = { tutos: [], total: 0, page: 1, pages: 1 };
+const STATS_PROMPTS_VIDE: StatsPrompts = { total: 0, categories: 0 };
+const STATS_SKILLS_VIDE: StatsSkills = { total: 0, categories: 0 };
+const RESULTAT_SKILLS_VIDE: ResultatSkills = { skills: [], total: 0, page: 1, pages: 1 };
 
 function TitreSection({ children }: { children: React.ReactNode }) {
   return <h2 className="text-[26px] leading-8 font-semibold sm:text-h2">{children}</h2>;
@@ -68,7 +91,10 @@ export default async function Accueil() {
   // Lot 15 — chaque requête est enveloppée dans un repli : en cas de panne
   // de la base, la requête renvoie sa valeur vide et la page continue de
   // se construire au lieu de renvoyer une erreur 500.
-  const [stats, enAvant, nouveautes, categories, tutoStats, resultatTutos] = await Promise.all([
+  // Lot 74 — deux sections supplémentaires alimentées par la base :
+  // promptsVedettes (les 4 prompts les plus consultés) et la vitrine
+  // des skills (les 4 premières de /skills, « À la une » d'abord).
+  const [stats, enAvant, nouveautes, categories, tutoStats, resultatTutos, statsPrompts, promptsVedettes, statsSkills, resultatSkills] = await Promise.all([
     avecRepli(compterStats(), STATS_ACCUEIL_VIDE),
     avecRepli(outilsMisEnAvant(), []),
     avecRepli(listerOutils({ tri: "recente", page: 1 }), RESULTAT_OUTILS_VIDE),
@@ -76,13 +102,23 @@ export default async function Accueil() {
     avecRepli(compterTutoStats(), STATS_TUTOS_VIDE),
     // Lot 14 — les 4 tutoriels les plus vus pour la vitrine de l'accueil.
     avecRepli(listerTutos({ tri: "vues", parPage: 4 }), RESULTAT_TUTOS_VIDE),
+    // Lot 74 — compteurs réels des bibliothèques prompts et skills.
+    avecRepli(compterPromptStats(), STATS_PROMPTS_VIDE),
+    avecRepli(promptsPopulaires(4), []),
+    avecRepli(compterSkillsStats(), STATS_SKILLS_VIDE),
+    avecRepli(listerSkills({ page: 1 }), RESULTAT_SKILLS_VIDE),
   ]);
   const tutoriels = resultatTutos.tutos;
   const heuresTutos = Math.round(tutoStats.minutes / 60);
+  // La vitrine skills reprend le tri de /skills : « À la une » d'abord,
+  // puis popularité décroissante. On garde les 4 premières.
+  const skillsVedettes = resultatSkills.skills.slice(0, 4);
   const compteurs = [
     { valeur: stats.outils, libelle: "outils référencés" },
     { valeur: stats.agents, libelle: "agents IA" },
     { valeur: stats.categories, libelle: "catégories" },
+    { valeur: statsPrompts.total, libelle: "prompts prêts à l'emploi" },
+    { valeur: statsSkills.total, libelle: "skills IA" },
   ];
 
   return (
@@ -271,23 +307,68 @@ export default async function Accueil() {
       </section>
       )}
 
-      {/* ── Prompts et compétences d'agents ──────────────────── */}
+      {/* ── Prompts de la bibliothèque (Lot 74 — vrais prompts BDD) ─
+          Les 4 prompts les plus consultés de /prompts, cartes réelles
+          de la bibliothèque (aperçu public : titre, description,
+          catégorie, vues). Le contenu complet reste verrouillé sur la
+          fiche pour les non-abonnés — aucun texte premium ne fuite ici.
+          Section masquée si la base n'a pas répondu ou est vide. ── */}
+      {promptsVedettes.length > 0 && (
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
-          <TitreSection>Des prompts prêts à l&apos;emploi</TitreSection>
-          <p className="mesure mt-2 mb-8 text-encre">Nos prompt packs Webgiverse, à copier dans ton assistant préféré.</p>
-          <div className="grid gap-4 md:grid-cols-2">
-            {PROMPTS.map((p) => (
-              <Carte key={p.titre} className="flex flex-col p-5">
-                <h3 className="font-titre text-h3 font-semibold">{p.titre}</h3>
-                <p className="mt-1 text-legende text-encre">{p.description}</p>
-                <p className="mt-4 mb-5 rounded-champ bg-gris p-4 text-[13px] leading-5 whitespace-pre-wrap text-encre">{p.texte}</p>
-                <div className="mt-auto"><BoutonCopier texte={p.texte} libelle="Copier le prompt" /></div>
-              </Carte>
-            ))}
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <TitreSection>Des prompts prêts à l&apos;emploi</TitreSection>
+              <p className="mesure mt-2 text-encre">
+                Les prompts les plus consultés de la bibliothèque Webgiverse : copie, remplace les
+                variables et lance-toi — sur ChatGPT, Claude, Gemini ou Mistral.
+              </p>
+            </div>
+            <Link href="/prompts" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              Toute la bibliothèque <ChevronRight className="size-4" aria-hidden />
+            </Link>
           </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {promptsVedettes.map((p) => <CartePrompt key={p.id} prompt={p} />)}
+          </div>
+          <p className="mt-4 text-[13px] leading-5 text-encre">
+            Parcours libre pour tous — la lecture et la copie des prompts complets sont incluses
+            dans Premium (Pro et Entreprise).
+          </p>
         </div>
       </section>
+      )}
+
+      {/* ── Skills IA (Lot 74 — vitrine de la bibliothèque /skills) ─
+          Les 4 premières skills de /skills (mises en avant d'abord,
+          puis popularité). Cartes réelles avec couverture, catégorie,
+          tags et popularité. Section masquée si la base n'a pas
+          répondu ou est vide. ────────────────────────────────── */}
+      {skillsVedettes.length > 0 && (
+      <section className="bg-white py-14 lg:py-18">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <TitreSection>Des skills IA prêtes à installer</TitreSection>
+              <p className="mesure mt-2 text-encre">
+                Des compétences d&apos;agents IA traduites et expliquées en français :
+                productivité, développement, données, automatisation…
+              </p>
+            </div>
+            <Link href="/skills" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              Toutes les skills <ChevronRight className="size-4" aria-hidden />
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {skillsVedettes.map((s) => <CarteSkill key={s.id} skill={s} />)}
+          </div>
+          <p className="mt-4 text-[13px] leading-5 text-encre">
+            Parcours libre pour tous — les fiches détaillées (review, installation, retours
+            d&apos;usage) sont réservées aux abonnés Premium.
+          </p>
+        </div>
+      </section>
+      )}
 
       {/* ── Témoignages ──────────────────────────────────────── */}
       <section className="bg-white py-14 lg:py-18">
