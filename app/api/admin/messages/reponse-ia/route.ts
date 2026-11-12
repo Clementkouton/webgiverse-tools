@@ -1,26 +1,21 @@
 // app/api/admin/messages/reponse-ia/route.ts
 // ─────────────────────────────────────────────────────────────────
 // LOT 71 — L'ASSISTANT DE RÉDACTION DE LA MODÉRATION.
-// LOT 72 — CORRECTIFS DE ROBUSTESSE (après l'anomalie « l'assistant
-// n'a pas réussi à rédiger une réponse ») :
-//   1. le fichier DOIT vivre ici : app/api/admin/messages/reponse-ia/
-//      route.ts (dans le dossier app/API — s'il est posé directement
-//      sous app/admin/, l'URL /api/admin/messages/reponse-ia renvoie
-//      une 404 et le panneau affiche l'erreur générique) ;
-//   2. BUDGET DE TEMPS : 15 s max par modèle et 40 s au total, pour
-//      rester sous les 60 s de Vercel (3 modèles × 25 s pouvaient
-//      dépasser le plafond du plan Hobby → fonction tuée → réponse
-//      HTML illisible pour le panneau) ;
-//   3. BROUILLON DE SECOURS : si l'IA échoue (modèles saturés, clé
-//      absente…), la route renvoie quand même un brouillon utilisable
-//      construit à partir du VRAI message (formule détectée, lien de
-//      paiement Chariow réel ou « [Lien de paiement à insérer] »),
-//      avec source: "gabarit" — le panneau affiche un bandeau et
-//      l'admin relit avant d'envoyer. Plus jamais d'impasse.
+// L'admin ouvre un message de contact et clique « Générer avec
+// l'assistant » : cette route relit le message EN BASE (jamais
+// confiance au front), construit une consigne ancrée sur les VRAIES
+// formules du site (1 semaine = 19 $, 1 mois = 49 $, activation sous
+// 24 h ouvrées, critères d'acceptation) et sur les LIENS DE PAIEMENT
+// Chariow configurés via l'environnement (CHARIOW_URL_SEMAINE /
+// CHARIOW_URL_MOIS), puis demande à OpenRouter — la MÊME cascade de
+// modèles gratuits que l'assistant public (lot 70) — de rédiger une
+// réponse prête à envoyer.
 //
 //   • Réservé aux ADMIN (session + rôle vérifiés en base).
-//   • AUCUN lien inventé : sans variable d'environnement, le gabarit
+//   • AUCUN lien inventé : sans variable d'environnement, le modèle
 //     écrit « [Lien de paiement à insérer] » à la place.
+//   • Aucune sauvegarde : la suggestion remplit le formulaire, l'admin
+//     la relit et la modifie avant l'envoi réel.
 //   • Aucune migration, aucune dépendance nouvelle.
 // ─────────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from "next/server";
@@ -45,11 +40,10 @@ const MODELES = Array.from(
   ),
 );
 const MAX_TOKENS_REPONSE = 600;
-const DELAI_PAR_MODELE_MS = 15000; // LOT 72 : 15 s par modèle (était 25 s)
-const BUDGET_GLOBAL_MS = 40000; // LOT 72 : on ne DÉMARRE plus de modèle après 40 s
+const DELAI_PAR_MODELE_MS = 25000; // 25 s par modèle (60 s dispo côté Vercel)
 
-// Mention écrite QUAND aucun lien n'est configuré : l'admin la remplace
-// ensuite via les boutons d'insertion du panneau.
+// Mention écrite par le modèle QUAND aucun lien n'est configuré :
+// l'admin la remplace ensuite via les boutons d'insertion du panneau.
 const MENTION_LIEN_MANQUANT = "[Lien de paiement à insérer]";
 
 /* ── Bloc « LIENS DE PAIEMENT » de la consigne ───────────────────── */
@@ -110,65 +104,6 @@ LIENS DE PAIEMENT (à recopier tels quels, JAMAIS modifiés)
  ${blocLiens()}`;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   LOT 72 — BROUILLON DE SECOURS (sans IA)
-   Construit à partir du VRAI message : la formule y est détectée
-   (le formulaire annonceur écrit « Formule souhaitée : À la une — … »)
-   et le lien de paiement réel est inséré s'il est configuré.
-   ═══════════════════════════════════════════════════════════════════ */
-const RX_FORMULE_SEMAINE = /À la une\s*—\s*1 semaine\s*\(\$19\)/i;
-const RX_FORMULE_MOIS = /À la une\s*—\s*1 mois\s*\(\$49\)/i;
-
-function brouillonSecours(contact: { prenom: string; sujet: string; texte: string }): string {
-  const annonceur =
-    /^Demande mise en avant/i.test(contact.sujet.trim()) ||
-    RX_FORMULE_SEMAINE.test(contact.texte) ||
-    RX_FORMULE_MOIS.test(contact.texte);
-
-  if (!annonceur) {
-    return `Bonjour ${contact.prenom},
-
-Merci pour ton message ! On l'a bien reçu et l'équipe revient vers toi très vite avec une réponse détaillée.
-
-À très vite,
-L'équipe Webgiverse`;
-  }
-
-  const semaine = RX_FORMULE_SEMAINE.test(contact.texte);
-  const mois = RX_FORMULE_MOIS.test(contact.texte);
-
-  // Formule non précisée (ou les deux) : on rappelle les deux formules.
-  if (semaine === mois) {
-    return `Bonjour ${contact.prenom},
-
-Merci pour ta demande de mise en avant ! Les formules sont « À la une — 1 semaine ($19) » (7 jours) et « À la une — 1 mois ($49) » (30 jours) : diffusion sur l'accueil sous 24 h ouvrées après paiement, lien direct vers ton site, sans engagement ni reconduction.
-
-Confirme simplement la formule souhaitée et je t'envoie aussitôt le lien de paiement sécurisé.
-
-À très vite,
-L'équipe Webgiverse`;
-  }
-
-  // Formule précise détectée : on confirme et on donne le lien réel.
-  const formule = semaine ? "« À la une — 1 semaine ($19) »" : "« À la une — 1 mois ($49) »";
-  const duree = semaine ? "7 jours de diffusion" : "30 jours de diffusion";
-  const lien = semaine
-    ? process.env.CHARIOW_URL_SEMAINE?.trim() || MENTION_LIEN_MANQUANT
-    : process.env.CHARIOW_URL_MOIS?.trim() || MENTION_LIEN_MANQUANT;
-
-  return `Bonjour ${contact.prenom},
-
-Merci pour ta demande de mise en avant ! Ta formule ${formule} est bien notée : dès la réception du paiement, ta fiche rejoint « À la une » sur l'accueil sous 24 h ouvrées — ${duree}, lien direct vers ton site, sans engagement ni reconduction.
-
-Pour activer la diffusion, voici le lien de paiement sécurisé :
- ${lien}
-
-Dès que c'est réglé, on met tout en place. Une question ? Réponds directement à cet e-mail.
-
-À très vite,
-L'équipe Webgiverse`;
-}
-
 /** Nettoyage léger : espaces de fin, balises de code éventuelles. */
 function nettoyer(texte: string): string {
   let propre = texte.trim();
@@ -220,27 +155,18 @@ export async function POST(requete: NextRequest) {
       );
     }
 
-    const prenom = message.nom.trim().split(/\s+/)[0] || message.nom.trim();
-
-    // ── 4. CLÉ OPENROUTER (absente → brouillon de secours) ──────────
+    // ── 4. CLÉ OPENROUTER ───────────────────────────────────────────
     const cleApi = process.env.OPENROUTER_API_KEY;
     if (!cleApi) {
       console.error("REPONSE-IA : OPENROUTER_API_KEY absente du .env");
-      const suggestion = brouillonSecours({ prenom, sujet: message.sujet, texte: message.message });
-      await tracerActionAdmin({
-        action: "CONTACT_REPONSE_IA",
-        cible: `Contact : ${message.sujet} (${message.email})`,
-        details: "Brouillon de secours (OPENROUTER_API_KEY absente).",
-      });
-      return NextResponse.json({
-        suggestion,
-        source: "gabarit",
-        raison:
-          "Assistant non configuré : ajoute OPENROUTER_API_KEY dans les variables d'environnement.",
-      });
+      return NextResponse.json(
+        { erreur: "Assistant non configuré : ajoute OPENROUTER_API_KEY dans les variables d'environnement." },
+        { status: 500 }
+      );
     }
 
     // ── 5. CONSIGNE SYSTÈME ANCRÉE SUR LE SITE ──────────────────────
+    const prenom = message.nom.trim().split(/\s+/)[0] || message.nom.trim();
     const consigneSysteme = construireConsigne({
       prenom,
       nom: message.nom,
@@ -249,24 +175,13 @@ export async function POST(requete: NextRequest) {
       texte: message.message.slice(0, 2500),
     });
 
-    // ── 6. APPEL OPENROUTER — cascade + budget de temps global ──────
+    // ── 6. APPEL OPENROUTER — cascade de modèles gratuits ───────────
     let texte = "";
     let statutEchec = 0;
     let detailEchec = "";
     let delaiDepasse = false;
-    const depart = Date.now();
 
     for (const modele of MODELES) {
-      // LOT 72 — on ne DÉMARRE plus de modèle si le budget global est
-      // épuisé (Vercel tue la fonction à 60 s : autant renvoyer le
-      // brouillon de secours tout de suite).
-      if (Date.now() - depart > BUDGET_GLOBAL_MS) {
-        statutEchec = statutEchec || 504;
-        detailEchec = detailEchec || `budget global de ${BUDGET_GLOBAL_MS / 1000} s dépassé`;
-        console.error("REPONSE-IA :", detailEchec);
-        break;
-      }
-
       try {
         const reponseHttp = await fetch(URL_API, {
           method: "POST",
@@ -327,28 +242,22 @@ export async function POST(requete: NextRequest) {
       }
     }
 
-    // ── 7. IA EN ÉCHEC → BROUILLON DE SECOURS (jamais d'impasse) ────
     if (!texte) {
-      const raison = expliquerErreur(statutEchec, detailEchec, delaiDepasse);
-      const suggestion = brouillonSecours({ prenom, sujet: message.sujet, texte: message.message });
-      console.error("REPONSE-IA : brouillon de secours fourni —", raison);
-      await tracerActionAdmin({
-        action: "CONTACT_REPONSE_IA",
-        cible: `Contact : ${message.sujet} (${message.email})`,
-        details: `Brouillon de secours (IA indisponible) — ${raison}`.slice(0, 2000),
-      });
-      return NextResponse.json({ suggestion, source: "gabarit", raison });
+      return NextResponse.json(
+        { erreur: expliquerErreur(statutEchec, detailEchec, delaiDepasse) },
+        { status: 502 }
+      );
     }
 
-    // ── 8. TRACE D'AUDIT (feu et oubli) ─────────────────────────────
+    // ── 7. TRACE D'AUDIT (feu et oubli) ─────────────────────────────
     await tracerActionAdmin({
       action: "CONTACT_REPONSE_IA",
       cible: `Contact : ${message.sujet} (${message.email})`,
       details: "Brouillon de réponse généré par l'assistant.",
     });
 
-    // ── 9. RÉPONSE (le front remplit le formulaire) ─────────────────
-    return NextResponse.json({ suggestion: nettoyer(texte), source: "modele" });
+    // ── 8. RÉPONSE (le front remplit le formulaire) ─────────────────
+    return NextResponse.json({ suggestion: nettoyer(texte) });
   } catch (error) {
     console.error("=== ERREUR REPONSE-IA ===", error);
     const nom = error instanceof Error ? error.name : "";
@@ -371,7 +280,7 @@ function expliquerErreur(status: number, detail: string, delai: boolean): string
   if (status === 404 || texte.includes("no endpoints") || texte.includes("not found"))
     return "Aucun modèle gratuit n'a répondu — définis OPENROUTER_MODELE dans le .env avec un modèle gratuit de openrouter.ai/models (filtre « :free »).";
   if (delai || status === 504)
-    return "L'assistant a mis trop de temps à rédiger (modèles saturés). Réessaie dans un instant.";
+    return "L'assistant a mis trop de temps à rédiger. Réessaie dans un instant.";
   if (status === 502 || status === 503)
     return "Le modèle est surchargé. Réessaie dans un instant.";
   return "L'assistant est momentanément indisponible. Réessaie dans un instant.";

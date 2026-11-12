@@ -126,7 +126,7 @@ function htmlReponse(texte: string): string {
             <tr>
               <td style="padding:20px 32px; background-color:#f9fafb; color:#6b7280;
                 font-size:12px; text-align:center; line-height:1.6;">
-                Webgiverse — L'annuaire des meilleurs outils IA<br/>
+                Webgiverse Tools — L'annuaire des meilleurs outils IA<br/>
                 Tu reçois cet e-mail car tu nous as écrit via le formulaire de
                 contact. Tu peux répondre directement à cet e-mail.
               </td>

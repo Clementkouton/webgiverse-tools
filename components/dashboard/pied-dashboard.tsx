@@ -43,7 +43,7 @@ export default function PiedDashboard({ premium = false }: { premium?: boolean }
               </span>
             </p>
             <p className="text-[11px] leading-4 text-encre">
-              © {annee} Webgiverse — Ton espace personnel
+              © {annee} Webgiverse Tools — Ton espace personnel
             </p>
           </div>
         </div>

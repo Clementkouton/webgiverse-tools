@@ -258,7 +258,7 @@ const OUTILS: OutilSeed[] = [
 ];
 
 async function main() {
-  console.log("Seed Webgiverse — catégories puis outils…");
+  console.log("Seed Webgiverse Tools — catégories puis outils…");
 
   for (const [i, c] of CATEGORIES.entries()) {
     await prisma.category.upsert({

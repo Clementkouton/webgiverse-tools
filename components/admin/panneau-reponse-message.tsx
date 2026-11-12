@@ -2,9 +2,8 @@
 "use client";
 // ─────────────────────────────────────────────────────────────────
 // LOT 71 — Panneau « Répondre » d'un message de contact (modération).
-// Le bouton « Répondre » s'affiche dans la rangée d'actions de la
-// carte, à côté de « Marquer traité » et « Supprimer ». Quand il est
-// ouvert, le panneau propose :
+// Le bouton « Répondre » s'affiche dans la carte du message. Quand il
+// est ouvert, le panneau propose :
 //   • l'objet prérempli (« Re : … ») et la réponse modifiable ;
 //   • « Générer avec l'assistant » → route /api/admin/messages/
 //     reponse-ia : un brouillon rédigé à partir du VRAI message et
@@ -15,9 +14,18 @@
 //   • « Envoyer la réponse » → server action
 //     repondreMessageContactFormulaire : e-mail (nodemailer) puis
 //     message marqué traité automatiquement.
-// LOT 72 — erreurs PRÉCISES (une 404 dit exactement quel fichier
-// déplacer) + bandeau « brouillon de secours » quand l'IA est
-// indisponible. Charte inchangée. Aucune librairie neuve.
+//
+// LOT 72 — CORRECTIF DU DÉBORDEMENT : le panneau était rendu DANS la
+// rangée d'actions (flex shrink-0) de la carte : sa largeur en
+// pourcentage se calculait sur un conteneur de largeur indéterminée
+// et poussait toute la carte hors de l'écran. Désormais le composant
+// est un BLOC pleine largeur placé sous le contenu de la carte :
+//   • le bouton « Répondre / Fermer » est aligné à droite, sous les
+//     autres actions ;
+//   • le panneau s'ouvre en dessous, largeur limitée (max-w-[720px]),
+//     ce qui ne peut plus déborder quel que soit l'écran.
+// Charte inchangée : mêmes classes Tailwind que les formulaires admin
+// (formulaire-annonceur, formulaire-contact). Aucune librairie neuve.
 // ─────────────────────────────────────────────────────────────────
 import { useActionState, useRef, useState } from "react";
 import { Loader2, Reply, Send, Sparkles, X } from "lucide-react";
@@ -55,10 +63,6 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
   const [corps, setCorps] = useState("");
   const [enGeneration, setEnGeneration] = useState(false);
   const [erreurIa, setErreurIa] = useState("");
-  // LOT 72 — "modele" = brouillon IA ; "gabarit" = brouillon de secours
-  // renvoyé par la route quand l'IA est indisponible (bandeau affiché).
-  const [sourceIa, setSourceIa] = useState<"modele" | "gabarit" | null>(null);
-  const [raisonIa, setRaisonIa] = useState("");
   const refZone = useRef<HTMLTextAreaElement | null>(null);
 
   const [etat, actionFormulaire, enEnvoi] = useActionState<
@@ -103,15 +107,10 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
     });
   }
 
-  /* Génère un brouillon de réponse avec l'assistant (route admin).
-     LOT 72 : la route renvoie TOUJOURS quelque chose d'exploitable —
-     un brouillon IA (source: "modele") ou un brouillon de secours
-     (source: "gabarit") construit à partir du vrai message. */
+  /* Génère un brouillon de réponse avec l'assistant (route admin). */
   async function generer() {
     setEnGeneration(true);
     setErreurIa("");
-    setSourceIa(null);
-    setRaisonIa("");
     try {
       const reponse = await fetch("/api/admin/messages/reponse-ia", {
         method: "POST",
@@ -121,21 +120,13 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
       const donnees = (await reponse.json().catch(() => null)) as {
         suggestion?: string;
         erreur?: string;
-        source?: string;
-        raison?: string;
       } | null;
       if (reponse.ok && donnees?.suggestion) {
         setCorps(donnees.suggestion);
-        setSourceIa(donnees.source === "gabarit" ? "gabarit" : "modele");
-        setRaisonIa(donnees.raison ?? "");
       } else {
-        // LOT 72 — messages d'erreur PRÉCIS : une 404 signale presque
-        // toujours le fichier placé hors du dossier app/api.
         setErreurIa(
           donnees?.erreur ??
-            (reponse.status === 404
-              ? "Route introuvable (404) : le fichier doit être à app/api/admin/messages/reponse-ia/route.ts (dans le dossier app/api, pas app/admin). Déplace-le puis réessaie."
-              : `L'assistant n'a pas répondu (HTTP ${reponse.status}). Réessaie dans un instant.`)
+            "L'assistant n'a pas réussi à rédiger une réponse. Réessaie dans un instant."
         );
       }
     } catch {
@@ -146,150 +137,146 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
   }
 
   return (
-    <>
-      {ouvert ? (
-        <Bouton
-          type="button"
-          variante="secondaire"
-          onClick={() => setOuvert(false)}
-          aria-label="Fermer le panneau de réponse"
-        >
-          <X className="size-4" aria-hidden /> Fermer
-        </Bouton>
-      ) : (
-        <Bouton type="button" variante="indigo" onClick={() => setOuvert(true)}>
-          <Reply className="size-4" aria-hidden /> Répondre
-        </Bouton>
-      )}
+    /* LOT 72 — bloc pleine largeur, enfant direct de la carte : la
+       largeur du panneau se calcule désormais sur une largeur DÉFINIE
+       (la carte), plus sur une rangée flex « shrink-0 », donc aucun
+       débordement possible. */
+    <div className="mt-4 w-full">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {ouvert ? (
+          <Bouton
+            type="button"
+            variante="secondaire"
+            onClick={() => setOuvert(false)}
+            aria-label="Fermer le panneau de réponse"
+          >
+            <X className="size-4" aria-hidden /> Fermer
+          </Bouton>
+        ) : (
+          <Bouton type="button" variante="indigo" onClick={() => setOuvert(true)}>
+            <Reply className="size-4" aria-hidden /> Répondre
+          </Bouton>
+        )}
+      </div>
 
       {ouvert && (
-        <div className="w-full min-w-[260px] max-w-[680px] basis-full">
-          <div className="mt-1 rounded-carte border border-bordure bg-white p-4">
-            <p className="text-[13px] text-encre">
-              Réponse à <span className="font-semibold">{message.nom}</span> ·{" "}
-              <a
-                href={`mailto:${message.email}`}
-                className="text-primaire-texte hover:underline"
+        <div className="mt-3 w-full max-w-[720px] rounded-carte border border-bordure bg-white p-4 sm:p-5">
+          <p className="text-[13px] text-encre">
+            Réponse à <span className="font-semibold">{message.nom}</span> ·{" "}
+            <a
+              href={`mailto:${message.email}`}
+              className="break-all text-primaire-texte hover:underline"
+            >
+              {message.email}
+            </a>
+          </p>
+
+          <form action={actionFormulaire} className="mt-3">
+            <input type="hidden" name="messageId" value={message.id} />
+
+            <label className="block text-[13px] leading-4 font-semibold text-bleu">
+              Objet de la réponse
+              <input
+                type="text"
+                name="sujet"
+                value={sujet}
+                onChange={(evenement) => setSujet(evenement.target.value)}
+                required
+                maxLength={200}
+                className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
+              />
+            </label>
+
+            <label className="mt-3 block text-[13px] leading-4 font-semibold text-bleu">
+              Ta réponse (partira telle quelle par e-mail)
+              <textarea
+                ref={refZone}
+                name="corps"
+                value={corps}
+                onChange={(evenement) => setCorps(evenement.target.value)}
+                required
+                rows={9}
+                maxLength={5000}
+                placeholder="Écris ta réponse, ou clique sur « Générer avec l'assistant » pour partir d'un brouillon…"
+                className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] leading-6 text-bleu outline-none focus:border-sky-500"
+              />
+            </label>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Bouton
+                type="button"
+                variante="indigoDoux"
+                onClick={generer}
+                disabled={enGeneration || enEnvoi}
               >
-                {message.email}
-              </a>
-            </p>
+                {enGeneration ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : (
+                  <Sparkles className="size-4" aria-hidden />
+                )}
+                {enGeneration ? "L'assistant rédige…" : "Générer avec l'assistant"}
+              </Bouton>
+              <Bouton
+                type="button"
+                variante="secondaire"
+                taille="sm"
+                onClick={() => lienSemaine && inserer(lienSemaine)}
+                disabled={!lienSemaine}
+                title={
+                  lienSemaine ??
+                  "Configure CHARIOW_URL_SEMAINE dans les variables d'environnement"
+                }
+              >
+                Insérer lien — 1 semaine ($19)
+              </Bouton>
+              <Bouton
+                type="button"
+                variante="secondaire"
+                taille="sm"
+                onClick={() => lienMois && inserer(lienMois)}
+                disabled={!lienMois}
+                title={
+                  lienMois ??
+                  "Configure CHARIOW_URL_MOIS dans les variables d'environnement"
+                }
+              >
+                Insérer lien — 1 mois ($49)
+              </Bouton>
+            </div>
 
-            <form action={actionFormulaire} className="mt-3">
-              <input type="hidden" name="messageId" value={message.id} />
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Bouton type="submit" variante="primaire" disabled={enGeneration || enEnvoi}>
+                {enEnvoi ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : (
+                  <Send className="size-4" aria-hidden />
+                )}
+                {enEnvoi ? "Envoi…" : "Envoyer la réponse"}
+              </Bouton>
+              <p className="text-[12px] text-adm-gris">
+                L'expéditeur reçoit un e-mail ; le message est marqué traité
+                automatiquement.
+              </p>
+            </div>
 
-              <label className="block text-[13px] leading-4 font-semibold text-bleu">
-                Objet de la réponse
-                <input
-                  type="text"
-                  name="sujet"
-                  value={sujet}
-                  onChange={(evenement) => setSujet(evenement.target.value)}
-                  required
-                  maxLength={200}
-                  className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] text-bleu outline-none focus:border-sky-500"
-                />
-              </label>
-
-              <label className="mt-3 block text-[13px] leading-4 font-semibold text-bleu">
-                Ta réponse (partira telle quelle par e-mail)
-                <textarea
-                  ref={refZone}
-                  name="corps"
-                  value={corps}
-                  onChange={(evenement) => setCorps(evenement.target.value)}
-                  required
-                  rows={9}
-                  maxLength={5000}
-                  placeholder="Écris ta réponse, ou clique sur « Générer avec l'assistant » pour partir d'un brouillon…"
-                  className="mt-1.5 w-full rounded-champ border border-bordure bg-white px-3 py-2.5 text-[15px] leading-6 text-bleu outline-none focus:border-sky-500"
-                />
-              </label>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Bouton
-                  type="button"
-                  variante="indigoDoux"
-                  onClick={generer}
-                  disabled={enGeneration || enEnvoi}
-                >
-                  {enGeneration ? (
-                    <Loader2 className="size-4 animate-spin" aria-hidden />
-                  ) : (
-                    <Sparkles className="size-4" aria-hidden />
-                  )}
-                  {enGeneration ? "L'assistant rédige…" : "Générer avec l'assistant"}
-                </Bouton>
-                <Bouton
-                  type="button"
-                  variante="secondaire"
-                  taille="sm"
-                  onClick={() => lienSemaine && inserer(lienSemaine)}
-                  disabled={!lienSemaine}
-                  title={
-                    lienSemaine ??
-                    "Configure CHARIOW_URL_SEMAINE dans les variables d'environnement"
-                  }
-                >
-                  Insérer lien — 1 semaine ($19)
-                </Bouton>
-                <Bouton
-                  type="button"
-                  variante="secondaire"
-                  taille="sm"
-                  onClick={() => lienMois && inserer(lienMois)}
-                  disabled={!lienMois}
-                  title={
-                    lienMois ??
-                    "Configure CHARIOW_URL_MOIS dans les variables d'environnement"
-                  }
-                >
-                  Insérer lien — 1 mois ($49)
-                </Bouton>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <Bouton type="submit" variante="primaire" disabled={enGeneration || enEnvoi}>
-                  {enEnvoi ? (
-                    <Loader2 className="size-4 animate-spin" aria-hidden />
-                  ) : (
-                    <Send className="size-4" aria-hidden />
-                  )}
-                  {enEnvoi ? "Envoi…" : "Envoyer la réponse"}
-                </Bouton>
-                <p className="text-[12px] text-adm-gris">
-                  L'expéditeur reçoit un e-mail ; le message est marqué traité
-                  automatiquement.
-                </p>
-              </div>
-
-              {erreurIa && (
-                <p className="mt-3 rounded-champ bg-adm-alerte-doux px-3 py-2 text-[13px] text-[#b26f00]">
-                  {erreurIa}
-                </p>
-              )}
-              {sourceIa === "gabarit" && (
-                <p className="mt-3 rounded-champ border border-primaire/30 bg-primaire/10 px-3 py-2 text-[13px] text-primaire-texte">
-                  L'assistant IA est momentanément indisponible
-                  {raisonIa ? ` (${raisonIa})` : ""} — un brouillon de secours
-                  a été préparé à partir du message réel. Relis-le et
-                  complète-le avant d'envoyer.
-                </p>
-              )}
-              {etat.message && !etat.ok && (
-                <p className="mt-3 rounded-champ bg-adm-alerte-doux px-3 py-2 text-[13px] text-[#b26f00]">
-                  {etat.message}
-                </p>
-              )}
-              {etat.message && etat.ok && (
-                <p className="mt-3 rounded-champ bg-adm-succes-doux px-3 py-2 text-[13px] text-[#0b8a78]">
-                  {etat.message}
-                </p>
-              )}
-            </form>
-          </div>
+            {erreurIa && (
+              <p className="mt-3 break-words rounded-champ bg-adm-alerte-doux px-3 py-2 text-[13px] text-[#b26f00]">
+                {erreurIa}
+              </p>
+            )}
+            {etat.message && !etat.ok && (
+              <p className="mt-3 break-words rounded-champ bg-adm-alerte-doux px-3 py-2 text-[13px] text-[#b26f00]">
+                {etat.message}
+              </p>
+            )}
+            {etat.message && etat.ok && (
+              <p className="mt-3 break-words rounded-champ bg-adm-succes-doux px-3 py-2 text-[13px] text-[#0b8a78]">
+                {etat.message}
+              </p>
+            )}
+          </form>
         </div>
       )}
-    </>
+    </div>
   );
 }

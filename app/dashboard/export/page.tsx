@@ -210,7 +210,7 @@ export default async function PageExport() {
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-bordure pb-4">
           <div>
             <p className="font-titre text-[20px] leading-7 font-bold text-bleu">
-              Webgiverse — Mes outils IA
+              Webgiverse Tools — Mes outils IA
             </p>
             <p className="mt-0.5 text-[13px] leading-4 text-encre">
               Export du {aujourdhui} · {session.user.name ?? "Membre"}

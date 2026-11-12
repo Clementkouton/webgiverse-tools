@@ -448,7 +448,7 @@ export default function MenuAdmin({
         <footer className="border-t border-adm-bordure bg-white">
           <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 lg:px-8">
             <p className="text-[12px] leading-4 text-adm-gris">
-              © {annee} Webgiverse — Console d'administration
+              © {annee} Webgiverse Tools — Console d'administration
             </p>
             <p className="flex items-center gap-1.5 text-[12px] leading-4 text-adm-gris">
               <ShieldCheck className="size-3.5 text-primaire" aria-hidden /> Espace réservé à

@@ -73,7 +73,7 @@ export async function envoyerDemandeAnnonceur(
     if (destinataire) {
       await envoyerEmail({
         a: destinataire,
-        sujet: `[Webgiverse — Annonceur] ${libelleFormule} — ${outil}`,
+        sujet: `[Webgiverse Tools — Annonceur] ${libelleFormule} — ${outil}`,
         html: `
           <h2 style="margin:0 0 16px; font-size:18px; color:#111827;">
             Nouvelle demande de mise en avant

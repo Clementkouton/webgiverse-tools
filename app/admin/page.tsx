@@ -228,7 +228,7 @@ export default async function PageAdmin() {
         <div>
           <h1 className="text-h3 font-semibold">Tableau de bord</h1>
           <p className="mt-1 text-[14px] leading-6 text-encre">
-            Une vue simple de l'activité de Webgiverse — le détail de chaque contenu vit dans le menu.
+            Une vue simple de l'activité de Webgiverse Tools — le détail de chaque contenu vit dans le menu.
           </p>
         </div>
         <Badge variante="defaut" className="capitalize">{periode}</Badge>

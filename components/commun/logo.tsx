@@ -11,7 +11,7 @@ export function LogoWebgiverse({ compacte = false }: { compacte?: boolean }) {
 
 export function LienLogo() {
   return (
-    <Link href="/" aria-label="Webgiverse — accueil" className="shrink-0">
+    <Link href="/" aria-label="Webgiverse Tools — accueil" className="shrink-0">
       <LogoWebgiverse />
     </Link>
   );

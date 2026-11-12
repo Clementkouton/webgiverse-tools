@@ -63,7 +63,7 @@ export async function envoyerMessageAction(
     if (destinataire) {
       await envoyerEmail({
         a: destinataire,
-        sujet: `[Webgiverse — Contact] ${sujet}`,
+        sujet: `[Webgiverse Tools — Contact] ${sujet}`,
         html: `
           <h2 style="margin:0 0 16px; font-size:18px; color:#111827;">
             Nouveau message reçu sur la page Contact

@@ -95,7 +95,7 @@ async function envoyerRelance(utilisateur: { id: string; name: string | null; em
   const lien = `${base}/inscription?ref=${code}`;
   await envoyerEmail({
     a: utilisateur.email,
-    sujet: "Ton code de parrainage Webgiverse — +14 jours Premium par filleul",
+    sujet: "Ton code de parrainage Webgiverse Tools — +14 jours Premium par filleul",
     html: emailRelanceParrainage({ nom: utilisateur.name ?? "", lienInvitation: lien, jours: 14 }),
   });
 }

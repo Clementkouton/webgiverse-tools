@@ -95,7 +95,7 @@ export default function BoutonExportPdfPrompts({
 
       dessinerBandeau(
         doc,
-        "Bibliothèque de prompts IA Webgiverse — à garder sous la main",
+        "Bibliothèque de prompts IA Webgiverse Tools — à garder sous la main",
         prompts.length
       );
 

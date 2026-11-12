@@ -101,7 +101,7 @@ function gabaritBase(contenu: string) {
             <tr>
               <td style="padding:20px 32px; background-color:#f9fafb; color:#6b7280;
                 font-size:12px; text-align:center; line-height:1.6;">
-                Webgiverse — L'annuaire des meilleurs outils IA<br/>
+                Webgiverse Tools — L'annuaire des meilleurs outils IA<br/>
                 Cet email a été envoyé automatiquement, merci de ne pas y répondre.
               </td>
             </tr>
