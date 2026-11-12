@@ -60,16 +60,18 @@ export function HistoriqueConversations({
         <button
           type="button"
           onClick={onNouvelle}
-          className="rounded-md bg-bleu px-3 py-1.5 text-xs font-medium text-blanc transition hover:bg-bleu-fonce"
+          className="rounded-md bg-bleu text-white px-3 py-1.5 text-xs font-medium text-blanc transition hover:bg-white hover:text-bleu hover:ring-1 hover:ring-bleu"
         >
           + Nouvelle
         </button>
       </div>
 
       {chargement ? (
-        <p className="py-4 text-center text-sm text-gris">Chargement…</p>
+        <p className="py-4 text-center text-sm text-bleu">
+          Chargement…
+        </p>
       ) : conversations.length === 0 ? (
-        <p className="py-4 text-center text-sm text-gris">
+        <p className="py-4 text-center text-sm text-bleu">
           Aucune conversation pour le moment.
         </p>
       ) : (

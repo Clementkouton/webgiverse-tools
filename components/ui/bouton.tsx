@@ -1,4 +1,33 @@
 // components/ui/bouton.tsx
+// ─────────────────────────────────────────────────────────────────
+// LOT 69 — BOUTON DE MARQUE, d'après le visuel « Tools » fourni :
+//
+//   1. Variante « primaire » : nouveau dégradé de marque mesuré sur
+//      ton image (du bleu azur au violet-magenta) :
+//        #027bfd → #0344fc → #301ff8 → #5e06f1 → #a203fc
+//      (l'ancien dégradé #00d1ff → #6a3bff est remplacé partout où
+//      la variante primaire est utilisée — même forme, même arrondi,
+//      mêmes ombres douces recolorées en violet profond).
+//
+//   2. Nouveau composant LignesBouton : les 3 « lignes de vitesse »
+//      blanches du logo, à placer AU DÉBUT du contenu d'un bouton :
+//
+//        <Bouton>
+//          <LignesBouton /> Texte du bouton
+//        </Bouton>
+//
+//        <Bouton asChild>
+//          <Link href="/exemple">
+//            <LignesBouton /> Texte du lien
+//          </Link>
+//        </Bouton>
+//
+//      IMPORTANT (cas asChild) : mets <LignesBouton /> DANS le <Link>
+//      : le Slot de Radix attend un seul enfant.
+//
+// Les autres variantes (secondaire, fantôme, sombre, danger, indigo,
+// indigoDoux) sont strictement inchangées.
+// ─────────────────────────────────────────────────────────────────
 "use client";
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
@@ -11,7 +40,7 @@ const boutonVariants = cva(
     variants: {
       variante: {
         primaire:
-          "bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] hover:brightness-110 hover:shadow-[0_4px_18px_rgba(106,59,255,0.38)] active:brightness-95",
+          "bg-[linear-gradient(100deg,#027bfd,#0344fc_25%,#301ff8_50%,#5e06f1_72%,#a203fc)] text-white shadow-[0_2px_12px_rgba(94,6,241,0.28)] hover:brightness-110 hover:shadow-[0_4px_18px_rgba(94,6,241,0.38)] active:brightness-95",
         secondaire:
           "border border-sky-500 bg-white text-bleu hover:border-sky-500-clair hover:bg-gris",
         fantome: "text-bleu hover:bg-white/70",
@@ -36,4 +65,21 @@ export function Bouton({
 }: React.ComponentProps<"button"> & VariantProps<typeof boutonVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot : "button";
   return <Comp className={cn(boutonVariants({ variante, taille }), className)} {...props} />;
+}
+
+/* ── LOT 69 : les 3 « lignes de vitesse » du bouton de marque ──────
+   Barres blanches empilées, longueurs différentes (haut 14 px,
+   milieu 20 px, bas 9 px), alignées à droite comme sur le logo.
+   Utilisation : <LignesBouton /> au début du contenu d'un bouton. */
+export function LignesBouton({ className = "" }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-flex shrink-0 flex-col items-end gap-[3px] ${className}`}
+    >
+      <span className="h-[2px] w-[14px] rounded-full bg-white/95" />
+      <span className="h-[2px] w-[20px] rounded-full bg-white/95" />
+      <span className="h-[2px] w-[9px] rounded-full bg-white/95" />
+    </span>
+  );
 }
