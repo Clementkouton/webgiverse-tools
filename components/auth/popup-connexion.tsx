@@ -69,7 +69,7 @@ export default function PopupConnexion({
           type="button"
           onClick={onFermer}
           aria-label="Fermer"
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-[7px] -skew-x-[18deg] text-encre/50 transition hover:bg-gris hover:text-encre"
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic text-encre/50 transition hover:bg-gris hover:text-encre"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +86,7 @@ export default function PopupConnexion({
         </button>
 
         <div className="mb-6">
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-sky-500/10 text-sky-500">
+          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500/10 text-sky-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

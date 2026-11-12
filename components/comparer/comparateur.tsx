@@ -77,7 +77,7 @@ export function Comparateur({ outils }: { outils: (CarteOutil & { langues?: stri
                         <span className="font-titre text-[17px] leading-6 font-semibold hover:text-sky-500">{o.nom}</span>
                       </Link>
                       <button type="button" onClick={() => retirer(o.slug)} aria-label={`Retirer ${o.nom}`}
-                        className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] text-encre hover:text-red-600">
+                        className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-encre hover:text-red-600">
                         <X className="size-4" aria-hidden />
                       </button>
                     </div>

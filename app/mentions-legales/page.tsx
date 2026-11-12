@@ -82,7 +82,7 @@ export default function PageMentionsLegales() {
             <p className="text-legende text-encre">
               Dernière mise à jour : 5 novembre 2026
             </p>
-            <span className="rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3 py-1 text-xs text-encre">
+            <span className="rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1 text-xs text-encre">
               Informations légales
             </span>
           </div>
@@ -96,7 +96,7 @@ export default function PageMentionsLegales() {
               <a
                 key={ancre}
                 href={`#${ancre}`}
-                className="rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3 py-1.5 text-[13px] leading-5 text-encre transition hover:border-sky-500 hover:text-sky-500"
+                className="rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1.5 text-[13px] leading-5 text-encre transition hover:border-sky-500 hover:text-sky-500"
               >
                 {label}
               </a>

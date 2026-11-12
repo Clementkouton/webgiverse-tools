@@ -145,7 +145,7 @@ const MESSAGES: Record<string, { ok: boolean; texte: string }> = {
 const styleChamp =
   "min-h-11 w-full rounded-champ border border-bordure bg-white px-4 text-[14px] text-encre placeholder:text-encre/40 focus:border-violet focus:outline-none focus:ring-2 focus:ring-violet/30";
 const styleBoutonRouge =
-  "inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
+  "inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
 
 export default async function PageEspaceEntreprise({ searchParams }: Props) {
   const { message } = await searchParams;
@@ -425,7 +425,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
                 <div className="min-w-0">
                   <p className="truncate text-[14px] font-semibold text-encre">
                     {collab.nom || collab.email}
-                    <span className="ml-2 rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-violet">
+                    <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-violet">
                       {collab.role === "EDITEUR" ? "ÉDITEUR" : "LECTEUR"}
                     </span>
                   </p>
@@ -487,7 +487,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
                     <p className="truncate text-[14px] font-semibold text-encre">
                       {liste.nom}
                       {estModele && (
-                        <span className="ml-2 rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-violet">
+                        <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-violet">
                           MODÈLE
                         </span>
                       )}
@@ -605,7 +605,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
                   <p className="truncate text-[14px] font-semibold text-encre">
                     {cle.nom}
                     {cle.revoqueeLe && (
-                      <span className="ml-2 rounded-[7px] -skew-x-[18deg] bg-encre/10 px-2 py-0.5 text-[11px] font-bold text-encre/60">
+                      <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-encre/10 px-2 py-0.5 text-[11px] font-bold text-encre/60">
                         RÉVOQUÉE
                       </span>
                     )}

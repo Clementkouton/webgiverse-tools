@@ -81,7 +81,7 @@ function normaliser(t: string): string {
 }
 
 const CLASSE_BOUTON =
-  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-white px-3 text-[12.5px] leading-4 font-semibold text-adm-gris transition hover:border-primaire/40 hover:text-primaire-texte disabled:opacity-50";
+  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-adm-bordure bg-white px-3 text-[12.5px] leading-4 font-semibold text-adm-gris transition hover:border-primaire/40 hover:text-primaire-texte disabled:opacity-50";
 
 export function GestionListeAdmin({
   colonnes,
@@ -210,7 +210,7 @@ export function GestionListeAdmin({
                 type="button"
                 onClick={() => setRequete("")}
                 aria-label="Effacer la recherche"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-[7px] -skew-x-[18deg] p-1 text-encre/50 transition hover:bg-gris hover:text-encre"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-[7px] -skew-x-[18deg] not-italic p-1 text-encre/50 transition hover:bg-gris hover:text-encre"
               >
                 <X className="size-4" aria-hidden />
               </button>
@@ -278,7 +278,7 @@ export function GestionListeAdmin({
           type="button"
           onClick={supprimerSelection}
           disabled={enCours || selection.size === 0}
-          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-red-300 bg-white px-4 text-[13px] leading-4 font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-40"
+          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-4 text-[13px] leading-4 font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-40"
         >
           {enCours ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : <Trash2 className="size-4" aria-hidden />}
           Supprimer la sélection ({selection.size})
@@ -387,7 +387,7 @@ export function GestionListeAdmin({
                   {item.badges && item.badges.length > 0 && (
                     <span className="mt-1.5 flex flex-wrap gap-1.5">
                       {item.badges.map((b) => (
-                        <span key={b.label} className={cn("inline-flex rounded-[7px] -skew-x-[18deg] px-2.5 py-0.5 text-[12px] leading-4 font-semibold", b.classe)}>
+                        <span key={b.label} className={cn("inline-flex rounded-[7px] -skew-x-[18deg] not-italic px-2.5 py-0.5 text-[12px] leading-4 font-semibold", b.classe)}>
                           {b.label}
                         </span>
                       ))}
@@ -410,14 +410,14 @@ export function GestionListeAdmin({
                           aria-checked={item.nouveau}
                           aria-label={`Badge nouveau : ${item.titre}`}
                           className={cn(
-                            "relative h-6 w-10 shrink-0 rounded-[7px] -skew-x-[18deg] transition",
+                            "relative h-6 w-10 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic transition",
                             item.nouveau ? "bg-primaire" : "bg-adm-bordure",
                           )}
                         >
                           <span
                             aria-hidden
                             className={cn(
-                              "absolute top-0.5 size-5 rounded-[7px] -skew-x-[18deg] bg-white shadow transition-all",
+                              "absolute top-0.5 size-5 rounded-[7px] -skew-x-[18deg] not-italic bg-white shadow transition-all",
                               item.nouveau ? "left-[18px]" : "left-0.5",
                             )}
                           />
@@ -450,7 +450,7 @@ export function GestionListeAdmin({
                       type="button"
                       disabled={enCours}
                       onClick={() => supprimerUn(item.id, item.titre)}
-                      className="inline-flex min-h-9 items-center justify-center rounded-[7px] -skew-x-[18deg] border border-red-300 bg-white px-3 text-[12.5px] leading-4 font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                      className="inline-flex min-h-9 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-3 text-[12.5px] leading-4 font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
                     >
                       Supprimer
                     </button>

@@ -123,9 +123,9 @@ export default async function PageStatistiquesAdmin() {
                 </Link>
                 <span className="shrink-0 text-[12px] font-semibold text-adm-gris">{item.vues.toLocaleString("fr-FR")}</span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-[7px] -skew-x-[18deg] bg-adm-fond">
+              <div className="mt-1 h-1.5 overflow-hidden rounded-[7px] -skew-x-[18deg] not-italic bg-adm-fond">
                 <div
-                  className="h-full rounded-[7px] -skew-x-[18deg] bg-primaire transition-[width] duration-500"
+                  className="h-full rounded-[7px] -skew-x-[18deg] not-italic bg-primaire transition-[width] duration-500"
                   style={{ width: `${Math.max((item.vues / maxV) * 100, 4)}%` }}
                 />
               </div>

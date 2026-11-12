@@ -194,7 +194,7 @@ export default async function PageParrainagesAdmin() {
                 key={entree.id}
                 className="flex items-center gap-3 rounded-xl border border-slate-100 px-4 py-3"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-indigo-100 text-sm font-bold text-indigo-700">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-indigo-100 text-sm font-bold text-indigo-700">
                   {index + 1}
                 </span>
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
@@ -208,7 +208,7 @@ export default async function PageParrainagesAdmin() {
                     {entree.email}
                   </p>
                 </div>
-                <span className="inline-flex shrink-0 rounded-[7px] -skew-x-[18deg] bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                <span className="inline-flex shrink-0 rounded-[7px] -skew-x-[18deg] not-italic bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                   {entree.filleuls.length} filleul
                   {entree.filleuls.length > 1 ? "s" : ""}
                 </span>

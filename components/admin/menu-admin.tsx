@@ -197,10 +197,10 @@ export default function MenuAdmin({
     <img
       src={image}
       alt=""
-      className="size-10 shrink-0 rounded-[7px] -skew-x-[18deg] border-2 border-primaire/40 object-cover"
+      className="size-10 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic border-2 border-primaire/40 object-cover"
     />
   ) : (
-      <span className="grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] bg-primaire font-titre text-[15px] font-bold text-white">
+      <span className="grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic bg-primaire font-titre text-[15px] font-bold text-white">
       {initiale}
     </span>
   );
@@ -214,7 +214,7 @@ export default function MenuAdmin({
           <p className="truncate text-[14px] leading-5 font-semibold text-adm-sombre">
             {prenom ? prenom.trim().split(/\s+/)[0] : "Admin"}
           </p>
-          <p className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] bg-primaire/10 px-2 py-0.5 text-[11px] leading-4 font-semibold text-primaire-texte">
+          <p className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-primaire/10 px-2 py-0.5 text-[11px] leading-4 font-semibold text-primaire-texte">
             <ShieldCheck className="size-3.5" aria-hidden /> Administrateur
           </p>
         </div>
@@ -267,7 +267,7 @@ export default function MenuAdmin({
                     {lien.notification && propositionsEnAttente > 0 && (
                       <span
                         title={`${propositionsEnAttente} proposition(s) à traiter`}
-                        className="shrink-0 rounded-[7px] -skew-x-[18deg] bg-primaire px-1.5 py-0.5 text-[10px] leading-3.5 font-bold text-white"
+                        className="shrink-0 rounded-[7px] -skew-x-[18deg] not-italic bg-primaire px-1.5 py-0.5 text-[10px] leading-3.5 font-bold text-white"
                       >
                         {propositionsEnAttente}
                       </span>
@@ -277,7 +277,7 @@ export default function MenuAdmin({
                 {replie && lien.notification && propositionsEnAttente > 0 && (
                   <span
                     aria-hidden
-                    className="absolute top-1.5 right-1.5 size-2 rounded-[7px] -skew-x-[18deg] bg-adm-erreur ring-2 ring-white"
+                    className="absolute top-1.5 right-1.5 size-2 rounded-[7px] -skew-x-[18deg] not-italic bg-adm-erreur ring-2 ring-white"
                   />
                 )}
               </Link>
@@ -381,13 +381,13 @@ export default function MenuAdmin({
               onClick={() => setMenuOuvert(true)}
               aria-label="Ouvrir le menu de la console"
               aria-expanded={menuOuvert}
-              className="relative grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95 lg:hidden"
+              className="relative grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95 lg:hidden"
             >
               <Menu className="size-5" aria-hidden />
               {propositionsEnAttente > 0 && (
                 <span
                   aria-hidden
-                  className="absolute top-1 right-1 size-2.5 rounded-[7px] -skew-x-[18deg] bg-adm-erreur ring-2 ring-white"
+                  className="absolute top-1 right-1 size-2.5 rounded-[7px] -skew-x-[18deg] not-italic bg-adm-erreur ring-2 ring-white"
                 />
               )}
             </button>
@@ -398,7 +398,7 @@ export default function MenuAdmin({
               onClick={basculerReduit}
               aria-label={reduit ? "Déplier le menu de la console" : "Replier le menu de la console"}
               aria-pressed={reduit}
-              className="hidden size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95 lg:grid"
+              className="hidden size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-adm-bordure bg-white text-adm-sombre transition hover:bg-adm-fond active:scale-95 lg:grid"
             >
               {reduit ? (
                 <PanelLeftOpen className="size-5" aria-hidden />
@@ -418,7 +418,7 @@ export default function MenuAdmin({
                 name="q"
                 placeholder="Rechercher un outil…"
                 aria-label="Rechercher un outil"
-                className="h-10 w-full rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-adm-fond pl-10 pr-4 text-[14px] text-adm-sombre placeholder:text-adm-gris-clair focus:border-primaire focus:bg-white focus:outline-none"
+                className="h-10 w-full rounded-[7px] -skew-x-[18deg] not-italic border border-adm-bordure bg-adm-fond pl-10 pr-4 text-[14px] text-adm-sombre placeholder:text-adm-gris-clair focus:border-primaire focus:bg-white focus:outline-none"
               />
             </form>
 
@@ -427,7 +427,7 @@ export default function MenuAdmin({
             {/* Bouton indigo « + Outil » (sans dégradé) */}
             <Link
               href="/admin/outils/nouveau"
-              className="hidden h-10 shrink-0 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] bg-primaire px-4 text-[14px] font-semibold text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)] transition hover:bg-primaire-fonce active:scale-[0.98] md:inline-flex"
+              className="hidden h-10 shrink-0 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-primaire px-4 text-[14px] font-semibold text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)] transition hover:bg-primaire-fonce active:scale-[0.98] md:inline-flex"
             >
               <Plus className="size-4" aria-hidden /> Outil
             </Link>
@@ -484,7 +484,7 @@ export default function MenuAdmin({
             type="button"
             onClick={() => setMenuOuvert(false)}
             aria-label="Fermer le menu"
-            className="grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] text-adm-gris transition hover:bg-adm-fond active:scale-95"
+            className="grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-adm-gris transition hover:bg-adm-fond active:scale-95"
           >
             <X className="size-5" aria-hidden />
           </button>

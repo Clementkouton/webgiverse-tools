@@ -128,7 +128,7 @@ export default function PageFavoris() {
                       <h2 className="font-semibold">{outil.nom ?? "Outil"}</h2>
                     </div>
                     <span
-                      className={`rounded-[7px] -skew-x-[18deg] px-2 py-0.5 text-xs font-medium ${
+                      className={`rounded-[7px] -skew-x-[18deg] not-italic px-2 py-0.5 text-xs font-medium ${
                         COULEURS[f.statut] ?? "bg-gray-100 text-gray-600"
                       }`}
                     >

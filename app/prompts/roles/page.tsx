@@ -58,8 +58,8 @@ export default async function PageRoles() {
                   <span
                     className={
                       n > 0
-                        ? "rounded-[7px] -skew-x-[18deg] bg-sky-500/10 px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-sky-500"
-                        : "rounded-[7px] -skew-x-[18deg] bg-gris px-2.5 py-0.5 text-[12px] leading-4 font-medium text-encre/60"
+                        ? "rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500/10 px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-sky-500"
+                        : "rounded-[7px] -skew-x-[18deg] not-italic bg-gris px-2.5 py-0.5 text-[12px] leading-4 font-medium text-encre/60"
                     }
                   >
                     {n} prompt{n > 1 ? "s" : ""}

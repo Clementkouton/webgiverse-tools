@@ -4,12 +4,19 @@
 // humaine sur une seule page :
 //   1. propositions d'outils en attente (approuver → publie la fiche,
 //      ou refuser) — réutilise les actions de app/actions/admin.ts ;
-//   2. messages de contact non traités (marquer traité / supprimer) —
-//      nouvelles actions de app/actions/moderation.ts ;
+//   2. messages de contact non traités (répondre par e-mail / marquer
+//      traité / supprimer) — actions de app/actions/moderation.ts ;
 //   3. derniers avis déposés (lien vers la fiche + suppression) —
 //      réutilise supprimerAvisAdminFormulaire.
 // Chaque section indique son compteur ; style TailwindAdmin, aucune
 // librairie externe.
+//
+// LOT 71 — RÉPONDRE AUX MESSAGES AVEC LE LIEN DE PAIEMENT :
+//   chaque message de contact gagne un panneau « Répondre »
+//   (components/admin/panneau-reponse-message.tsx) : réponse par
+//   e-mail avec les liens de paiement Chariow des annonceurs
+//   (CHARIOW_URL_SEMAINE / CHARIOW_URL_MOIS) et brouillon rédigé par
+//   l'assistant (/api/admin/messages/reponse-ia). Aucune migration.
 // ─────────────────────────────────────────────────────────────────
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -25,6 +32,7 @@ import { Carte } from "@/components/ui/carte";
 import { Badge } from "@/components/ui/badge";
 import { Bouton } from "@/components/ui/bouton";
 import { EtatVideAdmin } from "@/components/admin/etat-vide-admin";
+import { PanneauReponseMessage } from "@/components/admin/panneau-reponse-message";
 import {
   approuverPropositionFormulaire,
   refuserPropositionFormulaire,
@@ -55,6 +63,11 @@ function Puce({ nb, libelle }: { nb: number; libelle: string }) {
 }
 
 export default async function PageModerationAdmin() {
+  // LOT 71 — liens de paiement Chariow des formules annonceurs
+  // (lus côté serveur, jamais exposés avant l'envoi de la réponse).
+  const lienSemaine = process.env.CHARIOW_URL_SEMAINE?.trim() || null;
+  const lienMois = process.env.CHARIOW_URL_MOIS?.trim() || null;
+
   const [propositions, messages, avis, nbPropositions, nbMessages] = await Promise.all([
     prisma.toolSubmission.findMany({
       where: { statut: "EN_ATTENTE" },
@@ -182,6 +195,13 @@ export default async function PageModerationAdmin() {
                     <p className="mt-1.5 max-w-2xl whitespace-pre-line text-[14px] leading-6 text-encre">{m.message}</p>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {/* LOT 71 — répondre par e-mail (avec lien de paiement
+                        annonceurs + brouillon de l'assistant). */}
+                    <PanneauReponseMessage
+                      message={{ id: m.id, nom: m.nom, email: m.email, sujet: m.sujet, texte: m.message }}
+                      lienSemaine={lienSemaine}
+                      lienMois={lienMois}
+                    />
                     <form action={marquerMessageTraiteFormulaire}>
                       <input type="hidden" name="messageId" value={m.id} />
                       <Bouton type="submit" variante="indigoDoux">Marquer traité</Bouton>

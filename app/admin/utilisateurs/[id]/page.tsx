@@ -40,7 +40,7 @@ const LIBELLES_STATUT: Record<string, { texte: string; classe: string }> = {
 function BadgeStatut({ statut }: { statut: string }) {
   const libelle = LIBELLES_STATUT[statut] ?? { texte: statut, classe: "bg-slate-100 text-slate-600" };
   return (
-    <span className={`inline-flex items-center rounded-[7px] -skew-x-[18deg] px-2.5 py-0.5 text-xs font-medium ${libelle.classe}`}>
+    <span className={`inline-flex items-center rounded-[7px] -skew-x-[18deg] not-italic px-2.5 py-0.5 text-xs font-medium ${libelle.classe}`}>
       {libelle.texte}
     </span>
   );
@@ -117,9 +117,9 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
           <div className="flex items-center gap-4">
             {membre.image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={membre.image} alt="" className="h-14 w-14 rounded-[7px] -skew-x-[18deg] object-cover" />
+              <img src={membre.image} alt="" className="h-14 w-14 rounded-[7px] -skew-x-[18deg] not-italic object-cover" />
             ) : (
-                <span className="flex h-14 w-14 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-slate-200 text-xl font-semibold text-slate-600">
+                <span className="flex h-14 w-14 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-slate-200 text-xl font-semibold text-slate-600">
                 {(membre.name ?? "?").slice(0, 1).toUpperCase()}
               </span>
             )}
@@ -128,11 +128,11 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
               <p className="text-sm text-slate-500">{membre.email}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {membre.role === "ADMIN" ? (
-                  <span className="rounded-[7px] -skew-x-[18deg] bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                  <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
                     Admin
                   </span>
                 ) : (
-                    <span className="rounded-[7px] -skew-x-[18deg] bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                    <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
                     Membre
                   </span>
                 )}
@@ -368,7 +368,7 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
                       {filleul.name ?? filleul.email}
                     </Link>
                     {filleul.parrainageFilleul && (
-                      <span className="shrink-0 rounded-[7px] -skew-x-[18deg] bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      <span className="shrink-0 rounded-[7px] -skew-x-[18deg] not-italic bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                         {LIBELLES_PARRAINAGE[filleul.parrainageFilleul.statut] ??
                           filleul.parrainageFilleul.statut}
                       </span>

@@ -33,7 +33,7 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, premium, hr
     return (
       <Link
         href={hrefConnexion}
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3.5 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3.5 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
       >
         <CircleDashed className="size-3.5" aria-hidden /> Suivre ma progression
       </Link>
@@ -46,7 +46,7 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, premium, hr
     return (
       <Link
         href="/tarifs"
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-violet/10 px-3.5 py-1 text-[12px] leading-4 font-semibold text-violet transition hover:border-violet"
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/10 px-3.5 py-1 text-[12px] leading-4 font-semibold text-violet transition hover:border-violet"
       >
         <Crown className="size-3.5" aria-hidden /> Progression Premium
       </Link>
@@ -96,7 +96,7 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, premium, hr
       <div
         role="group"
         aria-label="Suivi de progression du tutoriel"
-        className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white p-1"
+        className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white p-1"
       >
         <button
           type="button"
@@ -104,7 +104,7 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, premium, hr
           disabled={enCours}
           aria-pressed={statut === "EN_COURS"}
           className={cn(
-            "inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] px-3 text-[12px] leading-4 font-semibold transition active:scale-95",
+            "inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic px-3 text-[12px] leading-4 font-semibold transition active:scale-95",
             statut === "EN_COURS"
               ? "bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] text-white shadow-[0_2px_10px_rgba(106,59,255,0.35)]"
               : "text-bleu hover:bg-gris",
@@ -124,7 +124,7 @@ export function BoutonProgression({ tutoId, statutInitial, connecte, premium, hr
           disabled={enCours}
           aria-pressed={statut === "TERMINE"}
           className={cn(
-            "inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] px-3 text-[12px] leading-4 font-semibold transition active:scale-95",
+            "inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic px-3 text-[12px] leading-4 font-semibold transition active:scale-95",
             statut === "TERMINE"
               ? "bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] text-white shadow-[0_2px_10px_rgba(106,59,255,0.35)]"
               : "text-bleu hover:bg-gris",

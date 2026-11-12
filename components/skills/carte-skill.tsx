@@ -49,11 +49,11 @@ export function CarteSkill({ skill }: { skill: Skill }) {
             <Terminal className="size-8" />
           </span>
         )}
-        <span className="absolute left-2.5 top-2.5 rounded-[7px] -skew-x-[18deg] bg-white/90 px-2.5 py-1 text-[11px] leading-3.5 font-bold text-violet backdrop-blur">
+        <span className="absolute left-2.5 top-2.5 rounded-[7px] -skew-x-[18deg] not-italic bg-white/90 px-2.5 py-1 text-[11px] leading-3.5 font-bold text-violet backdrop-blur">
           {skill.categorie}
         </span>
         {skill.featured && (
-          <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] bg-violet px-2.5 py-1 text-[11px] leading-3.5 font-bold text-white shadow">
+          <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-2.5 py-1 text-[11px] leading-3.5 font-bold text-white shadow">
             <Sparkles className="size-3" aria-hidden /> À la une
           </span>
         )}
@@ -68,7 +68,7 @@ export function CarteSkill({ skill }: { skill: Skill }) {
           {skill.tags.slice(0, 3).map((t) => (
             <span
               key={t}
-              className="rounded-[7px] -skew-x-[18deg] bg-gris px-2.5 py-1 text-[11px] leading-3.5 font-medium text-encre"
+              className="rounded-[7px] -skew-x-[18deg] not-italic bg-gris px-2.5 py-1 text-[11px] leading-3.5 font-medium text-encre"
             >
               {t}
             </span>

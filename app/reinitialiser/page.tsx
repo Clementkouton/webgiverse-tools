@@ -84,7 +84,7 @@ export default function PageReinitialiser() {
       <div className="rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-8">
         {succes ? (
           <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-green-100 text-green-600">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-green-100 text-green-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"

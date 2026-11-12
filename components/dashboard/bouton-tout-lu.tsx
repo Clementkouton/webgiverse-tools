@@ -28,7 +28,7 @@ export function BoutonToutLu() {
       type="button"
       onClick={clic}
       disabled={enCours || fait}
-      className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3.5 text-[12px] leading-4 font-bold text-bleu transition hover:border-sky-500 hover:text-sky-500 disabled:opacity-60"
+      className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3.5 text-[12px] leading-4 font-bold text-bleu transition hover:border-sky-500 hover:text-sky-500 disabled:opacity-60"
     >
       {enCours ? (
         <Loader2 className="size-3.5 animate-spin" aria-hidden />

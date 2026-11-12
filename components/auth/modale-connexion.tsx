@@ -28,7 +28,7 @@ export function ModaleConnexion({
             type="button"
             onClick={onFermer}
             aria-label="Fermer"
-            className="absolute right-3 top-3 grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] text-encre hover:bg-gris"
+            className="absolute right-3 top-3 grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-encre hover:bg-gris"
           >
             ×
           </button>

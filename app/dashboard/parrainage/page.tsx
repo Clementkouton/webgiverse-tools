@@ -59,9 +59,9 @@ export default async function PageParrainage() {
       <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-10">
         <div
           aria-hidden
-          className="animate-flottant-lent pointer-events-none absolute -right-10 -top-10 size-40 rounded-[7px] -skew-x-[18deg] bg-ciel/25 blur-3xl"
+          className="animate-flottant-lent pointer-events-none absolute -right-10 -top-10 size-40 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/25 blur-3xl"
         />
-        <p className="relative inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold">
+        <p className="relative inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold">
           <Gift className="size-4 text-ciel" aria-hidden /> Parrainage Webgiverse
         </p>
         <h1 className="relative mt-4 font-titre text-[26px] leading-8 font-bold sm:text-h2">

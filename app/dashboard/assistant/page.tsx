@@ -151,7 +151,7 @@ export default async function PageMesConversations() {
                   <BoutonConfirmer
                     message={`Supprimer définitivement « ${conversation.titre} » et ses messages ?`}
                     aria-label={`Supprimer la conversation ${conversation.titre}`}
-                    className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                    className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                   >
                     <Trash2 className="size-4" aria-hidden />
                   </BoutonConfirmer>

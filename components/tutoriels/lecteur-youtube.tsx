@@ -231,7 +231,7 @@ export function LecteurYoutube({
                 href={`https://www.youtube.com/watch?v=${id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-5 text-[14px] leading-5 font-semibold text-white transition hover:brightness-110"
+                className="inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-5 text-[14px] leading-5 font-semibold text-white transition hover:brightness-110"
               >
                 <ExternalLink className="size-4" aria-hidden /> Voir sur YouTube
               </a>
@@ -241,7 +241,7 @@ export function LecteurYoutube({
                   setPlanB(false);
                   setTentative((t) => t + 1);
                 }}
-                className="inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-white/25 bg-white/10 px-5 text-[14px] leading-5 font-semibold text-white transition hover:bg-white/20"
+                className="inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-5 text-[14px] leading-5 font-semibold text-white transition hover:bg-white/20"
               >
                 <RotateCcw className="size-4" aria-hidden /> Réessayer
               </button>

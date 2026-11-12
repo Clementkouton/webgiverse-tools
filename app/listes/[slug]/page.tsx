@@ -115,7 +115,7 @@ export default async function PageListePublique({ params }: Props) {
                   Liste partagée
                 </p>
                 {entreprise && (
-                  <span className="rounded-[7px] -skew-x-[18deg] border border-bordure bg-gris px-2 py-0.5 text-[11px] font-semibold text-sky-500">
+                  <span className="rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-gris px-2 py-0.5 text-[11px] font-semibold text-sky-500">
                     ✓ Entreprise
                   </span>
                 )}

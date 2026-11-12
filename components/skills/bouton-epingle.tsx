@@ -43,8 +43,8 @@ export function BoutonEpingle({ skillId, epingleInitial }: Props) {
         aria-pressed={epingle}
         className={
           epingle
-            ? "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] bg-violet px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:bg-violet/90 active:scale-95 disabled:opacity-60"
-            : "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 text-[13px] leading-4 font-semibold text-violet transition hover:bg-violet hover:text-white active:scale-95 disabled:opacity-60"
+            ? "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:bg-violet/90 active:scale-95 disabled:opacity-60"
+            : "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 text-[13px] leading-4 font-semibold text-violet transition hover:bg-violet hover:text-white active:scale-95 disabled:opacity-60"
         }
       >
         <Pin className={epingle ? "size-4 fill-current" : "size-4"} aria-hidden />

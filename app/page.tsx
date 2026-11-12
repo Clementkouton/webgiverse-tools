@@ -101,7 +101,7 @@ export default async function Accueil() {
           <form
             action="/outils"
             method="get"
-            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white p-1.5 pl-5 shadow-carte"
+            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white p-1.5 pl-5 shadow-carte"
           >
             <Search className="size-5 shrink-0 text-encre" aria-hidden />
             <input
@@ -136,13 +136,13 @@ export default async function Accueil() {
             ))}
           </dl>
           <ul className="mt-6 flex flex-wrap justify-center gap-2">
-            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               Sélection 100 % manuelle
             </li>
-            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               Fiches mises à jour en continu
             </li>
-            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               100 % expliqué en français
             </li>
           </ul>
@@ -170,7 +170,7 @@ export default async function Accueil() {
             {categories.map((c) => (
               <li key={c.slug}>
                 <Link href={`/categorie/${c.slug}`}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet">
+                  className="inline-flex min-h-9 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet">
                   {c.nom}
                   <span className="text-[12px] leading-4 font-semibold text-encre">{c._count.outils}</span>
                 </Link>
@@ -224,12 +224,12 @@ export default async function Accueil() {
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="relative overflow-hidden rounded-carte bg-bleu p-6 shadow-carte sm:p-10">
-              <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-[7px] -skew-x-[18deg] bg-violet/30 blur-3xl" />
-              <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-[7px] -skew-x-[18deg] bg-ciel/20 blur-3xl" />
+              <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/30 blur-3xl" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/20 blur-3xl" />
             <div className="relative">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     <Play className="size-3.5" aria-hidden /> Tutoriels vidéo IA
                   </p>
                   <h2 className="mt-4 text-[26px] leading-8 font-semibold text-white sm:text-h2">
@@ -251,13 +251,13 @@ export default async function Accueil() {
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                 <ul className="flex flex-wrap gap-2">
-                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     {tutoStats.total} tutoriels
                   </li>
-                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     {heuresTutos}h+ de contenu
                   </li>
-                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     100 % gratuits à parcourir
                   </li>
                 </ul>
@@ -317,7 +317,7 @@ export default async function Accueil() {
                   </div>
                   <p className="mt-3 flex-1 text-[15px] leading-6 text-encre">« {t.texte} »</p>
                   <div className="mt-4 flex items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-violet/10 font-titre text-[14px] font-bold text-violet">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 font-titre text-[14px] font-bold text-violet">
                       {initiales}
                     </div>
                     <div className="min-w-0">

@@ -129,7 +129,7 @@ export default async function PageTarifs() {
       />
 
       <header className="mx-auto max-w-2xl text-center">
-        <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+        <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
           Webgiverse Premium
         </p>
         <h1 className="mt-4 text-h2 font-titre font-semibold">Tire le meilleur de l&apos;annuaire</h1>
@@ -226,7 +226,7 @@ export default async function PageTarifs() {
               {/* Lot 7 : le badge marketing ne s'affiche que pour les prospects —
                   un client déjà Premium n'a plus besoin d'être « converti ». */}
               {plan.recommande && !abonnementActif && (
-                <span className="absolute -top-3 left-6 rounded-[7px] -skew-x-[18deg] bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                <span className="absolute -top-3 left-6 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white">
                   Le plus populaire
                 </span>
               )}
@@ -266,7 +266,7 @@ export default async function PageTarifs() {
                 <BoutonPaiement
                   clePlan={plan.cle}
                   libelle={bascule ? `Basculer vers ${plan.nom}` : `Choisir ${plan.nom}`}
-                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] bg-sky-500 px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
+                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
                 />
               ) : urlCheckout ? (
                 /* 4a) Connecté, intégré pas prêt → ancien lien Chariow (secours) */
@@ -278,7 +278,7 @@ export default async function PageTarifs() {
                 </Bouton>
               ) : (
                 /* 4b) Aucun paiement disponible → message d'attente */
-                        <span className="mt-6 block rounded-[7px] -skew-x-[18deg] border border-bordure bg-gris px-6 py-2.5 text-center text-[14px] leading-5 font-semibold text-encre">
+                        <span className="mt-6 block rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-gris px-6 py-2.5 text-center text-[14px] leading-5 font-semibold text-encre">
                   Paiement bientôt disponible
                 </span>
               )}

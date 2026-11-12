@@ -181,7 +181,7 @@ export function BlocNotesTutoriel({
             <Crown className="size-4" />
           </span>
           Mes notes sur ce tutoriel
-          <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+          <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
             Premium
           </span>
         </p>
@@ -264,7 +264,7 @@ export function BlocNotesTutoriel({
           <NotebookPen className="size-4" />
         </span>
         Mes notes sur ce tutoriel
-        <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+        <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
           Privée — visible de toi seul
         </span>
       </p>

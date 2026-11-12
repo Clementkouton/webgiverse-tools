@@ -46,7 +46,7 @@ export default async function PageAnnonceurs() {
   const formules = [
     {
       nom: "Une semaine",
-      prix: "$19",
+      prix: "$3",
       periode: "/ 7 jours",
       recommande: false,
       avantages: [
@@ -58,7 +58,7 @@ export default async function PageAnnonceurs() {
     },
     {
       nom: "Un mois",
-      prix: "$49",
+      prix: "$9",
       periode: "/ 30 jours",
       recommande: true,
       avantages: [

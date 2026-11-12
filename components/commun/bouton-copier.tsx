@@ -11,7 +11,7 @@ export function BoutonCopier({ texte, libelle = "Copier" }: { texte: string; lib
       setCopie(true);
       setTimeout(() => setCopie(false), 2000);
     }}
-      className="inline-flex min-h-11 items-center gap-2 self-start rounded-[7px] -skew-x-[18deg] border border-sky-500 bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris">
+      className="inline-flex min-h-11 items-center gap-2 self-start rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500 bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris">
       {copie ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
       {copie ? "Copié !" : libelle}
     </button>

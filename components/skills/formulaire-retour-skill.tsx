@@ -98,7 +98,7 @@ export function FormulaireRetourSkill({
           <BoutonConfirmer
             message="Supprimer ton retour d'usage sur cette skill ?"
             aria-label="Supprimer mon retour d'usage"
-            className="inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3 text-[11px] leading-4 font-semibold text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+            className="inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 text-[11px] leading-4 font-semibold text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
           >
             <Trash2 className="size-3" aria-hidden /> Supprimer mon retour
           </BoutonConfirmer>

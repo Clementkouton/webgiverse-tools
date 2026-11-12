@@ -39,7 +39,7 @@ type ActionImport = (etat: EtatImport, donnees: FormData) => Promise<EtatImport>
 /** Petite pastille de compteur du rapport. */
 function Compteur({ valeur, libelle, classe }: { valeur: number; libelle: string; classe: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] px-3 py-1 text-[13px] leading-4 font-bold ${classe}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic px-3 py-1 text-[13px] leading-4 font-bold ${classe}`}>
       {valeur} {libelle}
     </span>
   );
@@ -124,7 +124,7 @@ export function ImportCsv({
               : "ou glisse-le ici — Excel, Google Sheets (export CSV), Numbers…"}
           </span>
         </span>
-        <span className="ml-auto shrink-0 rounded-[7px] -skew-x-[18deg] bg-primaire px-4 py-2 text-[13px] leading-4 font-semibold text-white">
+        <span className="ml-auto shrink-0 rounded-[7px] -skew-x-[18deg] not-italic bg-primaire px-4 py-2 text-[13px] leading-4 font-semibold text-white">
           Parcourir…
         </span>
         <input

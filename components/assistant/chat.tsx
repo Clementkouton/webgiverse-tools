@@ -135,7 +135,7 @@ export function ChatAssistant() {
         <label htmlFor="chat-saisie" className="sr-only">Ton message</label>
         <input id="chat-saisie" value={texte} onChange={(e) => setTexte(e.target.value)}
           placeholder="Décris ton besoin…" maxLength={4000} disabled={enCours}
-          className="min-h-12 flex-1 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-5 text-[16px] leading-6 focus:border-sky-500 focus:outline-none disabled:opacity-60" />
+          className="min-h-12 flex-1 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-5 text-[16px] leading-6 focus:border-sky-500 focus:outline-none disabled:opacity-60" />
         <Bouton type="submit" disabled={enCours || !texte.trim()} aria-label="Envoyer">
           <ArrowUp aria-hidden />
         </Bouton>

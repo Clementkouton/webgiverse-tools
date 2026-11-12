@@ -122,7 +122,7 @@ export default function CoeurFavori({ slug }: { slug: string }) {
         disabled={charge}
         aria-label={favori ? "Retirer des favoris" : "Ajouter aux favoris"}
         title={favori ? "Retirer des favoris" : "Ajouter aux favoris"}
-        className="flex h-9 w-9 items-center justify-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white shadow-sm transition hover:scale-105 disabled:opacity-60"
+        className="flex h-9 w-9 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white shadow-sm transition hover:scale-105 disabled:opacity-60"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

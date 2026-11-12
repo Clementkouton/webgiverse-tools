@@ -58,8 +58,8 @@ export function CopierCode({
       aria-live="polite"
       className={
         copie
-          ? "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] bg-vert px-4 text-[13px] leading-4 font-semibold text-white transition active:scale-95"
-          : "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 text-[13px] leading-4 font-semibold text-violet transition hover:bg-violet hover:text-white active:scale-95"
+          ? "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-vert px-4 text-[13px] leading-4 font-semibold text-white transition active:scale-95"
+          : "inline-flex min-h-10 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 text-[13px] leading-4 font-semibold text-violet transition hover:bg-violet hover:text-white active:scale-95"
       }
     >
       {copie ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}

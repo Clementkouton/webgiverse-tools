@@ -71,7 +71,7 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
       {/* ── Héros ─────────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 pt-12 pb-12 text-center lg:pt-16 lg:pb-16">
-          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
             <Terminal className="size-3.5" aria-hidden /> Skills IA
           </p>
           <h1 className="mx-auto mt-4 max-w-[780px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
@@ -84,13 +84,13 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
             commande d&apos;installation copiable en un clic.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               {stats.total} skills
             </li>
-            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               {stats.categories} catégories
             </li>
-            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               Nouveautés régulières
             </li>
           </ul>
@@ -157,7 +157,7 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
               defaultValue={q}
               placeholder="Rechercher une skill (code, data, automatisation…)"
               aria-label="Rechercher une skill"
-              className="min-h-11 w-full rounded-[7px] -skew-x-[18deg] border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
+              className="min-h-11 w-full rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
             />
           </div>
           <input type="hidden" name="categorie" value={categorie} />
@@ -173,8 +173,8 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
             aria-current={!categorie ? "true" : undefined}
             className={
               !categorie
-                ? "rounded-[7px] -skew-x-[18deg] bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                : "rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 py-2 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+                ? "rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                : "rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 py-2 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
             }
           >
             Toutes
@@ -186,8 +186,8 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
               aria-current={categorie === c.nom ? "true" : undefined}
               className={
                 categorie === c.nom
-                  ? "rounded-[7px] -skew-x-[18deg] bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
-                  : "rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 py-2 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+                  ? "rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                  : "rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 py-2 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
               }
             >
               {c.nom} ({c.total})
@@ -276,7 +276,7 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
             ].map((point) => (
               <li
                 key={point}
-                className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-violet/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-violet"
+                className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-violet"
               >
                 <Clock className="size-3.5" aria-hidden /> {point}
               </li>

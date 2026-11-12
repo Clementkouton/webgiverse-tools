@@ -84,7 +84,7 @@ export default async function ClesApiPage({
     return (
       <div className="mx-auto max-w-3xl py-10">
         <Carte className="p-8 text-center">
-          <div className="mx-auto grid size-14 place-items-center rounded-[7px] -skew-x-[18deg] bg-gris">
+          <div className="mx-auto grid size-14 place-items-center rounded-[7px] -skew-x-[18deg] not-italic bg-gris">
             <KeyRound className="size-7 text-sky-500" aria-hidden />
           </div>
           <h1 className="text-h3 mt-4 font-semibold">Les clés d&apos;API sont réservées au plan Entreprise</h1>
@@ -236,7 +236,7 @@ export default async function ClesApiPage({
                           type="submit"
                           message={`Révoquer la clé « ${cle.nom} » ? Les scripts qui l'utilisent seront refusés immédiatement.`}
                           aria-label={`Révoquer la clé ${cle.nom}`}
-                          className="rounded-[7px] -skew-x-[18deg] px-3 py-1.5 text-[13px] font-semibold text-encre hover:bg-gris hover:text-red-600"
+                          className="rounded-[7px] -skew-x-[18deg] not-italic px-3 py-1.5 text-[13px] font-semibold text-encre hover:bg-gris hover:text-red-600"
                         >
                           Révoquer
                         </BoutonConfirmer>

@@ -241,7 +241,7 @@ export default async function PageMesNotes() {
                         <BoutonConfirmer
                           message={`Supprimer ta note sur « ${t.titre} » ?`}
                           aria-label={`Supprimer la note sur ${t.titre}`}
-                          className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                          className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                         >
                           <Trash2 className="size-4" aria-hidden />
                         </BoutonConfirmer>

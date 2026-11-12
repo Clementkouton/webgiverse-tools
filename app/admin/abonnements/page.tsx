@@ -31,7 +31,7 @@ const PASTILLE: Record<string, string> = {
 
 function Pastille({ ton, children }: { ton: string; children: React.ReactNode }) {
   return (
-    <span className={cn("inline-flex rounded-[7px] -skew-x-[18deg] px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE[ton])}>
+    <span className={cn("inline-flex rounded-[7px] -skew-x-[18deg] not-italic px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE[ton])}>
       {children}
     </span>
   );

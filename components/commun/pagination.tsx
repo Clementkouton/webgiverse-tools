@@ -45,9 +45,9 @@ function plage(page: number, total: number): (number | "…")[] {
 }
 
 const PASTILLE =
-  "inline-flex min-h-11 items-center gap-1 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu transition hover:border-sky-500 hover:text-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500";
+  "inline-flex min-h-11 items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu transition hover:border-sky-500 hover:text-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500";
 const DESACTIVEE =
-  "inline-flex min-h-11 items-center gap-1 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu opacity-40";
+  "inline-flex min-h-11 items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu opacity-40";
 
 export function Pagination({
   page,
@@ -85,7 +85,7 @@ export function Pagination({
           <span
             key={n}
             aria-current="page"
-              className="inline-flex min-h-11 items-center rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+              className="inline-flex min-h-11 items-center rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-4 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
           >
             {n}
           </span>

@@ -45,7 +45,7 @@ export function BarreOutils({
   };
 
   const classe = (actif_: boolean) =>
-    `rounded-[7px] -skew-x-[18deg] border px-3.5 py-1.5 text-[13px] leading-4 font-medium transition ${
+    `rounded-[7px] -skew-x-[18deg] not-italic border px-3.5 py-1.5 text-[13px] leading-4 font-medium transition ${
       actif_
       ? "border-sky-500 bg-sky-500 text-white"
       : "border-bordure bg-white text-bleu hover:border-sky-500 hover:text-sky-500"
@@ -77,7 +77,7 @@ export function BarreOutils({
           type="button"
           onClick={() => setDeplie((v) => !v)}
           aria-expanded={deplie}
-          className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] border border-dashed border-sky-500/50 bg-sky-500/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-sky-500 transition hover:bg-sky-500/10"
+          className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic border border-dashed border-sky-500/50 bg-sky-500/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-sky-500 transition hover:bg-sky-500/10"
         >
           {deplie ? (
             <>

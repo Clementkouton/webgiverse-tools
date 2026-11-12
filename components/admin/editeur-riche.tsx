@@ -331,7 +331,7 @@ export function EditeurRiche({
         {/* petit indicateur rond = couleur actuellement choisie */}
         <span
           aria-hidden
-          className="pointer-events-none absolute bottom-0.5 size-1.5 rounded-[7px] -skew-x-[18deg] border border-white shadow-sm"
+          className="pointer-events-none absolute bottom-0.5 size-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-white shadow-sm"
           style={{ backgroundColor: valeur }}
         />
         <input

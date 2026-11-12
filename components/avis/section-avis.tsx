@@ -267,10 +267,10 @@ export default function SectionAvis({ slug }: { slug: string }) {
                   <img
                     src={a.image}
                     alt=""
-                    className="h-9 w-9 rounded-[7px] -skew-x-[18deg] object-cover"
+                    className="h-9 w-9 rounded-[7px] -skew-x-[18deg] not-italic object-cover"
                   />
                 ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-violet/10 font-titre text-sm font-bold text-violet">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 font-titre text-sm font-bold text-violet">
                     {a.nom.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -278,7 +278,7 @@ export default function SectionAvis({ slug }: { slug: string }) {
                   <p className="text-sm font-semibold text-encre">
                     {a.nom}
                     {a.aMoi && (
-                      <span className="ml-2 rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2 py-0.5 text-xs font-medium text-violet">
+                      <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-xs font-medium text-violet">
                         Votre avis
                       </span>
                     )}
@@ -305,7 +305,7 @@ export default function SectionAvis({ slug }: { slug: string }) {
                   onClick={() => voter(a.id)}
                   disabled={a.aMoi || voteEnCours === a.id}
                   aria-pressed={a.monVote}
-                  className={`inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border px-3 text-[12px] leading-4 font-semibold transition ${
+                  className={`inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border px-3 text-[12px] leading-4 font-semibold transition ${
                     a.monVote
                       ? "border-violet bg-violet/10 text-violet"
                       : "border-bordure bg-white text-encre hover:border-violet hover:text-violet"

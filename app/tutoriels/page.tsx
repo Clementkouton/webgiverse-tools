@@ -75,7 +75,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
       {/* ── Héros ───────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             <Play className="size-3.5" aria-hidden /> Tutoriels IA
           </p>
           <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
@@ -86,13 +86,13 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
             sélectionné à la main et se regarde directement sur Webgiverse, sans changer de site.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-[7px] -skew-x-[18deg] border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+            <li className="rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {stats.total} tutoriels
             </li>
-            <li className="rounded-[7px] -skew-x-[18deg] border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+            <li className="rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               {heures}h+ de contenu
             </li>
-            <li className="rounded-[7px] -skew-x-[18deg] border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+            <li className="rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               Débutant offert · Premium pour aller plus loin
             </li>
           </ul>
@@ -148,7 +148,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
               defaultValue={q}
               placeholder="Rechercher un tuto (ChatGPT, Midjourney, n8n…)"
               aria-label="Rechercher un tutoriel"
-              className="min-h-11 w-full rounded-[7px] -skew-x-[18deg] border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
+              className="min-h-11 w-full rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
             />
           </div>
           <input type="hidden" name="outil" value={outil} />
@@ -239,7 +239,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
             ].map((point) => (
               <li
                 key={point}
-                className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-sky-500/30 bg-sky-500/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-sky-500"
+                className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-sky-500/5 px-3.5 py-1.5 text-[13px] leading-4 font-medium text-sky-500"
               >
                 <Clock className="size-3.5" aria-hidden /> {point}
               </li>

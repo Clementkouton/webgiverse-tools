@@ -267,7 +267,7 @@ export default async function PageAPropos() {
               key={e.numero}
               className="rounded-carte border border-bordure bg-white p-6 shadow-carte"
             >
-              <span className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] bg-sky-500 font-titre text-[15px] font-bold text-white">
+              <span className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 font-titre text-[15px] font-bold text-white">
                 {e.numero}
               </span>
               <h3 className="mt-4 font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -292,7 +292,7 @@ export default async function PageAPropos() {
             <li key={p.periode} className="relative pb-9 pl-8 last:pb-0">
               <span
                 aria-hidden
-                className="absolute top-1 -left-[9px] size-4 rounded-[7px] -skew-x-[18deg] border-2 border-sky-500 bg-sky-500"
+                className="absolute top-1 -left-[9px] size-4 rounded-[7px] -skew-x-[18deg] not-italic border-2 border-sky-500 bg-sky-500"
               />
               <p className="text-[13px] leading-4 font-bold tracking-wide uppercase text-sky-500">
                 {p.periode}
@@ -329,13 +329,13 @@ export default async function PageAPropos() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+              className="inline-flex min-h-11 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[15px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
             >
               Nous écrire
             </Link>
             <Link
               href="/annonceurs"
-              className="inline-flex min-h-11 items-center justify-center rounded-[7px] -skew-x-[18deg] border border-sky-500 bg-white px-6 text-[15px] leading-5 font-semibold text-bleu transition hover:border-sky-500-clair hover:bg-gris"
+              className="inline-flex min-h-11 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500 bg-white px-6 text-[15px] leading-5 font-semibold text-bleu transition hover:border-sky-500-clair hover:bg-gris"
             >
               Espace annonceurs
             </Link>
@@ -355,13 +355,13 @@ export default async function PageAPropos() {
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/outils"
-            className="inline-flex min-h-12 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-8 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+            className="inline-flex min-h-12 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-8 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
           >
             Explorer les outils
           </Link>
           <Link
             href="/contact"
-            className="inline-flex min-h-12 items-center justify-center rounded-[7px] -skew-x-[18deg] border border-white/25 bg-white/10 px-8 text-[16px] leading-5 font-semibold text-white transition hover:bg-white/20"
+            className="inline-flex min-h-12 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-8 text-[16px] leading-5 font-semibold text-white transition hover:bg-white/20"
           >
             Nous contacter
           </Link>

@@ -146,7 +146,7 @@ export default async function PageMesTutoriels() {
                 type="submit"
                 title="Marquer comme terminé"
                 aria-label={`Marquer ${t.titre} comme terminé`}
-                className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white text-encre transition hover:border-sky-500/40 hover:text-sky-500 active:scale-95"
+                className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-sky-500/40 hover:text-sky-500 active:scale-95"
               >
                 <CheckCircle2 className="size-4" aria-hidden />
               </button>
@@ -160,7 +160,7 @@ export default async function PageMesTutoriels() {
                 type="submit"
                 title="Reprendre / marquer en cours"
                 aria-label={`Marquer ${t.titre} comme en cours`}
-                className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white text-encre transition hover:border-violet hover:text-violet active:scale-95"
+                className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-violet hover:text-violet active:scale-95"
               >
                 <CircleDashed className="size-4" aria-hidden />
               </button>
@@ -172,7 +172,7 @@ export default async function PageMesTutoriels() {
             <BoutonConfirmer
               message={`Retirer « ${t.titre} » de ta progression ?`}
               aria-label={`Retirer ${t.titre} de la progression`}
-              className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+              className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
             >
               <Trash2 className="size-4" aria-hidden />
             </BoutonConfirmer>
@@ -220,9 +220,9 @@ export default async function PageMesTutoriels() {
           </div>
           <p className="shrink-0 font-titre text-[34px] leading-10 font-bold">{pourcentage}%</p>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-[7px] -skew-x-[18deg] bg-white/20">
+        <div className="mt-4 h-2 overflow-hidden rounded-[7px] -skew-x-[18deg] not-italic bg-white/20">
           <div
-            className="barre-progression h-full rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
+            className="barre-progression h-full rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
             style={{ width: `${pourcentage}%` }}
           />
         </div>

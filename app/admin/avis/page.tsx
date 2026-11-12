@@ -68,7 +68,7 @@ export default async function PageAvisAdmin() {
                     {"★".repeat(a.note)}{"☆".repeat(5 - a.note)}
                   </span>
                   {utiles > 0 && (
-                      <span className="inline-flex items-center rounded-[7px] -skew-x-[18deg] bg-adm-succes-doux px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-[#0f9b85]">
+                      <span className="inline-flex items-center rounded-[7px] -skew-x-[18deg] not-italic bg-adm-succes-doux px-2.5 py-0.5 text-[12px] leading-4 font-semibold text-[#0f9b85]">
                       👍 {utiles} utile{utiles > 1 ? "s" : ""}
                     </span>
                   )}
@@ -83,7 +83,7 @@ export default async function PageAvisAdmin() {
                 <input type="hidden" name="avisId" value={a.id} />
                 <BoutonConfirmer
                   message={`Supprimer cet avis sur « ${a.outil.nom} » ? Action définitive.`}
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] border border-red-300 bg-white px-4 text-[14px] leading-5 font-semibold text-red-700 transition hover:bg-red-50"
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-4 text-[14px] leading-5 font-semibold text-red-700 transition hover:bg-red-50"
                   type="submit"
                 >
                   Supprimer

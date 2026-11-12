@@ -208,7 +208,7 @@ export default async function PageMonEquipe({ searchParams }: Props) {
   const stylesListeAvantages =
     "mt-3 space-y-2 text-[14px] leading-5 text-encre";
   const styleBoutonRouge =
-    "inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
+    "inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 lg:py-10">

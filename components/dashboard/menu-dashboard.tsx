@@ -197,10 +197,10 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     <img
       src={image}
       alt=""
-      className="size-10 shrink-0 rounded-[7px] -skew-x-[18deg] border-2 border-sky-500/30 object-cover"
+      className="size-10 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic border-2 border-sky-500/30 object-cover"
     />
   ) : (
-      <span className="grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
+      <span className="grid size-10 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
       {initiale}
     </span>
   );
@@ -208,7 +208,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
   const etiquettePlan = (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] px-2 py-0.5 text-[11px] leading-3.5 font-bold",
+        "inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic px-2 py-0.5 text-[11px] leading-3.5 font-bold",
         premium ? "bg-sky-500/10 text-sky-500" : "bg-gris text-encre",
       )}
     >
@@ -248,7 +248,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
           {actif && (
             <span
               aria-hidden
-              className="animate-tiret absolute -left-[3px] top-1/2 h-5 w-[3px] -translate-y-1/2 origin-top rounded-[7px] -skew-x-[18deg] bg-ciel"
+              className="animate-tiret absolute -left-[3px] top-1/2 h-5 w-[3px] -translate-y-1/2 origin-top rounded-[7px] -skew-x-[18deg] not-italic bg-ciel"
             />
           )}
           <lien.icone
@@ -270,7 +270,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-4 text-white">
       <div
         aria-hidden
-        className="animate-flottant-lent pointer-events-none absolute -right-8 -top-8 size-24 rounded-[7px] -skew-x-[18deg] bg-ciel/25 blur-2xl"
+        className="animate-flottant-lent pointer-events-none absolute -right-8 -top-8 size-24 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/25 blur-2xl"
       />
       <p className="relative flex items-center gap-1.5 text-[13px] leading-4 font-bold">
         <Crown className="size-4 text-ciel" aria-hidden /> Premium actif
@@ -280,7 +280,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       </p>
       <Link
         href="/dashboard/abonnement"
-        className="relative mt-2.5 inline-flex min-h-9 items-center rounded-[7px] -skew-x-[18deg] bg-white/15 px-3 text-[12px] leading-4 font-semibold transition hover:bg-white/25"
+        className="relative mt-2.5 inline-flex min-h-9 items-center rounded-[7px] -skew-x-[18deg] not-italic bg-white/15 px-3 text-[12px] leading-4 font-semibold transition hover:bg-white/25"
       >
         Gérer mon abonnement
       </Link>
@@ -289,7 +289,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-4 text-white">
       <div
         aria-hidden
-          className="animate-flottant pointer-events-none absolute -right-8 -top-8 size-24 rounded-[7px] -skew-x-[18deg] bg-ciel/25 blur-2xl"
+          className="animate-flottant pointer-events-none absolute -right-8 -top-8 size-24 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/25 blur-2xl"
       />
       <p className="relative flex items-center gap-1.5 text-[13px] leading-4 font-bold">
         <Sparkles className="size-4 text-ciel" aria-hidden /> Passe Premium
@@ -299,7 +299,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       </p>
       <Link
         href="/dashboard/abonnement#plans"
-          className="relative mt-2.5 inline-flex min-h-9 items-center rounded-[7px] -skew-x-[18deg] bg-white px-3 text-[12px] leading-4 font-bold text-sky-500 transition hover:bg-white/90 active:scale-95"
+          className="relative mt-2.5 inline-flex min-h-9 items-center rounded-[7px] -skew-x-[18deg] not-italic bg-white px-3 text-[12px] leading-4 font-bold text-sky-500 transition hover:bg-white/90 active:scale-95"
       >
         Voir les plans
       </Link>
@@ -376,7 +376,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
               onClick={() => setMenuOuvert(true)}
               aria-label="Ouvrir le menu de l'espace"
               aria-expanded={menuOuvert}
-              className="grid size-11 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white/70 text-bleu transition hover:bg-white active:scale-95 lg:hidden"
+              className="grid size-11 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white/70 text-bleu transition hover:bg-white active:scale-95 lg:hidden"
             >
               <Menu className="size-5" aria-hidden />
             </button>
@@ -403,7 +403,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
                   type="search"
                   placeholder="Rechercher un outil…"
                   aria-label="Rechercher dans l'annuaire"
-                  className="min-h-10 w-full rounded-[7px] -skew-x-[18deg] border border-bordure bg-white pr-4 pl-10 text-[14px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
+                  className="min-h-10 w-full rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white pr-4 pl-10 text-[14px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
                 />
               </div>
             </form>
@@ -467,7 +467,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
             type="button"
             onClick={() => setMenuOuvert(false)}
             aria-label="Fermer le menu"
-            className="grid size-10 place-items-center rounded-[7px] -skew-x-[18deg] text-bleu transition hover:bg-gris active:scale-95"
+            className="grid size-10 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-bleu transition hover:bg-gris active:scale-95"
           >
             <X className="size-5" aria-hidden />
           </button>
