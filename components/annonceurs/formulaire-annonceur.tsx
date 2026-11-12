@@ -10,8 +10,8 @@ import { Bouton } from "@/components/ui/bouton";
 import { envoyerDemandeAnnonceur, type EtatAnnonceur } from "@/app/actions/annonceur";
 
 const FORMULES = [
-  "À la une — 1 semaine ($19)",
-  "À la une — 1 mois ($49)",
+  "À la une — 1 semaine ($3)",
+  "À la une — 1 mois ($9)",
 ];
 
 export function FormulaireAnnonceur() {

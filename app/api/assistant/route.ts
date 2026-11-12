@@ -16,11 +16,10 @@
 //      Le front transforme « **Nom** (slug : xxx) » en lien vers la
 //      fiche (components/assistant/rendu-reponse.tsx).
 //
-//   2. CASCADE DE MODÈLES GRATUITS (comme la route de l'assistant
-//      tuto, lot 36) : si « openrouter/free » est saturé (429) ou
-//      indisponible (404), on retente sur des modèles gratuits
-//      connus. Le premier modèle est remplaçable sans toucher au
-//      code via OPENROUTER_MODELE dans le .env.
+//   2. CASCADE DE MODÈLES GRATUITS : le premier modèle :free qui
+//      répond gagne. LOT 73 — cascade actualisée (les anciens modèles
+//      ont été retirés d'OpenRouter) ; le premier modèle est
+//      remplaçable sans toucher au code via OPENROUTER_MODELE.
 //
 //   3. maxDuration = 60 (Vercel Hobby) : la fonction ne meurt plus
 //      avant la fin de l'appel IA.
@@ -47,15 +46,19 @@ import { outilsPertinents, tokeniser } from "@/lib/assistant/contexte";
 export const maxDuration = 60;
 
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
-// Cascade de modèles : le premier qui répond gagne (même principe que
-// l'assistant tuto). Définis OPENROUTER_MODELE dans le .env pour
+// LOT 73 — CASCADE ACTUALISÉE (vérifiée en direct sur
+// openrouter.ai/api/v1/models) : l'ancienne cascade
+// (openrouter/free, nvidia/nemotron-3-super-120b-a12b:free,
+// meta-llama/llama-3.3-70b-instruct:free) a été RETIRÉE d'OpenRouter
+// → chaque appel renvoyait 404. Nouvelle cascade : le premier modèle
+// :free qui répond gagne. Définis OPENROUTER_MODELE dans le .env pour
 // changer le modèle principal sans toucher au code.
 const MODELES = Array.from(
   new Set(
     [
-      process.env.OPENROUTER_MODELE?.trim() || "openrouter/free",
-      "nvidia/nemotron-3-super-120b-a12b:free",
-      "meta-llama/llama-3.3-70b-instruct:free",
+      process.env.OPENROUTER_MODELE?.trim() || "google/gemma-4-31b-it:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "nvidia/nemotron-3.5-lightning:free",
     ].filter((m) => m.length > 0),
   ),
 );
@@ -413,7 +416,7 @@ function expliquerErreur(status: number, detail: string, delai: boolean): string
   if (status === 429)
     return "Limite du modèle gratuit atteinte. Attendez un instant puis réessayez.";
   if (status === 404 || texte.includes("no endpoints") || texte.includes("not found"))
-    return "Aucun modèle gratuit n'a répondu — définissez OPENROUTER_MODELE dans le .env avec un modèle gratuit de openrouter.ai/models (filtre « :free »).";
+    return "Aucun modèle gratuit n'a répondu — les modèles :free changent parfois. Vérifiez la liste à jour sur openrouter.ai/models (filtre « :free ») et adaptez OPENROUTER_MODELE ou la cascade.";
   if (delai || status === 504)
     return "L'assistant a mis trop de temps à répondre. Réessayez dans un instant.";
   if (status === 502 || status === 503)

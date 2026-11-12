@@ -45,9 +45,9 @@ type InfosMessage = {
 
 type Props = {
   message: InfosMessage;
-  /** Lien de paiement Chariow — formule « À la une — 1 semaine ($19) », ou null. */
+    /** Lien de paiement Chariow — formule « À la une — 1 semaine ($3) », ou null. */
   lienSemaine: string | null;
-  /** Lien de paiement Chariow — formule « À la une — 1 mois ($49) », ou null. */
+    /** Lien de paiement Chariow — formule « À la une — 1 mois ($9) », ou null. */
   lienMois: string | null;
 };
 
@@ -227,7 +227,7 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
                   "Configure CHARIOW_URL_SEMAINE dans les variables d'environnement"
                 }
               >
-                Insérer lien — 1 semaine ($19)
+                              Insérer lien — 1 semaine ($3)
               </Bouton>
               <Bouton
                 type="button"
@@ -240,7 +240,7 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
                   "Configure CHARIOW_URL_MOIS dans les variables d'environnement"
                 }
               >
-                Insérer lien — 1 mois ($49)
+                              Insérer lien — 1 mois ($9)
               </Bouton>
             </div>
 

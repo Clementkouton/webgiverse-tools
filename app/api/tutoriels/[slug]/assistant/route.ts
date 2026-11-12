@@ -5,10 +5,11 @@
 //   1. `export const maxDuration = 60` → la fonction Vercel ne meurt plus
 //      avant la fin de l'appel IA (le repli « indisponible » venait aussi
 //      de fonctions tuées à 10 s → page 504 HTML au lieu d'un JSON).
-//   2. PLUSIEURS MODÈLES GRATUITS essayés en cascade : si « openrouter/free »
-//      est saturé (429) ou indisponible (404), on retente sur des modèles
-//      gratuits connus. Le premier modèle est remplaçable via la variable
-//      d'environnement OPENROUTER_MODELE (optionnelle).
+//   2. PLUSIEURS MODÈLES GRATUITS essayés en cascade : le premier modèle
+//      :free qui répond gagne. LOT 73 — cascade actualisée (les anciens
+//      modèles ont été retirés d'OpenRouter). Le premier modèle est
+//      remplaçable via la variable d'environnement OPENROUTER_MODELE
+//      (optionnelle).
 //   3. RÉPONSE JSON DANS TOUS LES CAS : plus aucune situation où le front
 //      reçoit une page HTML (404/504) sans explication. Chaque échec
 //      renvoie un message précis, et tout est loggué côté serveur avec le
@@ -50,15 +51,20 @@ import {
 export const maxDuration = 60;
 
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
-// Cascade de modèles : le premier qui répond gagne. Si tu veux changer le
-// modèle principal sans toucher au code, définis OPENROUTER_MODELE dans
-// le .env (ex. OPENROUTER_MODELE=meta-llama/llama-3.3-70b-instruct:free).
+// LOT 73 — CASCADE ACTUALISÉE (vérifiée en direct sur
+// openrouter.ai/api/v1/models) : l'ancienne cascade
+// (openrouter/free, nvidia/nemotron-3-super-120b-a12b:free,
+// meta-llama/llama-3.3-70b-instruct:free) a été RETIRÉE d'OpenRouter
+// → chaque appel renvoyait 404. Nouvelle cascade : le premier modèle
+// :free qui répond gagne. Si tu veux changer le modèle principal sans
+// toucher au code, définis OPENROUTER_MODELE dans le .env
+// (ex. OPENROUTER_MODELE=google/gemma-4-31b-it:free).
 const MODELES = Array.from(
   new Set(
     [
-      process.env.OPENROUTER_MODELE?.trim() || "openrouter/free",
-      "nvidia/nemotron-3-super-120b-a12b:free",
-      "meta-llama/llama-3.3-70b-instruct:free",
+      process.env.OPENROUTER_MODELE?.trim() || "google/gemma-4-31b-it:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "nvidia/nemotron-3.5-lightning:free",
     ].filter((m) => m.length > 0),
   ),
 );
@@ -338,7 +344,7 @@ function expliquerErreur(status: number, detail: string, delai: boolean): string
   if (status === 429)
     return "Limite du modèle gratuit atteinte (environ 20 requêtes/minute et 50/jour sans crédits). Réessaie dans un instant.";
   if (status === 404 || texte.includes("no endpoints") || texte.includes("not found"))
-    return "Aucun modèle gratuit n'a répondu — ils changent parfois d'identifiant. Définis OPENROUTER_MODELE dans le .env avec un modèle gratuit de openrouter.ai/models (filtre « :free »).";
+    return "Aucun modèle gratuit n'a répondu — les modèles :free changent parfois. Vérifie la liste à jour sur openrouter.ai/models (filtre « :free ») et adapte OPENROUTER_MODELE ou la cascade.";
   if (delai || status === 504)
     return "L'assistant a mis trop de temps à répondre. Réessaie dans un instant.";
   if (status === 502 || status === 503)

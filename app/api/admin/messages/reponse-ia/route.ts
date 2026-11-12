@@ -17,6 +17,10 @@
 //   • Aucune sauvegarde : la suggestion remplit le formulaire, l'admin
 //     la relit et la modifie avant l'envoi réel.
 //   • Aucune migration, aucune dépendance nouvelle.
+//
+// LOT 73 — CASCADE ACTUALISÉE : les 3 anciens modèles :free ont été
+// retirés d'OpenRouter (404 « no endpoints »). Nouvelle cascade
+// vérifiée en direct sur openrouter.ai/api/v1/models.
 // ─────────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
@@ -27,15 +31,20 @@ import { tracerActionAdmin } from "@/lib/journal-admin";
 export const maxDuration = 60;
 
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
-// Cascade de modèles : le premier qui répond gagne (identique à la
-// route de l'assistant public, lot 70). OPENROUTER_MODELE dans le .env
-// permet de changer le modèle principal sans toucher au code.
+// LOT 73 — CASCADE ACTUALISÉE (vérifiée en direct sur
+// openrouter.ai/api/v1/models) : l'ancienne cascade
+// (openrouter/free, nvidia/nemotron-3-super-120b-a12b:free,
+// meta-llama/llama-3.3-70b-instruct:free) a été RETIRÉE d'OpenRouter
+// → chaque appel renvoyait 404 « Aucun modèle gratuit n'a répondu ».
+// Nouvelle cascade : le premier modèle :free qui répond gagne.
+// OPENROUTER_MODELE dans le .env permet de changer le modèle
+// principal sans toucher au code.
 const MODELES = Array.from(
   new Set(
     [
-      process.env.OPENROUTER_MODELE?.trim() || "openrouter/free",
-      "nvidia/nemotron-3-super-120b-a12b:free",
-      "meta-llama/llama-3.3-70b-instruct:free",
+      process.env.OPENROUTER_MODELE?.trim() || "google/gemma-4-31b-it:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "nvidia/nemotron-3.5-lightning:free",
     ].filter((m) => m.length > 0),
   ),
 );
@@ -278,7 +287,7 @@ function expliquerErreur(status: number, detail: string, delai: boolean): string
   if (status === 429)
     return "Limite du modèle gratuit atteinte. Attends un instant puis réessaie.";
   if (status === 404 || texte.includes("no endpoints") || texte.includes("not found"))
-    return "Aucun modèle gratuit n'a répondu — définis OPENROUTER_MODELE dans le .env avec un modèle gratuit de openrouter.ai/models (filtre « :free »).";
+    return "Aucun modèle gratuit n'a répondu — les modèles :free changent parfois. Vérifie la liste à jour sur openrouter.ai/models (filtre « :free ») et adapte OPENROUTER_MODELE ou la cascade.";
   if (delai || status === 504)
     return "L'assistant a mis trop de temps à rédiger. Réessaie dans un instant.";
   if (status === 502 || status === 503)

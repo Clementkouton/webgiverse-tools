@@ -54,7 +54,7 @@ export async function envoyerDemandeAnnonceur(
   }
 
   const { nom, email, outil, formule, message } = analyse.data;
-  const libelleFormule = formule === "semaine" ? "À la une — 1 semaine ($19)" : "À la une — 1 mois ($49)";
+  const libelleFormule = formule === "semaine" ? "À la une — 1 semaine ($3)" : "À la une — 1 mois ($9)";
 
   try {
     // 1) Enregistrement en base — la demande est conservée même si
