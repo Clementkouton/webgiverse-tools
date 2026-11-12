@@ -15,8 +15,9 @@
 //   • « Envoyer la réponse » → server action
 //     repondreMessageContactFormulaire : e-mail (nodemailer) puis
 //     message marqué traité automatiquement.
-// Charte inchangée : mêmes classes Tailwind que les formulaires admin
-// (formulaire-annonceur, formulaire-contact). Aucune librairie neuve.
+// LOT 72 — erreurs PRÉCISES (une 404 dit exactement quel fichier
+// déplacer) + bandeau « brouillon de secours » quand l'IA est
+// indisponible. Charte inchangée. Aucune librairie neuve.
 // ─────────────────────────────────────────────────────────────────
 import { useActionState, useRef, useState } from "react";
 import { Loader2, Reply, Send, Sparkles, X } from "lucide-react";
@@ -54,6 +55,10 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
   const [corps, setCorps] = useState("");
   const [enGeneration, setEnGeneration] = useState(false);
   const [erreurIa, setErreurIa] = useState("");
+  // LOT 72 — "modele" = brouillon IA ; "gabarit" = brouillon de secours
+  // renvoyé par la route quand l'IA est indisponible (bandeau affiché).
+  const [sourceIa, setSourceIa] = useState<"modele" | "gabarit" | null>(null);
+  const [raisonIa, setRaisonIa] = useState("");
   const refZone = useRef<HTMLTextAreaElement | null>(null);
 
   const [etat, actionFormulaire, enEnvoi] = useActionState<
@@ -98,10 +103,15 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
     });
   }
 
-  /* Génère un brouillon de réponse avec l'assistant (route admin). */
+  /* Génère un brouillon de réponse avec l'assistant (route admin).
+     LOT 72 : la route renvoie TOUJOURS quelque chose d'exploitable —
+     un brouillon IA (source: "modele") ou un brouillon de secours
+     (source: "gabarit") construit à partir du vrai message. */
   async function generer() {
     setEnGeneration(true);
     setErreurIa("");
+    setSourceIa(null);
+    setRaisonIa("");
     try {
       const reponse = await fetch("/api/admin/messages/reponse-ia", {
         method: "POST",
@@ -111,13 +121,21 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
       const donnees = (await reponse.json().catch(() => null)) as {
         suggestion?: string;
         erreur?: string;
+        source?: string;
+        raison?: string;
       } | null;
       if (reponse.ok && donnees?.suggestion) {
         setCorps(donnees.suggestion);
+        setSourceIa(donnees.source === "gabarit" ? "gabarit" : "modele");
+        setRaisonIa(donnees.raison ?? "");
       } else {
+        // LOT 72 — messages d'erreur PRÉCIS : une 404 signale presque
+        // toujours le fichier placé hors du dossier app/api.
         setErreurIa(
           donnees?.erreur ??
-            "L'assistant n'a pas réussi à rédiger une réponse. Réessaie dans un instant."
+            (reponse.status === 404
+              ? "Route introuvable (404) : le fichier doit être à app/api/admin/messages/reponse-ia/route.ts (dans le dossier app/api, pas app/admin). Déplace-le puis réessaie."
+              : `L'assistant n'a pas répondu (HTTP ${reponse.status}). Réessaie dans un instant.`)
         );
       }
     } catch {
@@ -248,6 +266,14 @@ export function PanneauReponseMessage({ message, lienSemaine, lienMois }: Props)
               {erreurIa && (
                 <p className="mt-3 rounded-champ bg-adm-alerte-doux px-3 py-2 text-[13px] text-[#b26f00]">
                   {erreurIa}
+                </p>
+              )}
+              {sourceIa === "gabarit" && (
+                <p className="mt-3 rounded-champ border border-primaire/30 bg-primaire/10 px-3 py-2 text-[13px] text-primaire-texte">
+                  L'assistant IA est momentanément indisponible
+                  {raisonIa ? ` (${raisonIa})` : ""} — un brouillon de secours
+                  a été préparé à partir du message réel. Relis-le et
+                  complète-le avant d'envoyer.
                 </p>
               )}
               {etat.message && !etat.ok && (
