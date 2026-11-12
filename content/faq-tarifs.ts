@@ -2,6 +2,12 @@
 // Elles sont DIFFÉRENTES des 10 questions de content/faq.ts (page /faq) :
 // deux pages distinctes, deux ensembles de questions, donc deux données
 // structurées FAQPage séparées pour Google. Pas de doublon.
+//
+// Lot 75 — la réponse « Pro ou Entreprise » cite désormais TOUTES les
+// fonctionnalités d'équipe du plan Entreprise (mêmes quotas que
+// lib/plans.ts et content/comparatif-plans.ts) : Mon équipe (4),
+// Partage des listes (10 collaborateurs par liste), Listes partagées
+// avec moi, Clés d'API (5 actives), Modèles de listes.
 import type { QuestionFaq } from "@/content/faq";
 
 export const FAQ_TARIFS: QuestionFaq[] = [
@@ -28,7 +34,7 @@ export const FAQ_TARIFS: QuestionFaq[] = [
   {
     question: "Pro ou Entreprise : lequel choisir ?",
     reponse:
-            "Pro ($2,99/mois) couvre un usage personnel : favoris et listes illimités, assistant IA illimité et suggestions d'outils prioritaires (le double). Entreprise ($7,99/mois) ajoute les alertes hebdomadaires des nouveaux outils, l'accès anticipé aux nouveautés, l'historique d'activité étendu et le support prioritaire — pensé pour les équipes et les gros consommateurs d'IA.",
+      "Pro ($2,99/mois) couvre un usage personnel : favoris et listes illimités, assistant IA illimité et suggestions d'outils prioritaires (le double). Entreprise ($7,99/mois) ajoute tout l'espace équipe : Mon équipe (jusqu'à 4 collaborateurs invités), Partage des listes (10 collaborateurs par liste), Listes partagées avec moi, Clés d'API (5 clés actives) et Modèles de listes prêts à l'emploi en un clic — plus les alertes hebdomadaires des nouveaux outils, l'accès anticipé aux nouveautés, l'historique d'activité étendu (200 entrées) et le support prioritaire.",
   },
   {
     question: "Puis-je changer de plan plus tard ?",

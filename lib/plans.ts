@@ -10,6 +10,21 @@
 // détaillées réservées Premium, parcours libre pour tous), tutoriels vidéo
 // (Débutant offert, Intermédiaire et Avancé réservés Premium), assistant IA
 // (10 questions/mois en Découverte, illimité en Premium).
+//
+// Lot 75 — le plan Entreprise liste désormais TOUTES les fonctionnalités
+// d'équipe réellement implémentées (aucune promesse inventée, quotas exacts
+// du code) :
+// · Mon équipe            → app/dashboard/equipe (MAX_MEMBRES_EQUIPE = 4,
+//                           lib/premium.ts : jusqu'à 4 collaborateurs invités) ;
+// · Partage des listes    → app/dashboard/partages (vue TITULAIRE, réservée
+//                           ENTREPRISE actif ; 10 collaborateurs max par liste) ;
+// · Listes partagées avec moi → app/dashboard/listes-partagees (vue membre :
+//                           les listes de l'équipe réunies au même endroit) ;
+// · Clés d'API            → app/dashboard/cles-api (MAX_CLES_ACTIVES = 5
+//                           clés actives, app/actions/cles-api.ts) ;
+// · Modèles de listes     → app/dashboard/modeles-listes + page publique
+//                           /modeles : consultation pour tous, clonage
+//                           « Utiliser ce modèle » réservé Entreprise.
 
 export type ClePlan = "PRO" | "ENTREPRISE";
 
@@ -55,6 +70,11 @@ export const PLANS: Record<ClePlan, Plan> = {
     recommande: false,
     avantages: [
       "Tous les avantages du plan Pro (prompts, skills, tutoriels, assistant)",
+      "Mon équipe : invite jusqu'à 4 collaborateurs",
+      "Partage des listes : jusqu'à 10 collaborateurs par liste",
+      "Listes partagées avec moi : l'espace commun de ton équipe",
+      "Clés d'API : jusqu'à 5 clés actives",
+      "Modèles de listes : utilise les modèles prêts à l'emploi en un clic",
       "Alertes hebdomadaires des nouveaux outils",
       "Accès anticipé aux nouveautés",
       "Historique d'activité étendu (200 entrées)",
