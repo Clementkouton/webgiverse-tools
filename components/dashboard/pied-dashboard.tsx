@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LienLogo } from "../commun/logo";
 
 const LIENS = [
   { href: "/tarifs", label: "Tarifs" },
@@ -24,15 +25,9 @@ export default function PiedDashboard({ premium = false }: { premium?: boolean }
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
         {/* Marque + badge de plan */}
         <div className="flex items-center gap-3">
-          <span
-            aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-champ bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[14px] font-bold text-white"
-          >
-            W
-          </span>
           <div className="min-w-0">
             <p className="flex items-center gap-2 font-titre text-[13px] leading-4 font-bold text-bleu">
-              Webgiverse
+              <LienLogo />
               <span
                 className={cn(
                   "rounded-[7px] -skew-x-[18deg] not-italic px-2 py-0.5 text-[10px] leading-3.5 font-bold uppercase",
