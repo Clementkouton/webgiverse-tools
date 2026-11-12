@@ -1,10 +1,18 @@
 // components/assistant/assistant-client.tsx
+// LOT 70 — les réponses de l'assistant s'affichent en VRAI MARKDOWN
+// (comme l'assistant des tutoriels, lots 64/67) via le nouveau
+// composant RenduReponse : titres, **gras**, listes, code, liens
+// externes, liens de fiche « **Nom** (slug : xxx) » → /outil/xxx et
+// liens de réduction internes « [texte](/tarifs?promo=CODE) ».
+// Les questions du membre restent en texte brut (whitespace-pre-wrap).
+// Aucun autre changement : mêmes onglets, même quota, même charte.
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { Send, User, Bot, Mail, Image as ImageIcon, Presentation, Mic, AlertTriangle, Crown } from "lucide-react";
 import { ModeGuide } from "@/components/assistant/mode-guide";
 import { HistoriqueConversations } from "@/components/assistant/historique-conversations";
+import { RenduReponse } from "@/components/assistant/rendu-reponse";
 
 interface MessageChat {
   role: "user" | "assistant";
@@ -285,13 +293,15 @@ export function AssistantOnglets({
                       </span>
                     )}
                     <div
-                      className={`max-w-[78%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                      className={`max-w-[78%] min-w-0 rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                         m.role === "user"
-                          ? "rounded-br-md bg-linear-to-r from-indigo-600 to-violet-600 text-white"
+                          ? "whitespace-pre-wrap rounded-br-md bg-linear-to-r from-indigo-600 to-violet-600 text-white"
                           : "rounded-bl-md border border-gray-100 bg-white text-gray-800"
                       }`}
                     >
-                      {m.contenu}
+                      {/* LOT 70 — réponse rendue en Markdown avec liens de
+                          fiche et liens de réduction ; question en brut. */}
+                      {m.role === "user" ? m.contenu : <RenduReponse texte={m.contenu} />}
                     </div>
                     {m.role === "user" && (
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600">

@@ -17,11 +17,11 @@ type Onglet = "categories" | "metiers";
 
 /** Style de base d'un onglet (flex-1 sur mobile pour prendre la largeur). */
 const BASE_ONGLET =
-  "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full px-4 text-[13px] leading-4 font-semibold whitespace-nowrap transition sm:flex-none";
+  "inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-[7px] -skew-x-[18deg] px-4 text-[13px] leading-4 font-semibold whitespace-nowrap transition sm:flex-none";
 
 /** Badge du nombre, teinté selon l'état de l'onglet. */
 const badge = (actif: boolean) =>
-  `rounded-full px-2 py-0.5 text-[12px] leading-4 ${
+  `rounded-[7px] -skew-x-[18deg] px-2 py-0.5 text-[12px] leading-4 ${
     actif ? "bg-white/20 text-white" : "bg-gris text-encre/60"
   }`;
 
@@ -46,7 +46,7 @@ export function OngletsFiltres({
       <div
         role="tablist"
         aria-label="Choisir entre le filtrage par catégorie ou par métier"
-        className="mb-4 inline-flex max-w-full gap-1 overflow-x-auto rounded-full border border-bordure bg-white p-1 shadow-carte"
+        className="mb-4 inline-flex max-w-full gap-1 overflow-x-auto rounded-[7px] -skew-x-[18deg] border border-bordure bg-white p-1 shadow-carte"
       >
         <button
           type="button"

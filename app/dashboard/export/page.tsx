@@ -216,7 +216,7 @@ export default async function PageExport() {
               Export du {aujourdhui} · {session.user.name ?? "Membre"}
             </p>
           </div>
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 px-3 py-1 text-[12px] leading-4 font-bold text-sky-500">
+          <p className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] bg-sky-500/10 px-3 py-1 text-[12px] leading-4 font-bold text-sky-500">
             <Crown className="size-3.5" aria-hidden /> Premium
           </p>
         </div>
@@ -286,7 +286,7 @@ export default async function PageExport() {
                   <p className="flex flex-wrap items-center gap-2 font-titre text-[14px] leading-5 font-semibold text-bleu">
                     {liste.nom}
                     {liste.estPublique && (
-                      <span className="rounded-full bg-gris px-2 py-0.5 text-[11px] leading-4 font-bold text-encre">
+                      <span className="rounded-[7px] -skew-x-[18deg] bg-gris px-2 py-0.5 text-[11px] leading-4 font-bold text-encre">
                         publique
                       </span>
                     )}

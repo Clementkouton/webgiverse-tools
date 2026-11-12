@@ -22,7 +22,7 @@ export function SelectAuto({
       defaultValue={valeur}
       aria-label={libelle}
       onChange={(e) => e.currentTarget.form?.requestSubmit()}
-      className="min-h-11 cursor-pointer rounded-full border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu hover:border-sky-500 focus:border-sky-500 focus:outline-none"
+      className="min-h-11 cursor-pointer rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-bleu hover:border-sky-500 focus:border-sky-500 focus:outline-none"
     >
       {options.map((o) => (
         <option key={o.valeur} value={o.valeur}>

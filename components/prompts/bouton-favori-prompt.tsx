@@ -40,7 +40,7 @@ export function BoutonFavoriPrompt({ promptId, favoriInitial, connecte, hrefConn
     return (
       <Link
         href={hrefConnexion}
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-bordure bg-white px-3.5 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3.5 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
       >
         <Heart className="size-3.5" aria-hidden /> Sauvegarder
       </Link>
@@ -84,7 +84,7 @@ export function BoutonFavoriPrompt({ promptId, favoriInitial, connecte, hrefConn
         disabled={enCours}
         aria-pressed={favori}
         className={cn(
-          "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 py-1 text-[12px] leading-4 font-semibold transition active:scale-95",
+          "inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border px-3.5 py-1 text-[12px] leading-4 font-semibold transition active:scale-95",
           favori
             ? "border-violet bg-violet/10 text-violet"
             : "border-bordure bg-white text-bleu hover:border-violet hover:text-violet",

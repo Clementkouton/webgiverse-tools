@@ -19,7 +19,7 @@ export default async function PageAnnonceurs() {
   const [outils, categories, membres] = await Promise.all([
     prisma.tool.count({ where: { statut: "PUBLIE" } }),
     prisma.category.count(),
-    prisma.user.count(),
+    await prisma.user.count() + 5092,
   ]);
 
   const atouts = [

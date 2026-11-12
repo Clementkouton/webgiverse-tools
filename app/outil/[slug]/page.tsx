@@ -139,7 +139,7 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
                   <Link
                     key={c.categorie.slug}
                     href={`/categorie/${c.categorie.slug}`}
-                    className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-semibold text-sky-500 transition hover:bg-sky-500/50 hover:text-white"
+                    className="inline-flex items-center rounded-[7px] -skew-x-[18deg] border border-sky-500/30 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-semibold text-sky-500 transition hover:bg-sky-500/50 hover:text-white"
                   >
                     #{c.categorie.nom}
                   </Link>

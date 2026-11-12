@@ -44,7 +44,7 @@ export function AssistantTutoriel({ conversation, enChargement }: Props) {
         <h3 className="flex items-center gap-2 text-[15px] font-semibold text-bleu">
           <span>✨</span> Assistant IA du tutoriel
         </h3>
-        <span className="rounded-full bg-violet/10 px-2.5 py-0.5 text-[11px] font-bold text-violet">
+        <span className="rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2.5 py-0.5 text-[11px] font-bold text-violet">
           Premium
         </span>
       </div>

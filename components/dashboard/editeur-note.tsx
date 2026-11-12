@@ -52,7 +52,7 @@ export function EditeurNote({ favoriId, note }: { favoriId: string; note: string
         Ma note personnelle
         {/* Lot 20 — le statut PRIVÉ est explicite : c'est ton brouillon,
             différent des avis publics visibles par toute la communauté. */}
-        <span className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold normal-case text-violet">
+        <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold normal-case text-violet">
           <Lock className="size-2.5" aria-hidden /> Privée — visible de toi seul
         </span>
       </p>

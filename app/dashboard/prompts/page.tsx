@@ -175,7 +175,7 @@ export default async function PageMesPrompts() {
                   <BoutonConfirmer
                     message={`Retirer « ${favori.prompt.titre} » de tes prompts sauvegardés ?`}
                     aria-label={`Retirer ${favori.prompt.titre}`}
-                    className="grid size-9 place-items-center rounded-full border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                    className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                   >
                     <Trash2 className="size-4" aria-hidden />
                   </BoutonConfirmer>
@@ -197,7 +197,7 @@ export default async function PageMesPrompts() {
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
                 <Link
                   href={`/prompts/categorie/${favori.prompt.categorie.slug}`}
-                  className="rounded-full border border-violet/30 bg-violet/5 px-2.5 py-0.5 text-[11px] leading-4 font-semibold text-violet transition hover:border-violet"
+                  className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-violet/5 px-2.5 py-0.5 text-[11px] leading-4 font-semibold text-violet transition hover:border-violet"
                 >
                   {favori.prompt.categorie.nom}
                 </Link>

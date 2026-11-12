@@ -63,29 +63,29 @@ function CarteOutilView({ outil }: { outil: OutilCarte }) {
           <div className="min-w-0">
             <div className="mb-1 flex flex-wrap items-center gap-1.5">
               {outil.type === "AGENT" && (
-                <span className="rounded-full bg-bleu/10 px-2 py-0.5 text-xs font-medium text-bleu">
+                <span className="rounded-[7px] -skew-x-[18deg] bg-bleu/10 px-2 py-0.5 text-xs font-medium text-bleu">
                   Agent
                 </span>
               )}
               {outil.gratuit && (
-                <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                <span className="rounded-[7px] -skew-x-[18deg] bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                   Gratuit
                 </span>
               )}
               {outil.openSource && (
-                <span className="rounded-full bg-gris px-2 py-0.5 text-xs font-medium text-encre">
+                <span className="rounded-[7px] -skew-x-[18deg] bg-gris px-2 py-0.5 text-xs font-medium text-encre">
                   Open source
                 </span>
               )}
               {outil.nouveau && (
-                <span className="rounded-full bg-sky-500 px-2 py-0.5 text-xs font-semibold text-white">
+                <span className="rounded-[7px] -skew-x-[18deg] bg-sky-500 px-2 py-0.5 text-xs font-semibold text-white">
                   Nouveau
                 </span>
               )}
               {verifie && (
                 <span
                   title={`Fiche vérifiée le ${verifie}`}
-                  className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2 py-0.5 text-xs font-medium text-sky-500"
+                  className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] bg-sky-500/10 px-2 py-0.5 text-xs font-medium text-sky-500"
                 >
                   <BadgeCheck className="size-3" aria-hidden />
                   Vérifié le {verifie}

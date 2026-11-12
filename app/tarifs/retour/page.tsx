@@ -59,7 +59,7 @@ export default async function PageRetour({
     <div className="mx-auto max-w-xl px-4 py-16 text-center">
       {actif ? (
         <>
-          <span className="mx-auto grid size-16 place-items-center rounded-full bg-sky-500/10">
+          <span className="mx-auto grid size-16 place-items-center rounded-[7px] -skew-x-[18deg] bg-sky-500/10">
             <Crown className="size-8 text-sky-500" aria-hidden />
           </span>
           <h1 className="mt-5 text-h2 font-titre font-semibold">Bienvenue en Premium ! 🎉</h1>
@@ -73,14 +73,14 @@ export default async function PageRetour({
           </p>
           <Link
             href="/dashboard"
-            className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full bg-sky-500 px-7 text-[16px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
+            className="mt-7 inline-flex min-h-11 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-sky-500 px-7 text-[16px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
           >
             Retourner dans mon espace
           </Link>
         </>
       ) : (
         <>
-          <span className="mx-auto grid size-16 place-items-center rounded-full bg-gris">
+            <span className="mx-auto grid size-16 place-items-center rounded-[7px] -skew-x-[18deg] bg-gris">
               <CheckCircle2 className="size-8 text-sky-500" aria-hidden />
           </span>
           <h1 className="mt-5 text-h2 font-titre font-semibold">Paiement en cours de vérification</h1>

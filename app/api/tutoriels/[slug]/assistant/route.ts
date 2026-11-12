@@ -18,10 +18,22 @@
 //      6 derniers messages sont relus dans la table dédiée
 //      MessageChatTutoriel (même principe que NoteTutoriel).
 //   2. Dès qu'un échange aboutit, la question ET la réponse sont
-//      enregistrées au fil de l'eau (createMany ; échec de
-//      sauvegarde non bloquant : la réponse reste toujours affichée).
+//      enregistrées au fil de l'eau (échec de sauvegarde non
+//      bloquant : la réponse reste toujours affichée).
 //   3. À l'ouverture de la page, le fil est rechargé côté serveur
 //      (page.tsx) — plus rien ne disparaît à l'actualisation.
+// LOT 70 — L'ORDRE DES MESSAGES NE PEUT PLUS S'INVERSER :
+//   1. Sauvegarde en DEUX créations successives (question PUIS
+//      réponse) au lieu d'un createMany : avec createMany, les deux
+//      lignes recevaient le MÊME horodatage PostgreSQL (now() est
+//      figé au début de la transaction) et le tri SQL à date égale
+//      ne garantit aucun ordre → après F5, la réponse s'affichait
+//      AU-DESSUS de la question. Deux créations = deux horodatages.
+//   2. La relecture de l'historique (contexte du modèle ET fil de la
+//      page) départe en plus les horodatages identiques : question
+//      AVANT réponse (lib/assistant/ordre-messages.ts) → les
+//      anciens messages déjà enregistrés en base se réaffichent dans
+//      le bon ordre, sans aucune migration.
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -29,6 +41,10 @@ import { journaliser } from "@/lib/journal";
 import { accesTutoriels } from "@/lib/acces-tutoriels";
 import { parserDescriptionRaffinee } from "@/lib/description-youtube";
 import { formaterDuree, NIVEAUX } from "@/lib/tutos-utils";
+import {
+  ordonnerMessagesChronologique,
+  retirerReponsesOrphelinesDebut,
+} from "@/lib/assistant/ordre-messages";
 
 // Durée maximale de la fonction sur Vercel (le plan Hobby accepte 60 s).
 export const maxDuration = 60;
@@ -150,11 +166,14 @@ export async function POST(
       return NextResponse.json({ erreur: "Tutoriel introuvable." }, { status: 404 });
     }
 
-    // ── 4. Historique relu depuis la base (Lot 65) ──────────────────
+    // ── 4. Historique relu depuis la base (Lot 65, ordre Lot 70) ────
     // Le front n'envoie plus l'historique : source de vérité unique
-    // = table MessageChatTutoriel. On prend les 6 derniers messages
-    // de CE membre sur CE tutoriel (du plus récent au plus ancien,
-    // puis remis dans l'ordre chronologique pour le modèle IA).
+    // = table MessageChatTutoriel. On prend les derniers messages
+    // de CE membre sur CE tutoriel. LOT 70 : le tri chronologique
+    // DÉTERMINISTE (lib/assistant/ordre-messages.ts) départe les
+    // horodatages identiques laissés par l'ancien createMany — la
+    // question passe toujours AVANT sa réponse, et une réponse
+    // orpheline coupée par la fenêtre est retirée de la tête.
     // Si la table est absente (migration oubliée) : fil vide, la
     // conversation fonctionne quand même, sans crash.
     let historique: { role: string; contenu: string }[] = [];
@@ -162,12 +181,14 @@ export async function POST(
       const historiqueBdd = await prisma.messageChatTutoriel.findMany({
         where: { userId: utilisateurId, tutoId: tuto.id },
         orderBy: { creeLe: "desc" },
-        take: MAX_HISTORIQUE,
-        select: { role: true, contenu: true },
+        take: MAX_HISTORIQUE + 2, // marge : ne jamais couper une paire
+        select: { role: true, contenu: true, creeLe: true },
       });
-      historique = historiqueBdd
-        .reverse()
-        .filter((m) => m.role === "user" || m.role === "assistant");
+      historique = retirerReponsesOrphelinesDebut(
+        ordonnerMessagesChronologique(historiqueBdd).slice(-MAX_HISTORIQUE),
+      )
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({ role: m.role, contenu: m.contenu }));
     } catch (erreurHistorique) {
       console.error("ASSISTANT TUTO : lecture de l'historique impossible :", erreurHistorique);
     }
@@ -270,14 +291,17 @@ CONTENU DU TUTORIEL :
       // dès que la réponse aboutit — jamais de question orpheline
       // (si le modèle échoue, rien n'est enregistré, exactement
       // comme dans l'affichage qui retire la question sans réponse).
+      // LOT 70 — question PUIS réponse, en DEUX créations successives
+      // (et non plus un createMany) : chaque ligne reçoit son propre
+      // horodatage → la relecture ne peut plus inverser la paire.
       // Échec de sauvegarde NON bloquant : la réponse reste affichée
       // quoi qu'il arrive ; seul le rechargement perdrait l'échange.
       try {
-        await prisma.messageChatTutoriel.createMany({
-          data: [
-            { userId: utilisateurId, tutoId: tuto.id, role: "user", contenu: message },
-            { userId: utilisateurId, tutoId: tuto.id, role: "assistant", contenu: texte },
-          ],
+        await prisma.messageChatTutoriel.create({
+          data: { userId: utilisateurId, tutoId: tuto.id, role: "user", contenu: message },
+        });
+        await prisma.messageChatTutoriel.create({
+          data: { userId: utilisateurId, tutoId: tuto.id, role: "assistant", contenu: texte },
         });
       } catch (erreurSauvegarde) {
         console.error(

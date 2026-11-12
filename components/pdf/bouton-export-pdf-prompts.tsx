@@ -275,7 +275,7 @@ export default function BoutonExportPdfPrompts({
       type="button"
       onClick={exporter}
       disabled={charge || prompts.length === 0}
-      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-5 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition duration-200 hover:brightness-110 disabled:pointer-events-none disabled:opacity-50"
+      className="inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-5 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition duration-200 hover:brightness-110 disabled:pointer-events-none disabled:opacity-50"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

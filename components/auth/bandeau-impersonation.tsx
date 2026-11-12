@@ -49,7 +49,7 @@ export function BandeauImpersonation() {
         <form action={terminerImpersonationFormulaire}>
           <button
             type="submit"
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-white px-4 text-[13px] leading-4 font-bold text-red-700 transition hover:bg-red-50 active:scale-95"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] bg-white px-4 text-[13px] leading-4 font-bold text-red-700 transition hover:bg-red-50 active:scale-95"
           >
             <LogOut className="size-4" aria-hidden />
             Revenir à mon compte admin

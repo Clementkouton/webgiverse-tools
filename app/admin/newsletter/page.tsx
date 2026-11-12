@@ -659,7 +659,7 @@ export default async function PageAdminNewsletter({
                   </div>
                   <span
                     className={
-                      "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium " +
+                      "inline-flex rounded-[7px] -skew-x-[18deg] px-2.5 py-0.5 text-xs font-medium " +
                       (campagne.statut === "ENVOYEE"
                         ? "bg-emerald-100 text-emerald-700"
                         : campagne.statut === "PRETE"
@@ -893,8 +893,8 @@ export default async function PageAdminNewsletter({
                           type="submit"
                           className={
                             abonne.actif
-                              ? "inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200"
-                              : "inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-300"
+                              ? "inline-flex rounded-[7px] -skew-x-[18deg] bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200"
+                              : "inline-flex rounded-[7px] -skew-x-[18deg] bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-300"
                           }
                         >
                           {abonne.actif ? "Actif" : "Désabonné"}

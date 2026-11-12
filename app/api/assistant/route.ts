@@ -1,23 +1,160 @@
 // app/api/assistant/route.ts
+// ─────────────────────────────────────────────────────────────────
+// LOT 70 — L'ASSISTANT RÉPOND À PARTIR DU CATALOGUE RÉEL DU SITE.
+// Améliorations importées de l'assistant des tutoriels (lots 36, 64,
+// 65, 67) et demandes du lot 70 :
+//
+//   1. ANCRAGE SUR LE SITE : la consigne système est construite à
+//      partir des 12 fiches d'outils les plus pertinentes pour la
+//      question (lib/assistant/contexte.ts → outilsPertinents, avec
+//      le VRAI tarif, la version gratuite, l'open source, les
+//      catégories) + des CODES PROMO ACTIFS (table CodePromo, les
+//      réductions Chariow sur les plans Premium). Le modèle ne
+//      recommande plus des outils « connus de mémoire » : uniquement
+//      des outils réellement référencés, et il fournit le lien de
+//      réduction exact /tarifs?promo=CODE quand une réduction existe.
+//      Le front transforme « **Nom** (slug : xxx) » en lien vers la
+//      fiche (components/assistant/rendu-reponse.tsx).
+//
+//   2. CASCADE DE MODÈLES GRATUITS (comme la route de l'assistant
+//      tuto, lot 36) : si « openrouter/free » est saturé (429) ou
+//      indisponible (404), on retente sur des modèles gratuits
+//      connus. Le premier modèle est remplaçable sans toucher au
+//      code via OPENROUTER_MODELE dans le .env.
+//
+//   3. maxDuration = 60 (Vercel Hobby) : la fonction ne meurt plus
+//      avant la fin de l'appel IA.
+//
+//   4. ORDRE DES MESSAGES RÉPARÉ : la sauvegarde se fait en DEUX
+//      créations successives (question PUIS réponse) au lieu d'un
+//      createMany. Avec createMany, les deux lignes recevaient le
+//      MÊME horodatage PostgreSQL (now() est figé au début de la
+//      transaction) et la relecture triait les paires dans un ordre
+//      aléatoire → après actualisation (F5), la réponse s'affichait
+//      AU-DESSUS de la question. La lecture (GET /api/conversations/
+//      [id]) départe en plus les horodatages déjà identiques en base
+//      → les anciennes conversations se réaffichent dans le bon ordre,
+//      sans aucune migration (lib/assistant/ordre-messages.ts).
+// ─────────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from "next/server";
-import { tokeniser } from "@/lib/assistant/contexte";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
 import { LIMITES_DECOUVERTE, quotaAssistant } from "@/lib/premium";
+import { outilsPertinents, tokeniser } from "@/lib/assistant/contexte";
 
-const MODELE = "openrouter/free";
+// Durée maximale de la fonction sur Vercel (le plan Hobby accepte 60 s).
+export const maxDuration = 60;
+
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
+// Cascade de modèles : le premier qui répond gagne (même principe que
+// l'assistant tuto). Définis OPENROUTER_MODELE dans le .env pour
+// changer le modèle principal sans toucher au code.
+const MODELES = Array.from(
+  new Set(
+    [
+      process.env.OPENROUTER_MODELE?.trim() || "openrouter/free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "meta-llama/llama-3.3-70b-instruct:free",
+    ].filter((m) => m.length > 0),
+  ),
+);
+const MAX_TOKENS_REPONSE = 700;
+const DELAI_PAR_MODELE_MS = 25000; // 25 s par modèle (60 s dispo côté Vercel)
+const NB_FICHES = 12; // fiches injectées dans la consigne système
 
-const CONSIGNE_SYSTEME = `Tu es l'assistant de Webgiverse, un annuaire francophone d'outils d'intelligence artificielle.
-Ton rôle : aider l'utilisateur à trouver l'outil IA adapté à son besoin.
+/* ── Bloc « FICHES OUTILS » : les fiches les plus pertinentes ────── */
+async function blocFiches(message: string): Promise<string> {
+  let fiches: Awaited<ReturnType<typeof outilsPertinents>> = [];
+  try {
+    fiches = await outilsPertinents(message, NB_FICHES);
+  } catch (erreurCatalogue) {
+    console.error("ASSISTANT : lecture du catalogue impossible :", erreurCatalogue);
+  }
+
+  if (fiches.length === 0) {
+    return "(Aucune fiche du catalogue n'a pu être lue pour cette question : dis-le franchement, ne recommande aucun outil et invite le membre à explorer l'annuaire — page /outils.)";
+  }
+
+  return fiches
+    .map((o) => {
+      const categories = o.categories
+        .map((c) => c.categorie.nom)
+        .filter(Boolean)
+        .join(", ");
+      const description =
+        o.description.length > 180
+          ? `${o.description.slice(0, 180).trimEnd()}…`
+          : o.description;
+      return [
+        `- **${o.nom}** (slug : ${o.slug})`,
+        `tarif : ${o.tarif}`,
+        o.gratuit ? "version gratuite : oui" : null,
+        o.openSource ? "open source : oui" : null,
+        categories ? `catégories : ${categories}` : null,
+        `description : ${description}`,
+      ]
+        .filter(Boolean)
+        .join(" — ");
+    })
+    .join("\n");
+}
+
+/* ── Bloc « RÉDUCTIONS ACTIVES » : codes promo Chariow valides ───── */
+async function blocReductions(): Promise<string> {
+  try {
+    const maintenant = new Date();
+    const promos = await prisma.codePromo.findMany({ where: { actif: true } });
+    const valides = promos.filter((p) => {
+      if (p.dateDebut && p.dateDebut > maintenant) return false;
+      if (p.dateFin && p.dateFin < maintenant) return false;
+      return true;
+    });
+    if (valides.length === 0) {
+      return "(aucune réduction active — ne parle d'aucune réduction et n'invente aucun code)";
+    }
+    return valides
+      .map((p) => {
+        let libelle = p.typeRemise.toLowerCase();
+        if (p.typeRemise === "POURCENTAGE") {
+          libelle = `-${p.valeur} %`;
+        } else if (p.typeRemise === "MONTANT") {
+          // montant stocké en centimes (500 = -5,00 $), comme lib/plans.ts
+          libelle = `-${(p.valeur / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} $`;
+        } else if (p.typeRemise === "MOIS_OFFERTS") {
+          libelle = `${p.valeur} mois offert${p.valeur > 1 ? "s" : ""}`;
+        }
+        return `- code ${p.code} : ${libelle} sur l'abonnement Premium — lien de réduction : /tarifs?promo=${p.code}`;
+      })
+      .join("\n");
+  } catch (erreurPromo) {
+    console.error("ASSISTANT : lecture des codes promo impossible :", erreurPromo);
+    return "(aucune réduction active — ne parle d'aucune réduction et n'invente aucun code)";
+  }
+}
+
+/* ── Consigne système ancrée sur le catalogue ────────────────────── */
+function construireConsigne(fiches: string, reductions: string): string {
+  return `Tu es l'assistant de Webgiverse, l'annuaire francophone d'outils d'intelligence artificielle. Signature de la marque : « Apprendre · Créer · Réussir ».
+Ta connaissance des outils se limite AUX FICHES fournies ci-dessous : ce sont les données réelles du catalogue du site (tarifs inclus).
+
 Règles :
-- Réponds toujours en français, de façon concise (environ 100 mots maximum).
-- Recommande uniquement des outils IA réels et connus (ChatGPT, Claude, Gemini, Midjourney, Canva, Notion AI, ElevenLabs, Runway, Perplexity, Gamma, CapCut...).
-- Précise quand tu le sais si l'outil propose une offre gratuite.
-- Propose 2 à 4 outils maximum, en liste courte : nom + une phrase d'explication.
+- Réponds toujours en français, ton direct et pédagogique, environ 150 mots maximum.
+- Recommande 2 à 3 outils au maximum, choisis UNIQUEMENT parmi les fiches. Cite chaque outil avec son nom EXACT au format **Nom** (slug : xxx) : ce format crée le lien cliquable vers la fiche de l'outil.
+- N'invente JAMAIS un outil, un tarif, une fonction, une langue ou un lien : utilise uniquement les fiches. Si une information manque, dis « à vérifier sur la fiche de l'outil ».
+- Précise quand la fiche l'indique si l'outil propose une version gratuite.
+- Si aucune fiche ne correspond au besoin, dis-le honnêtement en une phrase et invite le membre à explorer l'annuaire (page /outils) ou à préciser son besoin. Ne cite aucun outil hors catalogue.
+- RÉDUCTIONS : parle d'une réduction UNIQUEMENT si elle figure dans la section « RÉDUCTIONS ACTIVES » ci-dessous, et seulement si le membre parle de prix, de budget ou d'abonnement Premium (ou si c'est vraiment pertinent). Donne alors le lien EXACT au format [Voir les plans Premium](/tarifs?promo=CODE) en remplaçant CODE par le code réel. N'invente JAMAIS un code ni un lien de réduction.
 - Si la question sort du sujet des outils IA, réponds brièvement et ramène vers le sujet.
-- Ne mentionne jamais de clés API ni de détails techniques internes.`;
+- Ne mentionne jamais de clés API ni de détails techniques internes.
+- Structure : une phrase de contexte, puis une liste courte (une ligne par outil : nom au format lien + une phrase d'explication avec le tarif réel), puis au besoin une question courte pour préciser le besoin.
+
+FICHES OUTILS DU CATALOGUE WEBGIVERSE (données réelles) :
+ ${fiches}
+
+RÉDUCTIONS ACTIVES (codes promo Webgiverse, plans Premium) :
+ ${reductions}`;
+}
 
 export async function POST(requete: NextRequest) {
   try {
@@ -91,11 +228,11 @@ export async function POST(requete: NextRequest) {
       );
     }
 
-    // ── 5. MOTS-CLÉS ────────────────────────────────────────────────
+    // ── 5. MOTS-CLÉS (journal de recherche) ─────────────────────────
     const motsCles = tokeniser(message);
     console.log("ASSISTANT mots-clés :", motsCles.join(", ") || "(aucun)");
 
-    // ── 6. HISTORIQUE ENVOYÉ PAR LE FRONT ───────────────────────────
+    // ── 6. HISTORIQUE ENVOYÉ PAR LE FRONT (ordre déjà correct) ──────
     const brutHistorique = Array.isArray(corps?.historique)
       ? corps.historique
       : Array.isArray(corps?.messages)
@@ -103,15 +240,36 @@ export async function POST(requete: NextRequest) {
         : [];
 
     const historique = brutHistorique
-      .slice(-6)
+      .slice(-7)
       .map((m: Record<string, unknown>) => ({
         role: m?.role === "assistant" ? "assistant" : "user",
         contenu: String(m?.contenu ?? m?.content ?? "").trim(),
       }))
       .filter((m: { role: string; contenu: string }) => m.contenu);
 
+    // LOT 70 — la question courante était envoyée DEUX fois (dernier
+    // élément de l'historique + message final) : gaspillage de jetons.
+    // On la retire de l'historique — elle est réajoutée juste après.
+    const dernierHistorique = historique[historique.length - 1];
+    if (
+      dernierHistorique &&
+      dernierHistorique.role === "user" &&
+      dernierHistorique.contenu === message
+    ) {
+      historique.pop();
+    }
+
+    // ── 6bis. CONTEXTE RÉEL DU SITE (lot 70) ────────────────────────
+    // Fiches d'outils pertinentes + codes promo actifs, lus en base
+    // à CHAQUE question : le catalogue évolue, l'assistant suit.
+    const [fiches, reductions] = await Promise.all([
+      blocFiches(message),
+      blocReductions(),
+    ]);
+    const consigneSysteme = construireConsigne(fiches, reductions);
+
     const messagesApi = [
-      { role: "system", content: CONSIGNE_SYSTEME },
+      { role: "system", content: consigneSysteme },
       ...historique.map((m: { role: string; contenu: string }) => ({
         role: m.role as "assistant" | "user",
         content: m.contenu,
@@ -119,79 +277,112 @@ export async function POST(requete: NextRequest) {
       { role: "user", content: message },
     ];
 
-    // ── 7. APPEL OPENROUTER ─────────────────────────────────────────
-    const reponseHttp = await fetch(URL_API, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${cleApi}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:3000",
-        "X-Title": "Webgiverse Outils IA",
-      },
-      body: JSON.stringify({ model: MODELE, max_tokens: 600, messages: messagesApi }),
-      signal: AbortSignal.timeout(30000),
-    });
+    // ── 7. APPEL OPENROUTER — cascade de modèles gratuits ───────────
+    let texte = "";
+    let statutEchec = 0;
+    let detailEchec = "";
+    let delaiDepasse = false;
 
-    if (!reponseHttp.ok) {
-      const texteErreur = await reponseHttp.text();
-      console.error(`OPENROUTER ERREUR ${reponseHttp.status} : ${texteErreur}`);
-      return NextResponse.json(
-        { erreur: expliquerErreur(reponseHttp.status, texteErreur) },
-        { status: 502 }
-      );
-    }
-
-    const donnees = await reponseHttp.json();
-    console.log("ASSISTANT modèle utilisé :", donnees?.model ?? "(inconnu)");
-    const texte: string = donnees?.choices?.[0]?.message?.content ?? "";
-
-    if (!texte) {
-      console.error("OPENROUTER : réponse sans texte :", JSON.stringify(donnees));
-      return NextResponse.json(
-        { erreur: "L'assistant a renvoyé une réponse vide." },
-        { status: 502 }
-      );
-    }
-
-    // ── 8. SAUVEGARDE EN BASE (si utilisateur connecté) ─────────────
-    if (utilisateurId) {
+    for (const modele of MODELES) {
       try {
-        // Le client Prisma généré n'expose pas ce modèle dans ses types.
-        const conversations = (prisma as any).conversation;
-
-        // Vérifie que la conversation appartient bien à l'utilisateur
-        if (conversationId) {
-          const conv = await conversations.findFirst({
-            where: { id: conversationId, utilisateurId },
-            select: { id: true },
-          });
-          if (!conv) conversationId = null;
-        }
-
-        // Sinon, crée une nouvelle conversation (titre = début du message)
-        if (!conversationId) {
-          const titre = message.slice(0, 60) || "Nouvelle conversation";
-          const conv = await conversations.create({
-            data: { utilisateurId, titre },
-          });
-          conversationId = conv.id;
-          await journaliser(utilisateurId, "assistant", `Nouvelle conversation : ${titre}`);
-        }
-
-        // Enregistre l'échange : question + réponse
-        await (prisma as any).message.createMany({
-          data: [
-            { conversationId, role: "user", contenu: message },
-            { conversationId, role: "assistant", contenu: texte },
-          ],
+        const reponseHttp = await fetch(URL_API, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${cleApi}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": process.env.NEXTAUTH_URL ?? "http://localhost:3000",
+            "X-Title": "Webgiverse Outils IA",
+          },
+          body: JSON.stringify({
+            model: modele,
+            max_tokens: MAX_TOKENS_REPONSE,
+            messages: messagesApi,
+          }),
+          signal: AbortSignal.timeout(DELAI_PAR_MODELE_MS),
         });
-      } catch (erreurDb) {
-        // L'IA a répondu : ne pas faire échouer la requête pour la sauvegarde
-        console.error("ASSISTANT : échec de sauvegarde :", erreurDb);
+
+        if (reponseHttp.ok) {
+          const donnees = (await reponseHttp.json().catch(() => null)) as
+            | { choices?: Array<{ message?: { content?: string } }>; model?: string }
+            | null;
+          const candidat = donnees?.choices?.[0]?.message?.content ?? "";
+          if (candidat.trim()) {
+            texte = candidat;
+            console.log("ASSISTANT modèle utilisé :", donnees?.model ?? modele);
+            break; // ✅ un modèle a répondu
+          }
+          statutEchec = 502;
+          detailEchec = `[${modele}] réponse 200 mais sans texte`;
+          console.error("ASSISTANT :", detailEchec);
+          continue;
+        }
+
+        // Erreur HTTP du modèle courant
+        const corpsErreur = await reponseHttp.text();
+        statutEchec = reponseHttp.status;
+        detailEchec = `[${modele}] HTTP ${reponseHttp.status} : ${corpsErreur.slice(0, 300)}`;
+        console.error("ASSISTANT :", detailEchec);
+        if (reponseHttp.status === 401) break; // clé invalide : inutile d'essayer les autres
+        // 402 / 404 / 429 / 5xx → on tente le modèle suivant
+      } catch (erreurModele) {
+        const nom = erreurModele instanceof Error ? erreurModele.name : "Erreur";
+        if (nom === "TimeoutError" || nom === "AbortError") {
+          statutEchec = 504;
+          delaiDepasse = true;
+          detailEchec = `[${modele}] délai de ${DELAI_PAR_MODELE_MS / 1000} s dépassé`;
+        } else {
+          statutEchec = 502;
+          detailEchec = `[${modele}] erreur réseau : ${String(erreurModele).slice(0, 200)}`;
+        }
+        console.error("ASSISTANT :", detailEchec);
+        continue;
       }
     }
 
-    // ── 9. RÉPONSE (avec l'id de conversation + quota restant) ──────
+    if (!texte) {
+      // ── 8. Aucun modèle n'a répondu → message précis en JSON ──────
+      return NextResponse.json(
+        { erreur: expliquerErreur(statutEchec, detailEchec, delaiDepasse) },
+        { status: 502 }
+      );
+    }
+
+    // ── 9. SAUVEGARDE EN BASE (lot 70 : 2 créations, ordre garanti) ─
+    try {
+      // Vérifie que la conversation appartient bien à l'utilisateur
+      if (conversationId) {
+        const conv = await prisma.conversation.findFirst({
+          where: { id: conversationId, utilisateurId },
+          select: { id: true },
+        });
+        if (!conv) conversationId = null;
+      }
+
+      // Sinon, crée une nouvelle conversation (titre = début du message)
+      if (!conversationId) {
+        const titre = message.slice(0, 60) || "Nouvelle conversation";
+        const conv = await prisma.conversation.create({
+          data: { utilisateurId, titre },
+        });
+        conversationId = conv.id;
+        await journaliser(utilisateurId, "assistant", `Nouvelle conversation : ${titre}`);
+      }
+
+      // LOT 70 — question PUIS réponse, en DEUX créations successives
+      // (et non plus un createMany) : chaque ligne reçoit son propre
+      // horodatage → la relecture ne peut plus inverser la paire.
+      await prisma.message.create({
+        data: { conversationId, role: "user", contenu: message },
+      });
+      await prisma.message.create({
+        data: { conversationId, role: "assistant", contenu: texte },
+      });
+    } catch (erreurDb) {
+      // L'IA a répondu : ne pas faire échouer la requête pour la sauvegarde
+      console.error("ASSISTANT : échec de sauvegarde :", erreurDb);
+    }
+
+    // ── 10. RÉPONSE (avec l'id de conversation + quota restant) ─────
     // La question qu'on vient de traiter sera comptée au prochain appel :
     // on affiche donc restantes - 1 (sans jamais descendre sous 0).
     const restantesAffichees =
@@ -204,23 +395,27 @@ export async function POST(requete: NextRequest) {
     });
   } catch (error) {
     console.error("=== ERREUR ASSISTANT ===", error);
+    const nom = error instanceof Error ? error.name : "";
     const messageErreur =
-      error instanceof Error && error.name === "TimeoutError"
+      nom === "TimeoutError"
         ? "L'assistant a mis trop de temps à répondre. Réessayez."
         : "L'assistant est momentanément indisponible. Réessayez dans un instant.";
     return NextResponse.json({ erreur: messageErreur }, { status: 502 });
   }
 }
 
-function expliquerErreur(status: number, texteErreur: string): string {
-  const texte = texteErreur.toLowerCase();
-  if (status === 401) return "Clé OpenRouter invalide. Vérifiez OPENROUTER_API_KEY dans le .env.";
+function expliquerErreur(status: number, detail: string, delai: boolean): string {
+  const texte = detail.toLowerCase();
+  if (status === 401)
+    return "Clé OpenRouter invalide. Vérifiez OPENROUTER_API_KEY dans le .env (et dans Vercel → Settings → Environment Variables).";
   if (status === 402 || texte.includes("credit") || texte.includes("insufficient"))
-    return "Ce modèle nécessite des crédits. Rechargez sur openrouter.ai/credits ou utilisez openrouter/free.";
-  if (status === 404 || texte.includes("model"))
-    return `Le modèle "${MODELE}" n'est pas disponible. Modifiez la constante MODELE.`;
+    return "Ce modèle nécessite des crédits. Rechargez sur openrouter.ai/credits ou attendez la remise à jour de la limite gratuite.";
   if (status === 429)
     return "Limite du modèle gratuit atteinte. Attendez un instant puis réessayez.";
+  if (status === 404 || texte.includes("no endpoints") || texte.includes("not found"))
+    return "Aucun modèle gratuit n'a répondu — définissez OPENROUTER_MODELE dans le .env avec un modèle gratuit de openrouter.ai/models (filtre « :free »).";
+  if (delai || status === 504)
+    return "L'assistant a mis trop de temps à répondre. Réessayez dans un instant.";
   if (status === 502 || status === 503)
     return "Le modèle est surchargé. Réessayez dans un instant.";
   return "L'assistant est momentanément indisponible. Réessayez dans un instant.";

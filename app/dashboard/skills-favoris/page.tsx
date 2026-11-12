@@ -151,7 +151,7 @@ export default async function PageMesSkills() {
                       <Sparkles className="size-8 text-white/80" aria-hidden />
                     </span>
                   )}
-                  <span className="absolute bottom-3 left-3 rounded-full bg-bleu/80 px-2.5 py-1 text-[11px] leading-3 font-semibold text-white backdrop-blur">
+                  <span className="absolute bottom-3 left-3 rounded-[7px] -skew-x-[18deg] bg-bleu/80 px-2.5 py-1 text-[11px] leading-3 font-semibold text-white backdrop-blur">
                     {favori.skill.categorie}
                   </span>
                 </Link>
@@ -169,7 +169,7 @@ export default async function PageMesSkills() {
                       <BoutonConfirmer
                         message={`Retirer « ${favori.skill.titre} » de tes skills épinglées ?`}
                         aria-label={`Retirer ${favori.skill.titre}`}
-                        className="grid size-9 place-items-center rounded-full border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                        className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                       >
                         <Pin className="size-4" aria-hidden />
                       </BoutonConfirmer>

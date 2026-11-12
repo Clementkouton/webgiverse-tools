@@ -293,13 +293,13 @@ export default async function PageSkillsAdmin({
             type="search"
             defaultValue={q}
             placeholder="Rechercher par titre, catégorie, tag, auteur…"
-            className="h-11 w-full rounded-full border border-adm-bordure bg-white pl-10 pr-4 text-[14px] text-adm-sombre placeholder:text-adm-gris-clair focus:border-primaire focus:outline-none focus:ring-2 focus:ring-primaire/20"
+            className="h-11 w-full rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-white pl-10 pr-4 text-[14px] text-adm-sombre placeholder:text-adm-gris-clair focus:border-primaire focus:outline-none focus:ring-2 focus:ring-primaire/20"
           />
         </div>
         {tri !== "editorial" && <input type="hidden" name="tri" value={tri} />}
         <button
           type="submit"
-          className="h-11 rounded-full border border-violet bg-white px-5 text-[14px] leading-5 font-semibold text-bleu transition hover:border-violet-clair hover:bg-gris"
+          className="h-11 rounded-[7px] -skew-x-[18deg] border border-violet bg-white px-5 text-[14px] leading-5 font-semibold text-bleu transition hover:border-violet-clair hover:bg-gris"
         >
           Rechercher
         </button>
@@ -334,7 +334,7 @@ export default async function PageSkillsAdmin({
               href={href}
               aria-current={actif ? "true" : undefined}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-[12.5px] leading-4 font-medium transition",
+                "rounded-[7px] -skew-x-[18deg] border px-3 py-1.5 text-[12.5px] leading-4 font-medium transition",
                 actif
                   ? "border-indigo-600 bg-indigo-600 text-white"
                   : "border-black/10 bg-white text-adm-gris hover:border-indigo-300 hover:text-adm-sombre",
@@ -404,7 +404,7 @@ export default async function PageSkillsAdmin({
                           >
                             <span className="truncate">{s.titre}</span>
                             {s.featured && (
-                              <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-adm-alerte-doux px-1.5 py-0.5 text-[10px] leading-3 font-bold text-[#b26f00]">
+                              <span className="inline-flex shrink-0 items-center gap-0.5 rounded-[7px] -skew-x-[18deg] bg-adm-alerte-doux px-1.5 py-0.5 text-[10px] leading-3 font-bold text-[#b26f00]">
                                 <Star className="size-2.5 fill-current" aria-hidden /> À la une
                               </span>
                             )}
@@ -416,7 +416,7 @@ export default async function PageSkillsAdmin({
                       </div>
                     </td>
                     <td className="p-3">
-                      <span className="whitespace-nowrap rounded-full bg-adm-fond px-2 py-0.5 text-[11px] font-semibold text-adm-gris">
+                      <span className="whitespace-nowrap rounded-[7px] -skew-x-[18deg] bg-adm-fond px-2 py-0.5 text-[11px] font-semibold text-adm-gris">
                         {s.categorie}
                       </span>
                     </td>
@@ -449,7 +449,7 @@ export default async function PageSkillsAdmin({
                             s.featured ? `Retirer « ${s.titre} » de la une` : `Mettre « ${s.titre} » à la une`
                           }
                           title={s.featured ? "Retirer de la une" : "Mettre à la une"}
-                          className="grid size-9 place-items-center rounded-full border border-adm-bordure bg-white transition hover:border-amber-300 active:scale-95"
+                          className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-white transition hover:border-amber-300 active:scale-95"
                         >
                           <Star
                             className={cn(
@@ -467,7 +467,7 @@ export default async function PageSkillsAdmin({
                         <BoutonConfirmer
                           message={`Supprimer définitivement « ${s.titre} » ? Cette action est irréversible.`}
                           aria-label={`Supprimer la skill ${s.titre}`}
-                          className="grid size-9 place-items-center rounded-full border border-adm-bordure bg-white text-adm-gris transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                          className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-white text-adm-gris transition hover:border-red-300 hover:text-red-500 active:scale-95"
                         >
                           <Trash2 className="size-4" aria-hidden />
                         </BoutonConfirmer>

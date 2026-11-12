@@ -90,7 +90,7 @@ export function ActionsPrompt({
 }) {
   if (!premium) {
     return (
-      <span className="inline-flex min-h-11 items-center gap-2 self-start rounded-full border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-encre/70">
+      <span className="inline-flex min-h-11 items-center gap-2 self-start rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 text-[14px] leading-5 font-medium text-encre/70">
         <Lock className="size-4" aria-hidden /> Copie réservée aux Premium
       </span>
     );

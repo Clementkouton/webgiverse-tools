@@ -81,7 +81,7 @@ export default async function PageArticlesAdmin({
             key={f.valeur}
             href={f.valeur ? `/admin/articles?type=${f.valeur}` : "/admin/articles"}
             className={cn(
-              "rounded-full border px-4 py-2 text-[14px] leading-5 font-semibold transition",
+              "rounded-[7px] -skew-x-[18deg] border px-4 py-2 text-[14px] leading-5 font-semibold transition",
               type === f.valeur
                 ? "border-transparent bg-primaire text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)]"
                 : "border-adm-bordure bg-white text-adm-gris hover:border-primaire/40 hover:text-primaire-texte",
@@ -99,10 +99,10 @@ export default async function PageArticlesAdmin({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <h3 className="text-[16px] leading-6 font-titre font-semibold text-adm-sombre">{a.titre}</h3>
-                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE_TYPE[a.type])}>
+                  <span className={cn("inline-flex rounded-[7px] -skew-x-[18deg] px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE_TYPE[a.type])}>
                     {a.type === "ACTUALITE" ? "Actualité" : "Blog"}
                   </span>
-                  <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE_STATUT[a.statut])}>
+                  <span className={cn("inline-flex rounded-[7px] -skew-x-[18deg] px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE_STATUT[a.statut])}>
                     {a.statut === "PUBLIE" ? "Publié" : "Brouillon"}
                   </span>
                 </div>
@@ -131,7 +131,7 @@ export default async function PageArticlesAdmin({
                   <input type="hidden" name="articleId" value={a.id} />
                   <BoutonConfirmer
                     message={`Supprimer « ${a.titre} » ? Action définitive.`}
-                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-red-300 bg-white px-4 text-[14px] leading-5 font-semibold text-red-700 transition hover:bg-red-50"
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] border border-red-300 bg-white px-4 text-[14px] leading-5 font-semibold text-red-700 transition hover:bg-red-50"
                     type="submit"
                   >
                     Supprimer

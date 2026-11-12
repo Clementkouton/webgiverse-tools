@@ -149,7 +149,7 @@ function BoutonVote({ slug, compact = false }: { slug: string; compact?: boolean
           aria-pressed={vote}
           aria-label={vote ? "Retirer ma recommandation" : "Recommander cet outil"}
           title={vote ? "Retirer ma recommandation" : "Recommander cet outil"}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition disabled:opacity-60 ${
+          className={`inline-flex h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border px-3 text-sm font-medium transition disabled:opacity-60 ${
             vote
             ? "border-sky-500 bg-sky-500/10 text-sky-500"
             : "border-bordure bg-white text-encre/70 hover:border-sky-500 hover:text-sky-500"

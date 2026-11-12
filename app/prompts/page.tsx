@@ -53,12 +53,12 @@ function val(c: string | string[] | undefined): string {
 }
 
 const PASTILLE =
-  "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-bordure bg-white px-4 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet";
+  "inline-flex min-h-11 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet";
 
 // LOT 69 — pastille/puce active : même dégradé de marque que la
 // variante « primaire » du Bouton (mesuré sur le logo « Tools »).
 const PASTILLE_ACTIVE =
-  "inline-flex min-h-11 items-center rounded-full bg-[linear-gradient(100deg,#027bfd,#0344fc_25%,#301ff8_50%,#5e06f1_72%,#a203fc)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(94,6,241,0.28)]";
+  "inline-flex min-h-11 items-center rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(100deg,#027bfd,#0344fc_25%,#301ff8_50%,#5e06f1_72%,#a203fc)] px-4 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(94,6,241,0.28)]";
 
 export default async function PagePrompts({ searchParams }: { searchParams: Params }) {
   const p = await searchParams;
@@ -94,7 +94,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
       {/* ── Héros ───────────────────────────────────────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
             <TerminalSquare className="size-3.5" aria-hidden /> Bibliothèque de prompts
           </p>
           <h1 className="mx-auto mt-4 max-w-[760px] text-[30px] leading-9 font-bold tracking-tight text-bleu sm:text-h2">
@@ -105,13 +105,13 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
             catégorie, copie, remplace les variables et lance-toi — sans repartir de zéro.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               {stats.total} prompts
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               {stats.categories} catégories
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               24 métiers couverts
             </li>
           </ul>
@@ -165,7 +165,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
               defaultValue={q}
               placeholder="Rechercher un prompt (email de vente, plan de cours, image produit…)"
               aria-label="Rechercher un prompt"
-              className="min-h-11 w-full rounded-full border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
+              className="min-h-11 w-full rounded-[7px] -skew-x-[18deg] border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
             />
           </div>
           <input type="hidden" name="categorie" value={categorie} />
@@ -231,7 +231,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
                   <span
                     key={r.slug}
                     aria-current="true"
-                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-violet bg-violet/10 px-4 text-[13px] leading-4 font-semibold text-violet"
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-violet bg-violet/10 px-4 text-[13px] leading-4 font-semibold text-violet"
                   >
                     {nomRole(r.slug)} <span className="opacity-70">{r.total}</span>
                   </span>

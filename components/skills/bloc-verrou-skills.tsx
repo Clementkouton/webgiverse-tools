@@ -26,7 +26,7 @@ export function BlocVerrouSkills({ connecte }: { connecte: boolean }) {
           <Crown className="size-4.5" />
         </span>
         Bibliothèque réservée aux abonnés Premium
-        <span className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+        <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
           Premium
         </span>
       </p>

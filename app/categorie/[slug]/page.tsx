@@ -49,7 +49,7 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
       {/* ── Héros de catégorie (style Aixploria) ───────────────── */}
       <section className="hero-verre border-b border-bordure">
         <div className="mx-auto max-w-7xl px-4 py-12 text-center lg:py-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
             <IconeCategorie nom={categorie.icone} className="size-4" />
             Catégorie Webgiverse
           </p>
@@ -61,13 +61,13 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
             (tarifs, liens, fonctionnalités) avant d&apos;entrer dans l&apos;annuaire.
           </p>
           <ul className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               {total} outil{total > 1 ? "s" : ""} testé{total > 1 ? "s" : ""}
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               Fiches vérifiées manuellement
             </li>
-            <li className="rounded-full border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
               100 % en français
             </li>
           </ul>
@@ -89,8 +89,8 @@ export default async function PageCategorie({ params }: { params: Promise<{ slug
                   aria-current={c.slug === slug ? "page" : undefined}
                   className={
                     c.slug === slug
-                      ? "inline-flex min-h-9 items-center gap-2 rounded-full border border-violet bg-violet px-4 text-[14px] leading-4 font-semibold text-white"
-                      : "inline-flex min-h-9 items-center gap-2 rounded-full border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+                      ? "inline-flex min-h-9 items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-violet bg-violet px-4 text-[14px] leading-4 font-semibold text-white"
+                      : "inline-flex min-h-9 items-center gap-2 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
                   }
                 >
                   {c.nom}

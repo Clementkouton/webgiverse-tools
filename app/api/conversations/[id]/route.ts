@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as authModule from "@/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  ordonnerMessagesChronologique,
+  retirerReponsesOrphelinesDebut,
+} from "@/lib/assistant/ordre-messages";
 
 // ---------------------------------------------------------------
 // Récupération de la session — next-auth v5 (Auth.js)
+// Votre fichier auth.ts (racine du projet) exporte la fonction "auth"
 // ---------------------------------------------------------------
 async function obtenirSession(): Promise<any> {
   const mod: any = authModule;
@@ -43,15 +48,21 @@ export async function GET(request: NextRequest, { params }: ParamsRoute) {
       return NextResponse.json({ error: "Conversation introuvable" }, { status: 404 });
     }
 
-    // Tri des messages du plus ancien au plus récent
-    const messages: any[] = conversation.messages as any[];
-    messages.sort((a, b) => {
-      const da = new Date(a.createdAt ?? a.creeLe ?? 0).getTime();
-      const db = new Date(b.createdAt ?? b.creeLe ?? 0).getTime();
-      return da - db;
-    });
+    // LOT 70 — tri chronologique DÉTERMINISTE. Avant : tri par date
+    // seul ; or les paires question/réponse enregistrées via
+    // createMany partagent le MÊME creeLe et le tri SQL ne garantit
+    // aucun ordre entre lignes à égalité → après actualisation, la
+    // réponse pouvait s'afficher AU-DESSUS de la question. Le
+    // départage remet la question (« user ») AVANT la réponse
+    // (« assistant »), y compris pour les anciens messages déjà en
+    // base. Aucune migration, aucune donnée modifiée.
+    const messagesOrdonnes = retirerReponsesOrphelinesDebut(
+      ordonnerMessagesChronologique(conversation.messages),
+    );
 
-    return NextResponse.json({ conversation });
+    return NextResponse.json({
+      conversation: { ...conversation, messages: messagesOrdonnes },
+    });
   } catch (error) {
     console.error("Erreur GET /api/conversations/[id] :", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

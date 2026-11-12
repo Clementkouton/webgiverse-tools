@@ -83,13 +83,13 @@ export function ClocheAdmin({ notifications }: { notifications: NotificationAdmi
         aria-expanded={ouvert}
         aria-label={total > 0 ? `${total} notification(s) admin : ${notifications.map((n) => n.titre).join(", ")}` : "Notifications admin (aucune)"}
         className={cn(
-          "relative grid size-10 place-items-center rounded-full border border-adm-bordure bg-white transition active:scale-95",
+          "relative grid size-10 place-items-center rounded-[7px] -skew-x-[18deg] border border-adm-bordure bg-white transition active:scale-95",
           ouvert ? "border-primaire text-primaire-texte" : "text-adm-sombre hover:bg-adm-fond",
         )}
       >
         <Bell className="size-[18px]" aria-hidden />
         {total > 0 && (
-          <span className="absolute -top-1 -right-1 grid min-w-4.5 place-items-center rounded-full bg-adm-erreur px-1 py-0.5 text-[10px] leading-3 font-bold text-white ring-2 ring-white">
+          <span className="absolute -top-1 -right-1 grid min-w-4.5 place-items-center rounded-[7px] -skew-x-[18deg] bg-adm-erreur px-1 py-0.5 text-[10px] leading-3 font-bold text-white ring-2 ring-white">
             {total > 9 ? "9+" : total}
           </span>
         )}
@@ -107,7 +107,7 @@ export function ClocheAdmin({ notifications }: { notifications: NotificationAdmi
         <div className="flex items-center justify-between border-b border-adm-bordure bg-adm-fond/70 px-4 py-2.5">
           <p className="text-[13px] font-bold text-adm-sombre">Notifications</p>
           {total > 0 && (
-            <span className="rounded-full bg-adm-erreur px-2 py-0.5 text-[10px] font-bold text-white">{total}</span>
+            <span className="rounded-[7px] -skew-x-[18deg] bg-adm-erreur px-2 py-0.5 text-[10px] font-bold text-white">{total}</span>
           )}
         </div>
 

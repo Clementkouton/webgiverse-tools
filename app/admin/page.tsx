@@ -236,8 +236,8 @@ export default async function PageAdmin() {
 
       {/* ── Bannière d'activité (dégradé TailwindAdmin) ───────────── */}
       <div className="animate-apparition-haut delai-1 relative mt-5 overflow-hidden rounded-carte bg-[linear-gradient(115deg,#5d87ff_0%,#49beff_100%)] p-6 text-white sm:p-7">
-        <span aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-white/15 blur-2xl" />
-        <span aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-44 rounded-full bg-white/10 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-[7px] -skew-x-[18deg] bg-white/15 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-44 rounded-[7px] -skew-x-[18deg] bg-white/10 blur-2xl" />
         <Sparkles
           aria-hidden
           className="pointer-events-none absolute -right-4 -bottom-6 size-32 text-white/20"
@@ -245,7 +245,7 @@ export default async function PageAdmin() {
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-white">
+              <span className="rounded-[7px] -skew-x-[18deg] bg-white/20 px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-white">
                 Activité
               </span>
               <span className="text-[12px] leading-4 font-medium text-white/85 capitalize">{dateLongue}</span>
@@ -258,7 +258,7 @@ export default async function PageAdmin() {
           </div>
           <Link
             href="/admin/utilisateurs"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-primaire-texte shadow-[0_4px_14px_rgba(32,41,54,0.18)] transition hover:bg-white/90 active:scale-[0.98]"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] bg-white px-4 py-2 text-[13px] font-bold text-primaire-texte shadow-[0_4px_14px_rgba(32,41,54,0.18)] transition hover:bg-white/90 active:scale-[0.98]"
           >
             Voir les utilisateurs <ArrowRight className="size-4" aria-hidden />
           </Link>
@@ -452,7 +452,7 @@ export default async function PageAdmin() {
                       {outil.nom}
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
-                      <span className="rounded-full bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
+                      <span className="rounded-[7px] -skew-x-[18deg] bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
                         {libelleCodeLien(outil.statutLien)}
                       </span>
                       {outil.lienVerifieLe && (

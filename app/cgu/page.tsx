@@ -51,7 +51,7 @@ const VOIR_AUSSI = [
 function Puce() {
   return (
     <span
-      className="mt-2.5 size-1.5 shrink-0 rounded-full bg-sky-500"
+      className="mt-2.5 size-1.5 shrink-0 rounded-[7px] -skew-x-[18deg] bg-sky-500"
       aria-hidden
     />
   );
@@ -123,7 +123,7 @@ export default function PageCgu() {
               <a
                 key={ancre}
                 href={`#${ancre}`}
-                className="rounded-full border border-bordure bg-white px-3 py-1 text-[13px] leading-5 text-encre transition hover:border-sky-500 hover:text-sky-500"
+                className="rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3 py-1 text-[13px] leading-5 text-encre transition hover:border-sky-500 hover:text-sky-500"
               >
                 {label}
               </a>

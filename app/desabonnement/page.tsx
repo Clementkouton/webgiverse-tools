@@ -183,8 +183,8 @@ export default async function PageDesabonnement({
           <span
             className={
               estAbonne
-                ? "inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700"
-                : "inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-medium text-slate-600"
+                ? "inline-flex rounded-[7px] -skew-x-[18deg] bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700"
+                : "inline-flex rounded-[7px] -skew-x-[18deg] bg-slate-200 px-3 py-1 text-xs font-medium text-slate-600"
             }
           >
             {estAbonne ? "Abonné à la newsletter" : "Désabonné de la newsletter"}

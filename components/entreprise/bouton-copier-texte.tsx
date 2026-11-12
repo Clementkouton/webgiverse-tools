@@ -33,7 +33,7 @@ export function BoutonCopierTexte({ texte, label = "Copier", className }: Props)
     <button
       type="button"
       onClick={copier}
-      className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-bordure bg-white px-3 text-[12px] font-semibold text-encre transition hover:bg-gris ${className ?? ""}`}
+      className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3 text-[12px] font-semibold text-encre transition hover:bg-gris ${className ?? ""}`}
     >
       {copie ? (
         <>

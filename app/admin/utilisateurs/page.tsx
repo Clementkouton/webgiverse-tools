@@ -31,7 +31,7 @@ const LIBELLES_STATUT: Record<string, { texte: string; classe: string }> = {
 function BadgeStatut({ statut }: { statut: string }) {
   const libelle = LIBELLES_STATUT[statut] ?? { texte: statut, classe: "bg-slate-100 text-slate-600" };
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${libelle.classe}`}>
+    <span className={`inline-flex items-center rounded-[7px] -skew-x-[18deg] px-2.5 py-0.5 text-xs font-medium ${libelle.classe}`}>
       {libelle.texte}
     </span>
   );
@@ -41,11 +41,11 @@ function Avatar({ image, name }: { image: string | null; name: string | null }) 
   if (image) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={image} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+      <img src={image} alt="" className="h-9 w-9 shrink-0 rounded-[7px] -skew-x-[18deg] object-cover" />
     );
   }
   return (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-600">
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[7px] -skew-x-[18deg] bg-slate-200 text-sm font-semibold text-slate-600">
       {(name ?? "?").slice(0, 1).toUpperCase()}
     </span>
   );
@@ -142,7 +142,7 @@ export default async function PageUtilisateursAdmin({
   };
 
   const pillClasse = (actif: boolean) =>
-    `rounded-full px-3 py-1.5 text-xs font-medium transition ${
+    `rounded-[7px] -skew-x-[18deg] px-3 py-1.5 text-xs font-medium transition ${
       actif
         ? "bg-slate-900 text-white"
         : "border border-slate-300 bg-white text-slate-600 hover:bg-slate-50"
@@ -261,11 +261,11 @@ export default async function PageUtilisateursAdmin({
 
                 <td className="px-4 py-3">
                   {u.role === "ADMIN" ? (
-                    <span className="inline-flex rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+                    <span className="inline-flex rounded-[7px] -skew-x-[18deg] bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700">
                       Admin
                     </span>
                   ) : (
-                    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                      <span className="inline-flex rounded-[7px] -skew-x-[18deg] bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
                       Membre
                     </span>
                   )}
@@ -273,7 +273,7 @@ export default async function PageUtilisateursAdmin({
 
                 <td className="px-4 py-3">
                   {u.abonnement ? (
-                    <span className="inline-flex rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                    <span className="inline-flex rounded-[7px] -skew-x-[18deg] bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                       {u.abonnement.plan ?? "Abonnement"}
                     </span>
                   ) : (

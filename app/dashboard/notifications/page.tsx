@@ -114,7 +114,7 @@ npx prisma generate</pre>
                   )}
                 </span>
                 {!n.lu && (
-                  <span aria-label="Non lue" className="mt-2 size-2 shrink-0 rounded-full bg-sky-500" />
+                  <span aria-label="Non lue" className="mt-2 size-2 shrink-0 rounded-[7px] -skew-x-[18deg] bg-sky-500" />
                 )}
               </>
             );

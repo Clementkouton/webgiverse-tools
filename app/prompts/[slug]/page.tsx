@@ -104,7 +104,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Link
               href={`/prompts/categorie/${prompt.categorie.slug}`}
-              className="rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-violet transition hover:border-violet"
+              className="rounded-[7px] -skew-x-[18deg] border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-violet transition hover:border-violet"
             >
               {prompt.categorie.nom}
             </Link>
@@ -112,7 +112,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
               <Badge variante="defaut">{prompt.sousCategorie}</Badge>
             )}
             <Badge variante="defaut">{LIBELLES_TYPE[prompt.type] ?? "Texte"}</Badge>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
+            <span className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
               <Eye className="size-3.5" aria-hidden /> {prompt.vues.toLocaleString("fr-FR")} vues
             </span>
             <BoutonFavoriPrompt
@@ -125,7 +125,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
               <Link
                 key={r}
                 href={`/prompts/roles/${encodeURIComponent(r)}`}
-                className="rounded-full border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+                className="rounded-[7px] -skew-x-[18deg] border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
               >
                 {nomRole(r)}
               </Link>

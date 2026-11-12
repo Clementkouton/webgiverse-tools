@@ -59,9 +59,9 @@ export function ChecklistOnboarding({ onboarding }: { onboarding: ResultatOnboar
       </div>
 
       {/* Barre de progression pleine largeur */}
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-gris">
+      <div className="mt-4 h-2 overflow-hidden rounded-[7px] -skew-x-[18deg] bg-gris">
         <div
-          className="barre-progression h-full rounded-full bg-[linear-gradient(90deg,#00d1ff,#6a3bff)]"
+          className="barre-progression h-full rounded-[7px] -skew-x-[18deg] bg-[linear-gradient(90deg,#00d1ff,#6a3bff)]"
           style={{ width: `${pourcentage}%` }}
         />
       </div>

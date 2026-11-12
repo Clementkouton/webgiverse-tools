@@ -12,6 +12,11 @@
 //     serveur depuis la table MessageChatTutoriel (même principe que
 //     noteInitiale) et transmis au composant : la conversation
 //     réapparaît après actualisation de la page.
+//   · Lot 70 — l'historique relu est remis dans un ordre
+//     chronologique DÉTERMINISTE (lib/assistant/ordre-messages.ts) :
+//     à horodatage identique (hérité de l'ancien createMany), la
+//     question s'affiche toujours AVANT sa réponse — plus de réponse
+//     au-dessus de la question après actualisation.
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -48,6 +53,10 @@ import { PLANS } from "@/lib/plans";
 import { LecteurYoutube } from "@/components/tutoriels/lecteur-youtube";
 import { formaterDuree, urlMiniature, NIVEAUX } from "@/lib/tutos-utils";
 import { parserDescriptionRaffinee } from "@/lib/description-youtube";
+import {
+  ordonnerMessagesChronologique,
+  retirerReponsesOrphelinesDebut,
+} from "@/lib/assistant/ordre-messages";
 import { cn } from "@/lib/utils";
 
 /**
@@ -186,12 +195,18 @@ export default async function PageTuto({ params }: { params: Params }) {
     }
   }
 
-  // ── Historique du chat de l'assistant (Lot 65) — lecture défensive ─
+  // ── Historique du chat de l'assistant (Lot 65, ordre Lot 70) ──────
   // Même principe que la note personnelle : les 50 derniers messages
   // de CE membre sur CE tutoriel sont relus en base (table
   // MessageChatTutoriel) puis transmis au composant client. Si la
   // table n'existe pas encore (migration oubliée) ou que Neon échoue,
   // on démarre avec un fil vide — jamais d'erreur bloquante.
+  // LOT 70 — remise en ordre chronologique DÉTERMINISTE : avec
+  // l'ancien createMany, question et réponse partageaient le même
+  // creeLe et le tri SQL les ressortait parfois inversés (réponse
+  // au-dessus de la question après F5). Le départage remet la
+  // question AVANT sa réponse, y compris pour les anciens messages,
+  // et retire une éventuelle réponse orpheline en tête de fil.
   let historiqueChat: { role: "user" | "assistant"; contenu: string }[] = [];
   if (utilisateurId && acces.peut("assistantTuto")) {
     try {
@@ -201,22 +216,22 @@ export default async function PageTuto({ params }: { params: Params }) {
             where: { userId: string; tutoId: string };
             orderBy: { creeLe: "desc" };
             take: number;
-            select: { role: true; contenu: true };
-          }) => Promise<{ role: string; contenu: string }[]>;
+            select: { role: true; contenu: true; creeLe: true };
+          }) => Promise<{ role: string; contenu: string; creeLe: Date }[]>;
         };
       };
       const messagesBdd = (await delegueChat.messageChatTutoriel?.findMany({
         where: { userId: utilisateurId, tutoId: tuto.id },
         orderBy: { creeLe: "desc" },
         take: 50,
-        select: { role: true, contenu: true },
+        select: { role: true, contenu: true, creeLe: true },
       })) ?? [];
-      historiqueChat = messagesBdd
-        .reverse()
-        .map((m) => ({
-          role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
-          contenu: m.contenu,
-        }));
+      historiqueChat = retirerReponsesOrphelinesDebut(
+        ordonnerMessagesChronologique(messagesBdd),
+      ).map((m) => ({
+        role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
+        contenu: m.contenu,
+      }));
     } catch {
       historiqueChat = [];
     }
