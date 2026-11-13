@@ -48,7 +48,12 @@ export default function PageFaq() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(donneesFaq) }}
+        // Lot 84 — le « < » est échappé en \u003c (même protection que la
+        // fiche outil, Lot 82) : un texte contenant « </script> » ne peut
+        // plus refermer prématurément ce bloc et injecter du code.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(donneesFaq).replace(/</g, "\\u003c"),
+        }}
       />
 
       {/* ── En-tête ──────────────────────────────────────────── */}

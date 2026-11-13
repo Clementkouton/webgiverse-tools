@@ -5,12 +5,18 @@
 //     (1er clic = vote, 2e clic = retrait) et notifie l'auteur de
 //     l'avis in-app (modèle Notification, type "VOTE_AVIS").
 //   • Répond { ok, monVote, votes } — le front met à jour le bouton.
+//
+// Lot 84 — DEUX DURCISSEMENTS :
+//   1. FIN DE LA FUITE D'INFORMATIONS : « detail » (message d'exception
+//      complet) n'est plus renvoyé au navigateur — logs serveur only.
+//   2. LIMITE DE DÉBIT : 30 bascules de vote par membre et par minute.
 // ─────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
+import { autoriserRequete } from "@/lib/limitation-debit"; // Lot 84
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +25,14 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { erreur: "Connecte-toi pour voter « Utile » sur un avis." },
         { status: 401 }
+      );
+    }
+
+    // Lot 84 — 30 bascules par membre et par minute maximum.
+    if (!autoriserRequete(`vote-avis:${session.user.id}`, 30, 60_000)) {
+      return NextResponse.json(
+        { erreur: "Trop de votes d'affilée. Réessaie dans une minute." },
+        { status: 429 }
       );
     }
 
@@ -121,10 +135,7 @@ export async function POST(req: Request) {
   } catch (erreur: any) {
     console.error("[/api/avis/vote][POST] ERREUR COMPLÈTE :", erreur);
     return NextResponse.json(
-      {
-        erreur: "Erreur interne du vote.",
-        detail: String(erreur?.message ?? erreur),
-      },
+      { erreur: "Erreur interne du vote." },
       { status: 500 }
     );
   }

@@ -1,9 +1,18 @@
 // app/api/avis/route.ts
+//
+// Lot 84 — DEUX DURCISSEMENTS :
+//   1. FIN DE LA FUITE D'INFORMATIONS : « detail » (message d'exception
+//      complet : tables, champs Prisma…) n'est plus renvoyé au
+//      navigateur — il reste dans les logs serveur.
+//   2. LIMITE DE DÉBIT sur la publication d'avis : 10 avis par membre
+//      et par heure (un membre n'écrit en pratique qu'un avis par
+//      outil ; un script ne peut plus inonder la table).
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
+import { autoriserRequete } from "@/lib/limitation-debit"; // Lot 84
 
 export async function GET(req: Request) {
   try {
@@ -114,13 +123,11 @@ export async function GET(req: Request) {
       ),
     });
   } catch (erreur: any) {
-    // Le VRAI message d'erreur s'affiche désormais dans le terminal
+    // Le VRAI message d'erreur s'affiche dans le terminal / les logs
+    // Vercel — jamais dans la réponse HTTP (Lot 84).
     console.error("[/api/avis][GET] ERREUR COMPLÈTE :", erreur);
     return NextResponse.json(
-      {
-        erreur: "Erreur interne /api/avis.",
-        detail: String(erreur?.message ?? erreur),
-      },
+      { erreur: "Erreur interne /api/avis." },
       { status: 500 }
     );
   }
@@ -133,6 +140,14 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { erreur: "Connectez-vous pour laisser un avis." },
         { status: 401 }
+      );
+    }
+
+    // Lot 84 — 10 avis par membre et par heure maximum (anti spam).
+    if (!autoriserRequete(`avis:${session.user.id}`, 10, 60 * 60_000)) {
+      return NextResponse.json(
+        { erreur: "Trop d'avis publiés d'affilée. Réessaie plus tard." },
+        { status: 429 }
       );
     }
 
@@ -203,10 +218,7 @@ export async function POST(req: Request) {
   } catch (erreur: any) {
     console.error("[/api/avis][POST] ERREUR COMPLÈTE :", erreur);
     return NextResponse.json(
-      {
-        erreur: "Erreur interne /api/avis.",
-        detail: String(erreur?.message ?? erreur),
-      },
+      { erreur: "Erreur interne /api/avis." },
       { status: 500 }
     );
   }
@@ -249,10 +261,7 @@ export async function DELETE(req: Request) {
   } catch (erreur: any) {
     console.error("[/api/avis][DELETE] ERREUR COMPLÈTE :", erreur);
     return NextResponse.json(
-      {
-        erreur: "Erreur interne /api/avis.",
-        detail: String(erreur?.message ?? erreur),
-      },
+      { erreur: "Erreur interne /api/avis." },
       { status: 500 }
     );
   }

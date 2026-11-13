@@ -6,21 +6,30 @@
 // Tables : outils, prompts, tutoriels, articles, utilisateurs, avis,
 //          abonnements, paiements, parrainages, propositions, contacts.
 // Chaque téléchargement est tracé dans le journal d'audit.
+//
+// Lot 84 — DEUX DURCISSEMENTS :
+//   1. INJECTION DE FORMULES CSV : les cellules commençant par
+//      « = + - @ » (saisies des membres : requêtes de recherche, noms
+//      de listes, avis…) sont neutralisées avec une apostrophe
+//      (voir lib/export-csv.ts) — impossible d'exécuter une formule
+//      dans Excel / LibreOffice à l'ouverture du fichier.
+//   2. LES MOTS DE PASSE (empreintes bcrypt) NE SONT PLUS EXPORTÉS :
+//      la sauvegarde JSON embarquait la colonne motDePasse de la table
+//      utilisateur. Une fuite du fichier de sauvegarde (disque, cloud,
+//      e-mail) aurait exposé toutes les empreintes — attaquables hors
+//      ligne. Elles restent en base, évidemment.
+//   3. Le message d'erreur interne n'est plus renvoyé au navigateur
+//      (il reste dans les logs serveur).
 // ─────────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { tracerConsultation } from "@/lib/journal-admin";
+import { celluleCsv, neutraliserFormuleCsv } from "@/lib/export-csv";
 
-/** Sérialise une valeur pour une cellule CSV (séparateur « ; »). */
+/** Sérialise une valeur pour une cellule CSV (anti formule Lot 84). */
 function cellule(valeur: unknown): string {
-  let texte: string;
-  if (valeur === null || valeur === undefined) texte = "";
-  else if (valeur instanceof Date) texte = valeur.toISOString();
-  else if (typeof valeur === "object") texte = JSON.stringify(valeur);
-  else texte = String(valeur);
-  if (/[;"\n]/.test(texte)) return `"${texte.replace(/"/g, '""')}"`;
-  return texte;
+  return celluleCsv(neutraliserFormuleCsv(valeur));
 }
 
 function versCsv(lignes: Record<string, unknown>[]): string {
@@ -66,7 +75,13 @@ export async function GET(requete: NextRequest) {
         tutoriels, articles, avis, abonnements, paiements,
         parrainages, propositions, contacts, notifications,
       ] = await Promise.all([
-        prisma.user.findMany(),
+        // Lot 84 — jamais de motDePasse dans la sauvegarde.
+        prisma.user.findMany({
+          select: {
+            id: true, name: true, email: true, role: true, statut: true,
+            image: true, createdAt: true, emailVerified: true,
+          },
+        }),
         prisma.tool.findMany({ include: { categories: true } }),
         prisma.category.findMany(),
         prisma.prompt.findMany(),
@@ -105,8 +120,12 @@ export async function GET(requete: NextRequest) {
       prompts: () => prisma.prompt.findMany() as unknown as Promise<Record<string, unknown>[]>,
       tutoriels: () => prisma.tuto.findMany() as unknown as Promise<Record<string, unknown>[]>,
       articles: () => prisma.article.findMany() as unknown as Promise<Record<string, unknown>[]>,
+      // Lot 84 — la table utilisateurs n'expose plus les empreintes bcrypt.
       utilisateurs: () => prisma.user.findMany({
-        select: { id: true, name: true, email: true, role: true, createdAt: true, emailVerified: true },
+        select: {
+          id: true, name: true, email: true, role: true, statut: true,
+          image: true, createdAt: true, emailVerified: true,
+        },
       }) as unknown as Promise<Record<string, unknown>[]>,
       avis: () => prisma.avis.findMany() as unknown as Promise<Record<string, unknown>[]>,
       abonnements: () => prisma.abonnement.findMany() as unknown as Promise<Record<string, unknown>[]>,
@@ -129,9 +148,8 @@ export async function GET(requete: NextRequest) {
     }
     return reponseFichier(JSON.stringify({ table: type, genereLe: new Date().toISOString(), lignes }, null, 2), `webgiverse-${type}-${horodatage}.json`, "application/json");
   } catch (e) {
-    return NextResponse.json(
-      { erreur: e instanceof Error ? e.message : "Export impossible." },
-      { status: 500 },
-    );
+    // Lot 84 — le détail de l'erreur reste dans les logs serveur.
+    console.error("[/api/admin/export] ERREUR COMPLÈTE :", e);
+    return NextResponse.json({ erreur: "Export impossible." }, { status: 500 });
   }
 }

@@ -5,16 +5,26 @@
 // Réservé aux abonnés Premium actifs (même règle que la page d'export).
 // Format compatible Excel FR : séparateur « ; », BOM UTF-8 (accents OK),
 // guillemets doublés dans les valeurs (standard RFC 4180).
+//
+// Lot 84 — SÉCURITÉ : INJECTION DE FORMULES CSV neutralisée. Les noms
+// de listes et de notes sont saisis par les membres : une liste nommée
+// « =WEBSERVICE(...) » ne doit jamais s'exécuter dans Excel à
+// l'ouverture du fichier. Chaque cellule commençant par « = + - @ »
+// (ou une tabulation / un retour chariot) est précédée d'une
+// apostrophe → le tableur la traite comme du texte brut
+// (voir neutraliserFormuleCsv dans lib/export-csv.ts).
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { premiumActif } from "@/lib/premium";
+import { neutraliserFormuleCsv } from "@/lib/export-csv"; // Lot 84
 
 export const dynamic = "force-dynamic";
 
-/** Échappe une valeur CSV : guillemets doublés + encadrement systématique. */
+/** Échappe une valeur CSV : anti formule + guillemets doublés +
+ *  encadrement systématique. */
 function cellule(valeur: string | number | null | undefined): string {
-  const texte = String(valeur ?? "").replace(/"/g, '""');
+  const texte = String(neutraliserFormuleCsv(valeur) ?? "").replace(/"/g, '""');
   return `"${texte}"`;
 }
 

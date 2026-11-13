@@ -130,7 +130,12 @@ export default async function PageTarifs() {
     <div className="mx-auto max-w-6xl px-4 py-10 lg:py-14">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(donneesFaqTarifs) }}
+        // Lot 84 — le « < » est échappé en \u003c (même protection que la
+        // fiche outil, Lot 82) : un texte contenant « </script> » ne peut
+        // plus refermer prématurément ce bloc et injecter du code.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(donneesFaqTarifs).replace(/</g, "\\u003c"),
+        }}
       />
 
       <header className="mx-auto max-w-2xl text-center">

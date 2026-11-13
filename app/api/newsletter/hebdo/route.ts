@@ -13,13 +13,36 @@
 //
 // Sécurité : sans le bon secret, la route répond 401 — impossible
 // de déclencher un envoi en masse sans autorisation.
+//
+// Lot 84 — COMPARAISON « TIMING-SAFE » du secret : l'ancien test
+// `autorisation !== \`Bearer ${secret}\`` comparait caractère par
+// caractère et s'arrêtait à la première différence → théoriquement,
+// en mesurant le TEMPS de réponse, un attaquant pouvait deviner le
+// secret lettre par lettre (attaque par analyse de temps). Désormais
+// crypto.timingSafeEqual compare TOUS les octets, quel que soit le
+// résultat : le temps de réponse ne révèle plus rien.
 // ─────────────────────────────────────────────────────────────────
+import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+/** Comparaison de deux secrets sans fuite par le temps de réponse. */
+function compareSecretes(a: string, b: string): boolean {
+  const octetsA = Buffer.from(a, "utf8");
+  const octetsB = Buffer.from(b, "utf8");
+  if (octetsA.length !== octetsB.length) {
+    // Longueurs différentes → secret faux. On compare quand même deux
+    // buffers pour garder un temps de calcul constant, sans révéler
+    // d'information exploitable.
+    timingSafeEqual(octetsA, octetsA);
+    return false;
+  }
+  return timingSafeEqual(octetsA, octetsB);
+}
 
 export async function GET(requete: Request) {
   // 1) Vérification du secret
@@ -30,8 +53,8 @@ export async function GET(requete: Request) {
       { status: 500 }
     );
   }
-  const autorisation = requete.headers.get("authorization");
-  if (autorisation !== `Bearer ${secret}`) {
+  const autorisation = requete.headers.get("authorization") ?? "";
+  if (!compareSecretes(autorisation, `Bearer ${secret}`)) {
     return NextResponse.json({ ok: false, erreur: "Non autorisé." }, { status: 401 });
   }
 

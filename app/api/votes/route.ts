@@ -1,9 +1,20 @@
 // app/api/votes/route.ts
+//
+// Lot 84 — DEUX DURCISSEMENTS :
+//   1. FIN DE LA FUITE D'INFORMATIONS : l'ancienne réponse d'erreur
+//      500 renvoyait « detail » avec le message d'exception complet
+//      (messages Prisma, noms de tables et de champs…) au navigateur.
+//      Le VRAI message reste dans les logs serveur ; le client reçoit
+//      un message générique.
+//   2. LIMITE DE DÉBIT sur le vote : 30 bascules par membre et par
+//      minute — un script ne peut plus marteler la route (chaque vote
+//      écrit en base + une ligne de journal).
 
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
+import { autoriserRequete } from "@/lib/limitation-debit"; // Lot 84
 
 export async function GET(req: Request) {
   try {
@@ -51,12 +62,11 @@ export async function GET(req: Request) {
       nombre,
     });
   } catch (erreur: any) {
+    // Le VRAI message d'erreur s'affiche dans le terminal / les logs
+    // Vercel — jamais dans la réponse HTTP (Lot 84).
     console.error("[/api/votes][GET] ERREUR COMPLÈTE :", erreur);
     return NextResponse.json(
-      {
-        erreur: "Erreur interne /api/votes.",
-        detail: String(erreur?.message ?? erreur),
-      },
+      { erreur: "Erreur interne /api/votes." },
       { status: 500 }
     );
   }
@@ -69,6 +79,14 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { erreur: "Connectez-vous pour recommander cet outil." },
         { status: 401 }
+      );
+    }
+
+    // Lot 84 — 30 bascules de vote par membre et par minute maximum.
+    if (!autoriserRequete(`vote:${session.user.id}`, 30, 60_000)) {
+      return NextResponse.json(
+        { erreur: "Trop de votes d'affilée. Réessaie dans une minute." },
+        { status: 429 }
       );
     }
 
@@ -130,10 +148,7 @@ export async function POST(req: Request) {
   } catch (erreur: any) {
     console.error("[/api/votes][POST] ERREUR COMPLÈTE :", erreur);
     return NextResponse.json(
-      {
-        erreur: "Erreur interne /api/votes.",
-        detail: String(erreur?.message ?? erreur),
-      },
+      { erreur: "Erreur interne /api/votes." },
       { status: 500 }
     );
   }

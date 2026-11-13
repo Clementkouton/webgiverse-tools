@@ -7,6 +7,68 @@ import type { NextConfig } from "next";
 // AVEC le préfixe → cette origine n'était JAMAIS reconnue.
 // ─────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────
+// Lot 84 — CONTENT-SECURITY-POLICY (CSP), en-tête de défense en
+// profondeur : même si une injection HTML passait un jour à travers
+// une faille inconnue, le navigateur REFUSERAIT d'exécuter un script
+// qui ne vient pas du site, d'incorporer un <object>/<embed> tiers,
+// de soumettre un formulaire vers un domaine pirate ou de détourner
+// la balise <base>.
+//
+// Choix de politique (conservateur, sans rien casser) :
+//   • script-src 'self' 'unsafe-inline'  → Next.js a BESOIN de scripts
+//     en ligne pour hydrater les pages ; la CSP bloque malgré tout les
+//     scripts venant d'UN AUTRE DOMAINE (pirate.example/evil.js) et
+//     les balises <object>/<embed>. (+ 'unsafe-eval' en développement :
+//     exigé par le rechargement à chaud de React, retiré en prod.)
+//   • style-src 'self' 'unsafe-inline'   → Tailwind et les styles
+//     en ligne du site.
+//   • img-src 'self' data: blob: https:  → favicons Google, logos des
+//     outils hébergés chez eux, QR codes en data:…
+//   • font-src 'self' data:              → polices auto-hébergées
+//     (aucun Google Fonts externe).
+//   • connect-src 'self'                 → le navigateur ne peut plus
+//     envoyer de données (fetch/XHR) vers un domaine tiers.
+//   • frame-src YouTube                  → seuls les lecteurs YouTube
+//     (www.youtube.com / www.youtube-nocookie.com) peuvent être
+//     incorporés — plus aucune autre iframe externe. Chariow est
+//     pré-autorisé pour le futur mode iframe du bouton de paiement.
+//   • object-src 'none' ; base-uri 'self' ; form-action 'self'.
+//   • frame-ancestors 'self'             → équivalent moderne du
+//     X-Frame-Options: DENY déjà présent (double barrière).
+//   • upgrade-insecure-requests (prod)   → toute sous-ressource http://
+//     est automatiquement réessayée en https://.
+//
+// Les EXCLUSIONS existantes restent inchangées : /api/embed/… (widget
+// destiné à être encadré par les sites clients, avec sa CSP propre
+// « frame-ancestors * ») ainsi que /tarifs/retour et /paiement/retour
+// (page de retour conçue pour l'iframe Chariow).
+// ─────────────────────────────────────────────────────────────────
+
+const enDeveloppement = process.env.NODE_ENV === "development";
+
+const POLITIQUE_CSP = [
+  "default-src 'self'",
+  enDeveloppement
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  // Développement : le rechargement à chaud de Next.js passe par
+  // ws://localhost — autorisé uniquement hors production.
+  enDeveloppement
+    ? "connect-src 'self' ws: http://localhost:* http://127.0.0.1:*"
+    : "connect-src 'self'",
+  "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://*.chariow.com",
+  "media-src 'self' https:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  ...(enDeveloppement ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
 const nextConfig: NextConfig = {
   // ───────────────────────────────────────────────────────────────
   // Redirection des anciennes URL de métiers au singulier
@@ -37,6 +99,7 @@ const nextConfig: NextConfig = {
   //   • Strict-Transport-Security — le navigateur n'utilisera plus
   //     jamais HTTP pour ce site (ignoré sur localhost en http,
   //     sans effet en développement local).
+  //   • Content-Security-Policy — voir le bloc Lot 84 ci-dessus.
   //
   // ⚠️ DEUX EXCEPTIONS VOLONTAIRES (la source exclut ces chemins) :
   //   • /api/embed/… → widget public DESTINÉ à être encadré par les
@@ -62,6 +125,10 @@ const nextConfig: NextConfig = {
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: POLITIQUE_CSP,
           },
         ],
       },
