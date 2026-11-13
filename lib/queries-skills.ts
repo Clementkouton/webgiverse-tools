@@ -7,9 +7,20 @@
 // · categoriesSkills : catégories FR réellement utilisées + compteurs.
 // · compterSkillsStats : total pour le héros de la page.
 // Défensif : table absente → listes vides (jamais de crash).
+// LOT 77 — la recherche applique le FILTRE PAR MOTS INDÉPENDANTS :
+// chaque mot tapé doit être présent, peu importe l'ordre — même
+// comportement que la recherche du tableau admin. Les helpers sont
+// partagés avec lib/queries.ts (motsRecherche, variantesDeMot,
+// avecMajuscule) : un seul endroit à corriger si le comportement
+// évolue.
 // ─────────────────────────────────────────────────────────────────
 import { prisma } from "@/lib/prisma";
-import type { Skill } from "@prisma/client";
+import type { Prisma, Skill } from "@prisma/client";
+import {
+  motsRecherche,
+  variantesDeMot,
+  avecMajuscule,
+} from "@/lib/queries";
 
 // Models ajoutés après la génération actuelle du client Prisma.
 const prismaLot40 = prisma as unknown as Record<string, any>;
@@ -26,22 +37,44 @@ function propre(valeur: string | undefined | null): string {
   return (valeur ?? "").trim();
 }
 
-/** Liste paginée des skills — la page est bornée au nombre réel de pages. */
+/** Liste paginée des skills — la page est bornée au nombre réel de pages.
+ *  Lot 77 — la recherche utilise le filtre par mots indépendants : */
 export async function listerSkills(
   filtres: FiltresSkills = {},
 ): Promise<{ skills: Skill[]; total: number; page: number; pages: number }> {
   const q = propre(filtres.q).slice(0, 80);
   const categorie = propre(filtres.categorie);
-  const where = {
-    ...(q
-      ? {
-          OR: [
-            { titre: { contains: q, mode: "insensitive" as const } },
-            { description: { contains: q, mode: "insensitive" as const } },
-            { tags: { has: q } },
+
+  // Lot 77 — UN « ET » PAR MOT tapé, des « OU » à l'intérieur (titre,
+  // description, tags, variantes sans accents). Même comportement que
+  // la recherche admin : « code data » trouve « Analyser des données
+  // avec un script Python ».
+  const conditions: Prisma.SkillWhereInput[] = [];
+  for (const mot of motsRecherche(q)) {
+    conditions.push({
+      OR: [
+        ...variantesDeMot(mot).flatMap(
+          (v): Prisma.SkillWhereInput[] => [
+            { titre: { contains: v, mode: "insensitive" } },
+            { description: { contains: v, mode: "insensitive" } },
           ],
-        }
-      : {}),
+        ),
+        {
+          // Les tags sont un tableau de chaînes : `hasSome` compare
+          // exactement (pas d'insensibilité possible), on couvre donc
+          // les variantes de casse comme pour les outils des tutos.
+          tags: {
+            hasSome: [
+              ...new Set([mot, avecMajuscule(mot), mot.toLowerCase(), mot.toUpperCase()]),
+            ],
+          },
+        },
+      ],
+    });
+  }
+
+  const where = {
+    ...(conditions.length ? { AND: conditions } : {}),
     ...(categorie ? { categorie } : {}),
   };
   try {

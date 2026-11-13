@@ -111,6 +111,39 @@ export async function outilsAlternatifs(outilId: string, categorieSlugs: string[
   return proches.map(versCarte);
 }
 
+/* ── Lot 77 — FILTRE PAR MOTS INDÉPENDANTS ───────────────────────
+   Le même comportement que la recherche du tableau admin
+   (components/admin/gestion-liste-admin.tsx), porté EN BASE pour
+   conserver la pagination serveur : chaque mot de la requête doit
+   être présent, peu importe l'ordre ni la position — « figma
+   maquette » trouve « Maquette et design Figma ». La casse est
+   ignorée par Prisma (mode: "insensitive") et chaque mot est aussi
+   testé dans sa version sans accents, pour rattraper les intitulés
+   anglais (« vidéo » retrouve aussi « Video »).
+   Les trois helpers ci-dessous sont EXPORTÉS : lib/queries-skills.ts
+   les réutilise pour la recherche de /skills — un seul endroit à
+   corriger si le comportement évolue. */
+
+/** Découpe la requête en mots exploitables — 8 au maximum : au-delà,
+ *  la requête devient absurde et le « ET » géant coûteux pour rien. */
+export function motsRecherche(q: string | undefined): string[] {
+  return (q ?? "").split(/\s+/).filter(Boolean).slice(0, 8);
+}
+
+/** Le mot, plus sa version sans accents si elle diffère (« méthode »
+ *  teste aussi « methode »). */
+export function variantesDeMot(mot: string): string[] {
+  const sans = mot.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return [...new Set(sans === mot ? [mot] : [mot, sans])].filter((v) => v.length > 0);
+}
+
+/** « figma » → « Figma » : les noms d'outils du tableau outils[] sont
+ *  en général capitalisés et `hasSome` compare exactement (sans
+ *  insensibilité à la casse possible sur un tableau de chaînes). */
+export function avecMajuscule(mot: string): string {
+  return mot.charAt(0).toUpperCase() + mot.slice(1);
+}
+
 /* ============================================================
    TUTORIELS VIDÉO IA (/tutoriels)
    ============================================================ */
@@ -121,7 +154,7 @@ export async function outilsAlternatifs(outilId: string, categorieSlugs: string[
 const tutoDb = prisma.tuto;
 
 export type FiltresTutos = {
-  q?: string; // recherche plein texte dans le titre et les tags
+  q?: string; // Lot 77 — recherche par mots indépendants dans le titre et les outils
   niveau?: string; // "debutant" | "intermediaire" | "avance"
   outil?: string; // nom d'outil exact du tableau outils[] (ex: "ChatGPT")
   tri?: string; // "pertinence" (défaut) | "nouveautes" | "vues" | "az" | "za"
@@ -157,10 +190,22 @@ function triTutos(tri?: string): Prisma.TutoOrderByWithRelationInput[] {
 export async function listerTutos(f: FiltresTutos = {}) {
   const conditions: Prisma.TutoWhereInput[] = [];
 
-  const q = f.q?.trim();
-  if (q) {
+  // Lot 77 — UN « ET » PAR MOT tapé, des « OU » à l'intérieur (titre,
+  // variantes sans accents, noms d'outils du tableau outils[]).
+  for (const mot of motsRecherche(f.q)) {
     conditions.push({
-      OR: [{ titre: { contains: q, mode: "insensitive" } }, { outils: { has: q } }],
+      OR: [
+        ...variantesDeMot(mot).map(
+          (v): Prisma.TutoWhereInput => ({ titre: { contains: v, mode: "insensitive" } }),
+        ),
+        {
+          outils: {
+            hasSome: [
+              ...new Set([mot, avecMajuscule(mot), mot.toLowerCase(), mot.toUpperCase()]),
+            ],
+          },
+        },
+      ],
     });
   }
   if (f.niveau === "debutant") conditions.push({ niveau: "DEBUTANT" });
@@ -233,7 +278,7 @@ const promptCategorieDb = prisma.promptCategorie;
 export const PROMPTS_PAR_PAGE = 16;
 
 export type FiltresPrompts = {
-  q?: string; // recherche dans le titre, la description et la sous-catégorie
+  q?: string; // Lot 77 — recherche par mots indépendants dans le titre, la description et la sous-catégorie
   categorie?: string; // slug de PromptCategorie
   role?: string; // slug de rôle (tableau Prompt.roles[])
   type?: string; // "texte" | "image" | "code"
@@ -266,18 +311,22 @@ function typePromptDepuisFiltre(type?: string): "TEXTE" | "IMAGE" | "CODE" | und
   return undefined;
 }
 
-/** Liste paginée des prompts (bibliothèque, catégorie ou rôle). */
+/** Liste paginée des prompts (bibliothèque, catégorie ou rôle).
+ *  Lot 77 — la recherche utilise le filtre par mots indépendants : */
 export async function listerPrompts(f: FiltresPrompts = {}) {
   const conditions: Prisma.PromptWhereInput[] = [];
 
-  const q = f.q?.trim();
-  if (q) {
+  // Lot 77 — UN « ET » PAR MOT tapé, des « OU » à l'intérieur (titre,
+  // description, sous-catégorie, variantes sans accents).
+  for (const mot of motsRecherche(f.q)) {
     conditions.push({
-      OR: [
-        { titre: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-        { sousCategorie: { contains: q, mode: "insensitive" } },
-      ],
+      OR: variantesDeMot(mot).flatMap(
+        (v): Prisma.PromptWhereInput[] => [
+          { titre: { contains: v, mode: "insensitive" } },
+          { description: { contains: v, mode: "insensitive" } },
+          { sousCategorie: { contains: v, mode: "insensitive" } },
+        ],
+      ),
     });
   }
   if (f.categorie) conditions.push({ categorie: { slug: f.categorie } });
