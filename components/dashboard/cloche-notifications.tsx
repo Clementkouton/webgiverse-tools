@@ -145,11 +145,11 @@ export default function ClocheNotifications() {
             : "Notifications"
         }
         aria-expanded={ouvert}
-        className="relative grid size-11 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white/70 text-bleu transition hover:bg-white active:scale-95"
+        className="relative grid size-11 shrink-0 place-items-center rounded-[7px]  not-italic border border-bordure bg-white/70 text-bleu transition hover:bg-white active:scale-95"
       >
         <Bell className="size-5" aria-hidden />
         {nonLues > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 grid h-4 min-w-4 place-items-center rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-1 text-[10px] leading-none font-bold text-white shadow-sm">
+          <span className="absolute -top-0.5 -right-0.5 grid h-4 min-w-4 place-items-center rounded-[7px]  not-italic bg-violet px-1 text-[10px] leading-none font-bold text-white shadow-sm">
             {nonLues > 9 ? "9+" : nonLues}
           </span>
         )}
@@ -170,7 +170,7 @@ export default function ClocheNotifications() {
               <button
                 type="button"
                 onClick={toutMarquerLu}
-                className="text-[12px] leading-4 font-semibold text-violet transition hover:underline"
+                className="text-[12px] leading-4 font-semibold text-sky-500 transition hover:underline"
               >
                 Tout marquer comme lu
               </button>
@@ -197,7 +197,7 @@ export default function ClocheNotifications() {
                 >
                   <span
                     aria-hidden
-                    className={`mt-1.5 size-2 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic ${
+                    className={`mt-1.5 size-2 shrink-0 rounded-[7px]  not-italic ${
                       item.lue ? "bg-bordure" : "bg-violet"
                     }`}
                   />

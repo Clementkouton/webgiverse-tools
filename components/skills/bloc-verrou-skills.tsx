@@ -20,13 +20,13 @@ export function BlocVerrouSkills({ connecte }: { connecte: boolean }) {
     >
       <p className="flex flex-wrap items-center gap-2.5 font-titre text-[17px] leading-6 font-bold text-bleu">
         <span
-          className="grid size-9 place-items-center rounded-lg bg-violet/10 text-violet"
+          className="grid size-9 place-items-center rounded-lg bg-violet/10 text-sky-500"
           aria-hidden
         >
           <Crown className="size-4.5" />
         </span>
         Bibliothèque réservée aux abonnés Premium
-        <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+        <span className="inline-flex items-center gap-1 rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-sky-500">
           Premium
         </span>
       </p>

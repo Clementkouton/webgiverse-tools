@@ -145,7 +145,7 @@ const MESSAGES: Record<string, { ok: boolean; texte: string }> = {
 const styleChamp =
   "min-h-11 w-full rounded-champ border border-bordure bg-white px-4 text-[14px] text-encre placeholder:text-encre/40 focus:border-violet focus:outline-none focus:ring-2 focus:ring-violet/30";
 const styleBoutonRouge =
-  "inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
+  "inline-flex min-h-11 items-center gap-2 rounded-[7px]  not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
 
 export default async function PageEspaceEntreprise({ searchParams }: Props) {
   const { message } = await searchParams;
@@ -291,12 +291,12 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8 lg:py-10">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <Building2 className="size-7 text-violet" aria-hidden /> Espace
+          <Building2 className="size-7 text-sky-500" aria-hidden /> Espace
           Entreprise
         </h1>
         <Carte className="animate-apparition-haut mt-6 p-6 text-center">
           <p className="flex items-center justify-center gap-2 text-[15px] font-semibold text-encre">
-            <Building2 className="size-5 text-violet" aria-hidden /> L&apos;Espace
+            <Building2 className="size-5 text-sky-500" aria-hidden /> L&apos;Espace
             Entreprise est réservé au plan Entreprise
           </p>
           <p className="mx-auto mt-2 max-w-xl text-[14px] leading-5 text-encre/70">
@@ -316,7 +316,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 lg:py-10">
       <h1 className="flex items-center gap-2 text-h2 font-semibold">
-        <Building2 className="size-7 text-violet" aria-hidden /> Espace
+        <Building2 className="size-7 text-sky-500" aria-hidden /> Espace
         Entreprise
       </h1>
       <p className="mt-1 text-[14px] leading-5 text-encre/70">
@@ -371,7 +371,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
       {/* ── Section 1 : Collaborateurs (idée 19) ─────────────── */}
       <Carte className="mt-6 p-6">
         <p className={titreSection}>
-          <Users className="size-5 text-violet" aria-hidden /> Collaborateurs
+          <Users className="size-5 text-sky-500" aria-hidden /> Collaborateurs
           de tes listes
         </p>
         <p className="mt-1 text-[13px] leading-5 text-encre/70">
@@ -425,7 +425,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
                 <div className="min-w-0">
                   <p className="truncate text-[14px] font-semibold text-encre">
                     {collab.nom || collab.email}
-                    <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-violet">
+                    <span className="ml-2 rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-sky-500">
                       {collab.role === "EDITEUR" ? "ÉDITEUR" : "LECTEUR"}
                     </span>
                   </p>
@@ -459,13 +459,13 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
       {/* ── Section 2 : Modèles (idée 22) ────────────────────── */}
       <Carte className="mt-6 p-6">
         <p className={titreSection}>
-          <BookMarked className="size-5 text-violet" aria-hidden /> Modèles de
+          <BookMarked className="size-5 text-sky-500" aria-hidden /> Modèles de
           listes
         </p>
         <p className="mt-1 text-[13px] leading-5 text-encre/70">
           Propose une liste <strong>publique</strong> comme modèle : les
           abonnés Entreprise peuvent la cloner en un clic depuis{" "}
-          <Link href="/modeles" className="font-semibold text-violet underline">
+          <Link href="/modeles" className="font-semibold text-sky-500 underline">
             /modeles
           </Link>{" "}
           — ta liste originale reste intacte.
@@ -487,7 +487,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
                     <p className="truncate text-[14px] font-semibold text-encre">
                       {liste.nom}
                       {estModele && (
-                        <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-violet">
+                        <span className="ml-2 rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[11px] font-bold text-sky-500">
                           MODÈLE
                         </span>
                       )}
@@ -527,7 +527,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
       {/* ── Section 3 : Widget (idée 20) ─────────────────────── */}
       <Carte className="mt-6 p-6">
         <p className={titreSection}>
-          <Code2 className="size-5 text-violet" aria-hidden /> Widget pour ton
+          <Code2 className="size-5 text-sky-500" aria-hidden /> Widget pour ton
           site
         </p>
         <p className="mt-1 text-[13px] leading-5 text-encre/70">
@@ -569,7 +569,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
       {/* ── Section 4 : Clés API (idée 21) ───────────────────── */}
       <Carte className="mt-6 p-6">
         <p className={titreSection}>
-          <KeyRound className="size-5 text-violet" aria-hidden /> Clés d&apos;API
+          <KeyRound className="size-5 text-sky-500" aria-hidden /> Clés d&apos;API
           de lecture ({clesActives.length}/5 actives)
         </p>
         <p className="mt-1 text-[13px] leading-5 text-encre/70">
@@ -605,7 +605,7 @@ export default async function PageEspaceEntreprise({ searchParams }: Props) {
                   <p className="truncate text-[14px] font-semibold text-encre">
                     {cle.nom}
                     {cle.revoqueeLe && (
-                      <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-encre/10 px-2 py-0.5 text-[11px] font-bold text-encre/60">
+                      <span className="ml-2 rounded-[7px]  not-italic bg-encre/10 px-2 py-0.5 text-[11px] font-bold text-encre/60">
                         RÉVOQUÉE
                       </span>
                     )}

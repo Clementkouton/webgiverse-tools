@@ -13,7 +13,7 @@ export default function ExigeConnexion({ suite, titre, message }: Props) {
     <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-md rounded-carte border border-bordure bg-white p-6 shadow-carte sm:p-8">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500/10 text-sky-500">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-[7px]  not-italic bg-sky-500/10 text-sky-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

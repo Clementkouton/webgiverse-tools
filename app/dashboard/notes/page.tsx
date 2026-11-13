@@ -111,14 +111,14 @@ export default async function PageMesNotes() {
     <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-8 lg:py-10">
       <Link
         href="/dashboard"
-        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-sky-500"
       >
         <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
       </Link>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <NotebookPen className="size-7 shrink-0 text-violet" aria-hidden /> Mes notes
+          <NotebookPen className="size-7 shrink-0 text-sky-500" aria-hidden /> Mes notes
         </h1>
         <Bouton asChild variante="secondaire">
           <Link href="/tutoriels">Tous les tutoriels</Link>
@@ -162,7 +162,7 @@ export default async function PageMesNotes() {
       {/* ── État vide ─────────────────────────────────────────────── */}
       {!probleme && notes.length === 0 && (
         <Carte className="mt-6 p-10 text-center">
-          <NotebookPen className="mx-auto size-10 text-violet" aria-hidden />
+          <NotebookPen className="mx-auto size-10 text-sky-500" aria-hidden />
           <h2 className="mt-3 font-titre text-[18px] leading-6 font-semibold text-bleu">
             Aucune note pour l&apos;instant
           </h2>
@@ -181,7 +181,7 @@ export default async function PageMesNotes() {
       {notes.length > 0 && (
         <section className="mt-8" aria-label="Notes prises pendant les tutoriels">
           <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-            <NotebookPen className="size-4.5 shrink-0 text-violet" aria-hidden /> Tes notes ({notes.length})
+            <NotebookPen className="size-4.5 shrink-0 text-sky-500" aria-hidden /> Tes notes ({notes.length})
           </h2>
           <ul className="mt-3 flex flex-col gap-3">
             {notes.map((note) => {
@@ -213,7 +213,7 @@ export default async function PageMesNotes() {
 
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate font-titre text-[15px] leading-5 font-semibold text-bleu">
-                        <Link href={`/tutoriels/${t.slug}`} className="transition hover:text-violet">
+                        <Link href={`/tutoriels/${t.slug}`} className="transition hover:text-sky-500">
                           {t.titre}
                         </Link>
                       </h3>
@@ -241,7 +241,7 @@ export default async function PageMesNotes() {
                         <BoutonConfirmer
                           message={`Supprimer ta note sur « ${t.titre} » ?`}
                           aria-label={`Supprimer la note sur ${t.titre}`}
-                          className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                          className="grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                         >
                           <Trash2 className="size-4" aria-hidden />
                         </BoutonConfirmer>

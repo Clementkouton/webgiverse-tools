@@ -44,7 +44,7 @@ export function BoutonDeconnexion() {
         setEnCours(true);
         deconnexion().catch(() => setEnCours(false));
       }}
-      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500 bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
+      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px]  not-italic border border-sky-500 bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
     >
       {enCours ? (
         <>
@@ -74,7 +74,7 @@ export function BoutonDeconnexionBarre({ sombre = false }: { sombre?: boolean })
       }}
       aria-label="Se déconnecter"
       className={cn(
-        "grid size-11 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic transition active:scale-95 disabled:cursor-wait disabled:opacity-60",
+        "grid size-11 shrink-0 place-items-center rounded-[7px]  not-italic transition active:scale-95 disabled:cursor-wait disabled:opacity-60",
         sombre
           ? "border border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-magenta"
           : "border border-bordure bg-white/70 text-bleu hover:bg-white hover:text-red-600"

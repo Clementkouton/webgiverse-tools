@@ -114,7 +114,7 @@ export default async function PageMesTutoriels() {
 
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-titre text-[15px] leading-5 font-semibold text-bleu">
-            <Link href={`/tutoriels/${t.slug}`} className="transition hover:text-violet">
+            <Link href={`/tutoriels/${t.slug}`} className="transition hover:text-sky-500">
               {t.titre}
             </Link>
           </h3>
@@ -128,7 +128,7 @@ export default async function PageMesTutoriels() {
                 <CheckCircle2 className="size-3.5" aria-hidden /> Terminé
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-[12px] leading-4 font-semibold text-violet">
+                <span className="inline-flex items-center gap-1 text-[12px] leading-4 font-semibold text-sky-500">
                 <CircleDashed className="size-3.5" aria-hidden /> En cours
               </span>
             )}
@@ -146,7 +146,7 @@ export default async function PageMesTutoriels() {
                 type="submit"
                 title="Marquer comme terminé"
                 aria-label={`Marquer ${t.titre} comme terminé`}
-                className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-sky-500/40 hover:text-sky-500 active:scale-95"
+                className="grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white text-encre transition hover:border-sky-500/40 hover:text-sky-500 active:scale-95"
               >
                 <CheckCircle2 className="size-4" aria-hidden />
               </button>
@@ -160,7 +160,7 @@ export default async function PageMesTutoriels() {
                 type="submit"
                 title="Reprendre / marquer en cours"
                 aria-label={`Marquer ${t.titre} comme en cours`}
-                className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-violet hover:text-violet active:scale-95"
+                className="grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white text-encre transition hover:border-violet hover:text-sky-500 active:scale-95"
               >
                 <CircleDashed className="size-4" aria-hidden />
               </button>
@@ -172,7 +172,7 @@ export default async function PageMesTutoriels() {
             <BoutonConfirmer
               message={`Retirer « ${t.titre} » de ta progression ?`}
               aria-label={`Retirer ${t.titre} de la progression`}
-              className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+              className="grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
             >
               <Trash2 className="size-4" aria-hidden />
             </BoutonConfirmer>
@@ -186,14 +186,14 @@ export default async function PageMesTutoriels() {
     <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-8 lg:py-10">
       <Link
         href="/dashboard"
-        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-sky-500"
       >
         <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
       </Link>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <MonitorPlay className="size-7 shrink-0 text-violet" aria-hidden /> Mes tutoriels
+          <MonitorPlay className="size-7 shrink-0 text-sky-500" aria-hidden /> Mes tutoriels
         </h1>
         <Bouton asChild variante="secondaire">
           <Link href="/tutoriels">Tous les tutoriels</Link>
@@ -220,9 +220,9 @@ export default async function PageMesTutoriels() {
           </div>
           <p className="shrink-0 font-titre text-[34px] leading-10 font-bold">{pourcentage}%</p>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-[7px] -skew-x-[18deg] not-italic bg-white/20">
+        <div className="mt-4 h-2 overflow-hidden rounded-[7px]  not-italic bg-white/20">
           <div
-            className="barre-progression h-full rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
+            className="barre-progression h-full rounded-[7px]  not-italic bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
             style={{ width: `${pourcentage}%` }}
           />
         </div>
@@ -231,7 +231,7 @@ export default async function PageMesTutoriels() {
       {/* ── État vide ─────────────────────────────────────────────── */}
       {progressions.length === 0 && (
         <Carte className="mt-6 p-10 text-center">
-          <MonitorPlay className="mx-auto size-10 text-violet" aria-hidden />
+          <MonitorPlay className="mx-auto size-10 text-sky-500" aria-hidden />
           <h2 className="mt-3 font-titre text-[18px] leading-6 font-semibold text-bleu">
             Aucune progression enregistrée
           </h2>
@@ -249,7 +249,7 @@ export default async function PageMesTutoriels() {
       {enCours.length > 0 && (
         <section className="mt-8" aria-label="Tutoriels en cours">
           <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-            <CircleDashed className="size-4.5 shrink-0 text-violet" aria-hidden /> En cours ({enCours.length})
+            <CircleDashed className="size-4.5 shrink-0 text-sky-500" aria-hidden /> En cours ({enCours.length})
           </h2>
           <ul className="mt-3 flex flex-col gap-3">
             {enCours.map((p) => (

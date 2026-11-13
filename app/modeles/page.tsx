@@ -106,7 +106,7 @@ export default async function PageModeles({ searchParams }: Props) {
     <div className="mx-auto max-w-5xl px-4 py-8 lg:py-12">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="flex items-center justify-center gap-2 text-h2 font-semibold">
-          <BookMarked className="size-7 text-violet" aria-hidden /> Modèles de
+          <BookMarked className="size-7 text-sky-500" aria-hidden /> Modèles de
           listes
         </h1>
         <p className="mt-2 text-[15px] leading-6 text-encre/70">

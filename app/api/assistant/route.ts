@@ -41,9 +41,7 @@ import { prisma } from "@/lib/prisma";
 import { journaliser } from "@/lib/journal";
 import { LIMITES_DECOUVERTE, quotaAssistant } from "@/lib/premium";
 import { outilsPertinents, tokeniser } from "@/lib/assistant/contexte";
-
-// Durée maximale de la fonction sur Vercel (le plan Hobby accepte 60 s).
-export const maxDuration = 60;
+import { autoriserRequete } from "@/lib/limitation-debit"; // Lot 82
 
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
 // LOT 73 — CASCADE ACTUALISÉE (vérifiée en direct sur
@@ -159,12 +157,22 @@ RÉDUCTIONS ACTIVES (codes promo Webgiverse, plans Premium) :
  ${reductions}`;
 }
 
+// Durée maximale de la fonction sur Vercel (le plan Hobby accepte 60 s).
+export const maxDuration = 60;
+
+// Lot 82 — longueur maximum d'une question (anti gaspillage de jetons).
+const MAX_LONGUEUR_MESSAGE = 4000;
+// Lot 82 — anti rafale : 40 questions par utilisateur et par heure en
+// PLUS du quota mensuel (plan Découverte). Plafond d'abus, ajustable.
+const MAX_QUESTIONS_PAR_HEURE = 40;
+
 export async function POST(requete: NextRequest) {
   try {
     // ── 1. LECTURE DU CORPS ─────────────────────────────────────────
-    const corpsBrut = await requete.text();
-    console.log("ASSISTANT : corps brut reçu =", corpsBrut || "(CORPS VIDE)");
-    const corps = JSON.parse(corpsBrut || "{}");
+    // Lot 82 — le corps brut n'est plus loggé : il contient les
+    // questions des membres (données privées), qui n'ont rien à faire
+    // dans les journaux de la plateforme.
+    const corps = (await requete.json().catch(() => ({}))) as Record<string, unknown>;
 
     // ── 2. EXTRACTION TOLÉRANTE DU MESSAGE ──────────────────────────
     const brut =
@@ -186,6 +194,12 @@ export async function POST(requete: NextRequest) {
 
     if (!message) {
       return NextResponse.json({ erreur: "Message vide." }, { status: 400 });
+    }
+    if (message.length > MAX_LONGUEUR_MESSAGE) {
+      return NextResponse.json(
+        { erreur: "Ta question est trop longue (4000 caractères maximum)." },
+        { status: 400 }
+      );
     }
 
     // ── 3. SESSION (obligatoire pour discuter) ──────────────────────
@@ -215,6 +229,25 @@ export async function POST(requete: NextRequest) {
       return NextResponse.json(
         {
           erreur: `Vous avez utilisé vos ${LIMITES_DECOUVERTE.assistantMois} questions de ce mois-ci avec le plan Découverte. Passez au plan Pro pour des questions illimitées.`,
+          raison: "limite",
+        },
+        { status: 429 }
+      );
+    }
+
+    // ── 3.6 ANTI RAFALE (Lot 82) ─────────────────────────────────
+    // Même les plans illimités passent par ce plafond : 40 questions
+    // par heure et par compte suffit largement à un humain, et empêche
+    // un script de marteler OpenRouter avec ta clé.
+    if (!autoriserRequete(`assistant:${utilisateurId}`, MAX_QUESTIONS_PAR_HEURE, 60 * 60_000)) {
+      await journaliser(
+        utilisateurId,
+        "assistant",
+        "Plafond horaire de l'assistant atteint"
+      ).catch(() => {});
+      return NextResponse.json(
+        {
+          erreur: "Trop de questions à la suite. Fais une pause et reviens dans un instant.",
           raison: "limite",
         },
         { status: 429 }

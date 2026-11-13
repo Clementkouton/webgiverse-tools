@@ -120,7 +120,7 @@ export default async function PagePropositionsAdmin() {
                   <td className="max-w-70 truncate px-5 py-3.5 font-semibold text-adm-sombre">{p.nom}</td>
                   <td className="px-3 py-3.5 text-encre">{p.category?.nom ?? "—"}</td>
                   <td className="px-3 py-3.5">
-                    <span className={cn("inline-flex rounded-[7px] -skew-x-[18deg] not-italic px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE[p.statut])}>
+                    <span className={cn("inline-flex rounded-[7px]  not-italic px-2.5 py-0.5 text-[12px] leading-4 font-semibold", PASTILLE[p.statut])}>
                       {LIBELLE[p.statut] ?? p.statut}
                     </span>
                   </td>

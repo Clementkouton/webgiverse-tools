@@ -63,7 +63,7 @@ export function EditeurAvis({
               aria-checked={note === n}
               aria-label={`${n} sur 5`}
               onClick={() => setNote(n)}
-              className="rounded-[7px] -skew-x-[18deg] not-italic p-1 transition hover:bg-gris"
+              className="rounded-[7px]  not-italic p-1 transition hover:bg-gris"
             >
               <Star
                 aria-hidden

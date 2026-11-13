@@ -59,14 +59,14 @@ export default async function PageMesSkills() {
     <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
       <Link
         href="/dashboard"
-        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-sky-500"
       >
         <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
       </Link>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <Pin className="size-7 text-violet" aria-hidden /> Mes skills
+          <Pin className="size-7 text-sky-500" aria-hidden /> Mes skills
           {acces.peutAcceder && <Badge variante="defaut">{favoris.length}</Badge>}
         </h1>
         <Bouton asChild variante="secondaire">
@@ -83,7 +83,7 @@ export default async function PageMesSkills() {
       {!acces.peutAcceder && (
         <Carte className="mt-8 flex flex-wrap items-center gap-4 p-8">
           <span className="grid size-14 shrink-0 place-items-center rounded-carte bg-violet/10">
-            <Crown className="size-7 text-violet" aria-hidden />
+            <Crown className="size-7 text-sky-500" aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
@@ -151,7 +151,7 @@ export default async function PageMesSkills() {
                       <Sparkles className="size-8 text-white/80" aria-hidden />
                     </span>
                   )}
-                  <span className="absolute bottom-3 left-3 rounded-[7px] -skew-x-[18deg] not-italic bg-bleu/80 px-2.5 py-1 text-[11px] leading-3 font-semibold text-white backdrop-blur">
+                  <span className="absolute bottom-3 left-3 rounded-[7px]  not-italic bg-bleu/80 px-2.5 py-1 text-[11px] leading-3 font-semibold text-white backdrop-blur">
                     {favori.skill.categorie}
                   </span>
                 </Link>
@@ -159,7 +159,7 @@ export default async function PageMesSkills() {
                 <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-start justify-between gap-3">
                     <h2 className="font-titre text-[15px] leading-5 font-semibold text-bleu">
-                      <Link href={`/skills/${favori.skill.slug}`} className="transition hover:text-violet">
+                      <Link href={`/skills/${favori.skill.slug}`} className="transition hover:text-sky-500">
                         {favori.skill.titre}
                       </Link>
                     </h2>
@@ -169,7 +169,7 @@ export default async function PageMesSkills() {
                       <BoutonConfirmer
                         message={`Retirer « ${favori.skill.titre} » de tes skills épinglées ?`}
                         aria-label={`Retirer ${favori.skill.titre}`}
-                        className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                        className="grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                       >
                         <Pin className="size-4" aria-hidden />
                       </BoutonConfirmer>

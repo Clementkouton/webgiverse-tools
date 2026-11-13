@@ -40,7 +40,7 @@ export function CarteRappelsATester({ outils }: { outils: OutilEnAttente[] }) {
         </div>
         <Link
           href="/dashboard?onglet=favoris&statut=A_TESTER"
-          className="inline-flex min-h-9 items-center rounded-[7px] -skew-x-[18deg] not-italic border border-amber-400 bg-white px-3.5 text-[12px] leading-4 font-bold text-amber-700 transition hover:bg-amber-100"
+          className="inline-flex min-h-9 items-center rounded-[7px]  not-italic border border-amber-400 bg-white px-3.5 text-[12px] leading-4 font-bold text-amber-700 transition hover:bg-amber-100"
         >
           Voir mes « À tester »
         </Link>
@@ -56,7 +56,7 @@ export function CarteRappelsATester({ outils }: { outils: OutilEnAttente[] }) {
               <span className="min-w-0 flex-1 truncate text-[13px] leading-4 font-semibold text-bleu">
                 {o.nom}
               </span>
-              <span className="shrink-0 rounded-[7px] -skew-x-[18deg] not-italic bg-amber-100 px-2 py-0.5 text-[11px] leading-4 font-semibold text-amber-700">
+              <span className="shrink-0 rounded-[7px]  not-italic bg-amber-100 px-2 py-0.5 text-[11px] leading-4 font-semibold text-amber-700">
                 Ajouté il y a {o.jours} jour{o.jours > 1 ? "s" : ""}
               </span>
               <ExternalLink className="size-3.5 shrink-0 text-encre/50" aria-hidden />

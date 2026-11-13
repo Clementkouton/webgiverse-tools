@@ -44,11 +44,10 @@ export async function GET(req: Request) {
   } catch (erreur: any) {
     // Le VRAI message d'erreur s'affiche désormais dans le terminal
     console.error("[/api/notes] ERREUR COMPLÈTE :", erreur);
+    // Lot 82 — le détail interne de l'erreur (messages Prisma, noms de
+    // champs…) n'est plus renvoyé au navigateur : il reste dans les logs.
     return NextResponse.json(
-      {
-        erreur: "Erreur interne /api/notes.",
-        detail: String(erreur?.message ?? erreur),
-      },
+      { erreur: "Erreur interne /api/notes." },
       { status: 500 }
     );
   }

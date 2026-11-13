@@ -81,7 +81,7 @@ function ligneEnrichie(texte: string, cle: string): ReactNode[] {
       morceaux.push(
         <code
           key={k}
-          className="break-words rounded bg-gris px-1 py-0.5 font-mono text-[12px] font-semibold text-violet"
+          className="break-words rounded bg-gris px-1 py-0.5 font-mono text-[12px] font-semibold text-sky-500"
         >
           {jeton.slice(1, -1)}
         </code>,

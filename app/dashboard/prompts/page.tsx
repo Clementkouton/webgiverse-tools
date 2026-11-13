@@ -91,14 +91,14 @@ export default async function PageMesPrompts() {
     <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
       <Link
         href="/dashboard"
-        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-sky-500"
       >
         <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
       </Link>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <TerminalSquare className="size-7 text-violet" aria-hidden /> Mes prompts
+          <TerminalSquare className="size-7 text-sky-500" aria-hidden /> Mes prompts
           <Badge variante="defaut">{favoris.length}</Badge>
         </h1>
         <div className="flex flex-wrap items-center gap-3">
@@ -175,7 +175,7 @@ export default async function PageMesPrompts() {
                   <BoutonConfirmer
                     message={`Retirer « ${favori.prompt.titre} » de tes prompts sauvegardés ?`}
                     aria-label={`Retirer ${favori.prompt.titre}`}
-                    className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                    className="grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                   >
                     <Trash2 className="size-4" aria-hidden />
                   </BoutonConfirmer>
@@ -185,7 +185,7 @@ export default async function PageMesPrompts() {
               <h2 className="mt-3 font-titre text-[15px] leading-5 font-semibold text-bleu">
                 <Link
                   href={`/prompts/${favori.prompt.slug}`}
-                  className="transition hover:text-violet"
+                  className="transition hover:text-sky-500"
                 >
                   {favori.prompt.titre}
                 </Link>
@@ -197,7 +197,7 @@ export default async function PageMesPrompts() {
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-3">
                 <Link
                   href={`/prompts/categorie/${favori.prompt.categorie.slug}`}
-                  className="rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/5 px-2.5 py-0.5 text-[11px] leading-4 font-semibold text-violet transition hover:border-violet"
+                  className="rounded-[7px]  not-italic border border-violet/30 bg-violet/5 px-2.5 py-0.5 text-[11px] leading-4 font-semibold text-sky-500 transition hover:border-violet"
                 >
                   {favori.prompt.categorie.nom}
                 </Link>
@@ -216,7 +216,7 @@ export default async function PageMesPrompts() {
       {/* ── Rappel upsell pour le plan Découverte ─────────────────── */}
       {!premium && favoris.length >= LIMITES_DECOUVERTE.prompts && (
         <Carte className="mt-8 flex flex-wrap items-center gap-4 border-violet/30 bg-violet/5 p-5">
-          <Crown className="size-6 shrink-0 text-violet" aria-hidden />
+          <Crown className="size-6 shrink-0 text-sky-500" aria-hidden />
           <p className="min-w-0 flex-1 text-[14px] leading-6 text-encre">
             Tu as atteint la limite de <strong className="text-bleu">{LIMITES_DECOUVERTE.prompts} prompts</strong> du
             plan Découverte. Passe Premium pour sauvegarder sans limite et copier tous les prompts.

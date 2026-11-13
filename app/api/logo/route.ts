@@ -1,36 +1,48 @@
 import type { NextRequest } from "next/server";
+import { auth } from "@/auth";
+import { autoriserRequete } from "@/lib/limitation-debit"; // Lot 82
 
 // ─────────────────────────────────────────────────────────────────
-// app/api/logo/route.ts — Lot 63 · NOUVEAU
-// Proxy d'images pour l'export PDF.
+// app/api/logo/route.ts — Lot 63 · Proxy d'images pour l'export PDF.
 //
 // POURQUOI CE FICHIER EST NÉCESSAIRE :
 //   Pour dessiner un logo dans le PDF (jsPDF), le navigateur doit lire
 //   les PIXELS de l'image via un <canvas>. Pour une image hébergée sur
-//   un autre domaine (ex. le site de l'outil), le navigateur REFUSE
-//   sauf si ce site envoie l'en-tête CORS « Access-Control-Allow-Origin »
-//   — ce que 95 % des sites ne font pas. Résultat du lot 62 : les
-//   logos retombaient sur les initiales.
-//
-//   La solution propre : ce proxy re-télécharge l'image CÔTÉ SERVEUR
-//   (un serveur n'est jamais bloqué par CORS) puis la re-sert depuis
-//   NOTRE domaine. Vue par le navigateur, l'image devient « même
-//   origine » → le canvas peut la lire → le PDF affiche le VRAI logo.
+//   un autre domaine, le navigateur REFUSE sauf si ce site envoie
+//   l'en-tête CORS — ce que 95 % des sites ne font pas. Ce proxy
+//   re-télécharge l'image CÔTÉ SERVEUR puis la re-sert depuis NOTRE
+//   domaine → l'image devient « même origine » → le PDF affiche le
+//   VRAI logo.
 //
 // Utilisation : GET /api/logo?u=https%3A%2F%2Fexemple.com%2Flogo.png
 //
-// Sécurité (SSRF) : seules les URLs http(s) publiques sont acceptées ;
-// localhost, les IP privées et les liens non-image sont refusés ;
-// taille limitée à 3 Mo ; délai limité à 6 s.
-// Aucune variable d'environnement, aucune migration.
+// Lot 82 — SÉCURITÉ SSRF RENFORCÉE :
+//   • session OBLIGATOIRE (l'export PDF est une page /dashboard) :
+//     le site ne sert plus de proxy ouvert à tout Internet ;
+//   • quota de 120 images par utilisateur et par heure (anti abus de
+//     bande passante) ;
+//   • LES REDIRECTIONS SONT MAINTENANT VÉRIFIÉES : l'ancien
+//     `redirect: "follow"` faisait suivre les sauts SANS recontrôler
+//     la cible — une URL externe pouvait rediriger vers
+//     http://169.254.169.254/ (métadonnées cloud) ou une IP privée et
+//     contourner toute la liste noire. Désormais chaque saut est
+//     re-validé (3 redirections maximum) ;
+//   • localhost, IP privées, IPv6 locales, identifiants dans l'URL :
+//     refusés (inchangé) ; taille 3 Mo ; délai 6 s par saut.
+// Limite résiduelle documentée : le DNS rebinding (domaine qui change
+// d'IP entre la vérification et la connexion) n'est pas bloqué — il
+// faudrait épingler l'IP résolue, ce qu'aucun runtime JS standard
+// n'expose ; le risque reste très faible sur Vercel.
 // ─────────────────────────────────────────────────────────────────
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const TAILLE_MAX = 3 * 1024 * 1024; // 3 Mo
-const DELAI_MS = 6000; // 6 s
+const DELAI_MS = 6000; // 6 s par saut
+const MAX_REDIRECTIONS = 3;
 
-// Refuse les cibles internes (protection SSRF basique mais suffisante)
+// Refuse les cibles internes (protection SSRF)
 function cibleInterdite(url: URL): boolean {
   if (url.protocol !== "http:" && url.protocol !== "https:") return true;
   if (url.username || url.password) return true;
@@ -50,7 +62,64 @@ function cibleInterdite(url: URL): boolean {
   return false;
 }
 
+const STATUTS_REDIRECTION = new Set([301, 302, 303, 307, 308]);
+
+/** Télécharge l'image en suivant les redirections MANUELLEMENT :
+ *  chaque saut est re-validé par cibleInterdite() avant la requête. */
+async function telecharger(urlInitiale: URL): Promise<Response> {
+  let url = urlInitiale;
+
+  for (let saut = 0; saut <= MAX_REDIRECTIONS; saut++) {
+    if (cibleInterdite(url)) {
+      throw new Error("URL non autorisée.");
+    }
+
+    const reponse = await fetch(url.toString(), {
+      // Lot 82 — redirections MANUELLES : on décide de chaque saut.
+      redirect: "manual",
+      signal: AbortSignal.timeout(DELAI_MS),
+      headers: {
+        // Un User-Agent de navigateur évite les blocages « bot » de
+        // certains hébergeurs d'images.
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        Accept: "image/avif,image/webp,image/png,image/jpeg,image/svg+xml,image/*;q=0.8",
+      },
+      cache: "no-store",
+    });
+
+    if (STATUTS_REDIRECTION.has(reponse.status)) {
+      const location = reponse.headers.get("location");
+      reponse.body?.cancel().catch(() => {});
+      if (!location) {
+        // 3xx sans destination : autant répondre tel quel.
+        return reponse;
+      }
+      if (saut === MAX_REDIRECTIONS) {
+        throw new Error("Trop de redirections.");
+      }
+      url = new URL(location, url); // relative → absolue, revalidée au tour suivant
+      continue;
+    }
+
+    return reponse;
+  }
+
+  throw new Error("Trop de redirections.");
+}
+
 export async function GET(requete: NextRequest) {
+  // ── Lot 82 — réservé aux membres connectés ──────────────────────
+  const session = await auth();
+  const utilisateurId = session?.user?.id;
+  if (!utilisateurId) {
+    return new Response("Connexion requise.", { status: 401 });
+  }
+  // Anti abus : 120 logos par utilisateur et par heure.
+  if (!autoriserRequete(`logo:${utilisateurId}`, 120, 60 * 60_000)) {
+    return new Response("Trop de demandes. Réessaie dans une heure.", { status: 429 });
+  }
+
   const brut = requete.nextUrl.searchParams.get("u") ?? "";
   if (!brut || brut.length > 2048) {
     return new Response("Paramètre 'u' manquant ou trop long.", { status: 400 });
@@ -66,22 +135,8 @@ export async function GET(requete: NextRequest) {
     return new Response("URL non autorisée.", { status: 403 });
   }
 
-  const controleur = new AbortController();
-  const minuteur = setTimeout(() => controleur.abort(), DELAI_MS);
-
   try {
-    const rep = await fetch(cible.toString(), {
-      signal: controleur.signal,
-      redirect: "follow",
-      headers: {
-        // Un User-Agent de navigateur évite les blocages « bot » de
-        // certains hébergeurs d'images.
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
-        Accept: "image/avif,image/webp,image/png,image/jpeg,image/svg+xml,image/*;q=0.8",
-      },
-      cache: "no-store",
-    });
+    const rep = await telecharger(cible);
 
     if (!rep.ok) {
       return new Response("Image introuvable côté source.", { status: 502 });
@@ -108,9 +163,14 @@ export async function GET(requete: NextRequest) {
         "Cache-Control": "public, max-age=3600",
       },
     });
-  } catch {
+  } catch (erreur) {
+    const message = erreur instanceof Error ? erreur.message : "";
+    if (message === "URL non autorisée.") {
+      return new Response("URL non autorisée.", { status: 403 });
+    }
+    if (message === "Trop de redirections.") {
+      return new Response("Trop de redirections.", { status: 508 });
+    }
     return new Response("Délai dépassé ou image inaccessible.", { status: 504 });
-  } finally {
-    clearTimeout(minuteur);
   }
 }

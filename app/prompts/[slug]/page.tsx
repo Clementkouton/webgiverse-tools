@@ -79,13 +79,13 @@ export default async function PagePrompt({ params }: { params: Params }) {
     <>
       {/* ── Fil d'Ariane ────────────────────────────────────────── */}
       <nav aria-label="Fil d'Ariane" className="mx-auto w-full max-w-7xl px-4 pt-6">
-        <ol className="flex flex-wrap items-center gap-1.5 text-[13px] leading-4 text-encre">
-          <li><Link href="/" className="hover:text-violet">Accueil</Link></li>
+        <ol className="flex flex-wrap items-center gap-1.5 text-[13px] leading-4 ">
+          <li><Link href="/" className="text-gray-800 hover:text-sky-500">Accueil</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
-          <li><Link href="/prompts" className="hover:text-violet">Prompts</Link></li>
+          <li><Link href="/prompts" className="hover:text-sky-500">Prompts</Link></li>
           <li aria-hidden><ChevronRight className="size-3.5" /></li>
           <li>
-            <Link href={`/prompts/categorie/${prompt.categorie.slug}`} className="hover:text-violet">
+            <Link href={`/prompts/categorie/${prompt.categorie.slug}`} className="hover:text-sky-500">
               {prompt.categorie.nom}
             </Link>
           </li>
@@ -104,7 +104,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Link
               href={`/prompts/categorie/${prompt.categorie.slug}`}
-              className="rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-violet transition hover:border-violet"
+              className="rounded-[7px]  not-italic border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-sky-500 transition hover:border-violet"
             >
               {prompt.categorie.nom}
             </Link>
@@ -112,14 +112,14 @@ export default async function PagePrompt({ params }: { params: Params }) {
               <Badge variante="defaut">{prompt.sousCategorie}</Badge>
             )}
             <Badge variante="defaut">{LIBELLES_TYPE[prompt.type] ?? "Texte"}</Badge>
-            <span className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
+            <span className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu">
               <Eye className="size-3.5" aria-hidden /> {prompt.vues.toLocaleString("fr-FR")} vues
             </span>
             {prompt.roles.map((r: string) => (
               <Link
                 key={r}
                 href={`/prompts/roles/${encodeURIComponent(r)}`}
-                className="rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+                className="rounded-[7px]  not-italic border border-bordure bg-white px-3 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-sky-500"
               >
                 {nomRole(r)}
               </Link>
@@ -132,7 +132,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
           <section aria-label="Contenu du prompt" className="mt-6">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-                <TerminalSquare className="size-4.5 text-violet" aria-hidden /> Le prompt
+                <TerminalSquare className="size-4.5 text-sky-500" aria-hidden /> Le prompt
               </h2>
               <div className="flex flex-wrap items-center gap-2">
                 <BoutonFavoriPrompt
@@ -188,7 +188,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
             {!premium && (
               <div className="mt-4 rounded-carte border border-violet/30 bg-violet/5 p-3">
                 <p className="flex items-start gap-2 text-[13px] leading-5 text-encre">
-                  <Crown className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+                    <Crown className="mt-0.5 size-4 shrink-0 text-sky-500" aria-hidden />
                   <span>
                     L&apos;abonnement <strong className="text-bleu">{PLANS.PRO.prix}/mois</strong> débloque
                     la copie de tous les prompts + les tutoriels vidéo et l&apos;assistant IA sans quota.
@@ -212,7 +212,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
           {prompt.utilisation && (
             <section aria-label="Comment utiliser ce prompt" className="mt-8 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
               <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-                <Variable className="size-4.5 text-violet" aria-hidden /> Comment l&apos;utiliser
+                <Variable className="size-4.5 text-sky-500" aria-hidden /> Comment l&apos;utiliser
               </h2>
               <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
                 {prompt.utilisation}
@@ -224,7 +224,7 @@ export default async function PagePrompt({ params }: { params: Params }) {
           {prompt.conseils && (
             <section aria-label="Conseils d'utilisation" className="mt-4 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6">
               <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-semibold text-bleu">
-                <ListChecks className="size-4.5 text-violet" aria-hidden /> Conseils pour de meilleurs résultats
+                <ListChecks className="size-4.5 text-sky-500" aria-hidden /> Conseils pour de meilleurs résultats
               </h2>
               <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-encre">
                 {prompt.conseils}

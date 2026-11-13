@@ -129,7 +129,7 @@ export default async function PageSegmentsAdmin({
             </div>
             <a
               href={`/api/admin/segments/${segmentActif}`}
-              className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-primaire/30 bg-primaire/10 px-4 py-2 text-[13px] font-bold text-primaire-texte transition hover:border-primaire/60 hover:bg-primaire/15"
+              className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-primaire/30 bg-primaire/10 px-4 py-2 text-[13px] font-bold text-primaire-texte transition hover:border-primaire/60 hover:bg-primaire/15"
             >
               <Download className="size-4" aria-hidden /> Exporter ce segment (CSV)
             </a>
@@ -194,7 +194,7 @@ export default async function PageSegmentsAdmin({
                         <td className="px-5 py-3.5 text-right">
                           {segmentActif === "premium-expirant" && joursAvantExpiration !== null ? (
                             <span
-                              className={`inline-flex items-center rounded-[7px] -skew-x-[18deg] not-italic px-2 py-0.5 text-[11px] leading-4 font-bold ${
+                              className={`inline-flex items-center rounded-[7px]  not-italic px-2 py-0.5 text-[11px] leading-4 font-bold ${
                                 joursAvantExpiration <= 7
                                   ? "bg-adm-erreur-doux text-[#c94f35]"
                                   : "bg-adm-alerte-doux text-[#b26f00]"

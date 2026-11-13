@@ -81,7 +81,7 @@ export default async function PageJournalAdmin({
           <Link
             href="/admin/journal"
             className={cn(
-              "rounded-[7px] -skew-x-[18deg] not-italic px-3.5 py-1.5 text-[13px] font-semibold transition",
+              "rounded-[7px]  not-italic px-3.5 py-1.5 text-[13px] font-semibold transition",
               !filtreAction
                 ? "bg-primaire text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)]"
                 : "border border-bordure bg-white text-adm-gris hover:border-primaire hover:text-primaire-texte",
@@ -94,7 +94,7 @@ export default async function PageJournalAdmin({
               key={f.action}
               href={`/admin/journal?action=${f.action}`}
               className={cn(
-                "rounded-[7px] -skew-x-[18deg] not-italic px-3.5 py-1.5 text-[13px] font-semibold transition",
+                "rounded-[7px]  not-italic px-3.5 py-1.5 text-[13px] font-semibold transition",
                 filtreAction === f.action
                   ? "bg-primaire text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)]"
                   : "border border-bordure bg-white text-adm-gris hover:border-primaire hover:text-primaire-texte",
@@ -138,7 +138,7 @@ export default async function PageJournalAdmin({
                   </td>
                   <td className="px-4 py-3 text-[13px] font-medium text-adm-sombre">{t.adminNom ?? "Admin"}</td>
                   <td className="px-4 py-3">
-                    <span className={cn("inline-block whitespace-nowrap rounded-[7px] -skew-x-[18deg] not-italic px-2.5 py-1 text-[11px] font-bold", pastilleAction(t.action))}>
+                    <span className={cn("inline-block whitespace-nowrap rounded-[7px]  not-italic px-2.5 py-1 text-[11px] font-bold", pastilleAction(t.action))}>
                       {t.action}
                     </span>
                   </td>

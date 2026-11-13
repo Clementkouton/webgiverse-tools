@@ -41,7 +41,7 @@ export default async function PageNotifications() {
           <p className="text-encre">Connecte-toi pour voir tes notifications.</p>
           <Link
             href="/connexion?suite=/dashboard/notifications"
-            className="mt-4 inline-block font-semibold text-violet hover:underline"
+            className="mt-4 inline-block font-semibold text-sky-500 hover:underline"
           >
             Se connecter
           </Link>
@@ -114,7 +114,7 @@ npx prisma generate</pre>
                   )}
                 </span>
                 {!n.lu && (
-                  <span aria-label="Non lue" className="mt-2 size-2 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500" />
+                  <span aria-label="Non lue" className="mt-2 size-2 shrink-0 rounded-[7px]  not-italic bg-sky-500" />
                 )}
               </>
             );

@@ -106,13 +106,13 @@ function CadreVerrouille({
     >
       <p className="flex flex-wrap items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
         <span
-          className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet"
+          className="grid size-8 place-items-center rounded-lg bg-violet/10 text-sky-500"
           aria-hidden
         >
           <Crown className="size-4" />
         </span>
         {titre}
-        <span className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+        <span className="inline-flex items-center gap-1 rounded-full bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-sky-500">
           Premium
         </span>
       </p>
@@ -354,7 +354,7 @@ export default async function PageTuto({ params }: { params: Params }) {
                 <Eye className="size-3.5" aria-hidden /> {tuto.vues.toLocaleString("fr-FR")} vues
               </span>
               {tutoPayant ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-violet/10 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet/30 bg-violet/10 px-3 py-1 text-[12px] leading-4 font-semibold text-sky-500">
                   <Crown className="size-3.5" aria-hidden /> Premium
                 </span>
               ) : (
@@ -366,7 +366,7 @@ export default async function PageTuto({ params }: { params: Params }) {
                 <Link
                   key={o}
                   href={`/tutoriels?outil=${encodeURIComponent(o)}`}
-                  className="rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-medium text-violet transition hover:border-violet"
+                  className="rounded-full border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-medium text-sky-500 transition hover:border-violet"
                 >
                   #{o}
                 </Link>
@@ -436,7 +436,7 @@ export default async function PageTuto({ params }: { params: Params }) {
               <div className="overflow-hidden rounded-carte border border-bordure bg-white shadow-carte">
                 <div className="border-b border-bordure bg-gris/60 px-5 py-4">
                   <h2 className="flex items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
-                    <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+                    <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-sky-500" aria-hidden>
                       <ClipboardList className="size-4" />
                     </span>
                     Ce tutoriel en résumé
@@ -451,7 +451,7 @@ export default async function PageTuto({ params }: { params: Params }) {
                   ].map(({ icone: Icone, label, contenu }) => (
                     <div key={label} className="min-w-0 rounded-champ border border-bordure bg-gris/50 p-3">
                       <dt className="flex items-center gap-1.5 text-[10.5px] leading-3.5 font-bold uppercase tracking-wider text-encre/70">
-                        <Icone className="size-3.5 text-violet" aria-hidden /> {label}
+                        <Icone className="size-3.5 text-sky-500" aria-hidden /> {label}
                       </dt>
                       <dd className="mt-1.5">{contenu}</dd>
                     </div>
@@ -461,7 +461,7 @@ export default async function PageTuto({ params }: { params: Params }) {
                   <div className="mx-5 mb-5 rounded-carte bg-[linear-gradient(135deg,#6a3bff,#0091c2)] p-px">
                     <div className="rounded-[15px] bg-white px-4 py-4">
                       <p className="flex items-start gap-2.5 text-[13px] leading-5 text-encre">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+                        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-violet/10 text-sky-500" aria-hidden>
                           <Crown className="size-4" />
                         </span>
                         <span>

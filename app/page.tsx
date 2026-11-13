@@ -137,7 +137,7 @@ export default async function Accueil() {
           <form
             action="/outils"
             method="get"
-            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white p-1.5 pl-5 shadow-carte"
+            className="mx-auto mt-8 flex w-full max-w-xl items-center gap-2 rounded-[7px]  not-italic border border-bordure bg-white p-1.5 pl-5 shadow-carte"
           >
             <Search className="size-5 shrink-0 text-encre" aria-hidden />
             <input
@@ -166,19 +166,19 @@ export default async function Accueil() {
                 <dt className="sr-only">{c.libelle}</dt>
                 {/* Lot 15 : en mode dégradé (base injoignable) on affiche
                     un tiret au lieu d'un trompeur « 0 ». */}
-                <dd className="font-titre text-[32px] leading-10 font-bold text-violet">{c.valeur === 0 ? "—" : c.valeur}</dd>
+                <dd className="font-titre text-[32px] leading-10 font-bold text-sky-500">{c.valeur === 0 ? "—" : c.valeur}</dd>
                 <dd className="text-legende text-encre">{c.libelle}</dd>
               </div>
             ))}
           </dl>
           <ul className="mt-6 flex flex-wrap justify-center gap-2">
-            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               Sélection 100 % manuelle
             </li>
-            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               Fiches mises à jour en continu
             </li>
-            <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-violet">
+            <li className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-violet/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
               100 % expliqué en français
             </li>
           </ul>
@@ -198,7 +198,7 @@ export default async function Accueil() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <TitreSection>Parcourir par catégorie</TitreSection>
-            <Link href="/categories" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              <Link href="/categories" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
               Toutes les catégories <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -206,7 +206,7 @@ export default async function Accueil() {
             {categories.map((c) => (
               <li key={c.slug}>
                 <Link href={`/categorie/${c.slug}`}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet">
+                  className="inline-flex min-h-9 items-center gap-2 rounded-[7px]  not-italic border border-bordure bg-white px-4 text-[14px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-sky-500">
                   {c.nom}
                   <span className="text-[12px] leading-4 font-semibold text-encre">{c._count.outils}</span>
                 </Link>
@@ -239,7 +239,7 @@ export default async function Accueil() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="mb-6 flex items-end justify-between gap-4">
             <TitreSection>Nouveautés</TitreSection>
-            <Link href="/outils" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              <Link href="/outils" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
               Tout voir <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -260,12 +260,12 @@ export default async function Accueil() {
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
           <div className="relative overflow-hidden rounded-carte bg-bleu p-6 shadow-carte sm:p-10">
-              <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/30 blur-3xl" />
-              <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/20 blur-3xl" />
+              <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-[7px]  not-italic bg-violet/30 blur-3xl" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-[7px]  not-italic bg-ciel/20 blur-3xl" />
             <div className="relative">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <p className="inline-flex items-center gap-2 rounded-[7px]  not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     <Play className="size-3.5" aria-hidden /> Tutoriels vidéo IA
                   </p>
                   <h2 className="mt-4 text-[26px] leading-8 font-semibold text-white sm:text-h2">
@@ -287,13 +287,13 @@ export default async function Accueil() {
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                 <ul className="flex flex-wrap gap-2">
-                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <li className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     {tutoStats.total} tutoriels
                   </li>
-                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <li className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     {heuresTutos}h+ de contenu
                   </li>
-                    <li className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
+                    <li className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold text-white">
                     100 % gratuits à parcourir
                   </li>
                 </ul>
@@ -324,7 +324,7 @@ export default async function Accueil() {
                 variables et lance-toi — sur ChatGPT, Claude, Gemini ou Mistral.
               </p>
             </div>
-            <Link href="/prompts" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              <Link href="/prompts" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
               Toute la bibliothèque <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -355,7 +355,7 @@ export default async function Accueil() {
                 productivité, développement, données, automatisation…
               </p>
             </div>
-            <Link href="/skills" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+              <Link href="/skills" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
               Toutes les skills <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -398,7 +398,7 @@ export default async function Accueil() {
                   </div>
                   <p className="mt-3 flex-1 text-[15px] leading-6 text-encre">« {t.texte} »</p>
                   <div className="mt-4 flex items-center gap-3">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 font-titre text-[14px] font-bold text-violet">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-[7px]  not-italic bg-violet/10 font-titre text-[14px] font-bold text-sky-500">
                       {initiales}
                     </div>
                     <div className="min-w-0">
@@ -428,7 +428,7 @@ export default async function Accueil() {
                 <h3 className="font-titre text-[17px] leading-6 font-semibold">{a.titre}</h3>
                 <p className="mt-2 text-legende text-encre">Source : {a.source}</p>
                 <a href={a.url} target="_blank" rel="noopener noreferrer"
-                  className="mt-auto inline-flex min-h-11 items-center gap-1 pt-3 text-[15px] leading-5 font-semibold text-violet hover:underline">
+                  className="mt-auto inline-flex min-h-11 items-center gap-1 pt-3 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
                   Lire la source <ExternalLink className="size-4" aria-hidden />
                 </a>
               </Carte>
@@ -445,9 +445,9 @@ export default async function Accueil() {
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {ARTICLES.map((a) => (
               <Link key={a.titre} href="/blog" className="group flex flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-violet">
-                <h3 className="font-titre text-[17px] leading-6 font-semibold group-hover:text-violet">{a.titre}</h3>
+                <h3 className="font-titre text-[17px] leading-6 font-semibold group-hover:text-sky-500">{a.titre}</h3>
                 <p className="mesure mt-2 text-[14px] leading-5 text-encre">{a.extrait}</p>
-                <span className="mt-auto pt-4 text-[14px] leading-5 font-semibold text-violet">Bientôt disponible</span>
+                <span className="mt-auto pt-4 text-[14px] leading-5 font-semibold text-sky-500">Bientôt disponible</span>
               </Link>
             ))}
           </div>
@@ -462,7 +462,7 @@ export default async function Accueil() {
             {FAQ.map((f) => <ItemAccordeon key={f.question} question={f.question} reponse={f.reponse} />)}
           </Accordeon>
           <div className="mt-6 text-center">
-            <Link href="/faq" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-violet hover:underline">
+            <Link href="/faq" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
               Voir toutes les questions <ChevronRight className="size-4" aria-hidden />
             </Link>
           </div>

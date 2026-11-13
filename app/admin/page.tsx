@@ -236,8 +236,8 @@ export default async function PageAdmin() {
 
       {/* ── Bannière d'activité (dégradé TailwindAdmin) ───────────── */}
       <div className="animate-apparition-haut delai-1 relative mt-5 overflow-hidden rounded-carte bg-[linear-gradient(115deg,#5d87ff_0%,#49beff_100%)] p-6 text-white sm:p-7">
-        <span aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-[7px] -skew-x-[18deg] not-italic bg-white/15 blur-2xl" />
-        <span aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-44 rounded-[7px] -skew-x-[18deg] not-italic bg-white/10 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-[7px]  not-italic bg-white/15 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-24 right-40 size-44 rounded-[7px]  not-italic bg-white/10 blur-2xl" />
         <Sparkles
           aria-hidden
           className="pointer-events-none absolute -right-4 -bottom-6 size-32 text-white/20"
@@ -245,7 +245,7 @@ export default async function PageAdmin() {
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="flex flex-wrap items-center gap-2">
-              <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-white/20 px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-white">
+              <span className="rounded-[7px]  not-italic bg-white/20 px-2.5 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-white">
                 Activité
               </span>
               <span className="text-[12px] leading-4 font-medium text-white/85 capitalize">{dateLongue}</span>
@@ -258,7 +258,7 @@ export default async function PageAdmin() {
           </div>
           <Link
             href="/admin/utilisateurs"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-white px-4 py-2 text-[13px] font-bold text-primaire-texte shadow-[0_4px_14px_rgba(32,41,54,0.18)] transition hover:bg-white/90 active:scale-[0.98]"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-[7px]  not-italic bg-white px-4 py-2 text-[13px] font-bold text-primaire-texte shadow-[0_4px_14px_rgba(32,41,54,0.18)] transition hover:bg-white/90 active:scale-[0.98]"
           >
             Voir les utilisateurs <ArrowRight className="size-4" aria-hidden />
           </Link>
@@ -452,7 +452,7 @@ export default async function PageAdmin() {
                       {outil.nom}
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
-                      <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
+                      <span className="rounded-[7px]  not-italic bg-adm-erreur-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#c94f35]">
                         {libelleCodeLien(outil.statutLien)}
                       </span>
                       {outil.lienVerifieLe && (
@@ -523,23 +523,43 @@ export default async function PageAdmin() {
       </section>
 
       {/* ── Graphiques : inscriptions 14 jours + raccourcis + plans ── */}
-      <section className="mt-6 grid gap-4 lg:grid-cols-3">
-        <Carte className="animate-apparition-haut p-6 lg:col-span-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+      <section className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 ">
+          <Carte className="animate-apparition-haut p-6 ">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
+                Nouvelles inscriptions
+              </h2>
+              <Badge variante="defaut">14 derniers jours</Badge>
+            </div>
+            <p className="mt-1 text-[13px] leading-4 text-encre">
+              {valeursBarres.reduce((s, v) => s + v, 0) > 0
+                ? "Inscriptions par jour, sur les deux dernières semaines."
+                : "Aucune inscription sur la période : partage ton lien d'invitation !"}
+            </p>
+            <div className="mt-4">
+              <GraphiqueBarres valeurs={valeursBarres} labels={labelsBarres} />
+            </div>
+          </Carte>
+
+          <Carte className="animate-apparition-haut delai-1 p-6">
             <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-              Nouvelles inscriptions
+              Membres par plan
             </h2>
-            <Badge variante="defaut">14 derniers jours</Badge>
-          </div>
-          <p className="mt-1 text-[13px] leading-4 text-encre">
-            {valeursBarres.reduce((s, v) => s + v, 0) > 0
-              ? "Inscriptions par jour, sur les deux dernières semaines."
-              : "Aucune inscription sur la période : partage ton lien d'invitation !"}
-          </p>
-          <div className="mt-4">
-            <GraphiqueBarres valeurs={valeursBarres} labels={labelsBarres} />
-          </div>
-        </Carte>
+            <div className="mt-4">
+              <GraphiqueRepartition
+                segments={[
+                  { libelle: "Découverte", valeur: nbDecouverte, couleur: "#99a1af" },
+                  { libelle: "Premium Pro", valeur: nbPro, couleur: "#5d87ff" },
+                  { libelle: "Entreprise", valeur: nbEntreprise, couleur: "#202936" },
+                ]}
+                total={nbUtilisateurs}
+                totalLibelle="membres"
+              />
+            </div>
+          </Carte>
+        </div>
+
 
         {/* Raccourcis — Lot 26 : + Recherches & Segments */}
         <Carte className="animate-apparition-haut delai-1 p-6">
@@ -570,23 +590,6 @@ export default async function PageAdmin() {
                 <ArrowRight className="size-4 shrink-0 text-adm-gris-clair transition group-hover:translate-x-0.5 group-hover:text-primaire" aria-hidden />
               </Link>
             ))}
-          </div>
-        </Carte>
-
-        <Carte className="animate-apparition-haut delai-1 p-6">
-          <h2 className="font-titre text-[17px] leading-6 font-semibold text-bleu">
-            Membres par plan
-          </h2>
-          <div className="mt-4">
-            <GraphiqueRepartition
-              segments={[
-                { libelle: "Découverte", valeur: nbDecouverte, couleur: "#99a1af" },
-                { libelle: "Premium Pro", valeur: nbPro, couleur: "#5d87ff" },
-                { libelle: "Entreprise", valeur: nbEntreprise, couleur: "#202936" },
-              ]}
-              total={nbUtilisateurs}
-              totalLibelle="membres"
-            />
           </div>
         </Carte>
       </section>

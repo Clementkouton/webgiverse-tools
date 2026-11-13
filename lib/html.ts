@@ -9,12 +9,19 @@
 //      (<!DOCTYPE html><html><head>…<body>…).
 // normaliserHtml() ramène TOUTES ces sources à un fragment HTML
 // propre ; nettoyerHtml() retire ensuite ce qui ne doit JAMAIS
-// apparaître sur le site public (scripts, styles globaux, onclick…).
+// apparaître sur le site public (scripts, iframes, onclick…).
+//
+// Lot 82 — SÉCURITÉ XSS : l'ancien nettoyerHtml() était écrit à base
+// d'expressions régulières maison. Ce type de filtre est contournable
+// (attributs d'événement exotiques, balises imbriquées type
+// <scr<script>ipt>, mutations de navigateur « mXSS »…). Il est
+// remplacé par la bibliothèque de référence sanitize-html : liste
+// BLANCHE de balises et d'attributs (tout ce qui n'est pas explicitement
+// autorisé est retiré), schémas d'URL contrôlés (javascript:, data:
+// interdits sauf pour les images), analyse HTML complète.
+// À installer :  npm install sanitize-html  +  npm install -D @types/sanitize-html
 // ─────────────────────────────────────────────────────────────────
-
-/** Balises complètement retirées (avec leur contenu). */
-const BALISES_INTERDITES =
-  "script|style|iframe|object|embed|link|meta|form|input|button|base";
+import sanitizeHtml from "sanitize-html";
 
 /** Détecte des balises ÉCHAPPÉES du type &lt;p class="…"&gt;, &lt;div&gt;
  *  — y compris doublement échappées (&amp;lt;p&amp;gt;). */
@@ -62,19 +69,81 @@ export function normaliserHtml(brut: string): string {
   return html.trim();
 }
 
-/** Retire ce qui ne doit JAMAIS être affiché sur le site public. */
+// ── Lot 82 — Assainissement sur LISTE BLANCHE (sanitize-html) ──────
+// Choisies pour NE PAS changer l'apparence des articles existants :
+//   • toutes les balises de mise en forme produites par l'éditeur
+//     riche sont conservées ;
+//   • les attributs « class » et « style » restent permis (Tailwind et
+//     styles inline de l'éditeur), le reste est filtré par balise ;
+//   • « font » est conservé (anciens contenus) ;
+//   • liens : seuls http, https et mailto — les javascript:/data:/
+//     vbscript: sont retirés, rel « noopener noreferrer nofollow »
+//     ajouté systématiquement ;
+//   • images : http/https et data: (captures collées dans l'éditeur).
+const OPTIONS_ASSAINISSEMENT: sanitizeHtml.IOptions = {
+  allowedTags: [
+    // Structure et texte
+    "p", "br", "hr", "span", "div", "blockquote", "pre", "code",
+    "mark", "small", "sub", "sup", "font", "center",
+    // Titres
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    // Listes et définitions
+    "ul", "ol", "li", "dl", "dt", "dd",
+    // Mise en valeur
+    "strong", "b", "em", "i", "u", "s", "del", "ins",
+    // Liens et images
+    "a", "img",
+    // Tableaux
+    "table", "thead", "tbody", "tfoot", "tr", "td", "th", "caption",
+    // Sections
+    "figure", "figcaption", "section", "article", "header", "footer",
+    "aside", "nav", "main",
+    // Médias (anciens contenus) — les gestionnaires d'événements et les
+    // URL non http(s) restent interdits même sur ces balises.
+    "video", "audio", "source", "track",
+  ],
+  allowedAttributes: {
+    a: ["href", "name", "target", "rel", "title"],
+    img: ["src", "srcset", "sizes", "alt", "title", "width", "height", "loading"],
+    font: ["color", "face", "size"],
+    video: ["src", "poster", "width", "height", "controls", "muted", "loop", "preload"],
+    audio: ["src", "controls", "muted", "loop", "preload"],
+    source: ["src", "type"],
+    track: ["src", "kind", "srclang", "label"],
+    td: ["colspan", "rowspan", "align", "valign"],
+    th: ["colspan", "rowspan", "align", "valign", "scope"],
+    tr: ["align", "valign"],
+    ol: ["start", "type"],
+    li: ["value"],
+    // Attributs de mise en page hérités des anciens contenus.
+    p: ["align"],
+    div: ["align"],
+    h1: ["align"], h2: ["align"], h3: ["align"],
+    h4: ["align"], h5: ["align"], h6: ["align"],
+    hr: ["align", "size", "width"],
+    table: ["align", "border", "cellpadding", "cellspacing", "width"],
+    // L'éditeur riche produit des classes Tailwind et des styles inline :
+    // on les conserve sur toutes les balises pour ne rien changer à
+    // l'apparence, tout en filtrant TOUS les autres attributs (onclick,
+    // onerror, srcdoc, formaction… disparaissent).
+    "*": ["class", "style"],
+  },
+  allowedSchemes: ["http", "https", "mailto"],
+  allowedSchemesByTag: { img: ["http", "https", "data"] },
+  allowProtocolRelative: false, // « //exemple.com » refusé
+  transformTags: {
+    a: (_balise, attribs) => ({
+      tagName: "a",
+      attribs: { ...attribs, rel: "noopener noreferrer nofollow" },
+    }),
+  },
+};
+
+/** Retire ce qui ne doit JAMAIS être affiché sur le site public :
+ *  scripts, iframes, formulaires, gestionnaires d'événements, URLs
+ *  dangereuses — via sanitize-html (liste blanche, voir ci-dessus). */
 export function nettoyerHtml(html: string): string {
-  return html
-    // blocs entiers : <script>…</script>, <style>…</style>…
-    .replace(new RegExp(`<\\s*(?:${BALISES_INTERDITES})[^>]*>[\\s\\S]*?<\\s*\\/\\s*(?:${BALISES_INTERDITES})\\s*>`, "gi"), "")
-    // balises orphelines : <iframe …>, <meta …>…
-    .replace(new RegExp(`<\\s*\\/?\\s*(?:${BALISES_INTERDITES})[^>]*>`, "gi"), "")
-    // attributs d'événements : onclick="…", onerror='…', onmouseover=…
-    .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    // URLs dangereuses dans les liens, images et iframes restantes
-    .replace(/(href|src)\s*=\s*("|')\s*(javascript|data|vbscript):[^"']*\2/gi, '$1="#"')
-    // srcdoc d'iframe (déjà retirée, mais au cas où)
-    .replace(/\ssrcdoc\s*=\s*("[^"]*"|'[^']*')/gi, "");
+  return sanitizeHtml(html, OPTIONS_ASSAINISSEMENT);
 }
 
 /** Pipeline complet, à utiliser AVANT affichage ou enregistrement :
@@ -94,16 +163,19 @@ export function sembleHtml(texte: string): boolean {
  * Convertit l'ancien contenu « texte brut » (1 paragraphe = 1 ligne,
  * lignes vides = sauts) en HTML propre pour l'éditeur riche. Un
  * contenu échappé ou enveloppé est d'abord normalisé ; un contenu
- * déjà HTML est renvoyé tel quel.
+ * déjà HTML est assaini ; le résultat est TOUJOURS assaini (Lot 82) :
+ * ce qu'il affiche se limite à ce que nettoyerHtml laisse passer.
  */
 export function texteVersHtml(texte: string): string {
   const normalise = normaliserHtml(texte);
-  if (sembleHtml(normalise)) return normalise;
+  if (sembleHtml(normalise)) return nettoyerHtml(normalise);
   const paragraphes = normalise
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean);
-  return paragraphes
-    .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
-    .join("");
+  return nettoyerHtml(
+    paragraphes
+      .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
+      .join(""),
+  );
 }

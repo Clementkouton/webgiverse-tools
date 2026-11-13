@@ -26,13 +26,13 @@ export default function PageIntrouvable() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-7 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[7px]  not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-7 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
           >
             <Home className="size-4" aria-hidden /> Retour à l&apos;accueil
           </Link>
           <Link
             href="/outils"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500 bg-white px-7 text-[16px] leading-5 font-semibold text-bleu transition hover:bg-gris"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[7px]  not-italic border border-sky-500 bg-white px-7 text-[16px] leading-5 font-semibold text-bleu transition hover:bg-gris"
           >
             <Compass className="size-4" aria-hidden /> Explorer les outils
           </Link>

@@ -227,7 +227,7 @@ export function AssistantOnglets({
               {(premium || restantes !== null) && (
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-white px-5 py-2 text-xs">
                   {premium ? (
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-violet">
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-sky-500">
                       <Crown className="h-3.5 w-3.5" aria-hidden />
                       Questions illimitées · merci pour votre abonnement
                     </span>
@@ -238,7 +238,7 @@ export function AssistantOnglets({
                           ? "Quota mensuel atteint · plan Découverte"
                           : `${restantes} question${restantes !== 1 ? "s" : ""} restante${restantes !== 1 ? "s" : ""} ce mois-ci · plan Découverte`}
                       </span>
-                      <a href="/tarifs" className="font-semibold text-violet hover:underline">
+                          <a href="/tarifs" className="font-semibold text-sky-500 hover:underline">
                         Passer Premium
                       </a>
                     </>

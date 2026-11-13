@@ -66,10 +66,10 @@ export function BandeauSponsor({
             />
           )}
           <div className="min-w-0 flex-1">
-            <p className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/5 px-3 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-violet">
+            <p className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-violet/30 bg-violet/5 px-3 py-0.5 text-[11px] leading-4 font-bold uppercase tracking-wide text-sky-500">
               <Megaphone className="size-3" aria-hidden /> À la une — sponsorisé
             </p>
-            <h2 className="mt-1.5 truncate font-titre text-[17px] leading-6 font-semibold text-bleu group-hover:text-violet">
+            <h2 className="mt-1.5 truncate font-titre text-[17px] leading-6 font-semibold text-bleu group-hover:text-sky-500">
               {sponsor.titre}
             </h2>
             {sponsor.description && (
@@ -78,7 +78,7 @@ export function BandeauSponsor({
               </p>
             )}
           </div>
-          <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-4 py-2 text-[14px] leading-4 font-semibold text-white transition group-hover:bg-violet-clair sm:self-center">
+          <span className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-[7px]  not-italic bg-violet px-4 py-2 text-[14px] leading-4 font-semibold text-white transition group-hover:bg-violet-clair sm:self-center">
             Découvrir <ExternalLink className="size-4" aria-hidden />
           </span>
         </a>

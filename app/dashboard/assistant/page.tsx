@@ -74,14 +74,14 @@ export default async function PageMesConversations() {
     <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
       <Link
         href="/dashboard"
-        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-sky-500"
       >
         <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
       </Link>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
         <h1 className="flex items-center gap-2 text-h2 font-semibold">
-          <Bot className="size-7 text-violet" aria-hidden /> Mes conversations
+          <Bot className="size-7 text-sky-500" aria-hidden /> Mes conversations
           <Badge variante="defaut">{conversations.length}</Badge>
         </h1>
         <Bouton asChild>
@@ -99,7 +99,7 @@ export default async function PageMesConversations() {
       {/* ── État vide ─────────────────────────────────────────────── */}
       {conversations.length === 0 && (
         <Carte className="mt-8 p-10 text-center">
-          <Bot className="mx-auto size-10 text-violet" aria-hidden />
+          <Bot className="mx-auto size-10 text-sky-500" aria-hidden />
           <h2 className="mt-3 font-titre text-[18px] leading-6 font-semibold text-bleu">
             Aucune conversation pour l&apos;instant
           </h2>
@@ -151,7 +151,7 @@ export default async function PageMesConversations() {
                   <BoutonConfirmer
                     message={`Supprimer définitivement « ${conversation.titre} » et ses messages ?`}
                     aria-label={`Supprimer la conversation ${conversation.titre}`}
-                    className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                    className="grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                   >
                     <Trash2 className="size-4" aria-hidden />
                   </BoutonConfirmer>

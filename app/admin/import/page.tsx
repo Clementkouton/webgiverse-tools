@@ -228,7 +228,7 @@ export default async function PageImportAdmin({
               href={`/admin/import?onglet=${o.cle}`}
               aria-current={est ? "true" : undefined}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic px-4 py-2 text-[13px] leading-4 font-semibold transition",
+                "inline-flex items-center gap-1.5 rounded-[7px]  not-italic px-4 py-2 text-[13px] leading-4 font-semibold transition",
                 est
                   ? "bg-primaire text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)]"
                   : "border border-adm-bordure bg-white text-adm-gris hover:border-primaire/40 hover:text-primaire-texte",
@@ -249,7 +249,7 @@ export default async function PageImportAdmin({
         <a
           href={actif.modele}
           download
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-primaire/30 bg-primaire/10 px-4 text-[14px] font-semibold text-primaire-texte transition hover:border-primaire/60 hover:bg-primaire/15"
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-[7px]  not-italic border border-primaire/30 bg-primaire/10 px-4 text-[14px] font-semibold text-primaire-texte transition hover:border-primaire/60 hover:bg-primaire/15"
         >
           <Download className="size-4" aria-hidden /> Télécharger le modèle CSV
         </a>
@@ -300,7 +300,7 @@ export default async function PageImportAdmin({
                     <td className="px-5 py-3">
                       <code className="rounded bg-gris px-1.5 py-0.5 text-[12px] font-bold text-adm-sombre">{c.nom}</code>
                       {c.requis && (
-                        <span className="ml-1.5 inline-flex rounded-[7px] -skew-x-[18deg] not-italic bg-adm-erreur-doux px-1.5 py-0.5 text-[10px] leading-3 font-bold text-[#c94f35]">
+                        <span className="ml-1.5 inline-flex rounded-[7px]  not-italic bg-adm-erreur-doux px-1.5 py-0.5 text-[10px] leading-3 font-bold text-[#c94f35]">
                           requis
                         </span>
                       )}

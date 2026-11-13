@@ -47,7 +47,7 @@ export function RessourcesTuto({ description }: Props) {
       {chapitres.length > 0 && (
         <div className="mt-5 min-w-0">
           <h3 className="flex items-center gap-1.5 text-[13px] leading-4 font-semibold uppercase tracking-wide text-encre">
-            <ListOrdered className="size-4 shrink-0 text-violet" aria-hidden /> Chapitres
+            <ListOrdered className="size-4 shrink-0 text-sky-500" aria-hidden /> Chapitres
           </h3>
           <ol className="mt-2.5 grid min-w-0 gap-1.5 sm:grid-cols-2">
             {chapitres.map((c, i) => (
@@ -55,7 +55,7 @@ export function RessourcesTuto({ description }: Props) {
                 key={`${c.temps}-${i}`}
                 className="flex min-w-0 items-baseline gap-2.5 rounded-champ bg-gris px-3 py-1.5 text-[13px] leading-5"
               >
-                <span className="shrink-0 font-mono text-[12px] font-semibold text-violet tabular-nums">
+                <span className="shrink-0 font-mono text-[12px] font-semibold text-sky-500 tabular-nums">
                   {c.temps}
                 </span>
                 <span className="min-w-0 break-words text-encre">{c.titre}</span>
@@ -69,7 +69,7 @@ export function RessourcesTuto({ description }: Props) {
       {ressources.length > 0 && (
         <div className="mt-5 min-w-0">
           <h3 className="flex items-center gap-1.5 text-[13px] leading-4 font-semibold uppercase tracking-wide text-encre">
-            <ExternalLink className="size-4 shrink-0 text-violet" aria-hidden /> Ressources utiles
+            <ExternalLink className="size-4 shrink-0 text-sky-500" aria-hidden /> Ressources utiles
           </h3>
           <ul className="mt-2.5 grid min-w-0 gap-1.5">
             {ressources.map((r, i) => (

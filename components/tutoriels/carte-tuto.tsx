@@ -51,7 +51,7 @@ export function CarteTuto({ tuto }: { tuto: Tuto }) {
         <span className="flex flex-wrap items-center gap-1.5">
           <Badge variante={niveau.variante}>{niveau.libelle}</Badge>
           {tutoPayant && (
-            <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+            <span className="inline-flex items-center gap-1 rounded-[7px]  not-italic border border-violet/30 bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-sky-500">
               <Crown className="size-3" aria-hidden /> Premium
             </span>
           )}

@@ -208,12 +208,12 @@ export default async function PageMonEquipe({ searchParams }: Props) {
   const stylesListeAvantages =
     "mt-3 space-y-2 text-[14px] leading-5 text-encre";
   const styleBoutonRouge =
-    "inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
+    "inline-flex min-h-11 items-center gap-2 rounded-[7px]  not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 lg:py-10">
       <h1 className="flex items-center gap-2 text-h2 font-semibold">
-        <Users className="size-7 text-violet" aria-hidden /> Mon équipe
+        <Users className="size-7 text-sky-500" aria-hidden /> Mon équipe
       </h1>
 
       {alerte && (
@@ -249,7 +249,7 @@ export default async function PageMonEquipe({ searchParams }: Props) {
         <>
           {/* ── Vue titulaire ─────────────────────────────── */}
           <Carte className="animate-apparition-haut mt-6 border-violet/40 bg-violet/5 p-6">
-            <p className="flex items-center gap-2 text-[15px] font-semibold text-violet">
+            <p className="flex items-center gap-2 text-[15px] font-semibold text-sky-500">
               <Crown className="size-5" aria-hidden /> Équipe Entreprise
             </p>
             <p className="mt-1.5 text-[14px] leading-5 text-encre">
@@ -269,7 +269,7 @@ export default async function PageMonEquipe({ searchParams }: Props) {
 
           <Carte className="mt-6 p-6">
             <p className="text-[15px] font-semibold text-encre">
-              <UserPlus className="mr-2 inline size-5 text-violet" aria-hidden />
+              <UserPlus className="mr-2 inline size-5 text-sky-500" aria-hidden />
               Attribuer un siège
             </p>
             <p className="mt-1 text-[13px] leading-5 text-encre/70">
@@ -295,7 +295,7 @@ export default async function PageMonEquipe({ searchParams }: Props) {
 
           <Carte className="mt-6 p-6">
             <p className="text-[15px] font-semibold text-encre">
-              <Users className="mr-2 inline size-5 text-violet" aria-hidden />
+              <Users className="mr-2 inline size-5 text-sky-500" aria-hidden />
               Membres de ton équipe ({membres.length})
             </p>
             {membres.length === 0 ? (
@@ -338,14 +338,14 @@ export default async function PageMonEquipe({ searchParams }: Props) {
 
           <Carte className="mt-6 p-6">
             <p className="flex items-center gap-2 text-[15px] font-semibold text-encre">
-              <ShieldCheck className="size-5 text-violet" aria-hidden /> Ce que
+              <ShieldCheck className="size-5 text-sky-500" aria-hidden /> Ce que
               voient tes membres
             </p>
             <ul className={stylesListeAvantages}>
               {AVANTAGES_EQUIPE.map((avantage) => (
                 <li key={avantage} className="flex items-start gap-2">
                   <CheckCircle2
-                    className="mt-0.5 size-4 shrink-0 text-violet"
+                    className="mt-0.5 size-4 shrink-0 text-sky-500"
                     aria-hidden
                   />{" "}
                   {avantage}
@@ -363,7 +363,7 @@ export default async function PageMonEquipe({ searchParams }: Props) {
         <>
           {/* ── Vue membre invité ─────────────────────────── */}
           <Carte className="animate-apparition-haut mt-6 border-violet/40 bg-violet/5 p-6">
-            <p className="flex items-center gap-2 text-[15px] font-semibold text-violet">
+              <p className="flex items-center gap-2 text-[15px] font-semibold text-sky-500">
               <Crown className="size-5" aria-hidden /> Tu profites de Webgiverse
               Entreprise
             </p>
@@ -383,14 +383,14 @@ export default async function PageMonEquipe({ searchParams }: Props) {
 
           <Carte className="mt-6 p-6">
             <p className="flex items-center gap-2 text-[15px] font-semibold text-encre">
-              <ShieldCheck className="size-5 text-violet" aria-hidden /> Tes
+                <ShieldCheck className="size-5 text-sky-500" aria-hidden /> Tes
               avantages actuels
             </p>
             <ul className={stylesListeAvantages}>
               {AVANTAGES_EQUIPE.map((avantage) => (
                 <li key={avantage} className="flex items-start gap-2">
                   <CheckCircle2
-                    className="mt-0.5 size-4 shrink-0 text-violet"
+                    className="mt-0.5 size-4 shrink-0 text-sky-500"
                     aria-hidden
                   />{" "}
                   {avantage}
@@ -433,7 +433,7 @@ export default async function PageMonEquipe({ searchParams }: Props) {
           )}
           <Carte className="animate-apparition-haut mt-6 p-6 text-center">
             <p className="flex items-center justify-center gap-2 text-[15px] font-semibold text-encre">
-              <Crown className="size-5 text-violet" aria-hidden /> La gestion
+                  <Crown className="size-5 text-sky-500" aria-hidden /> La gestion
               d&apos;équipe est réservée au plan Entreprise
             </p>
             <p className="mx-auto mt-2 max-w-xl text-[14px] leading-5 text-encre/70">

@@ -44,7 +44,7 @@ export function CartePrompt({ prompt }: { prompt: CartePromptData }) {
           {prompt.description}
         </span>
         <span className="mt-auto flex items-center gap-2 pt-3 text-[12px] leading-4 text-encre">
-          <span className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-gris px-2.5 py-0.5 font-medium text-bleu">
+          <span className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-bordure bg-gris px-2.5 py-0.5 font-medium text-bleu">
             {LIBELLES_TYPE[prompt.type] ?? "Texte"}
           </span>
           <span className="ml-auto inline-flex items-center gap-1.5">

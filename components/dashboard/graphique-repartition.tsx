@@ -101,7 +101,7 @@ export function GraphiqueRepartition({ segments, total, totalLibelle = "" }: Pro
           <li key={a.libelle} className="flex items-center gap-2.5 text-[13px] leading-4">
             <span
               aria-hidden
-              className="size-3 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic"
+              className="size-3 shrink-0 rounded-[7px]  not-italic"
               style={{ backgroundColor: a.couleur }}
             />
             <span className="min-w-0 flex-1 font-medium text-bleu">{a.libelle}</span>

@@ -101,7 +101,7 @@ export default async function PageRecherchesAdmin() {
         </div>
         <Link
           href="/api/admin/recherches/export"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-primaire/30 bg-primaire/10 px-4 py-2 text-[13px] font-bold text-primaire-texte transition hover:border-primaire/60 hover:bg-primaire/15"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-[7px]  not-italic border border-primaire/30 bg-primaire/10 px-4 py-2 text-[13px] font-bold text-primaire-texte transition hover:border-primaire/60 hover:bg-primaire/15"
         >
           <Download className="size-4" aria-hidden /> Exporter l'historique (CSV)
         </Link>
@@ -174,16 +174,16 @@ export default async function PageRecherchesAdmin() {
                     {t.terme}
                   </Link>
                   <span className="flex shrink-0 items-center gap-2 text-[12px] font-semibold text-adm-gris">
-                    <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-adm-fond px-2 py-0.5 text-[11px] font-medium text-adm-gris">
+                    <span className="rounded-[7px]  not-italic bg-adm-fond px-2 py-0.5 text-[11px] font-medium text-adm-gris">
                       {Math.round(t._avg.nbResultats ?? 0)} résultat
                       {Math.round(t._avg.nbResultats ?? 0) > 1 ? "s" : ""} en moyenne
                     </span>
                     <span className="text-adm-sombre">×{t._count.terme}</span>
                   </span>
                 </div>
-                <div className="mt-1 h-1.5 overflow-hidden rounded-[7px] -skew-x-[18deg] not-italic bg-adm-fond">
+                <div className="mt-1 h-1.5 overflow-hidden rounded-[7px]  not-italic bg-adm-fond">
                   <div
-                    className="h-full rounded-[7px] -skew-x-[18deg] not-italic bg-primaire transition-[width] duration-500"
+                    className="h-full rounded-[7px]  not-italic bg-primaire transition-[width] duration-500"
                     style={{ width: `${Math.max((t._count.terme / maxTop) * 100, 4)}%` }}
                   />
                 </div>
@@ -221,7 +221,7 @@ export default async function PageRecherchesAdmin() {
                 <span className="min-w-0 truncate text-[13.5px] font-medium text-adm-sombre">
                   {t.terme}
                 </span>
-                <span className="shrink-0 rounded-[7px] -skew-x-[18deg] not-italic bg-adm-alerte-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#b26f00]">
+                <span className="shrink-0 rounded-[7px]  not-italic bg-adm-alerte-doux px-2 py-0.5 text-[11px] leading-4 font-bold text-[#b26f00]">
                   ×{t._count.terme} sans résultat
                 </span>
               </div>

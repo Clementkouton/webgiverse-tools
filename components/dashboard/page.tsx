@@ -33,7 +33,7 @@ export default async function PageParrainage() {
           <p className="text-encre">Connecte-toi pour accéder à ton lien de parrainage.</p>
           <Link
             href="/connexion?suite=/dashboard/parrainage"
-            className="mt-4 inline-block font-semibold text-violet hover:underline"
+            className="mt-4 inline-block font-semibold text-sky-500 hover:underline"
           >
             Se connecter
           </Link>
@@ -54,7 +54,7 @@ export default async function PageParrainage() {
     <main className="mx-auto w-full max-w-3xl px-4 py-8 lg:py-10">
       {/* ── En-tête ─────────────────────────────────────────────── */}
       <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-8">
-        <div aria-hidden className="animate-flottant pointer-events-none absolute -right-12 -top-12 size-44 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/20 blur-3xl" />
+        <div aria-hidden className="animate-flottant pointer-events-none absolute -right-12 -top-12 size-44 rounded-[7px]  not-italic bg-ciel/20 blur-3xl" />
         <p className="relative flex items-center gap-2 text-legende text-white/70">
           <Handshake className="size-4 text-ciel" aria-hidden /> Programme de parrainage
         </p>
@@ -82,7 +82,7 @@ export default async function PageParrainage() {
       <section aria-label="Tes statistiques de parrainage" className="mt-6 grid gap-4 sm:grid-cols-3">
         <Carte className="animate-apparition-haut delai-1 p-5">
           <p className="flex items-center gap-1.5 text-[12px] leading-4 font-bold uppercase tracking-wide text-encre/70">
-            <Gift className="size-3.5 text-violet" aria-hidden /> Filleuls inscrits
+            <Gift className="size-3.5 text-sky-500" aria-hidden /> Filleuls inscrits
           </p>
           <p className="mt-2 font-titre text-[26px] leading-8 font-bold text-bleu">{stats.total}</p>
         </Carte>
@@ -111,7 +111,7 @@ export default async function PageParrainage() {
             "Boom 🎉 : ton accès est prolongé de 30 jours, sans rien faire, et tu reçois une notification.",
           ].map((etape, i) => (
             <li key={i} className="flex items-start gap-2.5">
-              <span className="grid size-5 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-[11px] font-bold text-white">
+              <span className="grid size-5 shrink-0 place-items-center rounded-[7px]  not-italic bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-[11px] font-bold text-white">
                 {i + 1}
               </span>
               <span>{etape}</span>
@@ -141,7 +141,7 @@ export default async function PageParrainage() {
                   Inscrit le {formateurDate.format(f.creeLe)}
                 </span>
                 <span
-                  className={`rounded-[7px] -skew-x-[18deg] not-italic px-2 py-0.5 text-[11px] leading-4 font-bold ${
+                  className={`rounded-[7px]  not-italic px-2 py-0.5 text-[11px] leading-4 font-bold ${
                     f.statut === "RECOMPENSE"
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-amber-100 text-amber-700"

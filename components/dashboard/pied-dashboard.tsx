@@ -30,7 +30,7 @@ export default function PiedDashboard({ premium = false }: { premium?: boolean }
               <LienLogo />
               <span
                 className={cn(
-                  "rounded-[7px] -skew-x-[18deg] not-italic px-2 py-0.5 text-[10px] leading-3.5 font-bold uppercase",
+                  "rounded-[7px]  not-italic px-2 py-0.5 text-[10px] leading-3.5 font-bold uppercase",
                   premium ? "bg-magenta text-white" : "bg-gris text-encre"
                 )}
               >
@@ -50,7 +50,7 @@ export default function PiedDashboard({ premium = false }: { premium?: boolean }
         >
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-bleu px-3 py-1.5 text-[12px] leading-4 font-semibold text-white transition hover:bg-sky-500 active:scale-95"
+            className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-bleu px-3 py-1.5 text-[12px] leading-4 font-semibold text-white transition hover:bg-sky-500 active:scale-95"
           >
             <ArrowLeft className="size-3.5" aria-hidden /> Retour au site
           </Link>

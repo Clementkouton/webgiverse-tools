@@ -321,7 +321,7 @@ export default async function ModelesListesPage({
                           type="submit"
                           message={`Retirer « ${liste.nom} » du catalogue des modèles ?`}
                           aria-label={`Retirer le modèle ${liste.nom}`}
-                          className="rounded-[7px] -skew-x-[18deg] not-italic px-3 py-1.5 text-[13px] font-semibold text-encre hover:bg-gris hover:text-red-600"
+                          className="rounded-[7px]  not-italic px-3 py-1.5 text-[13px] font-semibold text-encre hover:bg-gris hover:text-red-600"
                         >
                           Retirer du catalogue
                         </BoutonConfirmer>

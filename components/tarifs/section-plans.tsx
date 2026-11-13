@@ -33,7 +33,7 @@ export async function SectionPlans() {
       <div className="mx-auto max-w-7xl px-4">
         {/* En-tête de la section */}
         <div className="mx-auto max-w-2xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+          <p className="inline-flex items-center gap-2 rounded-[7px]  not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             <Crown className="size-4" aria-hidden /> Webgiverse Premium
           </p>
           <h2 id="titre-premium-accueil" className="mt-4 text-[26px] leading-8 font-semibold sm:text-h2">
@@ -70,7 +70,7 @@ export async function SectionPlans() {
             </ul>
             <Link
               href="/outils"
-              className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500 bg-white px-6 text-[16px] leading-5 font-semibold text-bleu transition hover:border-sky-500-clair hover:bg-gris"
+              className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-[7px]  not-italic border border-sky-500 bg-white px-6 text-[16px] leading-5 font-semibold text-bleu transition hover:border-sky-500-clair hover:bg-gris"
             >
               Explorer l&apos;annuaire <ArrowRight className="size-4" aria-hidden />
             </Link>
@@ -98,7 +98,7 @@ export async function SectionPlans() {
                 }`}
               >
                 {plan.recommande && (
-                  <span className="absolute -top-3 left-6 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white">
+                  <span className="absolute -top-3 left-6 rounded-[7px]  not-italic bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white">
                     Le plus populaire
                   </span>
                 )}
@@ -127,7 +127,7 @@ export async function SectionPlans() {
                 {!connecte ? (
                   <Link
                     href="/connexion?suite=%2Ftarifs"
-                    className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                    className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-[7px]  not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
                   >
                     Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
                   </Link>
@@ -136,7 +136,7 @@ export async function SectionPlans() {
                   <BoutonPaiement
                     clePlan={plan.cle}
                     libelle={`Choisir ${plan.nom}`}
-                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px]  not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
                   />
                 ) : (
                   /* 3) Connecté mais paiement intégré pas configuré → lien de secours */
@@ -144,7 +144,7 @@ export async function SectionPlans() {
                     href={urlChariow ?? "/tarifs"}
                     target={urlChariow ? "_blank" : undefined}
                     rel={urlChariow ? "noopener noreferrer" : undefined}
-                        className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                        className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-[7px]  not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
                   >
                     Choisir {plan.nom} <ArrowRight className="size-4" aria-hidden />
                   </a>

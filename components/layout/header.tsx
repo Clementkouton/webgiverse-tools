@@ -106,7 +106,7 @@ export function Header() {
 
   /** Classe commune des liens simples : actif = pastille violette. */
   const classeLien = (actif: boolean) =>
-    `rounded-[7px] -skew-x-[18deg] not-italic px-4 py-2.5 text-[15px] leading-5 font-medium whitespace-nowrap transition hover:bg-gris hover:text-sky-500 ${
+    `rounded-[7px]  not-italic px-4 py-2.5 text-[15px] leading-5 font-medium whitespace-nowrap transition hover:bg-gris hover:text-sky-500 ${
       actif
         ? "bg-violet/10 text-sky-500"
         : "text-bleu hover:bg-violet/10 hover:text-sky-500"
@@ -130,10 +130,10 @@ export function Header() {
               onClick={() => setAnnuaireOuvert((v) => !v)}
               aria-expanded={annuaireOuvert}
               aria-haspopup="true"
-              className={`flex min-h-11 cursor-pointer items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic px-4 text-[15px] leading-5 font-medium whitespace-nowrap transition hover:bg-gris hover:text-sky-500 ${
+              className={`flex min-h-11 cursor-pointer items-center gap-1 rounded-[7px]  not-italic px-4 text-[15px] leading-5 font-medium whitespace-nowrap transition hover:bg-gris hover:text-sky-500 ${
                 annuaireActif
-                  ? "bg-violet/10 text-violet"
-                  : "text-bleu hover:bg-violet/10 hover:text-violet"
+                ? "bg-violet/10 text-sky-500"
+                : "text-bleu hover:bg-violet/10 hover:text-sky-500"
               }`}
             >
               Annuaire
@@ -147,7 +147,7 @@ export function Header() {
                 {LIENS_ANNUAIRE.map((l) => (
                   <Link key={l.href} href={l.href}
                     onClick={() => setAnnuaireOuvert(false)}
-                    className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-violet">
+                    className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-sky-500">
                     {l.label}
                   </Link>
                 ))}
@@ -164,16 +164,16 @@ export function Header() {
           <Link href="/skills" aria-current={skillsActif ? "page" : undefined}
             className={
               skillsActif
-                ? "inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-violet hover:bg-violet/10 hover:text-sky-500"
-                : "inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-violet/80 transition hover:bg-violet/10 hover:text-sky-500"
+                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 hover:bg-violet/10 hover:text-sky-500"
+                : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500/80 transition hover:bg-violet/10 hover:text-sky-500"
             }>
             <Sparkles className="size-4" aria-hidden /> Skills
           </Link>
           <Link href="/tarifs" aria-current={premiumActif ? "page" : undefined}
             className={
               premiumActif
-                ? "inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 shadow-[0_2px_12px_rgba(106,59,255,0.28)] hover:bg-violet/90 hover:text-sky-500"
-                : "inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-violet transition hover:bg-violet hover:text-sky-500"
+                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 shadow-[0_2px_12px_rgba(106,59,255,0.28)] hover:bg-violet/90 hover:text-sky-500"
+                : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 transition hover:bg-violet hover:text-sky-500"
             }>
             <Sparkles className="size-4" aria-hidden /> Premium
           </Link>
@@ -183,7 +183,7 @@ export function Header() {
           <Bouton taille="sm" asChild>
             <Link href={hrefEspace}>{libelleEspace}</Link>
           </Bouton>
-          <button className="grid size-11 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-bleu hover:bg-violet/10 lg:hidden"
+          <button className="grid size-11 place-items-center rounded-[7px]  not-italic text-bleu hover:bg-violet/10 lg:hidden"
             aria-expanded={menuOuvert} aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
             onClick={() => setMenuOuvert((v) => !v)}>
             {menuOuvert ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -209,7 +209,7 @@ export function Header() {
             <li aria-hidden className="my-2 border-t border-bordure hover:bg-gris hover:text-sky-500" />
             <li>
               <Link href="/prompts" onClick={() => setMenuOuvert(false)}
-                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris hover:text-sky-500">
+                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris hover:text-sky-500">
                 Prompts IA
               </Link>
             </li>
@@ -221,14 +221,14 @@ export function Header() {
             </li>
             <li>
               <Link href="/skills" onClick={() => setMenuOuvert(false)}
-                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris hover:text-sky-500">
+                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris hover:text-sky-500">
                 <Sparkles className="size-4" aria-hidden /> Skills
-                <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[11px] leading-4 font-bold text-violet">Premium</span>
+                <span className="rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[11px] leading-4 font-bold text-sky-500">Premium</span>
               </Link>
             </li>
             <li>
               <Link href="/tarifs" onClick={() => setMenuOuvert(false)}
-                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-violet hover:bg-gris hover:text-sky-500">
+                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris hover:text-sky-500">
                 <Sparkles className="size-4" aria-hidden /> Passer Premium
               </Link>
             </li>

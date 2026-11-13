@@ -59,9 +59,9 @@ export function ChecklistOnboarding({ onboarding }: { onboarding: ResultatOnboar
       </div>
 
       {/* Barre de progression pleine largeur */}
-      <div className="mt-4 h-2 overflow-hidden rounded-[7px] -skew-x-[18deg] not-italic bg-gris">
+      <div className="mt-4 h-2 overflow-hidden rounded-[7px]  not-italic bg-gris">
         <div
-          className="barre-progression h-full rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(90deg,#00d1ff,#6a3bff)]"
+          className="barre-progression h-full rounded-[7px]  not-italic bg-[linear-gradient(90deg,#00d1ff,#6a3bff)]"
           style={{ width: `${pourcentage}%` }}
         />
       </div>
@@ -92,7 +92,7 @@ export function ChecklistOnboarding({ onboarding }: { onboarding: ResultatOnboar
               </span>
               <span
                 className={`inline-flex shrink-0 items-center gap-0.5 text-[11px] leading-4 font-bold ${
-                  item.fait ? "text-emerald-600" : "text-violet"
+                  item.fait ? "text-emerald-600" : "text-sky-500"
                 }`}
               >
                 {item.action}

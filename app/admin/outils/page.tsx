@@ -91,8 +91,8 @@ export default async function PageOutilsAdmin({
             href={f.valeur ? `/admin/outils?statut=${f.valeur}` : "/admin/outils"}
             className={
               statut === f.valeur
-                ? "rounded-[7px] -skew-x-[18deg] not-italic border border-transparent bg-primaire px-4 py-2 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)]"
-                : "rounded-[7px] -skew-x-[18deg] not-italic border border-adm-bordure bg-white px-4 py-2 text-[14px] leading-5 font-semibold text-adm-gris transition hover:border-primaire/40 hover:text-primaire-texte"
+                ? "rounded-[7px]  not-italic border border-transparent bg-primaire px-4 py-2 text-[14px] leading-5 font-semibold text-white shadow-[0_2px_10px_rgba(93,135,255,0.35)]"
+                : "rounded-[7px]  not-italic border border-adm-bordure bg-white px-4 py-2 text-[14px] leading-5 font-semibold text-adm-gris transition hover:border-primaire/40 hover:text-primaire-texte"
             }
           >
             {f.libelle}

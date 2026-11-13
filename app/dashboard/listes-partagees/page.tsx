@@ -81,7 +81,7 @@ const MESSAGES: Record<string, { ok: boolean; texte: string }> = {
 const styleChamp =
   "min-h-11 w-full rounded-champ border border-bordure bg-white px-4 text-[14px] text-encre placeholder:text-encre/40 focus:border-violet focus:outline-none focus:ring-2 focus:ring-violet/30";
 const styleBoutonRouge =
-  "inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
+  "inline-flex min-h-11 items-center gap-2 rounded-[7px]  not-italic border border-red-300 bg-white px-4 text-[14px] font-semibold text-red-700 transition hover:bg-red-50";
 
 export default async function PageListesPartagees({ searchParams }: Props) {
   const { message } = await searchParams;
@@ -169,7 +169,7 @@ export default async function PageListesPartagees({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 lg:py-10">
       <h1 className="flex items-center gap-2 text-h2 font-semibold">
-        <ListChecks className="size-7 text-violet" aria-hidden /> Listes
+        <ListChecks className="size-7 text-sky-500" aria-hidden /> Listes
         partagées avec moi
       </h1>
       <p className="mt-1 text-[14px] leading-5 text-encre/70">
@@ -233,9 +233,9 @@ export default async function PageListesPartagees({ searchParams }: Props) {
                 <p className="truncate text-[15px] font-semibold text-encre">
                   {liste.nom}
                   <span
-                    className={`ml-2 rounded-[7px] -skew-x-[18deg] not-italic px-2 py-0.5 text-[11px] font-bold ${
+                    className={`ml-2 rounded-[7px]  not-italic px-2 py-0.5 text-[11px] font-bold ${
                       editeur
-                        ? "bg-violet/10 text-violet"
+                      ? "bg-violet/10 text-sky-500"
                         : "bg-encre/10 text-encre/60"
                     }`}
                   >
@@ -252,7 +252,7 @@ export default async function PageListesPartagees({ searchParams }: Props) {
               {liste.slug && (
                 <Link
                   href={`/listes/${liste.slug}`}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 text-[12px] font-semibold text-encre transition hover:bg-gris"
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px]  not-italic border border-bordure bg-white px-3 text-[12px] font-semibold text-encre transition hover:bg-gris"
                 >
                   <ExternalLink className="size-3.5" aria-hidden /> Page publique
                 </Link>

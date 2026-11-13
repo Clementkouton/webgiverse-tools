@@ -97,7 +97,16 @@ export default async function PageOutil({ params }: { params: Promise<{ slug: st
 
   return (
     <article className="mx-auto max-w-7xl px-4 py-10 lg:py-14">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(donneesStructurees) }} />
+      {/* Lot 82 — le « < » est échappé en \u003c : un champ d'une fiche
+          (nom, description d'un outil proposé par un visiteur puis
+          approuvé) contenant « </script> » ne peut plus refermer
+          prématurément ce script et injecter du code. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(donneesStructurees).replace(/</g, "\\u003c"),
+        }}
+      />
 
       <nav aria-label="Fil d'Ariane" className="mb-6 flex flex-wrap items-center gap-1 text-[14px] leading-5 text-encre">
         <Link href="/" className="hover:text-sky-500">Accueil</Link>

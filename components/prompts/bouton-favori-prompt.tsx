@@ -40,7 +40,7 @@ export function BoutonFavoriPrompt({ promptId, favoriInitial, connecte, hrefConn
     return (
       <Link
         href={hrefConnexion}
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3.5 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-violet"
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px]  not-italic border border-bordure bg-white px-3.5 py-1 text-[12px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-sky-500"
       >
         <Heart className="size-3.5" aria-hidden /> Sauvegarder
       </Link>
@@ -84,10 +84,10 @@ export function BoutonFavoriPrompt({ promptId, favoriInitial, connecte, hrefConn
         disabled={enCours}
         aria-pressed={favori}
         className={cn(
-          "inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border px-3.5 py-1 text-[12px] leading-4 font-semibold transition active:scale-95",
+          "inline-flex min-h-9 items-center gap-1.5 rounded-[7px]  not-italic border px-3.5 py-1 text-[12px] leading-4 font-semibold transition active:scale-95",
           favori
-            ? "border-violet bg-violet/10 text-violet"
-            : "border-bordure bg-white text-bleu hover:border-violet hover:text-violet",
+            ? "border-violet bg-violet/10 text-sky-500"
+            : "border-bordure bg-white text-bleu hover:border-violet hover:text-sky-500",
           enCours && "opacity-60",
         )}
       >
@@ -106,12 +106,12 @@ export function BoutonFavoriPrompt({ promptId, favoriInitial, connecte, hrefConn
             message.type === "erreur" && "border-bordure bg-white",
           )}
         >
-          {message.type === "limite" && <Crown className="mt-0.5 size-3.5 shrink-0 text-violet" aria-hidden />}
+          {message.type === "limite" && <Crown className="mt-0.5 size-3.5 shrink-0 text-sky-500" aria-hidden />}
           {message.type === "base" && <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-600" aria-hidden />}
           <span>
             {message.texte}{" "}
             {message.type === "limite" && (
-              <Link href="/tarifs" className="font-semibold text-violet underline">
+              <Link href="/tarifs" className="font-semibold text-sky-500 underline">
                 Passe Premium
               </Link>
             )}

@@ -150,7 +150,7 @@ export function BlocNotesTutoriel({
     return (
       <div className="rounded-carte border border-bordure bg-gris/40 p-5">
         <p className="flex items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
-          <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+          <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-sky-500" aria-hidden>
             <NotebookPen className="size-4" />
           </span>
           Prends des notes pendant la vidéo
@@ -177,11 +177,11 @@ export function BlocNotesTutoriel({
         className="rounded-carte border border-bordure bg-white p-5 shadow-carte"
       >
         <p className="flex flex-wrap items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
-          <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+          <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-sky-500" aria-hidden>
             <Crown className="size-4" />
           </span>
           Mes notes sur ce tutoriel
-          <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+          <span className="inline-flex items-center gap-1 rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-sky-500">
             Premium
           </span>
         </p>
@@ -260,11 +260,11 @@ export function BlocNotesTutoriel({
   return (
     <section aria-label="Mes notes sur ce tutoriel" className="rounded-carte border border-bordure bg-white p-5 shadow-carte">
       <p className="mb-2 flex flex-wrap items-center gap-2.5 font-titre text-[15px] leading-5 font-bold text-bleu">
-        <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+        <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-sky-500" aria-hidden>
           <NotebookPen className="size-4" />
         </span>
         Mes notes sur ce tutoriel
-        <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+        <span className="inline-flex items-center gap-1 rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-sky-500">
           Privée — visible de toi seul
         </span>
       </p>

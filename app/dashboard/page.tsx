@@ -318,17 +318,17 @@ export default async function PageDashboard({
 
       {/* Carte de bienvenue avec progression (animée) */}
       <div className="animate-apparition-haut delai-1 relative mt-6 overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-8">
-        <div aria-hidden className="animate-flottant pointer-events-none absolute -right-16 -top-16 size-56 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/20 blur-3xl" />
-        <div aria-hidden className="animate-flottant-lent pointer-events-none absolute -bottom-20 -left-10 size-44 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500-clair/25 blur-3xl" />
+        <div aria-hidden className="animate-flottant pointer-events-none absolute -right-16 -top-16 size-56 rounded-[7px]  not-italic bg-ciel/20 blur-3xl" />
+        <div aria-hidden className="animate-flottant-lent pointer-events-none absolute -bottom-20 -left-10 size-44 rounded-[7px]  not-italic bg-sky-500-clair/25 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-6">
           <div className="min-w-0">
             <p className="text-legende text-white/70">Ton espace personnel Webgiverse</p>
             <p className="mt-2 flex flex-wrap items-center gap-2 font-titre text-[20px] leading-7 font-semibold">
               Niveau : {palier.nom}
-              <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-white/15 px-2.5 py-0.5 text-[12px] leading-4 font-medium">
+              <span className="rounded-[7px]  not-italic bg-white/15 px-2.5 py-0.5 text-[12px] leading-4 font-medium">
                 {score} pts
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-white/15 px-2.5 py-0.5 text-[12px] leading-4 font-semibold">
+              <span className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-white/15 px-2.5 py-0.5 text-[12px] leading-4 font-semibold">
                 {abonnementEnTeteActif ? (
                   <>
                     <Crown className="size-3.5 text-ciel" aria-hidden /> Plan {planNomEnTete}
@@ -339,9 +339,9 @@ export default async function PageDashboard({
               </span>
             </p>
             <div className="mt-3 w-full max-w-xs">
-              <div className="h-2 overflow-hidden rounded-[7px] -skew-x-[18deg] not-italic bg-white/20">
+              <div className="h-2 overflow-hidden rounded-[7px]  not-italic bg-white/20">
                 <div
-                  className="barre-progression h-full rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
+                  className="barre-progression h-full rounded-[7px]  not-italic bg-[linear-gradient(90deg,#00d1ff,#00e5c6)]"
                   style={{ width: `${progression}%` }}
                 />
               </div>
@@ -357,10 +357,10 @@ export default async function PageDashboard({
             <img
               src={session.user.image}
               alt=""
-              className="size-16 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic border-2 border-white/30 object-cover transition-transform duration-300 hover:scale-105"
+              className="size-16 shrink-0 rounded-[7px]  not-italic border-2 border-white/30 object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
-              <div className="grid size-16 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border-2 border-white/30 bg-white/15 font-titre text-[22px] font-bold">
+              <div className="grid size-16 shrink-0 place-items-center rounded-[7px]  not-italic border-2 border-white/30 bg-white/15 font-titre text-[22px] font-bold">
               {(prenom || "W").charAt(0).toUpperCase()}
             </div>
           )}
@@ -958,7 +958,7 @@ export default async function PageDashboard({
                 {streak > 0 && (
                   <span
                     title={`${streak} jour${streak > 1 ? "s" : ""} consécutif${streak > 1 ? "s" : ""} d'activité`}
-                    className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] px-2.5 py-0.5 text-[12px] leading-4 font-bold text-white"
+                    className="inline-flex items-center gap-1 rounded-[7px]  not-italic bg-[linear-gradient(100deg,#6a3bff,#8f6bff)] px-2.5 py-0.5 text-[12px] leading-4 font-bold text-white"
                   >
                     🔥 {streak} jour{streak > 1 ? "s" : ""} d'affilée
                   </span>
@@ -1114,7 +1114,7 @@ export default async function PageDashboard({
           <h2 className="text-h3 font-semibold">
             Mes favoris ({favoris.length})
             {!premium && (
-              <span className="ml-3 inline-flex items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1 align-middle text-[12px] leading-4 font-semibold text-encre">
+              <span className="ml-3 inline-flex items-center rounded-[7px]  not-italic border border-bordure bg-white px-3 py-1 align-middle text-[12px] leading-4 font-semibold text-encre">
                 {nbFavoris} / {LIMITES_DECOUVERTE.favoris} · plan Découverte
               </span>
             )}
@@ -1152,7 +1152,7 @@ export default async function PageDashboard({
                 key={f.libelle}
                 href={f.cle ? `/dashboard?onglet=favoris&statut=${f.cle}` : "/dashboard?onglet=favoris"}
                 aria-current={actif ? "true" : undefined}
-                className={`inline-flex min-h-9 items-center rounded-[7px] -skew-x-[18deg] not-italic border px-3.5 text-[13px] leading-4 font-medium transition ${
+                className={`inline-flex min-h-9 items-center rounded-[7px]  not-italic border px-3.5 text-[13px] leading-4 font-medium transition ${
                   actif ? "border-sky-500 bg-sky-500/10 text-sky-500" : "border-bordure bg-white text-encre hover:border-sky-500"
                 }`}
               >
@@ -1173,7 +1173,7 @@ export default async function PageDashboard({
             </p>
             <Link
               href="/dashboard/abonnement#plans"
-              className="inline-flex min-h-9 shrink-0 items-center rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-sky-500-clair"
+              className="inline-flex min-h-9 shrink-0 items-center rounded-[7px]  not-italic bg-sky-500 px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-sky-500-clair"
             >
               Passer Premium <Crown className="ml-1.5 size-4" aria-hidden />
             </Link>
@@ -1203,7 +1203,7 @@ export default async function PageDashboard({
                     type="submit"
                     message={`Retirer ${f.tool.nom} des favoris ?`}
                     aria-label={`Retirer ${f.tool.nom} des favoris`}
-                    className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-encre hover:bg-gris hover:text-red-600"
+                    className="grid size-9 place-items-center rounded-[7px]  not-italic text-encre hover:bg-gris hover:text-red-600"
                   >
                     <Trash2 className="size-4" aria-hidden />
                   </BoutonConfirmer>
@@ -1271,7 +1271,7 @@ export default async function PageDashboard({
         <h2 className="text-h3 font-semibold">
           Mes listes ({listes.length})
           {!premium && (
-            <span className="ml-3 inline-flex items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1 align-middle text-[12px] leading-4 font-semibold text-encre">
+            <span className="ml-3 inline-flex items-center rounded-[7px]  not-italic border border-bordure bg-white px-3 py-1 align-middle text-[12px] leading-4 font-semibold text-encre">
               {nbListes} / {LIMITES_DECOUVERTE.listes} · plan Découverte
             </span>
           )}
@@ -1291,7 +1291,7 @@ export default async function PageDashboard({
             </p>
             <Link
               href="/dashboard/abonnement#plans"
-              className="inline-flex min-h-9 shrink-0 items-center rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-sky-500-clair"
+              className="inline-flex min-h-9 shrink-0 items-center rounded-[7px]  not-italic bg-sky-500 px-4 text-[13px] leading-4 font-bold text-white transition hover:bg-sky-500-clair"
             >
               Passer Premium <Crown className="ml-1.5 size-4" aria-hidden />
             </Link>
@@ -1384,7 +1384,7 @@ export default async function PageDashboard({
                           <button
                             type="submit"
                             aria-label={`Retirer ${item.tool.nom} de la liste`}
-                            className="grid size-8 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-encre/60 transition hover:bg-white hover:text-red-600"
+                            className="grid size-8 shrink-0 place-items-center rounded-[7px]  not-italic text-encre/60 transition hover:bg-white hover:text-red-600"
                           >
                             <X className="size-4" aria-hidden />
                           </button>
@@ -1404,7 +1404,7 @@ export default async function PageDashboard({
                   <div className="flex items-start justify-between gap-2">
                     <details className="min-w-0">
                       <summary
-                        className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 text-[13px] leading-4 font-semibold text-bleu transition hover:border-violet hover:text-violet [&::-webkit-details-marker]:hidden"
+                        className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded-[7px]  not-italic border border-bordure bg-white px-3 text-[13px] leading-4 font-semibold text-bleu transition hover:border-violet hover:text-sky-500 [&::-webkit-details-marker]:hidden"
                       >
                         <Pencil className="size-3.5 text-sky-500" aria-hidden /> Renommer
                       </summary>
@@ -1430,7 +1430,7 @@ export default async function PageDashboard({
                         type="submit"
                         message={`Supprimer la liste « ${liste.nom} » définitivement ?`}
                         aria-label={`Supprimer la liste ${liste.nom}`}
-                        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-red-300 bg-white px-3 text-[13px] leading-4 font-semibold text-red-700 transition hover:bg-red-50"
+                        className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px]  not-italic border border-red-300 bg-white px-3 text-[13px] leading-4 font-semibold text-red-700 transition hover:bg-red-50"
                       >
                         <Trash2 className="size-4" aria-hidden /> 
                       </BoutonConfirmer>
@@ -1528,7 +1528,7 @@ export default async function PageDashboard({
                     type="submit"
                     message={`Supprimer ton avis sur ${a.outil.nom} ?`}
                     aria-label={`Supprimer ton avis sur ${a.outil.nom}`}
-                    className="grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-encre hover:bg-gris hover:text-red-600"
+                    className="grid size-9 place-items-center rounded-[7px]  not-italic text-encre hover:bg-gris hover:text-red-600"
                   >
                     <Trash2 className="size-4" aria-hidden />
                   </BoutonConfirmer>
@@ -1672,7 +1672,7 @@ export default async function PageDashboard({
                 }`}
               >
                 <span
-                  className={`grid size-10 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-[18px] ${
+                  className={`grid size-10 place-items-center rounded-[7px]  not-italic text-[18px] ${
                     b.obtenu
                       ? "bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-white"
                       : "bg-white text-encre"
@@ -1719,7 +1719,7 @@ export default async function PageDashboard({
                         <li key={o.slug}>
                           <Link
                             href={`/outil/${o.slug}`}
-                            className="inline-flex rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-medium text-sky-500 hover:bg-sky-500/10"
+                            className="inline-flex rounded-[7px]  not-italic border border-sky-500 bg-sky-500/5 px-3 py-1 text-[13px] leading-4 font-medium text-sky-500 hover:bg-sky-500/10"
                           >
                             {o.nom}
                           </Link>

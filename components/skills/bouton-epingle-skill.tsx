@@ -51,8 +51,8 @@ export function BoutonEpingleSkill({
   if (!connecte) {
     const classes =
       variante === "carte"
-        ? "absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white/95 text-bleu shadow-sm transition hover:border-violet hover:text-violet"
-        : "inline-flex min-h-10 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 text-[13px] leading-5 font-semibold text-bleu transition hover:border-violet hover:text-violet";
+        ? "absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[7px]  not-italic border border-bordure bg-white/95 text-bleu shadow-sm transition hover:border-violet hover:text-sky-500"
+        : "inline-flex min-h-10 items-center gap-2 rounded-[7px]  not-italic border border-bordure bg-white px-4 text-[13px] leading-5 font-semibold text-bleu transition hover:border-violet hover:text-sky-500";
     return (
       <Link href={hrefConnexion} aria-label="Se connecter pour épingler cette skill" className={classes}>
         <Pin className="size-4" aria-hidden />
@@ -65,8 +65,8 @@ export function BoutonEpingleSkill({
   if (!premium) {
     const classes =
       variante === "carte"
-        ? "absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-white/95 text-violet shadow-sm transition hover:border-violet"
-        : "inline-flex min-h-10 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/5 px-4 text-[13px] leading-5 font-semibold text-violet transition hover:border-violet";
+        ? "absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[7px]  not-italic border border-violet/30 bg-white/95 text-sky-500 shadow-sm transition hover:border-violet"
+        : "inline-flex min-h-10 items-center gap-2 rounded-[7px]  not-italic border border-violet/30 bg-violet/5 px-4 text-[13px] leading-5 font-semibold text-sky-500 transition hover:border-violet";
     return (
       <Link href="/tarifs" aria-label="Épingler les skills est réservé aux abonnés" className={classes}>
         <Crown className="size-4" aria-hidden />
@@ -105,10 +105,10 @@ export function BoutonEpingleSkill({
         aria-label={epingle ? "Retirer de mes skills" : "Épingler dans mes skills"}
         title={epingle ? "Retirer de mes skills" : "Épingler dans mes skills"}
         className={cn(
-          "absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic border shadow-sm transition active:scale-90",
+          "absolute right-3 top-3 z-20 grid size-9 place-items-center rounded-[7px]  not-italic border shadow-sm transition active:scale-90",
           epingle
             ? "border-violet bg-violet text-white"
-            : "border-bordure bg-white/95 text-bleu hover:border-violet hover:text-violet",
+            : "border-bordure bg-white/95 text-bleu hover:border-violet hover:text-sky-500",
           (enCours || enAttente) && "opacity-60",
         )}
       >
@@ -125,10 +125,10 @@ export function BoutonEpingleSkill({
         disabled={enCours}
         aria-pressed={epingle}
         className={cn(
-          "inline-flex min-h-10 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border px-4 text-[13px] leading-5 font-semibold transition active:scale-95",
+          "inline-flex min-h-10 items-center gap-2 rounded-[7px]  not-italic border px-4 text-[13px] leading-5 font-semibold transition active:scale-95",
           epingle
-            ? "border-violet bg-violet/10 text-violet"
-            : "border-bordure bg-white text-bleu hover:border-violet hover:text-violet",
+            ? "border-violet bg-violet/10 text-sky-500"
+            : "border-bordure bg-white text-bleu hover:border-violet hover:text-sky-500",
           enCours && "opacity-60",
         )}
       >
@@ -146,12 +146,12 @@ export function BoutonEpingleSkill({
             message.type === "erreur" && "border-bordure bg-white",
           )}
         >
-          {message.type === "premium" && <Crown className="mt-0.5 size-3.5 shrink-0 text-violet" aria-hidden />}
+          {message.type === "premium" && <Crown className="mt-0.5 size-3.5 shrink-0 text-sky-500" aria-hidden />}
           {message.type === "base" && <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-600" aria-hidden />}
           <span>
             {message.texte}{" "}
             {message.type === "premium" && (
-              <Link href="/tarifs" className="font-semibold text-violet underline">
+              <Link href="/tarifs" className="font-semibold text-sky-500 underline">
                 Voir les plans
               </Link>
             )}

@@ -190,14 +190,14 @@ export function BoutonPaiement({
             type="button"
             onClick={fermer}
             aria-label="Fermer"
-            className="absolute top-3 right-3 grid size-9 place-items-center rounded-[7px] -skew-x-[18deg] not-italic text-encre transition hover:bg-gris"
+            className="absolute top-3 right-3 grid size-9 place-items-center rounded-[7px]  not-italic text-encre transition hover:bg-gris"
           >
             <X className="size-5" aria-hidden />
           </button>
 
           {etape === "telephone" && (
             <div>
-              <p className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
+              <p className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-sky-500">
                 <ShieldCheck className="size-3.5" aria-hidden /> Paiement sécurisé — Chariow
               </p>
               <h2 className="mt-3 text-h3 font-semibold">Dernière étape avant le paiement</h2>
@@ -243,7 +243,7 @@ export function BoutonPaiement({
                 type="button"
                 onClick={lancerPaiement}
                 disabled={occupe || numero.replace(/\s/g, "").length < 6}
-                className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px]  not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {occupe ? (
                   <>
@@ -269,7 +269,7 @@ export function BoutonPaiement({
                   href={checkoutUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[13px] leading-4 font-semibold text-violet hover:underline"
+                  className="inline-flex items-center gap-1.5 text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
                 >
                   Ouvrir ailleurs <ExternalLink className="size-3.5" aria-hidden />
                 </a>
@@ -291,7 +291,7 @@ export function BoutonPaiement({
               onglet séparé, puis bouton « J'ai payé ». */}
           {etape === "exterieur" && checkoutUrl && (
             <div>
-              <p className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-violet">
+              <p className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic border border-violet/30 bg-violet/5 px-3 py-1 text-[12px] leading-4 font-semibold text-sky-500">
                 <ShieldCheck className="size-3.5" aria-hidden /> Paiement sécurisé — Chariow
               </p>
               <h2 className="mt-3 text-h3 font-semibold">
@@ -308,7 +308,7 @@ export function BoutonPaiement({
                 <button
                   type="button"
                   onClick={ouvrirOngletPaiement}
-                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
+                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[7px]  not-italic bg-[linear-gradient(100deg,#00d1ff,#6a3bff_62%)] px-6 text-[16px] leading-5 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)] transition hover:brightness-110"
                 >
                   Ouvrir le paiement <ExternalLink className="size-4" aria-hidden />
                 </button>
@@ -325,7 +325,7 @@ export function BoutonPaiement({
                   <button
                     type="button"
                     onClick={verifierAbonnement}
-                      className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-6 text-[16px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
+                      className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-[7px]  not-italic bg-violet px-6 text-[16px] leading-5 font-semibold text-white transition hover:bg-violet-clair"
                   >
                     <CheckCircle2 className="size-5" aria-hidden /> J&apos;ai payé — activer mon
                     Premium
@@ -334,7 +334,7 @@ export function BoutonPaiement({
                     <button
                       type="button"
                       onClick={ouvrirOngletPaiement}
-                      className="inline-flex items-center gap-1.5 text-[13px] leading-4 font-semibold text-violet hover:underline"
+                        className="inline-flex items-center gap-1.5 text-[13px] leading-4 font-semibold text-sky-500 hover:underline"
                     >
                       <ExternalLink className="size-3.5" aria-hidden /> Rouvrir l&apos;onglet de
                       paiement
@@ -347,10 +347,10 @@ export function BoutonPaiement({
 
           {etape === "fini" && (
             <div className="flex flex-col items-center py-8 text-center">
-              <CheckCircle2 className="size-14 text-violet" aria-hidden />
+              <CheckCircle2 className="size-14 text-sky-500" aria-hidden />
               <h2 className="mt-4 text-h3 font-semibold">Paiement reçu, merci !</h2>
               <p className="mt-2 flex items-center gap-2 text-[14px] leading-5 text-encre">
-                <Loader2 className="size-4 animate-spin text-violet" aria-hidden />
+                <Loader2 className="size-4 animate-spin text-sky-500" aria-hidden />
                 Activation de ton Premium en cours…
               </p>
             </div>

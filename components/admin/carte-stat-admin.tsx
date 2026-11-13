@@ -104,7 +104,7 @@ export function CarteStatAdmin({
           {tendance !== null && (
             <span
               className={cn(
-                "inline-flex shrink-0 items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic px-1.5 py-0.5 font-semibold",
+                "inline-flex shrink-0 items-center gap-1 rounded-[7px]  not-italic px-1.5 py-0.5 font-semibold",
                 montante && "bg-adm-succes-doux text-[#0f9b85]",
                 descendante && "bg-adm-erreur-doux text-[#c94f35]",
                 !montante && !descendante && "bg-gris text-encre",

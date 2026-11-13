@@ -217,7 +217,7 @@ export default async function PageSkill({ params }: { params: Params }) {
       >
         <Link
           href="/skills"
-          className="inline-flex shrink-0 items-center gap-1 font-semibold text-violet hover:underline"
+          className="inline-flex shrink-0 items-center gap-1 font-semibold text-sky-500 hover:underline"
         >
           <ArrowLeft className="size-3.5" aria-hidden /> Skills
         </Link>
@@ -237,7 +237,7 @@ export default async function PageSkill({ params }: { params: Params }) {
               className="size-full object-cover"
             />
           ) : (
-            <span className="grid size-full place-items-center text-violet/50" aria-hidden>
+              <span className="grid size-full place-items-center text-sky-500/50" aria-hidden>
               <Terminal className="size-10" />
             </span>
           )}
@@ -245,16 +245,16 @@ export default async function PageSkill({ params }: { params: Params }) {
 
         <div className="p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-3 py-1 text-[12px] leading-4 font-bold text-violet">
+            <span className="rounded-[7px]  not-italic bg-violet/10 px-3 py-1 text-[12px] leading-4 font-bold text-sky-500">
               {skill.categorie}
             </span>
             {skill.featured && (
-              <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]">
+              <span className="inline-flex items-center gap-1 rounded-[7px]  not-italic bg-violet px-3 py-1 text-[12px] leading-4 font-bold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]">
                 <Sparkles className="size-3" aria-hidden /> À la une
               </span>
             )}
             {!premium && (
-              <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic border border-violet/30 px-3 py-1 text-[12px] leading-4 font-bold text-violet">
+              <span className="inline-flex items-center gap-1 rounded-[7px]  not-italic border border-violet/30 px-3 py-1 text-[12px] leading-4 font-bold text-sky-500">
                 Premium
               </span>
             )}
@@ -310,7 +310,7 @@ export default async function PageSkill({ params }: { params: Params }) {
               {skill.tags.map((t) => (
                 <li
                   key={t}
-                  className="rounded-[7px] -skew-x-[18deg] not-italic bg-gris px-2.5 py-1 text-[12px] leading-4 font-medium text-encre"
+                  className="rounded-[7px]  not-italic bg-gris px-2.5 py-1 text-[12px] leading-4 font-medium text-encre"
                 >
                   {t}
                 </li>
@@ -366,7 +366,7 @@ export default async function PageSkill({ params }: { params: Params }) {
                   href={skill.lienSource}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic px-4 text-[14px] leading-5 font-semibold text-violet transition hover:bg-violet/10"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-[7px]  not-italic px-4 text-[14px] leading-5 font-semibold text-sky-500 transition hover:bg-violet/10"
                 >
                   <ExternalLink className="size-4" aria-hidden /> Fiche d&apos;origine
                 </a>
@@ -437,7 +437,7 @@ export default async function PageSkill({ params }: { params: Params }) {
           className="mt-6 rounded-carte border border-bordure bg-white p-5 shadow-carte sm:p-6"
         >
           <h2 className="flex items-center gap-2 font-titre text-[17px] leading-6 font-bold text-bleu">
-            <MessageSquareQuote className="size-4.5 text-violet" aria-hidden /> Ton retour
+            <MessageSquareQuote className="size-4.5 text-sky-500" aria-hidden /> Ton retour
             d&apos;usage
           </h2>
 
@@ -470,7 +470,7 @@ export default async function PageSkill({ params }: { params: Params }) {
                 <input type="hidden" name="retourId" value={monRetour.id} />
                 <BoutonConfirmer
                   message="Supprimer ton retour d'usage sur cette skill ?"
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3.5 text-[12px] leading-4 font-semibold text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-[7px]  not-italic border border-bordure bg-white px-3.5 text-[12px] leading-4 font-semibold text-encre transition hover:border-red-300 hover:text-red-500 active:scale-95"
                 >
                   <Trash2 className="size-3.5" aria-hidden /> Supprimer mon retour
                 </BoutonConfirmer>
@@ -514,10 +514,10 @@ export default async function PageSkill({ params }: { params: Params }) {
                       <img
                         src={retour.user.image}
                         alt=""
-                        className="size-8 shrink-0 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure object-cover"
+                        className="size-8 shrink-0 rounded-[7px]  not-italic border border-bordure object-cover"
                       />
                     ) : (
-                        <span className="grid size-8 shrink-0 place-items-center rounded-[7px] -skew-x-[18deg] not-italic bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-[12px] font-bold text-white" aria-hidden>
+                        <span className="grid size-8 shrink-0 place-items-center rounded-[7px]  not-italic bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] text-[12px] font-bold text-white" aria-hidden>
                         {auteur.charAt(0).toUpperCase()}
                       </span>
                     )}

@@ -131,7 +131,7 @@ export default async function PageMonAbonnement() {
       {/* ── Choix du plan : les 3 offres ───────────────────────────── */}
       <section id="plans" className="mt-10 scroll-mt-24">
         <div className="text-center">
-          <p className="inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
+          <p className="inline-flex items-center gap-2 rounded-[7px]  not-italic border border-sky-500/30 bg-white px-4 py-1.5 text-[13px] leading-4 font-semibold text-sky-500">
             Choisis ton plan
           </p>
           <h2 className="mt-3 text-h3 font-semibold">
@@ -184,7 +184,7 @@ export default async function PageMonAbonnement() {
             </ul>
             <div className="mt-6">
               {!actif ? (
-                <span className="block rounded-[7px] -skew-x-[18deg] not-italic border border-turquoise bg-turquoise/15 px-4 py-2.5 text-center text-[14px] leading-5 font-bold text-[#006e60]">
+                <span className="block rounded-[7px]  not-italic border border-turquoise bg-turquoise/15 px-4 py-2.5 text-center text-[14px] leading-5 font-bold text-[#006e60]">
                   Ton plan actuel
                 </span>
               ) : (
@@ -210,12 +210,12 @@ export default async function PageMonAbonnement() {
                 }`}
               >
                 {plan.recommande && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white shadow-[0_4px_14px_rgba(106,59,255,0.4)]">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-[7px]  not-italic bg-sky-500 px-3 py-1 text-[12px] leading-4 font-bold text-white shadow-[0_4px_14px_rgba(106,59,255,0.4)]">
                     Le plus populaire
                   </span>
                 )}
                 {estPlanActuel && (
-                  <span className="absolute -top-3 right-5 rounded-[7px] -skew-x-[18deg] not-italic border border-turquoise bg-turquoise px-3 py-1 text-[12px] leading-4 font-bold text-bleu">
+                  <span className="absolute -top-3 right-5 rounded-[7px]  not-italic border border-turquoise bg-turquoise px-3 py-1 text-[12px] leading-4 font-bold text-bleu">
                     Ton plan actuel
                   </span>
                 )}
@@ -264,7 +264,7 @@ export default async function PageMonAbonnement() {
                       libelle={
                         actif ? `Passer au plan ${plan.nom}` : `Choisir ${plan.nom}`
                       }
-                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[7px]  not-italic bg-sky-500 px-6 text-[15px] leading-5 font-semibold text-white transition hover:bg-sky-500-clair"
                     />
                   )}
                 </div>
@@ -293,7 +293,7 @@ export default async function PageMonAbonnement() {
               <BoutonConfirmer
                 type="submit"
                 message="Reprendre le plan Premium ? Tu pourras le payer à l'échéance depuis la page Tarifs."
-                className="inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-sky-500 bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris"
+                className="inline-flex min-h-11 items-center gap-2 rounded-[7px]  not-italic border border-sky-500 bg-white px-4 text-[14px] leading-5 font-semibold text-bleu transition hover:bg-gris"
               >
                 <PlayCircle className="size-4" aria-hidden /> Reprendre Premium
               </BoutonConfirmer>
@@ -303,7 +303,7 @@ export default async function PageMonAbonnement() {
               <BoutonConfirmer
                 type="submit"
                 message="Arrêter ton plan Premium ? Il restera actif jusqu'à la date d'échéance déjà payée."
-                  className="inline-flex min-h-11 items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-4 text-[14px] leading-5 font-semibold text-red-600 transition hover:bg-red-50"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-[7px]  not-italic border border-bordure bg-white px-4 text-[14px] leading-5 font-semibold text-red-600 transition hover:bg-red-50"
               >
                 <PauseCircle className="size-4" aria-hidden /> Arrêter le plan
               </BoutonConfirmer>

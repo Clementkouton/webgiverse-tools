@@ -59,9 +59,9 @@ export default async function PageParrainage() {
       <div className="relative overflow-hidden rounded-carte bg-[linear-gradient(110deg,#0b1b3f_0%,#4326a8_55%,#6a3bff_100%)] p-6 text-white sm:p-10">
         <div
           aria-hidden
-          className="animate-flottant-lent pointer-events-none absolute -right-10 -top-10 size-40 rounded-[7px] -skew-x-[18deg] not-italic bg-ciel/25 blur-3xl"
+          className="animate-flottant-lent pointer-events-none absolute -right-10 -top-10 size-40 rounded-[7px]  not-italic bg-ciel/25 blur-3xl"
         />
-        <p className="relative inline-flex items-center gap-2 rounded-[7px] -skew-x-[18deg] not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold">
+        <p className="relative inline-flex items-center gap-2 rounded-[7px]  not-italic border border-white/25 bg-white/10 px-4 py-1.5 text-[13px] leading-4 font-semibold">
           <Gift className="size-4 text-ciel" aria-hidden /> Parrainage Webgiverse
         </p>
         <h1 className="relative mt-4 font-titre text-[26px] leading-8 font-bold sm:text-h2">
@@ -79,7 +79,7 @@ export default async function PageParrainage() {
           {/* Code + lien */}
           <Carte className="p-5">
             <h2 className="font-titre text-[16px] font-semibold">Ton code d&apos;invitation</h2>
-            <p className="mt-3 rounded-champ border border-violet/30 bg-violet/5 px-4 py-3 text-center font-mono text-[24px] font-bold tracking-wider text-violet">
+            <p className="mt-3 rounded-champ border border-violet/30 bg-violet/5 px-4 py-3 text-center font-mono text-[24px] font-bold tracking-wider text-sky-500">
               {code}
             </p>
             <div className="mt-4">
@@ -103,7 +103,7 @@ export default async function PageParrainage() {
               <li>
                 <strong>3.</strong> Dès qu&apos;il souscrit un plan Premium, +14 jours Premium
                 sont crédités automatiquement sur ton compte et tu reçois un e-mail.{" "}
-                <Link href="/tarifs" className="font-semibold text-violet hover:underline">
+                <Link href="/tarifs" className="font-semibold text-sky-500 hover:underline">
                   Voir les plans →
                 </Link>
               </li>
@@ -121,7 +121,7 @@ export default async function PageParrainage() {
       {code && (
         <Carte className="mt-4 p-5">
           <h2 className="flex items-center gap-2 font-titre text-[16px] font-semibold">
-            <Users className="size-4 text-violet" aria-hidden /> Mes filleuls ({filleuls.length})
+            <Users className="size-4 text-sky-500" aria-hidden /> Mes filleuls ({filleuls.length})
           </h2>
           <ul className="mt-3 grid gap-2">
             {filleuls.map((f) => (

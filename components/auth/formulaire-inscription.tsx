@@ -20,7 +20,7 @@ export function FormulaireInscription({
   return (
     <div className="grid gap-4">
       {refParrain && (
-        <p className="rounded-champ border border-violet/30 bg-violet/5 px-3 py-2 text-[13px] leading-4 font-semibold text-violet">
+        <p className="rounded-champ border border-violet/30 bg-violet/5 px-3 py-2 text-[13px] leading-4 font-semibold text-sky-500">
           🎁 Invité par le code <span className="font-mono">{refParrain}</span> — ton parrain
           recevra sa récompense dès ton Premium.
         </p>
@@ -62,7 +62,7 @@ export function FormulaireInscription({
 
       <p className="text-center text-[14px] text-encre">
         Déjà membre ?{" "}
-        <Link href="/connexion" className="font-semibold text-violet hover:underline">Se connecter</Link>
+        <Link href="/connexion" className="font-semibold text-sky-500 hover:underline">Se connecter</Link>
       </p>
     </div>
   );

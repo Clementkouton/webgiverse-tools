@@ -115,13 +115,13 @@ export function ChatTutoriel({
         aria-expanded={ouvert}
         className="flex w-full flex-wrap items-center gap-2.5 text-left *:focus-visible:outline-none"
       >
-        <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-violet" aria-hidden>
+        <span className="grid size-8 place-items-center rounded-lg bg-violet/10 text-sky-500" aria-hidden>
           <Sparkles className="size-4" />
         </span>
         <span className="font-titre text-[15px] leading-5 font-bold text-bleu">
           Assistant IA du tutoriel
         </span>
-        <span className="inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-violet">
+        <span className="inline-flex items-center gap-1 rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[10px] leading-3.5 font-bold text-sky-500">
           Premium
         </span>
         <ChevronDown
@@ -161,7 +161,7 @@ export function ChatTutoriel({
               )}
               {enCours && (
                 <p className="flex items-center gap-2 text-[12px] leading-4 text-encre">
-                  <Loader2 className="size-3.5 animate-spin text-violet" aria-hidden />
+                  <Loader2 className="size-3.5 animate-spin text-sky-500" aria-hidden />
                   L&apos;assistant rédige sa réponse…
                 </p>
               )}

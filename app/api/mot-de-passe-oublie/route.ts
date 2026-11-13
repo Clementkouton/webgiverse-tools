@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail, emailMotDePasseOublie } from "@/lib/email";
+import { autoriserRequete, ipClient } from "@/lib/limitation-debit"; // Lot 82
 
 export async function POST(req: Request) {
   try {
@@ -10,6 +11,21 @@ export async function POST(req: Request) {
 
     if (!courriel) {
       return NextResponse.json({ erreur: "Email requis." }, { status: 400 });
+    }
+
+    // ── Lot 82 — Anti bombardement d'e-mails ─────────────────────
+    // 3 demandes par adresse et par heure, 10 par IP : sinon un script
+    // (ou un plaisantin) pouvait noyer n'importe quelle boîte — y
+    // compris la vôtre via des milliers de demandes.
+    const ip = ipClient(req.headers);
+    if (
+      !autoriserRequete(`mdp-oublie:${courriel}`, 3, 60 * 60_000) ||
+      !autoriserRequete(`mdp-oublie-ip:${ip}`, 10, 60 * 60_000)
+    ) {
+      return NextResponse.json(
+        { erreur: "Trop de demandes de réinitialisation. Réessaie dans une heure." },
+        { status: 429 },
+      );
     }
 
     const utilisateur = await prisma.user.findUnique({

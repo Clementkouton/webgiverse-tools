@@ -45,22 +45,22 @@ export function CarteSkill({ skill }: { skill: Skill }) {
             className="size-full object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
-          <span className="grid size-full place-items-center text-violet/50" aria-hidden>
+            <span className="grid size-full place-items-center text-sky-500/50" aria-hidden>
             <Terminal className="size-8" />
           </span>
         )}
-        <span className="absolute left-2.5 top-2.5 rounded-[7px] -skew-x-[18deg] not-italic bg-white/90 px-2.5 py-1 text-[11px] leading-3.5 font-bold text-violet backdrop-blur">
+        <span className="absolute left-2.5 top-2.5 rounded-[7px]  not-italic bg-white/90 px-2.5 py-1 text-[11px] leading-3.5 font-bold text-sky-500 backdrop-blur">
           {skill.categorie}
         </span>
         {skill.featured && (
-          <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-[7px] -skew-x-[18deg] not-italic bg-violet px-2.5 py-1 text-[11px] leading-3.5 font-bold text-white shadow">
+          <span className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-[7px]  not-italic bg-violet px-2.5 py-1 text-[11px] leading-3.5 font-bold text-white shadow">
             <Sparkles className="size-3" aria-hidden /> À la une
           </span>
         )}
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col p-4">
-        <h3 className="font-titre text-[16px] leading-5 font-bold text-bleu group-hover:text-violet">
+        <h3 className="font-titre text-[16px] leading-5 font-bold text-bleu group-hover:text-sky-500">
           {skill.titre}
         </h3>
         <p className="mt-1.5 line-clamp-3 text-[13px] leading-5 text-encre">{skill.description}</p>
@@ -68,7 +68,7 @@ export function CarteSkill({ skill }: { skill: Skill }) {
           {skill.tags.slice(0, 3).map((t) => (
             <span
               key={t}
-              className="rounded-[7px] -skew-x-[18deg] not-italic bg-gris px-2.5 py-1 text-[11px] leading-3.5 font-medium text-encre"
+              className="rounded-[7px]  not-italic bg-gris px-2.5 py-1 text-[11px] leading-3.5 font-medium text-encre"
             >
               {t}
             </span>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { autoriserRequete, ipClient } from "@/lib/limitation-debit"; // Lot 82
 
 export async function POST(req: Request) {
   try {
@@ -16,6 +17,17 @@ export async function POST(req: Request) {
             "Lien invalide ou mot de passe trop court (8 caractères minimum).",
         },
         { status: 400 }
+      );
+    }
+
+    // ── Lot 82 — Anti devinette de jetons ────────────────────────
+    // Les jetons sont des aléas de 32 octets : impossible à deviner.
+    // La limite protège surtout la base contre le martèlement.
+    const ip = ipClient(req.headers);
+    if (!autoriserRequete(`reinit-ip:${ip}`, 15, 15 * 60_000)) {
+      return NextResponse.json(
+        { erreur: "Trop de tentatives. Réessaie dans quelques minutes." },
+        { status: 429 },
       );
     }
 

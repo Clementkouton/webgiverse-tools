@@ -67,15 +67,15 @@ export default async function PageExport() {
       <div className="mx-auto max-w-6xl px-4 py-8 lg:py-10">
         <Link
           href="/dashboard"
-          className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+          className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-sky-500"
         >
           <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
         </Link>
         <h1 className="mt-3 flex items-center gap-2 text-h2 font-semibold">
-          <Crown className="size-7 text-violet" aria-hidden /> Export premium
+          <Crown className="size-7 text-sky-500" aria-hidden /> Export premium
         </h1>
         <Carte className="mt-8 p-10 text-center">
-          <Lock className="mx-auto size-10 text-violet" aria-hidden />
+          <Lock className="mx-auto size-10 text-sky-500" aria-hidden />
           <h2 className="mt-3 font-titre text-[18px] leading-6 font-semibold text-bleu">
             L&apos;export PDF et CSV est réservé aux abonnés
           </h2>
@@ -172,14 +172,14 @@ export default async function PageExport() {
       <div className="print:hidden">
         <Link
           href="/dashboard"
-          className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-violet"
+          className="inline-flex min-h-9 items-center gap-1 text-[13px] leading-4 font-semibold text-encre transition hover:text-sky-500"
         >
           <ChevronLeft className="size-4" aria-hidden /> Tableau de bord
         </Link>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
           <h1 className="flex items-center gap-2 text-h2 font-semibold">
-            <Crown className="size-7 text-violet" aria-hidden /> Export premium
+            <Crown className="size-7 text-sky-500" aria-hidden /> Export premium
           </h1>
           <div className="flex flex-wrap items-center gap-2">
             <BoutonImprimer />
@@ -216,7 +216,7 @@ export default async function PageExport() {
               Export du {aujourdhui} · {session.user.name ?? "Membre"}
             </p>
           </div>
-          <p className="inline-flex items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500/10 px-3 py-1 text-[12px] leading-4 font-bold text-sky-500">
+          <p className="inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-sky-500/10 px-3 py-1 text-[12px] leading-4 font-bold text-sky-500">
             <Crown className="size-3.5" aria-hidden /> Premium
           </p>
         </div>
@@ -224,7 +224,7 @@ export default async function PageExport() {
         {/* ── Section favoris ─────────────────────────────────────── */}
         <section data-eviter-coupure className="mt-6" aria-label="Mes favoris">
           <h2 className="flex items-center gap-2 font-titre text-[16px] leading-6 font-semibold text-bleu">
-            <Star className="size-4.5 text-violet" aria-hidden /> Mes favoris ({favoris.length})
+            <Star className="size-4.5 text-sky-500" aria-hidden /> Mes favoris ({favoris.length})
           </h2>
           {favoris.length === 0 ? (
             <p className="mt-2 text-[13px] leading-5 text-encre">Aucun favori enregistré.</p>
@@ -275,7 +275,7 @@ export default async function PageExport() {
         {/* ── Section listes ──────────────────────────────────────── */}
         <section data-eviter-coupure className="mt-8" aria-label="Mes listes">
           <h2 className="flex items-center gap-2 font-titre text-[16px] leading-6 font-semibold text-bleu">
-            <ListChecks className="size-4.5 text-violet" aria-hidden /> Mes listes ({listes.length})
+            <ListChecks className="size-4.5 text-sky-500" aria-hidden /> Mes listes ({listes.length})
           </h2>
           {listes.length === 0 ? (
             <p className="mt-2 text-[13px] leading-5 text-encre">Aucune liste enregistrée.</p>
@@ -286,7 +286,7 @@ export default async function PageExport() {
                   <p className="flex flex-wrap items-center gap-2 font-titre text-[14px] leading-5 font-semibold text-bleu">
                     {liste.nom}
                     {liste.estPublique && (
-                      <span className="rounded-[7px] -skew-x-[18deg] not-italic bg-gris px-2 py-0.5 text-[11px] leading-4 font-bold text-encre">
+                      <span className="rounded-[7px]  not-italic bg-gris px-2 py-0.5 text-[11px] leading-4 font-bold text-encre">
                         publique
                       </span>
                     )}

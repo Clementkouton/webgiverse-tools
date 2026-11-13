@@ -25,18 +25,51 @@ const nextConfig: NextConfig = {
     ];
   },
   // ───────────────────────────────────────────────────────────────
-  // Header Referrer-Policy (article officiel YouTube — support.google.com/
-  // youtube/answer/171780) : la lecture des vidéos intégrées exige que le
-  // navigateur envoie un Referer au lecteur YouTube, sinon erreur 153.
-  // « strict-origin-when-cross-origin » = politique par défaut des navigateurs,
-  // rendue explicite ici pour garantir que l'origine est toujours transmise.
+  // Lot 82 — EN-TÊTES DE SÉCURITÉ sur toutes les pages.
+  //   • Referrer-Policy : exigé par YouTube (erreur 153 des lecteurs
+  //     intégrés sinon) — conservé du lot précédent.
+  //   • X-Content-Type-Options: nosniff — empêche le navigateur de
+  //     réinterpréter un fichier texte en HTML/JS.
+  //   • X-Frame-Options: DENY — bloque le clickjacking (le site ne
+  //     peut plus être encadré dans une iframe tierce invisible).
+  //   • Permissions-Policy — ferme caméra/micro/géolocalisation,
+  //     que le site n'utilise pas.
+  //   • Strict-Transport-Security — le navigateur n'utilisera plus
+  //     jamais HTTP pour ce site (ignoré sur localhost en http,
+  //     sans effet en développement local).
+  //
+  // ⚠️ DEUX EXCEPTIONS VOLONTAIRES (la source exclut ces chemins) :
+  //   • /api/embed/… → widget public DESTINÉ à être encadré par les
+  //     sites clients (plan Entreprise) : il reçoit une CSP
+  //     « frame-ancestors * » (X-Frame-Options n'a pas de valeur
+  //     « autoriser tout le monde »).
+  //   • /tarifs/retour et /paiement/retour → page de retour de
+  //     paiement, conçue pour s'afficher DANS l'iframe Chariow quand
+  //     le mode iframe du bouton sera réactivé (IFRAME_ACTIVEE).
   // ───────────────────────────────────────────────────────────────
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/((?!api/embed/|tarifs/retour|paiement/retour).*)",
         headers: [
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
+        ],
+      },
+      {
+        // Widget d'intégration public : encadrable par n'importe quel site.
+        source: "/api/embed/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors *" },
         ],
       },
     ];

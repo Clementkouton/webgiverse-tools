@@ -267,10 +267,10 @@ export default function SectionAvis({ slug }: { slug: string }) {
                   <img
                     src={a.image}
                     alt=""
-                    className="h-9 w-9 rounded-[7px] -skew-x-[18deg] not-italic object-cover"
+                    className="h-9 w-9 rounded-[7px]  not-italic object-cover"
                   />
                 ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 font-titre text-sm font-bold text-violet">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-[7px]  not-italic bg-violet/10 font-titre text-sm font-bold text-sky-500">
                     {a.nom.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -278,7 +278,7 @@ export default function SectionAvis({ slug }: { slug: string }) {
                   <p className="text-sm font-semibold text-encre">
                     {a.nom}
                     {a.aMoi && (
-                      <span className="ml-2 rounded-[7px] -skew-x-[18deg] not-italic bg-violet/10 px-2 py-0.5 text-xs font-medium text-violet">
+                      <span className="ml-2 rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-xs font-medium text-sky-500">
                         Votre avis
                       </span>
                     )}
@@ -305,10 +305,10 @@ export default function SectionAvis({ slug }: { slug: string }) {
                   onClick={() => voter(a.id)}
                   disabled={a.aMoi || voteEnCours === a.id}
                   aria-pressed={a.monVote}
-                  className={`inline-flex min-h-8 items-center gap-1.5 rounded-[7px] -skew-x-[18deg] not-italic border px-3 text-[12px] leading-4 font-semibold transition ${
+                  className={`inline-flex min-h-8 items-center gap-1.5 rounded-[7px]  not-italic border px-3 text-[12px] leading-4 font-semibold transition ${
                     a.monVote
-                      ? "border-violet bg-violet/10 text-violet"
-                      : "border-bordure bg-white text-encre hover:border-violet hover:text-violet"
+                    ? "border-violet bg-violet/10 text-sky-500"
+                    : "border-bordure bg-white text-encre hover:border-violet hover:text-sky-500"
                   } ${a.aMoi ? "cursor-default opacity-50" : ""}`}
                 >
                   👍 Utile · {a.votes}

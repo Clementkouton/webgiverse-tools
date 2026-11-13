@@ -1,12 +1,12 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { estGerantAdmins } from "@/lib/admins-gerants"; // Lot 81 — gérants des droits admin
+import { demarrerImpersonation, terminerImpersonation } from "@/lib/impersonation"; // Lot 82
 
 /* ──────────────────────── Helpers internes ──────────────────────── */
 
@@ -33,40 +33,15 @@ function rafraichir(id?: string) {
   if (id) revalidatePath(`/admin/utilisateurs/${id}`);
 }
 
-/** Nom du cookie de session NextAuth réellement présent dans le navigateur. */
-async function nomCookieSession() {
-  const jar = await cookies();
-  const candidats = [
-    "__Secure-authjs.session-token", // Auth.js v5 en HTTPS
-    "authjs.session-token", // Auth.js v5 en local
-    "__Secure-next-auth.session-token", // NextAuth v4 en HTTPS
-    "next-auth.session-token", // NextAuth v4 en local
-  ];
-  return candidats.find((nom) => Boolean(jar.get(nom))) ?? null;
-}
-
-/**
- * Crée une session en base (model Session : sessionToken / userId / expires)
- * pour l'utilisateur donné et pose le cookie de session correspondant.
- * C'est le mécanisme d'une connexion « en tant que » avec sessions en base.
- */
-async function ouvrirSessionPour(userId: string) {
-  const nom = await nomCookieSession();
-  if (!nom) return false;
-
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const sessionToken = randomUUID();
-  await prisma.session.create({ data: { sessionToken, userId, expires } });
-
-  const jar = await cookies();
-  jar.set(nom, sessionToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    secure: nom.startsWith("__Secure"),
-    expires,
-  });
-  return true;
+/** Lot 82 — nettoyage de l'ancien cookie non signé, chez ceux qui
+ *  l'avaient encore dans le navigateur. Silencieux. */
+async function purgerAncienCookieImpersonateur() {
+  try {
+    const jar = await cookies();
+    if (jar.get("impersonateurId")) jar.delete("impersonateurId");
+  } catch {
+    /* hors contexte de requête : rien à purger */
+  }
 }
 
 /* ──────────────────────── Statut du compte ──────────────────────── */
@@ -175,6 +150,23 @@ export async function retirerAdminFormulaire(formData: FormData) {
 
 /* ──────────────────── Se connecter en tant que… ──────────────────── */
 
+/**
+ * Lot 82 — IMPERSONATION UNIFIÉE sur le mécanisme du cookie signé
+ * (lib/impersonation.ts, Lot 35) :
+ *   • l'admin garde SA session NextAuth intacte (aucun cookie de
+ *     session réécrit) ;
+ *   • un second cookie httpOnly « wg-impersonation », JWT signé avec
+ *     AUTH_SECRET, désigne la cible — impossible à forger côté client ;
+ *   • la callback `jwt` de auth.ts remplace l'identité affichée
+ *     (id, rôle, e-mail, nom) tant que le cookie est actif, et le
+ *     bandeau rouge l'expose via /api/impersonation/etat.
+ *
+ * L'ANCIEN mécanisme (session écrite en base + cookie NON SIGNÉ
+ * « impersonateurId ») était doublement défectueux : la session en base
+ * est ignorée par NextAuth quand `strategy: "jwt"` (aucune connexion
+ * réelle ne se produisait), et le cookie non signé ne reposait sur
+ * aucune cryptographie. Les deux ont été supprimés.
+ */
 export async function impersonerFormulaire(formData: FormData) {
   const admin = await getAdmin();
   if (!admin) return;
@@ -189,37 +181,19 @@ export async function impersonerFormulaire(formData: FormData) {
   // On n'impersonne ni un admin, ni un compte suspendu/banni.
   if (!cible || cible.role === "ADMIN" || cible.statut !== "ACTIF") return;
 
-  const ok = await ouvrirSessionPour(id);
-  if (!ok) return;
-
-  const jar = await cookies();
-  jar.set("impersonateurId", admin.id, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 8 * 60 * 60,
-  });
+  await purgerAncienCookieImpersonateur();
+  await demarrerImpersonation(admin.id, id);
 
   redirect("/");
 }
 
+/** Lot 82 — « Revenir en admin » : supprime le cookie signé, la
+ *  session d'origine de l'admin réapparaît immédiatement (elle n'a
+ *  jamais été touchée). */
 export async function revenirAdminFormulaire() {
-  const jar = await cookies();
-  const adminId = jar.get("impersonateurId")?.value;
-  if (!adminId) redirect("/admin/utilisateurs");
-
-  const admin = await prisma.user.findUnique({
-    where: { id: adminId },
-    select: { id: true, role: true },
-  });
-  if (!admin || admin.role !== "ADMIN") {
-    jar.delete("impersonateurId");
-    redirect("/");
-  }
-
-  const ok = await ouvrirSessionPour(adminId);
-  jar.delete("impersonateurId");
-  redirect(ok ? "/admin/utilisateurs" : "/");
+  await terminerImpersonation();
+  await purgerAncienCookieImpersonateur();
+  redirect("/admin/utilisateurs");
 }
 
 /**

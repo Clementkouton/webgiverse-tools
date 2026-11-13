@@ -11,10 +11,10 @@
 import { useCallback, useEffect, useState } from "react";
 
 const stylePill =
-  "inline-flex items-center rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white px-3 py-1.5 text-xs font-medium text-encre transition hover:border-sky-500 hover:text-sky-500";
+  "inline-flex items-center rounded-[7px]  not-italic border border-bordure bg-white px-3 py-1.5 text-xs font-medium text-encre transition hover:border-sky-500 hover:text-sky-500";
 
 const styleAction =
-  "inline-flex items-center rounded-[7px] -skew-x-[18deg] not-italic bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500-700 disabled:opacity-60";
+  "inline-flex items-center rounded-[7px]  not-italic bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500-700 disabled:opacity-60";
 
 const styleChamp =
   "w-full rounded-champ border border-bordure bg-white px-3 py-2 text-sm text-encre placeholder:text-encre/40 focus:border-sky-500 focus:outline-none";

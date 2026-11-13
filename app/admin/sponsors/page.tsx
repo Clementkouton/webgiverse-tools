@@ -382,7 +382,7 @@ export default async function PageSponsorsAdmin() {
                     </td>
                     <td className="px-4 py-3">
                       {sponsor.categorie ? (
-                        <span className="inline-flex rounded-[7px] -skew-x-[18deg] not-italic bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                        <span className="inline-flex rounded-[7px]  not-italic bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                           {sponsor.categorie.nom}
                         </span>
                       ) : (
@@ -415,8 +415,8 @@ export default async function PageSponsorsAdmin() {
                           type="submit"
                           className={
                             sponsor.actif
-                              ? "inline-flex rounded-[7px] -skew-x-[18deg] not-italic bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200"
-                              : "inline-flex rounded-[7px] -skew-x-[18deg] not-italic bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-300"
+                              ? "inline-flex rounded-[7px]  not-italic bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200"
+                              : "inline-flex rounded-[7px]  not-italic bg-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-300"
                           }
                         >
                           {sponsor.actif ? "Actif" : "Inactif"}

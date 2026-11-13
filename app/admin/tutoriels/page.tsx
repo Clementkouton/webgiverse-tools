@@ -224,7 +224,7 @@ export default async function PageTutorielsAdmin({
               href={`/admin/tutoriels?tri=${cle}`}
               aria-current={actif ? "true" : undefined}
               className={cn(
-                "rounded-[7px] -skew-x-[18deg] not-italic border px-3 py-1.5 text-[12.5px] leading-4 font-medium transition",
+                "rounded-[7px]  not-italic border px-3 py-1.5 text-[12.5px] leading-4 font-medium transition",
                 actif
                   ? "border-indigo-600 bg-indigo-600 text-white"
                   : "border-black/10 bg-white text-adm-gris hover:border-indigo-300 hover:text-adm-sombre",

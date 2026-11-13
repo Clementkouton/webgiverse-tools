@@ -10,7 +10,7 @@ export function CarteAssistant() {
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-[7px] -skew-x-[18deg] not-italic bg-white/10 blur-2xl transition group-hover:bg-white/20"
+        className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-[7px]  not-italic bg-white/10 blur-2xl transition group-hover:bg-white/20"
       />
       <div className="flex items-center justify-between gap-4">
         <div>
@@ -25,7 +25,7 @@ export function CarteAssistant() {
             Décrivez votre besoin en une phrase, il vous recommande les bons outils.
           </p>
         </div>
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[7px] -skew-x-[18deg] not-italic bg-white/15 transition group-hover:translate-x-1 group-hover:bg-white/25">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[7px]  not-italic bg-white/15 transition group-hover:translate-x-1 group-hover:bg-white/25">
           <ArrowRight className="h-5 w-5" />
         </span>
       </div>
