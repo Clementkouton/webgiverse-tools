@@ -35,6 +35,15 @@
 // ci-dessous (2 Mo / 500 lignes) qui auraient refusé le fichier même
 // bien arrivé. Nouveaux plafonds : 50 Mo / 10 000 lignes, alignés avec
 // next.config.ts (bodySizeLimit + middlewareClientMaxBodySize à 100 Mo).
+// Lot 80 — BON ONGLET GARANTI : un CSV de prompts importé sous l'onglet
+// Skills produisait 3000 erreurs « colonne « sections » vide » sans
+// expliquer le vrai problème. verifierCsv détecte désormais le FORMAT
+// du fichier (colonnes signatures « sections » / « contenu » / « url » /
+// « youtubeid ») et répond UNE erreur claire qui désigne le bon onglet.
+// Et le titre minimal des PROMPTS passe de 4 à 2 caractères : le lot
+// de 3000 prompts FR contient des titres légitimes de 2-3 lettres
+// (« DD », « PRD », « Psy »…) que l'ancien seuil rejetait (même seuil
+// que les outils). Le CSV n'a eu besoin d'AUCUNE modification.
 // ─────────────────────────────────────────────────────────────────
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
@@ -182,8 +191,25 @@ function etatErreur(message: string): EtatImport {
   return { ok: false, message };
 }
 
-/** Contrôles communs aux 4 imports (auth faite avant). Renvoie soit le CSV, soit une erreur. */
-function verifierCsv(source: string | null): ReturnType<typeof parserCsv> | EtatImport {
+/** Signatures de colonne qui identifient chaque onglet d'import.
+ *  Un CSV de skills a « sections », un CSV de prompts « contenu »,
+ *  un CSV d'outils « url », un CSV de tutoriels « youtubeid ». Ces
+ *  colonnes sont exclusives entre les 4 formats : une seule suffit
+ *  à reconnaître le type du fichier. */
+const FORMATS = {
+  outils: { cle: "outils", libelle: "Outils", colonne: "« url »", signature: "url" },
+  tutoriels: { cle: "tutoriels", libelle: "Tutoriels", colonne: "« youtubeid »", signature: "youtubeid" },
+  prompts: { cle: "prompts", libelle: "Prompts", colonne: "« contenu »", signature: "contenu" },
+  skills: { cle: "skills", libelle: "Skills", colonne: "« sections »", signature: "sections" },
+} as const;
+
+type CleFormat = keyof typeof FORMATS;
+
+/** Contrôles communs aux 4 imports (auth faite avant). Renvoie soit le CSV, soit une erreur.
+ *  Lot 80 — vérifie AUSSI que le fichier correspond à l'onglet appelant :
+ *  un CSV d'un autre type répond UNE erreur claire (avec le bon onglet)
+ *  au lieu d'un mur d'erreurs ligne par ligne. */
+function verifierCsv(source: string | null, attendu: CleFormat): ReturnType<typeof parserCsv> | EtatImport {
   if (source === null)
     return etatErreur(
       "Aucun contenu à importer : fichier absent, trop volumineux (50 Mo max) ou zone « coller » vide."
@@ -192,6 +218,22 @@ function verifierCsv(source: string | null): ReturnType<typeof parserCsv> | Etat
   if (!csv) return etatErreur("Fichier illisible : vérifie que la 1re ligne contient bien les en-têtes séparés par « ; » ou « , ».");
   if (csv.total === 0) return etatErreur("Aucune ligne de données trouvée (il n'y a que les en-têtes).");
   if (csv.total > MAX_LIGNES) return etatErreur(`Trop de lignes (${csv.total}) : 10 000 maximum par import. Découpe ton fichier.`);
+
+  // Lot 80 — garde-fou « mauvais onglet » : si la colonne signature de
+  // l'onglet courant est absente mais qu'une AUTRE signature est
+  // présente, le fichier appartient à un autre onglet → une seule
+  // erreur explicite (au lieu de N erreurs « colonne vide » ligne à
+  // ligne, incompréhensibles). Si aucune signature n'est reconnue, on
+  // laisse les validations existantes juger ligne par ligne.
+  if (!csv.colonnes.has(FORMATS[attendu].signature)) {
+    const ordre: CleFormat[] = ["skills", "prompts", "outils", "tutoriels"];
+    const probable = ordre.find((cle) => cle !== attendu && csv.colonnes.has(FORMATS[cle].signature));
+    if (probable) {
+      return etatErreur(
+        `Ce fichier ne correspond pas à l'onglet ${FORMATS[attendu].libelle} : la colonne ${FORMATS[attendu].colonne} est absente, et le fichier contient ${FORMATS[probable].colonne} — il ressemble à un CSV de ${FORMATS[probable].libelle}. Va sur l'onglet ${FORMATS[probable].libelle} (/admin/import?onglet=${probable}) et relance l'import.`
+      );
+    }
+  }
   return csv;
 }
 
@@ -202,7 +244,7 @@ function verifierCsv(source: string | null): ReturnType<typeof parserCsv> | Etat
 export async function importerOutilsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
   if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
 
-  const analyse = verifierCsv(await lireSource(donnees));
+  const analyse = verifierCsv(await lireSource(donnees), "outils");
   if (!analyse || !("lignes" in analyse)) return analyse;
   const csv = analyse;
   const col = (champ: string) => csv.colonnes.has(normaliserEntete(champ));
@@ -363,7 +405,7 @@ export async function importerOutilsAction(_etat: EtatImport, donnees: FormData)
 export async function importerTutorielsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
   if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
 
-  const analyse = verifierCsv(await lireSource(donnees));
+  const analyse = verifierCsv(await lireSource(donnees), "tutoriels");
   if (!analyse || !("lignes" in analyse)) return analyse;
   const csv = analyse;
   const col = (champ: string) => csv.colonnes.has(normaliserEntete(champ));
@@ -489,7 +531,7 @@ export async function importerTutorielsAction(_etat: EtatImport, donnees: FormDa
 export async function importerPromptsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
   if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
 
-  const analyse = verifierCsv(await lireSource(donnees));
+  const analyse = verifierCsv(await lireSource(donnees), "prompts");
   if (!analyse || !("lignes" in analyse)) return analyse;
   const csv = analyse;
   const col = (champ: string) => csv.colonnes.has(normaliserEntete(champ));
@@ -548,7 +590,10 @@ export async function importerPromptsAction(_etat: EtatImport, donnees: FormData
     try {
       const titre = lit(l, "titre").trim();
       const contenu = lit(l, "contenu").trim();
-      if (titre.length < 4) {
+      // Lot 80 — 2 caractères minimum (comme les outils) : le lot de
+      // 3000 prompts FR contient des titres légitimes courts (« DD »,
+      // « PRD », « Psy »…) que l'ancien seuil de 4 rejetait.
+      if (titre.length < 2) {
         erreurs.push(`Ligne ${numero} : titre trop court ou manquant.`);
         continue;
       }
@@ -716,7 +761,7 @@ function deduireDescriptionSkill(article: SectionArticle[], titre: string): stri
 export async function importerSkillsAction(_etat: EtatImport, donnees: FormData): Promise<EtatImport> {
   if (!(await exigerAdmin())) return etatErreur("Accès réservé aux administrateurs.");
 
-  const analyse = verifierCsv(await lireSource(donnees));
+  const analyse = verifierCsv(await lireSource(donnees), "skills");
   if (!analyse || !("lignes" in analyse)) return analyse;
   const csv = analyse;
   const col = (champ: string) => csv.colonnes.has(normaliserEntete(champ));
