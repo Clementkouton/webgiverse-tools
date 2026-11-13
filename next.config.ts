@@ -15,6 +15,15 @@ import type { NextConfig } from "next";
 // de soumettre un formulaire vers un domaine pirate ou de détourner
 // la balise <base>.
 //
+// Lot 85 — CETTE CSP STATIQUE ne couvre plus que les pages PUBLIQUES.
+// Les pages privées (/admin, /dashboard) reçoivent du middleware.ts
+// une CSP PLUS STRICTE avec nonce par requête (script-src nonce +
+// strict-dynamic au lieu de 'unsafe-inline'). Les deux ne se cumulent
+// PAS : le navigateur appliquerait l'intersection de deux politiques,
+// et le bloc source ci-dessous exclut donc ces chemins. Exception
+// volontaire : le path « admin » ne doit pas masquer /api/admin/…
+// (le motif ne s'applique qu'en début de chemin).
+//
 // Choix de politique (conservateur, sans rien casser) :
 //   • script-src 'self' 'unsafe-inline'  → Next.js a BESOIN de scripts
 //     en ligne pour hydrater les pages ; la CSP bloque malgré tout les
@@ -99,7 +108,9 @@ const nextConfig: NextConfig = {
   //   • Strict-Transport-Security — le navigateur n'utilisera plus
   //     jamais HTTP pour ce site (ignoré sur localhost en http,
   //     sans effet en développement local).
-  //   • Content-Security-Policy — voir le bloc Lot 84 ci-dessus.
+  //   • Content-Security-Policy — deux blocs distincts (voir le
+  //     Lot 85 ci-dessus) : statique pour les pages publiques,
+  //     avec nonce par requête pour /admin et /dashboard (middleware).
   //
   // ⚠️ DEUX EXCEPTIONS VOLONTAIRES (la source exclut ces chemins) :
   //   • /api/embed/… → widget public DESTINÉ à être encadré par les
@@ -113,6 +124,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // En-têtes de base sur TOUTES les pages (CSP exclue : elle est
+        // posée par les deux blocs suivants, contextes distincts).
         source: "/((?!api/embed/|tarifs/retour|paiement/retour).*)",
         headers: [
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -126,6 +139,17 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains",
           },
+        ],
+      },
+      {
+        // Lot 85 — CSP statique des PAGES PUBLIQUES. /admin et
+        // /dashboard reçoivent du middleware une CSP plus stricte
+        // (nonce + strict-dynamic) : ne pas les couvrir ici, deux CSP
+        // se cumuleraient et l'intersection bloquerait Next.js.
+        // Le motif « admin|dashboard » ne s'applique qu'au DÉBUT du
+        // chemin : /api/admin/… continue de recevoir cette CSP.
+        source: "/((?!api/embed/|tarifs/retour|paiement/retour|admin|dashboard).*)",
+        headers: [
           {
             key: "Content-Security-Policy",
             value: POLITIQUE_CSP,
