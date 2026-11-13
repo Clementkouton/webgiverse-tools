@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { estGerantAdmins } from "@/lib/admins-gerants"; // Lot 81 — gérants des droits admin
 
 /* ──────────────────────── Helpers internes ──────────────────────── */
 
@@ -21,7 +22,7 @@ async function getAdmin() {
 
   const admin = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, role: true },
+    select: { id: true, role: true, email: true }, // Lot 81 — e-mail requis pour le contrôle « gérant »
   });
   if (!admin || admin.role !== "ADMIN") return null;
   return admin;
@@ -132,6 +133,11 @@ export async function rendreAdminFormulaire(formData: FormData) {
   const admin = await getAdmin();
   if (!admin) return;
 
+  // Lot 81 — donner le rôle admin est réservé aux comptes gérants
+  // (webgiverse@gmail.com et clementkouton33@gmail.com) : voir
+  // lib/admins-gerants.ts. Un autre admin ne peut pas le faire.
+  if (!estGerantAdmins(admin.email)) return;
+
   const id = String(formData.get("id") ?? "");
   if (!id || id === admin.id) return;
 
@@ -139,6 +145,31 @@ export async function rendreAdminFormulaire(formData: FormData) {
   if (!cible) return;
 
   await prisma.user.update({ where: { id }, data: { role: "ADMIN" } });
+  rafraichir(id);
+}
+
+/**
+ * Lot 81 — Retire le rôle ADMIN (l'utilisateur redevient USER).
+ * Réservé aux comptes gérants (lib/admins-gerants.ts). On ne peut pas
+ * retirer son propre rôle : celui qui agit reste donc toujours admin,
+ * ce qui garantit qu'un gérant pourra redonner les droits plus tard.
+ */
+export async function retirerAdminFormulaire(formData: FormData) {
+  const admin = await getAdmin();
+  if (!admin) return;
+
+  if (!estGerantAdmins(admin.email)) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id || id === admin.id) return;
+
+  const cible = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, role: true },
+  });
+  if (!cible || cible.role !== "ADMIN") return;
+
+  await prisma.user.update({ where: { id }, data: { role: "USER" } });
   rafraichir(id);
 }
 

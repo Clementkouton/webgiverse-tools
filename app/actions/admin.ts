@@ -9,6 +9,7 @@ import { slugifier } from "@/lib/utils";
 import { schemaOutilAdmin, schemaArticleAdmin } from "@/lib/schemas";
 import { preparerHtmlPourAffichage } from "@/lib/html";
 import { tracerActionAdmin } from "@/lib/journal-admin"; // Lot 25 — audit
+import { estGerantAdmins } from "@/lib/admins-gerants"; // Lot 81 — gérants des droits admin
 
 
 async function exigerAdmin() {
@@ -396,6 +397,16 @@ export async function supprimerAvisAdminFormulaire(donnees: FormData) {
 
 export async function basculerRoleFormulaire(donnees: FormData) {
   const adminId = await exigerAdmin();
+
+  // Lot 81 — donner/retirer le rôle admin est réservé aux comptes
+  // gérants (webgiverse@gmail.com et clementkouton33@gmail.com) : voir
+  // lib/admins-gerants.ts. Un autre admin ne peut pas le faire.
+  const moi = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: { email: true },
+  });
+  if (!moi || !estGerantAdmins(moi.email)) return;
+
   const id = z.string().min(1).parse(donnees.get("utilisateurId"));
   if (id === adminId) return; // Sécurité : on ne peut pas modifier son propre rôle.
 

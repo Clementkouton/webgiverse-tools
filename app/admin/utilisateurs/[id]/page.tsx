@@ -7,10 +7,12 @@ import {
   bannirMembreFormulaire,
   impersonerFormulaire,
   rendreAdminFormulaire,
+  retirerAdminFormulaire,
   reactiverMembreFormulaire,
   supprimerNoteMembreFormulaire,
   suspendreMembreFormulaire,
 } from "../../../actions/gestion-utilisateurs";
+import { estGerantAdmins } from "@/lib/admins-gerants"; // Lot 81 — gérants des droits admin
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +103,13 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
 
   // Pas d'actions sensibles sur soi-même ni sur un autre admin.
   const protege = membre.role === "ADMIN" || membre.id === monId;
+
+  // Lot 81 — seul un compte gérant (webgiverse@gmail.com ou
+  // clementkouton33@gmail.com) peut donner/retirer le rôle admin.
+  // La vraie protection est côté serveur, dans les actions.
+  const peutGererAdmins = estGerantAdmins(session?.user?.email);
+  const peutRendreAdmin = peutGererAdmins && membre.role !== "ADMIN" && membre.id !== monId;
+  const peutRetirerAdmin = peutGererAdmins && membre.role === "ADMIN" && membre.id !== monId;
 
   return (
     <div className="space-y-6">
@@ -236,7 +245,8 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
             </form>
           )}
 
-          {membre.role !== "ADMIN" && (
+          {/* Lot 81 — ces deux formulaires ne sont visibles que des comptes gérants. */}
+          {peutRendreAdmin && (
             <form action={rendreAdminFormulaire}>
               <input type="hidden" name="id" value={membre.id} />
               <button
@@ -248,7 +258,19 @@ export default async function PageFicheMembre({ params }: { params: Promise<{ id
             </form>
           )}
 
-          {protege && (
+          {peutRetirerAdmin && (
+            <form action={retirerAdminFormulaire}>
+              <input type="hidden" name="id" value={membre.id} />
+              <button
+                type="submit"
+                className="rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100"
+              >
+                Retirer admin
+              </button>
+            </form>
+          )}
+
+          {protege && !peutRendreAdmin && !peutRetirerAdmin && (
             <p className="text-xs text-slate-400">Aucune action disponible sur ce compte.</p>
           )}
         </div>

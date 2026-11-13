@@ -8,10 +8,12 @@ import {
   bannirMembreFormulaire,
   impersonerFormulaire,
   rendreAdminFormulaire,
+  retirerAdminFormulaire,
   reactiverMembreFormulaire,
   revenirAdminFormulaire,
   suspendreMembreFormulaire,
 } from "../../actions/gestion-utilisateurs";
+import { estGerantAdmins } from "@/lib/admins-gerants"; // Lot 81 — gérants des droits admin
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +97,11 @@ export default async function PageUtilisateursAdmin({
     ? await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } })
     : null;
   const monId = moi?.id ?? null;
+
+  // Lot 81 — seul un compte gérant (webgiverse@gmail.com ou
+  // clementkouton33@gmail.com) voit les boutons « Rendre admin » /
+  // « Retirer admin ». La vraie protection est côté serveur.
+  const peutGererAdmins = estGerantAdmins(session?.user?.email);
 
   // Une impersonation est-elle en cours ? (cookie posé par « Se connecter en tant que… »)
   const jar = await cookies();
@@ -350,9 +357,16 @@ export default async function PageUtilisateursAdmin({
                       </FormulaireAction>
                     )}
 
-                    {u.id !== monId && u.role !== "ADMIN" && (
+                    {/* Lot 81 — ces deux boutons ne sont visibles que des comptes gérants. */}
+                    {peutGererAdmins && u.id !== monId && u.role !== "ADMIN" && (
                       <FormulaireAction action={rendreAdminFormulaire} id={u.id}>
                         Rendre admin
+                      </FormulaireAction>
+                    )}
+
+                    {peutGererAdmins && u.id !== monId && u.role === "ADMIN" && (
+                      <FormulaireAction action={retirerAdminFormulaire} id={u.id}>
+                        Retirer admin
                       </FormulaireAction>
                     )}
                   </div>
