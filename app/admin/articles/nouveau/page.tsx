@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PageNouvelArticle() {
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto px-4 pb-10 sm:px-6 lg:px-8">
       <Link href="/admin/articles" className="inline-flex items-center gap-1 text-[14px] font-semibold text-primaire-texte hover:underline">
               <ChevronLeft className="size-4" aria-hidden /> Retour aux articles
       </Link>

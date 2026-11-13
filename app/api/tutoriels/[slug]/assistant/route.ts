@@ -63,8 +63,65 @@ const MODELES = Array.from(
   new Set(
     [
       process.env.OPENROUTER_MODELE?.trim() || "google/gemma-4-31b-it:free",
-      "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "nvidia/nemotron-3.5-lightning:free",
+  // 1 à 10 : Les incontournables et phares
+  "openrouter/free",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "meta-llama/llama-3.1-8b-instruct:free",
+  "meta-llama/llama-3-8b-instruct:free",
+  "deepseek/deepseek-chat:free",
+  "deepseek/deepseek-r1:free",
+  "deepseek/deepseek-r1-distill-llama-70b:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+  "qwen/qwen-2.5-coder-32b-instruct:free",
+  "qwen/qwen-2-7b-instruct:free",
+
+  // 11 à 20 : Google, Mistral & NVIDIA
+  "google/gemma-2-9b-it:free",
+  "google/gemma-7b-it:free",
+  "mistralai/mistral-7b-instruct:free",
+  "mistralai/mistral-small-24b-instruct-2501:free",
+  "mistralai/pixtral-12b:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "microsoft/phi-3-medium-128k-instruct:free",
+  "microsoft/phi-3-mini-4k-instruct:free",
+  "microsoft/phi-4:free",
+  "nousresearch/hermes-3-llama-3.1-70b:free",
+
+  // 21 à 30 : Communauté et architectures spécialisées
+  "nousresearch/hermes-2-pro-llama-3-8b:free",
+  "cohere/command-r-plus:free",
+  "cohere/command-r:free",
+  "databricks/dbrx-instruct:free",
+  "cognitivecomputations/dolphin-mixtral-8x7b:free",
+  "openchat/openchat-7b:free",
+  "huggingfaceh4/zephyr-7b-beta:free",
+  "liquid/lfm-7b:free",
+  "liquid/lfm-40b:free",
+  "anthropic/claude-3-haiku:free",
+
+  // 31 à 40 : Modèles open-weights et régionaux
+  "airesearch/bielik-7b-instruct:free",
+  "kwaipilot/kwai-kolors-instruct:free",
+  "sao10k/l3-stheno-8b-v1.1:free",
+  "undi95/remm-slerp-l2-13b:free",
+  "gryphe/mythomax-l2-13b:free",
+  "recursal/eagle-7b:free",
+  "openrouter/cinematika-7b:free",
+  "lynn/soliloquy-l3:free",
+  "shisa-ai/shisa-gamma-7b-v1:free",
+  "tokeking/llama-3-70b-instruct:free",
+
+  // 41 à 50 : Alternatifs et sauvegardes additionnelles
+  "santacoder/santacoder:free",
+  "deepseek/deepseek-coder:free",
+  "Qwen/QwQ-32B-Preview:free",
+  "mistralai/mixtral-8x7b-instruct:free",
+  "google/gemma-2-27b-it:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "meta-llama/llama-3.2-1b-instruct:free",
+  "microsoft/phi-3.5-mini-instruct:free",
+  "inflection/inflection-3-pi:free",
+  "inflection/inflection-3-productivity:free",
     ].filter((m) => m.length > 0),
   ),
 );
