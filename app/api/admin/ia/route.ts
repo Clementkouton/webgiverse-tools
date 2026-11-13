@@ -19,8 +19,13 @@
 //   • réservé aux admins (session + rôle vérifié EN BASE) ;
 //   • limite de débit : 30 appels IA par admin et par heure ;
 //   • réponse TOUJOURS en JSON (plus jamais de page HTML au front) ;
-//   • cascade de modèles OpenRouter gratuits (comme l'assistant des
-//     tutoriels, Lot 73) — le premier qui répond gagne ;
+//   • cascade de modèles OpenRouter gratuits (vérifiés en direct sur
+//     openrouter.ai/api/v1/models) — le premier qui répond gagne ;
+//   • si TOUS les modèles échouent, le message affiché à l'admin dit la
+//     VRAIE cause : quota :free épuisé (429), clé refusée (401),
+//     crédits épuisés (402), modèle retiré (404), surcharge (5xx),
+//     délai dépassé — et l'échec est tracé « IA_ECHEC » dans le
+//     journal admin (visible sans ouvrir les logs Vercel) ;
 //   • chaque appel réussi est tracé dans le journal admin.
 // ─────────────────────────────────────────────────────────────────
 import { NextResponse } from "next/server";
@@ -35,20 +40,32 @@ export const maxDuration = 60;
 
 const URL_API = "https://openrouter.ai/api/v1/chat/completions";
 
-// Même cascade que l'assistant des tutoriels (Lot 73, actualisée) :
-// le modèle principal est remplaçable via OPENROUTER_MODELE dans le .env.
+// Cascade de modèles :free (vérifiée en direct sur
+// openrouter.ai/api/v1/models) : le premier qui répond gagne. Le
+// modèle principal est remplaçable sans toucher au code via
+// OPENROUTER_MODELE dans le .env / les Variables Vercel. Les
+// remplaçants ont un contexte de 262 k à 1 M de jetons : un article
+// entier + sa réécriture tiennent largement.
 const MODELES = Array.from(
   new Set(
     [
       process.env.OPENROUTER_MODELE?.trim() || "google/gemma-4-31b-it:free",
-      "nvidia/nemotron-3-ultra-550b-a55b:free",
       "nvidia/nemotron-3.5-lightning:free",
+      "google/gemma-4-26b-a4b-it:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
     ].filter((m) => m.length > 0),
   ),
 );
 
 const APPELS_MAX_PAR_HEURE = 30; // par admin — protège le quota OpenRouter
-const DELAI_PAR_MODELE_MS = 25_000; // 25 s par modèle, 60 s dispo au total
+// Temps : Vercel Hobby tue la fonction à 60 s. Budget total 55 s (marge
+// pour la trace et le JSON final), et chaque modèle reçoit un délai
+// calculé sur le temps RESTANT : le premier a le gros du budget, les
+// suivants ne partent que s'il en reste (échecs rapides : 429, 404…).
+const BUDGET_TOTAL_MS = 55_000;
+const MARGE_SECURITE_MS = 2_000;
+const DELAI_MODELE_MS = 25_000; // tâches courtes (extrait, titres, mots-clés)
+const DELAI_MODELE_AMELIORER_MS = 40_000; // réécriture complète = plus longue
 const MAX_TOKENS_TEXTE = 700; // extrait / titres / mots-clés
 const MAX_TOKENS_CONTENU = 3000; // réécriture complète de l'article
 const MAX_TAILLE_TEXTE = 8_000; // texte analysé pour extrait / titres / mots-clés
@@ -70,6 +87,18 @@ const CONSIGNE_TON: Record<Ton, string> = {
 };
 
 type TacheIa = "extrait" | "titres" | "motsCles" | "ameliorer";
+
+/** Extrait un message d'erreur lisible du corps d'une réponse
+ *  OpenRouter (JSON `{"error":{"message":…}}` ou texte brut). */
+function extraireMessageErreur(corps: string): string {
+  try {
+    const donnees = JSON.parse(corps) as { error?: { message?: string } };
+    if (donnees?.error?.message) return donnees.error.message;
+  } catch {
+    // corps non JSON : on renvoie le texte brut condensé
+  }
+  return corps.replace(/\s+/g, " ").trim();
+}
 
 export async function POST(requete: Request) {
   try {
@@ -166,6 +195,7 @@ Réponds UNIQUEMENT avec les mots-clés : séparés par des virgules, en minuscu
       // ameliorer — réécriture enrichie du contenu HTML
       consigneSysteme = `Tu es un rédacteur web senior du blog Webgiverse, annuaire francophone d'outils d'intelligence artificielle.
 AMÉLIORE et ENRICHIS l'article HTML fourni, sans en changer le sens ni inventer de faits, chiffres, noms d'outils ou liens.
+Garde une longueur proche de l'original (30 % plus long au maximum) : la réécriture doit rester finissable dans le temps disponible.
  ${CONSIGNE_TON[ton]}
 Attendus : une intro accrocheuse, des sous-titres <h2> pour structurer, des paragraphes <p> développés, des listes <ul>/<li> quand c'est utile, des transitions fluides, une conclusion qui invite à passer à l'action, et quelques mots en <strong> sur les points clés.
 Format de réponse STRICT : UNIQUEMENT du HTML simple utilisant seulement <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em> — sans markdown, sans balise <html>/<body>, sans commentaire ni explication.`;
@@ -173,11 +203,25 @@ Format de réponse STRICT : UNIQUEMENT du HTML simple utilisant seulement <p>, <
     }
 
     // ── 6. Appel OpenRouter — cascade de modèles gratuits ───────────
+    const departCascade = Date.now();
     let reponseIa = "";
-    let statutEchec = 0;
-    let detailEchec = "";
+    let dernierStatut = 0; // dernier code HTTP reçu (0 = réseau ou temps écoulé)
+    let dernierDetail = ""; // cause courte, affichée à l'admin si échec
+    let limiteMinute = false; // 429 « per-minute » : ça repasse en attendant
 
     for (const modele of MODELES) {
+      const restantMs = BUDGET_TOTAL_MS - (Date.now() - departCascade);
+      if (restantMs < MARGE_SECURITE_MS + 3_000) {
+        console.error("ASSISTANT ADMIN : temps Vercel presque écoulé, cascade arrêtée");
+        if (!dernierStatut) {
+          dernierStatut = 504;
+          dernierDetail = "temps total dépassé avant la fin de la cascade";
+        }
+        break;
+      }
+      const delaiMax = tache === "ameliorer" ? DELAI_MODELE_AMELIORER_MS : DELAI_MODELE_MS;
+      const delaiModele = Math.min(delaiMax, restantMs - MARGE_SECURITE_MS);
+
       try {
         const reponseHttp = await fetch(URL_API, {
           method: "POST",
@@ -195,7 +239,7 @@ Format de réponse STRICT : UNIQUEMENT du HTML simple utilisant seulement <p>, <
               { role: "user", content: messageUtilisateur },
             ],
           }),
-          signal: AbortSignal.timeout(DELAI_PAR_MODELE_MS),
+          signal: AbortSignal.timeout(delaiModele),
         });
 
         if (reponseHttp.ok) {
@@ -207,44 +251,70 @@ Format de réponse STRICT : UNIQUEMENT du HTML simple utilisant seulement <p>, <
             reponseIa = candidat.trim();
             break; // un modèle a répondu
           }
-          statutEchec = 502;
-          detailEchec = `[${modele}] réponse 200 mais sans texte`;
-          console.error("ASSISTANT ADMIN :", detailEchec);
+          dernierStatut = 502;
+          dernierDetail = `[${modele}] réponse 200 mais sans texte`;
+          console.error("ASSISTANT ADMIN :", dernierDetail);
           continue;
         }
 
+        // Erreur HTTP : on classifie AVANT d'essayer le modèle suivant.
+        dernierStatut = reponseHttp.status;
         const corpsErreur = await reponseHttp.text();
-        statutEchec = reponseHttp.status;
-        detailEchec = `[${modele}] HTTP ${reponseHttp.status} : ${corpsErreur.slice(0, 300)}`;
-        console.error("ASSISTANT ADMIN :", detailEchec);
-        if (reponseHttp.status === 401) break; // clé invalide : inutile d'insister
+        const cause = extraireMessageErreur(corpsErreur).slice(0, 160);
+        dernierDetail = `[${modele}] ${cause || `HTTP ${reponseHttp.status}`}`;
+        console.error("ASSISTANT ADMIN :", `[${modele}] HTTP ${reponseHttp.status} : ${corpsErreur.slice(0, 300)}`);
+
+        if (reponseHttp.status === 429) {
+          // La limite des modèles :free est comptée SUR LE COMPTE
+          // OpenRouter (pas par modèle) : essayer les suivants ne sert
+          // à rien, on arrête immédiatement.
+          limiteMinute = /per-minute/i.test(corpsErreur);
+          break;
+        }
+        if (reponseHttp.status === 401 || reponseHttp.status === 403) break; // clé invalide
+        if (reponseHttp.status === 402) break; // plus de crédits
+        continue; // 404 (modèle retiré), 5xx (surcharge) : modèle suivant
       } catch (erreurModele) {
         const nom = erreurModele instanceof Error ? erreurModele.name : "Erreur";
         if (nom === "TimeoutError" || nom === "AbortError") {
-          statutEchec = 504;
-          detailEchec = `[${modele}] délai de ${DELAI_PAR_MODELE_MS / 1000} s dépassé`;
+          dernierStatut = 504;
+          dernierDetail = `[${modele}] délai de ${Math.round(delaiModele / 1000)} s dépassé`;
         } else {
-          statutEchec = 502;
-          detailEchec = `[${modele}] erreur réseau : ${String(erreurModele).slice(0, 200)}`;
+          dernierStatut = 502;
+          dernierDetail = `[${modele}] erreur réseau : ${String(erreurModele).slice(0, 140)}`;
         }
-        console.error("ASSISTANT ADMIN :", detailEchec);
+        console.error("ASSISTANT ADMIN :", dernierDetail);
         continue;
       }
     }
 
     if (!reponseIa) {
-      return NextResponse.json(
-        {
-          ok: false,
-          erreur:
-            statutEchec === 401
-              ? "Clé OpenRouter refusée (401) : vérifie OPENROUTER_API_KEY."
-              : statutEchec === 504
-                ? "L'IA n'a pas répondu à temps. Réessaie dans un instant."
-                : "Aucun modèle IA n'a répondu. Réessaie dans un instant (détail dans les logs Vercel).",
-        },
-        { status: 502 },
-      );
+      const aide =
+        dernierStatut === 429
+          ? limiteMinute
+            ? "Trop d'appels IA à la minute (limite OpenRouter des modèles gratuits). Attends une minute et relance."
+            : "Le quota gratuit d'OpenRouter est épuisé pour aujourd'hui (limite quotidienne des modèles :free, comptée sur tout le compte). Réessaie demain, ou ajoute 10 $ de crédits sur openrouter.ai pour passer à 1 000 appels par jour."
+          : dernierStatut === 401 || dernierStatut === 403
+            ? `Clé OpenRouter refusée (HTTP ${dernierStatut}) : vérifie OPENROUTER_API_KEY dans les Variables d'environnement Vercel.`
+            : dernierStatut === 402
+              ? "Le compte OpenRouter n'a plus de crédits (HTTP 402). Recharge-le sur openrouter.ai/credits, puis réessaie."
+              : dernierStatut === 404
+                ? `Modèle IA indisponible (HTTP 404) : OpenRouter a retiré ce modèle (${dernierDetail}). Définis OPENROUTER_MODELE avec un modèle existant dans les Variables Vercel.`
+                : dernierStatut === 504
+                  ? `L'IA n'a pas répondu à temps (${dernierDetail}). Réessaie : les modèles gratuits sont parfois lents, surtout sur un long article.`
+                  : dernierStatut === 0
+                    ? "Impossible de joindre OpenRouter (erreur réseau). Réessaie dans un instant."
+                    : `Aucun modèle IA n'a répondu (HTTP ${dernierStatut}) : ${dernierDetail}. Réessaie dans un instant ; le détail complet est dans les logs Vercel (« ASSISTANT ADMIN »).`;
+
+      // L'échec est tracé dans le journal admin : la raison est visible
+      // dans la console admin, sans ouvrir les logs Vercel.
+      await tracerActionAdmin({
+        action: "IA_ECHEC",
+        cible: `Tâche : ${tache}`,
+        details: `HTTP ${dernierStatut} · ${dernierDetail.slice(0, 200)}`,
+      });
+
+      return NextResponse.json({ ok: false, erreur: aide }, { status: 502 });
     }
 
     // ── 7. Mise en forme de la réponse selon la tâche ───────────────

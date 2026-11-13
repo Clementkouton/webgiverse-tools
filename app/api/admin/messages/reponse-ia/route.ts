@@ -64,11 +64,11 @@ function blocLiens(): string {
   }
   return [
     semaine
-      ? `- LIEN DE PAIEMENT de la formule « À la une — 1 semaine ($19) » : ${semaine}`
-      : `- Formule « À la une — 1 semaine ($19) » : lien non configuré → écris exactement ${MENTION_LIEN_MANQUANT} pour cette formule.`,
+      ? `- LIEN DE PAIEMENT de la formule « À la une — 1 semaine ($3) » : ${semaine}`
+      : `- Formule « À la une — 1 semaine ($3) » : lien non configuré → écris exactement ${MENTION_LIEN_MANQUANT} pour cette formule.`,
     mois
-      ? `- LIEN DE PAIEMENT de la formule « À la une — 1 mois ($49) » : ${mois}`
-      : `- Formule « À la une — 1 mois ($49) » : lien non configuré → écris exactement ${MENTION_LIEN_MANQUANT} pour cette formule.`,
+      ? `- LIEN DE PAIEMENT de la formule « À la une — 1 mois ($9) » : ${mois}`
+      : `- Formule « À la une — 1 mois ($9) » : lien non configuré → écris exactement ${MENTION_LIEN_MANQUANT} pour cette formule.`,
   ].join("\n");
 }
 
@@ -97,7 +97,7 @@ RÈGLES
 - Commence par « Bonjour ${contact.prenom}, ». Termine par « À très vite,
 L'équipe Webgiverse ».
 - Ne réponds qu'à ce que dit le message. N'invente AUCUN prix, délai, fonctionnalité, code promo ni URL.
-- DEMANDE DE MISE EN AVANT (annonceur) : les formules réelles du site sont « À la une — 1 semaine ($19) » (7 jours) et « À la une — 1 mois ($49) » (30 jours). Une fois le paiement reçu, la fiche rejoint « À la une » (accueil) sous 24 h ouvrées, avec priorité dans les alternatives et les outils populaires, lien direct vers le site, sans engagement ni reconduction. Si le message précise la formule (ex. « Formule souhaitée : À la une — 1 semaine ($19) »), confirme-la et résume ses avantages en une phrase ; sinon rappelle les deux formules avec leur prix exact. Termine par le paiement :
+- DEMANDE DE MISE EN AVANT (annonceur) : les formules réelles du site sont « À la une — 1 semaine ($3) » (7 jours) et « À la une — 1 mois ($9) » (30 jours). Une fois le paiement reçu, la fiche rejoint « À la une » (accueil) sous 24 h ouvrées, avec priorité dans les alternatives et les outils populaires, lien direct vers le site, sans engagement ni reconduction. Si le message précise la formule (ex. « Formule souhaitée : À la une — 1 semaine ($3) »), confirme-la et résume ses avantages en une phrase ; sinon rappelle les deux formules avec leur prix exact. Termine par le paiement :
   - si le LIEN DE PAIEMENT de la formule choisie est fourni ci-dessous, écris-le EXACTEMENT tel quel (caractère pour caractère), sur sa propre ligne, précédé d'une invitation courte à payer ;
   - sinon écris exactement ${MENTION_LIEN_MANQUANT} sur sa propre ligne.
 - PROBLÈME DE PAIEMENT OU D'ABONNEMENT : dis que tu regardes le dossier et invite à préciser l'e-mail du compte si besoin ; oriente vers la page /tarifs pour les plans et les moyens de paiement.
@@ -105,7 +105,7 @@ L'équipe Webgiverse ».
 - QUESTION SUR UN OUTIL OU AUTRE DEMANDE : réponds uniquement avec les informations réelles ci-dessous ; si tu ne sais pas, invite à préciser la question ou à explorer l'annuaire (page /outils). Un éditeur qui veut référencer un outil peut passer par /proposer.
 
 INFORMATIONS RÉELLES DU SITE
-- Formules de mise en avant (page /annonceurs) : « À la une — 1 semaine ($19) » (7 jours) ; « À la une — 1 mois ($49) » (30 jours). Paiement par lien sécurisé (carte bancaire via Chariow). Maximum 4 outils dans « À la une ». Activation sous 24 h ouvrées après paiement.
+- Formules de mise en avant (page /annonceurs) : « À la une — 1 semaine ($3) » (7 jours) ; « À la une — 1 mois ($9) » (30 jours). Paiement par lien sécurisé (carte bancaire via Chariow). Maximum 4 outils dans « À la une ». Activation sous 24 h ouvrées après paiement.
 - Critères d'acceptation d'un outil : outil réel, fonctionnel, utilisable en français de préférence.
 - Pages utiles à citer si besoin : /outils (annuaire), /proposer (référencer un outil), /annonceurs (mise en avant), /tarifs (abonnements).
 
