@@ -7,6 +7,14 @@
 // facultative 1 à 5. L'action serveur envoyerRetourSkill applique le
 // verrou Premium et la règle « un seul retour par membre et par skill ».
 //
+// LOT 78 — la note en étoiles est désormais IDENTIQUE aux avis des
+// outils (components/avis/section-avis.tsx) : un état React, cliquer
+// la n-ième étoile remplit TOUTES les étoiles de 1 à n. L'ancienne
+// version CSS (« peer-checked » sur des radios) ne remplissait que
+// l'étoile cliquée — les précédentes restaient vides. La note part
+// dans l'action serveur via un champ caché name="note" ("" = pas de
+// note → la valeur null est enregistrée, comme avant).
+//
 // NB (lot 44) : le même formulaire existe pour le dashboard sous le
 // nom FormulaireRetourSkill (components/skills/formulaire-retour-skill.tsx),
 // qui affiche aussi le retour déjà publié. Ne pas fusionner les deux
@@ -14,18 +22,56 @@
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { MessageSquarePlus, Star } from "lucide-react";
 import { envoyerRetourSkill, type EtatRetour } from "@/app/actions/skills-favoris";
 import { Bouton } from "@/components/ui/bouton";
 
 const ETAT_INITIAL: EtatRetour = { succes: false, message: "" };
 
+/** Lot 78 — sélecteur d'étoiles, même mécanique que les avis outils :
+ *  la note choisie est un état React et TOUTES les étoiles de 1 à n
+ *  s'allument (fill ambre), pas seulement la dernière cliquée. */
+function EtoilesNote({
+  valeur,
+  onChange,
+}: {
+  valeur: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+          aria-pressed={n <= valeur}
+          className="transition hover:scale-110"
+        >
+          <Star
+            className={
+              n <= valeur
+                ? "size-6 fill-amber-400 text-amber-400"
+                : "size-6 text-encre/30"
+            }
+            aria-hidden
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function FormulaireRetour({ skillId }: { skillId: string }) {
   const [etat, action, enAttente] = useActionState<EtatRetour, FormData>(
     envoyerRetourSkill,
     ETAT_INITIAL,
   );
+  // Lot 78 — note choisie en étoiles (0 = aucune). 0 → champ caché
+  // vide → l'action serveur enregistre bien « pas de note ».
+  const [note, setNote] = useState(0);
 
   return (
     <form action={action} className="grid gap-4">
@@ -75,18 +121,12 @@ export function FormulaireRetour({ skillId }: { skillId: string }) {
         <legend className="text-[13px] leading-4 font-semibold text-bleu">
           Ta note <span className="font-normal text-encre">(facultative)</span>
         </legend>
-        <div className="mt-1.5 flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((valeur) => (
-            <label key={valeur} className="cursor-pointer" title={`${valeur} sur 5`}>
-              <input type="radio" name="note" value={valeur} className="peer sr-only" />
-              <Star
-                className="size-6 text-encre/30 transition peer-checked:fill-amber-400 peer-checked:text-amber-400 hover:fill-amber-200 hover:text-amber-300"
-                aria-hidden
-              />
-              <span className="sr-only">{valeur} sur 5</span>
-            </label>
-          ))}
-          <span className="ml-2 text-[12px] leading-4 text-encre">1 = déçu · 5 = excellent</span>
+        <div className="mt-1.5 flex items-center gap-2">
+          <EtoilesNote valeur={note} onChange={setNote} />
+          {/* Lot 78 — la note choisie accompagne l'action serveur ;
+              vide (= 0) si le membre ne note pas, comme avant. */}
+          <input type="hidden" name="note" value={note || ""} />
+          <span className="text-[12px] leading-4 text-encre">1 = déçu · 5 = excellent</span>
         </div>
       </fieldset>
 

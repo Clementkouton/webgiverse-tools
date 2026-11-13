@@ -9,10 +9,15 @@
 //     (usage, résultat, note en étoiles) + bouton « Supprimer »
 //     (action supprimerRetourParSkillFormulaire, par skillId).
 // L'action serveur applique le verrou Premium côté serveur.
+// LOT 78 — la note en étoiles du formulaire passe au MÊME mécanisme
+// que les avis des outils : état React, cliquer la n-ième étoile
+// remplit TOUTES les étoiles de 1 à n (les radios « peer-checked »
+// ne remplissaient que l'étoile cliquée). Note transmise par un
+// champ caché name="note" ("" = pas de note → null côté serveur).
 // ─────────────────────────────────────────────────────────────────
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { MessageSquarePlus, Star, Trash2 } from "lucide-react";
 import {
   envoyerRetourSkill,
@@ -23,6 +28,41 @@ import { Bouton } from "@/components/ui/bouton";
 import { BoutonConfirmer } from "@/components/commun/bouton-confirmer";
 
 const ETAT_INITIAL: EtatRetour = { succes: false, message: "" };
+
+/** Lot 78 — sélecteur d'étoiles compact, même mécanique que les avis
+ *  outils : TOUTES les étoiles de 1 à n s'allument, pas seulement la
+ *  dernière cliquée. */
+function EtoilesNote({
+  valeur,
+  onChange,
+}: {
+  valeur: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+          aria-pressed={n <= valeur}
+          className="transition hover:scale-110"
+        >
+          <Star
+            className={
+              n <= valeur
+                ? "size-5 fill-amber-400 text-amber-400"
+                : "size-5 text-encre/30"
+            }
+            aria-hidden
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export type RetourInitialSkill = {
   usage: string;
@@ -66,6 +106,8 @@ export function FormulaireRetourSkill({
     envoyerRetourSkill,
     ETAT_INITIAL,
   );
+  // Lot 78 — note choisie en étoiles (0 = aucune → champ caché vide).
+  const [note, setNote] = useState(0);
 
   // ── Cas 1 : le membre a déjà publié son retour → lecture seule ──
   if (retourInitial) {
@@ -160,16 +202,10 @@ export function FormulaireRetourSkill({
 
       <div className="flex flex-wrap items-center gap-1">
         <span className="mr-1 text-[12px] leading-4 font-semibold text-bleu">Note</span>
-        {[1, 2, 3, 4, 5].map((valeur) => (
-          <label key={valeur} className="cursor-pointer" title={`${valeur} sur 5`}>
-            <input type="radio" name="note" value={valeur} className="peer sr-only" />
-            <Star
-              className="size-5 text-encre/30 transition peer-checked:fill-amber-400 peer-checked:text-amber-400 hover:fill-amber-200 hover:text-amber-300"
-              aria-hidden
-            />
-            <span className="sr-only">{valeur} sur 5</span>
-          </label>
-        ))}
+        <EtoilesNote valeur={note} onChange={setNote} />
+        {/* Lot 78 — la note choisie accompagne l'action serveur ;
+            vide (= 0) si le membre ne note pas, comme avant. */}
+        <input type="hidden" name="note" value={note || ""} />
         <span className="ml-1 text-[11px] leading-4 text-encre">(facultative)</span>
       </div>
 

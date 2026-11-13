@@ -215,6 +215,34 @@
 }
 
 
+/* ══════════════════════════════════════════════════════════════════
+   LOT 78 — PLEINE LARGEUR SUR LES GRANDS ÉCRANS.
+   Demande : « les pages doivent occuper entièrement les grands
+   écrans ». Les conteneurs de pages utilisaient des largeurs
+   maximales (max-w-7xl = 1280px, max-w-6xl = 1152px, max-w-5xl =
+   1024px, max-w-4xl = 896px) : cette règle les neutralise PARTOUT
+   d'un seul coup (86 occurrences dans des dizaines de fichiers,
+   inutile de les modifier un par un). Les pages s'étendent donc à
+   toute la largeur de la fenêtre, les marges latérales (px-4 / px-6)
+   restant en place.
+
+   Portée volontairement limitée aux 4 classes de CONTENEURS de
+   pages : les contraintes de lecture restent intactes (max-w-3xl et
+   en dessous = colonnes de texte des articles, fiches, formulaires…
+   un texte sur 2560px de large serait illisible).
+
+   Pour REVENIR en arrière : supprimer ce bloc, tout redevient
+   exactement comme avant.
+   ══════════════════════════════════════════════════════════════════ */
+
+.max-w-4xl,
+.max-w-5xl,
+.max-w-6xl,
+.max-w-7xl {
+    max-width: 100%;
+}
+
+
 /* ── Classes utilitaires d'animation ───────────────────────────── */
 
 .animer-apparaitre {
