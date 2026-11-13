@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail, emailMotDePasseOublie } from "@/lib/email";
 import { autoriserRequete, ipClient } from "@/lib/limitation-debit"; // Lot 82
@@ -40,8 +40,13 @@ export async function POST(req: Request) {
     const token = randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
 
+    // Lot 83 — SEUL LE HASH SHA-256 DU JETON est stocké en base : si la
+    // base fuit (ou qu'un export est partagé par erreur), les jetons
+    // qu'elle contient sont inutilisables — l'empreinte ne permet pas de
+    // refabriquer le lien. Le jeton en clair ne vit QUE dans l'e-mail.
+    const tokenHash = createHash("sha256").update(token).digest("hex");
     await prisma.verificationToken.create({
-      data: { identifier: courriel, token, expires },
+      data: { identifier: courriel, token: tokenHash, expires },
     });
 
     // Lien ABSOLU : fonctionne en local comme en production

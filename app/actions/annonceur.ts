@@ -11,8 +11,10 @@
 //   « Mettre en avant » dans l'admin (app/admin/outils).
 // ─────────────────────────────────────────────────────────────────
 import { z } from "zod";
+import { headers } from "next/headers"; // Lot 83 — IP pour l'anti spam
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail } from "@/lib/email";
+import { autoriserRequete, ipClient } from "@/lib/limitation-debit"; // Lot 83
 
 export type EtatAnnonceur = { ok: boolean; message: string };
 
@@ -55,6 +57,20 @@ export async function envoyerDemandeAnnonceur(
 
   const { nom, email, outil, formule, message } = analyse.data;
   const libelleFormule = formule === "semaine" ? "À la une — 1 semaine ($3)" : "À la une — 1 mois ($9)";
+
+  // Lot 83 — Anti spam : 5 demandes par IP et par heure, 3 par adresse
+  // e-mail et par heure (chaque demande envoie un e-mail vers EMAIL_USER).
+  const ip = ipClient(await headers());
+  if (
+    !autoriserRequete(`annonceur-ip:${ip}`, 5, 60 * 60_000) ||
+    !autoriserRequete(`annonceur-email:${email.toLowerCase()}`, 3, 60 * 60_000)
+  ) {
+    return {
+      ok: false,
+      message:
+        "Trop de demandes envoyées récemment. Réessaie dans une heure — merci de ta patience !",
+    };
+  }
 
   try {
     // 1) Enregistrement en base — la demande est conservée même si

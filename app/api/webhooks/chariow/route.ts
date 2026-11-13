@@ -195,7 +195,20 @@ export async function GET() {
 
 export async function POST(requete: Request) {
   const secret = (process.env.CHARIOW_WEBHOOK_SECRET ?? "").trim();
-  const tolerant = (process.env.CHARIOW_WEBHOOK_TOLERANT ?? "").trim() === "1";
+  // Lot 83 — FILET DE SÉCURITÉ : le mode tolérant (pulsations acceptées
+  // SANS signature) est désormais IMPOSSIBLE en production. Une variable
+  // CHARIOW_WEBHOOK_TOLERANT=1 oubliée sur Vercel ouvrait la porte à
+  // quiconque : une requête POST forgée « successful.sale » avec
+  // l'e-mail d'un compte suffisait à activer le Premium gratuitement.
+  // En développement (next dev / tunnel), le débogage reste possible.
+  const demandeTolerant = (process.env.CHARIOW_WEBHOOK_TOLERANT ?? "").trim() === "1";
+  const enProduction = process.env.NODE_ENV === "production";
+  if (demandeTolerant && enProduction) {
+    console.warn(
+      "[chariow] CHARIOW_WEBHOOK_TOLERANT=1 IGNORÉ : le mode tolérant est interdit en production (Lot 83).",
+    );
+  }
+  const tolerant = demandeTolerant && !enProduction;
 
   if (!secret && !tolerant) {
     console.error(

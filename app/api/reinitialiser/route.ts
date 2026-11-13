@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { autoriserRequete, ipClient } from "@/lib/limitation-debit"; // Lot 82
@@ -31,8 +32,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // Lot 83 — le jeton reçu est hashé SHA-256 AVANT comparaison : la
+    // base ne stocke que des empreintes (voir mot-de-passe-oublie).
+    const tokenHash = createHash("sha256").update(String(token)).digest("hex");
     const verification = await prisma.verificationToken.findFirst({
-      where: { token: String(token), identifier: courriel },
+      where: { token: tokenHash, identifier: courriel },
     });
 
     if (!verification || verification.expires < new Date()) {

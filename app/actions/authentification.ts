@@ -1,10 +1,8 @@
 "use server";
 
 import { AuthError } from "next-auth";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
 import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { envoyerEmail, emailBienvenue } from "@/lib/email";
@@ -146,29 +144,12 @@ export async function inscriptionAction(_prec: EtatFormulaire, formData: FormDat
 // elle renvoyait le lien de réinitialisation directement dans la réponse,
 // sans condition de production — n'importe qui pouvait l'appeler avec
 // l'e-mail de n'importe quel compte (admin compris) et récupérer un lien
-// valable 1 heure → prise de contrôle du compte. La page
-// /mot-de-passe-oublie utilise déjà la route sécurisée
-// /api/mot-de-passe-oublie (lien envoyé UNIQUEMENT par e-mail, jamais
-// affiché en production) : rien d'autre à changer côté interface.
-export async function reinitialisationAction(_prec: EtatFormulaire, formData: FormData): Promise<EtatFormulaire> {
-  const token = String(formData.get("token") ?? "");
-  const motDePasse = String(formData.get("motDePasse") ?? "");
-  const confirmation = String(formData.get("confirmation") ?? "");
-
-  if (motDePasse.length < 8) return { erreur: "Le mot de passe doit contenir au moins 8 caractères." };
-  if (motDePasse !== confirmation) return { erreur: "Les deux mots de passe ne correspondent pas." };
-
-  const enregistrement = await prisma.verificationToken.findFirst({ where: { token } });
-  if (!enregistrement) return { erreur: "Lien invalide ou déjà utilisé." };
-  if (enregistrement.expires < new Date()) return { erreur: "Lien expiré — demande un nouveau lien." };
-
-  await prisma.user.update({
-    where: { email: enregistrement.identifier },
-    data: { motDePasse: await bcrypt.hash(motDePasse, 10) },
-  });
-  await prisma.verificationToken.delete({
-    where: { identifier_token: { identifier: enregistrement.identifier, token: enregistrement.token } },
-  });
-
-  redirect("/connexion?reinitialise=1");
-}
+// valable 1 heure → prise de contrôle du compte.
+//
+// Lot 83 — L'ancienne action « reinitialisationAction » (second formulaire,
+// jamais utilisé par aucune page) a été SUPPRIMÉE à son tour : une Server
+// Action exportée reste appelable par une requête forgée même sans
+// formulaire, et elle contournait le flux sécurisé
+// (/api/mot-de-passe-oublie + /api/reinitialiser, limité et à jetons
+// hashés). Une seule porte d'entrée désormais : les deux routes API ci-
+// dessus. La page /reinitialiser appelle déjà /api/reinitialiser.
