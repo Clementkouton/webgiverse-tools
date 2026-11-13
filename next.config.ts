@@ -46,17 +46,28 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "www.google.com", pathname: "/s2/favicons*" },
     ],
   },
-    experimental: {
+  experimental: {
     serverActions: {
-      // Par défaut Next.js plafonne les Server Actions à 1 Mo : un CSV
-      // de 1 à 2 Mo échouait avec « Body exceeded 1 MB limit ».
-      bodySizeLimit: "4mb",
+      // Lot 79 — les GROS CSV de skills dépassaient l'ancien plafond de
+      // 4 Mo : l'import échouait avec « Body exceeded 4mb limit » (413).
+      // 100 Mo = large marge pour un import en masse. NB : sur Vercel,
+      // la plateforme plafonne de toute façon le corps des requêtes à
+      // ~4,5 Mo — cette limite ne concerne que le développement local
+      // (next dev) et tout hébergement qui ne rajoute pas de plafond.
+      bodySizeLimit: "100mb",
       allowedOrigins: [
         "localhost:3000",
         "webgiverse-tools.vercel.app",
         "m51645tr-3000.euw.devtunnels.ms",
       ],
     },
+    // Lot 79 — quand un middleware est présent (ici NextAuth sur
+    // /admin/:path*), Next.js plafonne AUSSI le corps de requête à
+    // 10 Mo par défaut : « Request body exceeded 10MB for /admin/import.
+    // Only the first 10MB will be available unless configured ». On
+    // aligne ce second plafond sur celui des Server Actions, sinon un
+    // CSV de plus de 10 Mo serait tronqué AVANT d'atteindre l'action.
+    middlewareClientMaxBodySize: "100mb",
   },
 };
 

@@ -28,6 +28,13 @@
 // Sans l'option « mettre à jour », un slug déjà en base est ignoré ;
 // le compteur de vues n'est écrasé QUE si la colonne vues est présente
 // dans le fichier (sinon il est conservé).
+// Lot 79 — GROS FICHIERS : un CSV de skills riche dépassait TROIS
+// plafonds d'un coup — ① la Server Action (« Body exceeded 4mb limit »,
+// code 413), ② le middleware NextAuth (« Request body exceeded 10MB »,
+// le corps était tronqué avant d'atteindre l'action) et ③ les limites
+// ci-dessous (2 Mo / 500 lignes) qui auraient refusé le fichier même
+// bien arrivé. Nouveaux plafonds : 50 Mo / 10 000 lignes, alignés avec
+// next.config.ts (bodySizeLimit + middlewareClientMaxBodySize à 100 Mo).
 // ─────────────────────────────────────────────────────────────────
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
@@ -59,8 +66,13 @@ export type EtatImport = {
   erreursTotal?: number;
 } | null;
 
-const MAX_LIGNES = 500;
-const MAX_OCTETS = 2_000_000; // 2 Mo
+// Lot 79 — relevés de 2 Mo / 500 lignes à 50 Mo / 10 000 lignes : un
+// import en masse de skills (sections détaillées) dépasse très vite
+// l'ancien plafond de 2 Mo. La valeur est volontairement INFÉRIEURE au
+// plafond Next.js de next.config.ts (100 Mo) pour que le message
+// d'erreur métier ci-dessous s'affiche plutôt qu'une page 413.
+const MAX_LIGNES = 10_000;
+const MAX_OCTETS = 50_000_000; // 50 Mo
 
 /** Vérifie la session admin. Renvoie un booléen au lieu de lever une
  *  exception : l'action répond alors un état sérialisable que
@@ -174,12 +186,12 @@ function etatErreur(message: string): EtatImport {
 function verifierCsv(source: string | null): ReturnType<typeof parserCsv> | EtatImport {
   if (source === null)
     return etatErreur(
-      "Aucun contenu à importer : fichier absent, trop volumineux (2 Mo max) ou zone « coller » vide."
+      "Aucun contenu à importer : fichier absent, trop volumineux (50 Mo max) ou zone « coller » vide."
     );
   const csv = parserCsv(source);
   if (!csv) return etatErreur("Fichier illisible : vérifie que la 1re ligne contient bien les en-têtes séparés par « ; » ou « , ».");
   if (csv.total === 0) return etatErreur("Aucune ligne de données trouvée (il n'y a que les en-têtes).");
-  if (csv.total > MAX_LIGNES) return etatErreur(`Trop de lignes (${csv.total}) : 500 maximum par import. Découpe ton fichier.`);
+  if (csv.total > MAX_LIGNES) return etatErreur(`Trop de lignes (${csv.total}) : 10 000 maximum par import. Découpe ton fichier.`);
   return csv;
 }
 

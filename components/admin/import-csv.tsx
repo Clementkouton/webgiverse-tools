@@ -20,6 +20,9 @@
 //     un champ fait moins de 16 px), 13 px monospace dès sm.
 // Deux sources possibles : un fichier .csv OU un collage direct.
 // Option « mettre à jour les éléments existants (même slug) ».
+// Lot 79 — hint aligné sur les nouvelles limites de l'action
+// (50 Mo / 10 000 lignes, cf. app/actions/import-csv.ts et
+// next.config.ts : bodySizeLimit + middlewareClientMaxBodySize).
 // ─────────────────────────────────────────────────────────────────
 import { useEffect, useActionState, useRef, useState } from "react";
 import {
@@ -77,7 +80,7 @@ export function ImportCsv({
         <h3 className="font-titre text-[16px] leading-6 font-semibold">Fichier CSV</h3>
         <p className="mt-1 text-[13px] leading-5 text-encre">
           Choisis un fichier ou colle directement le contenu. Séparateur « ; » ou « , »
-          détecté automatiquement — 500 lignes et 2 Mo maximum par import.
+          détecté automatiquement — 10 000 lignes et 50 Mo maximum par import.
         </p>
       </div>
 
