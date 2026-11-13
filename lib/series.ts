@@ -8,11 +8,6 @@
 //   - l'extrait compte ×1
 // Un article peut appartenir à plusieurs séries (un comparatif
 // « ChatGPT vs Claude » peut aussi être une pépite Découverte).
-//
-// Avantages : aucune migration Prisma, aucun champ à remplir dans
-// l'admin — ajouter un article suffit pour le voir apparaître dans
-// les bonnes séries. Si un jour tu veux un classement manuel, il
-// suffira d'ajouter un champ « serie » au modèle Article.
 // ─────────────────────────────────────────────────────────────────
 import { prisma } from "@/lib/prisma";
 import { SERIES_WEBGIVERSE, serieParSlug, type SerieWebgiverse } from "@/content/series";
@@ -68,7 +63,7 @@ export function scorerArticle(article: ArticleSerie, serie: SerieWebgiverse): nu
 export function meilleureSerie(article: ArticleSerie): SerieWebgiverse | null {
   let gagnante: SerieWebgiverse | null = null;
   let meilleurScore = 0;
-  for (const serie de SERIES_WEBGIVERSE) {
+  for (const serie of SERIES_WEBGIVERSE) {
     const score = scorerArticle(article, serie);
     if (score > meilleurScore) {
       meilleurScore = score;

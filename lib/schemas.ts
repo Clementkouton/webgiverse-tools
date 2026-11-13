@@ -46,6 +46,8 @@ export const schemaArticleAdmin = z.object({
   type: z.enum(["ACTUALITE", "BLOG"], { message: "Choisis le type : actualité ou article de blog" }),
   statut: z.enum(["BROUILLON", "PUBLIE"], { message: "Statut invalide" }),
   extrait: z.string().trim().min(20, "Écris un résumé d'au moins 20 caractères").max(300, "Résumé trop long (300 caractères max)"),
+    // Lot 88 — mots-clés SEO secondaires, séparés par des virgules.
+  motsCles: z.string().trim().max(400, "400 caractères maximum").optional().or(z.literal("")),
   image: z.string().trim().url("URL de l'image invalide").max(400).optional().or(z.literal("")),
   auteur: z.string().trim().min(2, "Nom d'auteur trop court").max(80).optional().or(z.literal("")),
   contenu: z.string().trim().min(50, "L'article doit contenir au moins 50 caractères").max(50000, "Article trop long"),

@@ -1,19 +1,29 @@
 // components/admin/formulaire-article.tsx
 // ─────────────────────────────────────────────────────────────────
-// Lot 23 — Formulaire d'article refait d'après la maquette fournie :
-//   • colonne principale : TITRE en grand, puis DESCRIPTION * avec
-//     l'éditeur riche (barre d'outils gras/italique/alignements/
-//     liens/images/tableaux), puis bouton « Enregistrer » aligné à
-//     droite (comme la maquette) ;
-//   • colonne latérale : IMAGE PRINCIPALE (URL + aperçu live),
-//     Publication (type, statut, auteur), Résumé, Adresse (slug).
-// Compatible avec les anciens articles « texte brut » : au montage
-// l'éditeur les convertit en paragraphes (lib/html.ts).
+// Lot 88 — Formulaire d'article avec l'ASSISTANT IA DU BLOG complet.
+//
+//   • Résumé (extrait) : 1 clic « Proposer un résumé (IA) » (Lot 25,
+//     réparé : la route /api/admin/ia existe enfin — Lot 88).
+//   • NOUVEAU — Améliorer le contenu : l'IA réécrit et enrichit
+//     l'article (intro accrocheuse, sous-titres, listes, transitions,
+//     conclusion) avec le TON choisi (persuasif, professionnel,
+//     engageant, simple). Le HTML renvoyé est assaini côté serveur
+//     puis injecté dans l'éditeur (remontage par `key` React).
+//   • NOUVEAU — Proposer 3 titres : suggestions cliquables, un clic
+//     remplace le titre (et le slug s'il n'a pas été modifié à la main).
+//   • NOUVEAU — Mots-clés SEO secondaires : générés en 1 clic,
+//     enregistrés avec l'article (Article.motsCles, Lot 88) et
+//     exposés en meta keywords sur la page publique.
+//
+// Sécurité front : chaque réponse est vérifiée AVANT JSON.parse —
+// si le serveur renvoie autre chose que du JSON (page d'erreur HTML…),
+// un message clair s'affiche au lieu du crash
+// « Unexpected token '<', "<!DOCTYPE"… is not valid JSON ».
 // ─────────────────────────────────────────────────────────────────
 "use client";
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, ImageOff, ImageIcon, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, ImageOff, ImageIcon, Sparkles, Wand2 } from "lucide-react";
 import { Bouton } from "@/components/ui/bouton";
 import { Carte } from "@/components/ui/carte";
 import { Champ, Etiquette, ZoneTexte } from "@/components/ui/champ";
@@ -30,9 +40,18 @@ export type ArticleForme = {
   image: string | null;
   auteur: string;
   contenu: string;
+  motsCles: string;
 };
 
 type ActionArticle = (etat: EtatArticle, donnees: FormData) => Promise<EtatArticle>;
+type TacheIa = "extrait" | "titres" | "motsCles" | "ameliorer";
+
+const TONS = [
+  { valeur: "persuasif", libelle: "Persuasif (convaincre, vendre l'idée)" },
+  { valeur: "professionnel", libelle: "Professionnel (expert, précis)" },
+  { valeur: "engageant", libelle: "Engageant (chaleureux, vivant)" },
+  { valeur: "simple", libelle: "Simple (débutant, sans jargon)" },
+] as const;
 
 /** Même logique que slugifier() côté serveur (lib/utils). */
 function slugifierLocal(texte: string): string {
@@ -63,38 +82,149 @@ export function FormulaireArticle({
   const [image, setImage] = useState(article?.image ?? "");
   const [imageCasse, setImageCasse] = useState(false);
 
-  // Lot 25 — résumé contrôlé + assistant IA (extrait généré en 1 clic)
-  const [extrait, setExtrait] = useState(article?.extrait ?? "");
-  const [contenuTexte, setContenuTexte] = useState(""); // texte de l'éditeur riche
-  const [iaEnCours, setIaEnCours] = useState(false);
-  const [iaErreur, setIaErreur] = useState("");
+  // ── Éditeur riche ────────────────────────────────────────────────
+  // Lot 88 — `cleEditeur` force le remontage de l'éditeur avec le
+  // nouveau contenu quand l'IA propose une version améliorée.
+  const [cleEditeur, setCleEditeur] = useState(0);
+  const [contenuInitial, setContenuInitial] = useState(article?.contenu ?? "");
+  const [contenuHtml, setContenuHtml] = useState(article?.contenu ?? "");
+  const [contenuTexte, setContenuTexte] = useState("");
 
-  /** Demande un résumé à l'IA à partir du titre et du contenu. */
+  // ── Assistant IA ─────────────────────────────────────────────────
+  const [extrait, setExtrait] = useState(article?.extrait ?? "");
+  const [motsCles, setMotsCles] = useState(article?.motsCles ?? "");
+  const [ton, setTon] = useState<(typeof TONS)[number]["valeur"]>("persuasif");
+  const [tacheEnCours, setTacheEnCours] = useState<TacheIa | null>(null);
+  const [iaErreur, setIaErreur] = useState(""); // carte Résumé
+  const [iaErreurAssistant, setIaErreurAssistant] = useState(""); // carte Assistant IA
+  const [iaErreurMotsCles, setIaErreurMotsCles] = useState(""); // carte Mots-clés
+  const [titresProposes, setTitresProposes] = useState<string[]>([]);
+
+  /**
+   * Appelle /api/admin/ia et renvoie le résultat — en vérifiant
+   * d'abord que la réponse est bien du JSON (le crash « <!DOCTYPE »
+   * ne peut plus arriver : on affiche un message clair à la place).
+   */
+  async function appelerAssistantIa(corps: Record<string, unknown>): Promise<string> {
+    const reponse = await fetch("/api/admin/ia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corps),
+    });
+    const type = reponse.headers.get("content-type") ?? "";
+    if (!type.includes("application/json")) {
+      throw new Error("L'assistant IA n'a pas répondu correctement (erreur serveur). Réessaie dans un instant.");
+    }
+    const donnees = (await reponse.json()) as { ok?: boolean; resultat?: string; erreur?: string };
+    if (!reponse.ok || !donnees?.ok) {
+      throw new Error(String(donnees?.erreur ?? "L'assistant IA n'a pas répondu."));
+    }
+    return String(donnees.resultat ?? "");
+  }
+
+  /** Résumé : 1 clic dans la carte « Résumé ». */
   async function proposerResumeIA() {
-    if (iaEnCours) return;
+    if (tacheEnCours) return;
     setIaErreur("");
-    setIaEnCours(true);
+    setTacheEnCours("extrait");
     try {
-      const reponse = await fetch("/api/admin/ia", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tache: "extrait", texte: `${titre}\n\n${contenuTexte || extrait}`.trim() }),
+      const resultat = await appelerAssistantIa({
+        tache: "extrait",
+        titre,
+        texte: `${titre}\n\n${contenuTexte || extrait}`.trim().slice(0, 8000),
       });
-      const donnees = await reponse.json();
-      if (!reponse.ok || !donnees?.ok) throw new Error(String(donnees?.erreur ?? "L'assistant IA n'a pas répondu."));
-      setExtrait(String(donnees.resultat).slice(0, 300));
+      setExtrait(resultat);
     } catch (e) {
       setIaErreur(e instanceof Error ? e.message : "L'assistant IA n'a pas répondu.");
     } finally {
-      setIaEnCours(false);
+      setTacheEnCours(null);
     }
   }
+
+  /** Titres : 3 suggestions cliquables dans la carte « Assistant IA ». */
+  async function proposerTitresIA() {
+    if (tacheEnCours) return;
+    setIaErreurAssistant("");
+    setTitresProposes([]);
+    setTacheEnCours("titres");
+    try {
+      const resultat = await appelerAssistantIa({
+        tache: "titres",
+        titre,
+        texte: contenuTexte.slice(0, 8000),
+      });
+      setTitresProposes(
+        resultat
+          .split("\n")
+          .map((t) => t.replace(/^[-*•\d.)\s]+/, "").trim())
+          .filter(Boolean)
+          .slice(0, 3),
+      );
+    } catch (e) {
+      setIaErreurAssistant(e instanceof Error ? e.message : "L'assistant IA n'a pas répondu.");
+    } finally {
+      setTacheEnCours(null);
+    }
+  }
+
+  /** Un clic sur un titre proposé → remplace le titre (+ slug auto). */
+  function choisirTitre(titreChoisi: string) {
+    setTitre(titreChoisi);
+    if (!slugModifie) setSlug(slugifierLocal(titreChoisi));
+    setTitresProposes([]);
+  }
+
+  /** Contenu : l'IA réécrit et enrichit l'article avec le ton choisi. */
+  async function ameliorerContenuIA() {
+    if (tacheEnCours) return;
+    setIaErreurAssistant("");
+    setTacheEnCours("ameliorer");
+    try {
+      const html = await appelerAssistantIa({
+        tache: "ameliorer",
+        titre,
+        contenu: contenuHtml,
+        ton,
+      });
+      // Remontage de l'éditeur avec la version améliorée (assainie
+      // côté serveur — même filtre que l'enregistrement).
+      setContenuInitial(html);
+      setContenuHtml(html);
+      setContenuTexte(html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim());
+      setCleEditeur((k) => k + 1);
+    } catch (e) {
+      setIaErreurAssistant(e instanceof Error ? e.message : "L'assistant IA n'a pas répondu.");
+    } finally {
+      setTacheEnCours(null);
+    }
+  }
+
+  /** Mots-clés SEO secondaires : 1 clic dans la carte dédiée. */
+  async function proposerMotsClesIA() {
+    if (tacheEnCours) return;
+    setIaErreurMotsCles("");
+    setTacheEnCours("motsCles");
+    try {
+      const resultat = await appelerAssistantIa({
+        tache: "motsCles",
+        titre,
+        texte: contenuTexte.slice(0, 8000),
+      });
+      setMotsCles(resultat);
+    } catch (e) {
+      setIaErreurMotsCles(e instanceof Error ? e.message : "L'assistant IA n'a pas répondu.");
+    } finally {
+      setTacheEnCours(null);
+    }
+  }
+
+  const matiereSuffisante = titre.trim().length >= 4 || contenuTexte.trim().length >= 20;
 
   return (
     <form action={actionFormulaire} noValidate className="grid gap-6 lg:grid-cols-3">
       {article && <input type="hidden" name="articleId" value={article.id} />}
 
-      {/* ═══ Colonne principale : titre + description (éditeur riche) ═══ */}
+      {/* ═══ Colonne principale : titre + description + assistant IA ═══ */}
       <div className="grid content-start gap-6 lg:col-span-2">
         {etat && !etat.ok && (
           <p
@@ -135,11 +265,101 @@ export function FormulaireArticle({
             </p>
           </div>
           <EditeurRiche
-            valeurInitiale={article?.contenu ?? ""}
+            key={cleEditeur}
+            valeurInitiale={contenuInitial}
             placeholder="Premier paragraphe de ton article…"
-            onChange={(_html, texte) => setContenuTexte(texte)}
+            onChange={(html, texte) => {
+              setContenuHtml(html);
+              setContenuTexte(texte);
+            }}
           />
           {etat?.erreurs?.contenu && <p className={styleErreur}>{etat.erreurs.contenu}</p>}
+        </Carte>
+
+        {/* ── Assistant IA du blog (Lot 88) ──────────────────────────── */}
+        <Carte className="grid gap-4 border-primaire/30 p-6">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-[10px] bg-primaire/10 text-primaire-texte">
+              <Wand2 className="size-5" aria-hidden />
+            </span>
+            <div>
+              <h3 className="font-titre text-[16px] leading-6 font-semibold">Assistant IA du blog</h3>
+              <p className="mt-0.5 text-[13px] leading-5 text-encre">
+                Fais enrichir et réécrire ton article (structure, transitions, conclusion),
+                puis relis toujours avant d'enregistrer.
+              </p>
+            </div>
+          </div>
+
+          {iaErreurAssistant && (
+            <p
+              role="alert"
+              className="rounded-champ border border-adm-erreur/40 bg-adm-erreur-doux px-3 py-2 text-[13px] font-semibold text-[#c94f35]"
+            >
+              {iaErreurAssistant}
+            </p>
+          )}
+
+          <div>
+            <Etiquette htmlFor="tonIa">Ton d'écriture souhaité</Etiquette>
+            <select
+              id="tonIa"
+              value={ton}
+              onChange={(e) => setTon(e.target.value as (typeof TONS)[number]["valeur"])}
+              className={selectClasse}
+            >
+              {TONS.map((t) => (
+                <option key={t.valeur} value={t.valeur}>
+                  {t.libelle}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Bouton
+              type="button"
+              variante="indigo"
+              onClick={ameliorerContenuIA}
+              disabled={tacheEnCours !== null || contenuTexte.trim().length < 50}
+              title="L'IA réécrit et enrichit le contenu de l'éditeur (le texte actuel sera remplacé)"
+            >
+              <Sparkles className="size-4" aria-hidden />
+              {tacheEnCours === "ameliorer" ? "L'IA réécrit l'article…" : "Améliorer le contenu (IA)"}
+            </Bouton>
+            <Bouton
+              type="button"
+              variante="indigoDoux"
+              onClick={proposerTitresIA}
+              disabled={tacheEnCours !== null || !matiereSuffisante}
+              title="L'IA propose 3 titres alternatifs — un clic pour en appliquer un"
+            >
+              <Sparkles className="size-4" aria-hidden />
+              {tacheEnCours === "titres" ? "L'IA cherche des titres…" : "Proposer des titres (IA)"}
+            </Bouton>
+          </div>
+
+          {tacheEnCours === "ameliorer" && (
+            <p className="text-[13px] leading-5 text-encre">
+              L'amélioration peut prendre 30 à 60 secondes (réécriture complète). Laisse cet onglet ouvert.
+            </p>
+          )}
+
+          {titresProposes.length > 0 && (
+            <div className="grid gap-2">
+              <p className="text-[13px] font-semibold text-bleu">Clique sur un titre pour l'appliquer :</p>
+              {titresProposes.map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => choisirTitre(t)}
+                  className="rounded-champ border border-bordure bg-white px-3 py-2.5 text-left text-[14px] leading-5 text-bleu transition hover:border-primaire hover:bg-primaire/5"
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
         </Carte>
 
         {/* ── Enregistrer (en bas à droite, comme la maquette) ───────── */}
@@ -238,11 +458,11 @@ export function FormulaireArticle({
               type="button"
               variante="indigoDoux"
               onClick={proposerResumeIA}
-              disabled={iaEnCours || (titre.trim().length < 4 && contenuTexte.trim().length < 20)}
+              disabled={tacheEnCours !== null || !matiereSuffisante}
               title="Générer un résumé avec l'IA à partir du titre et du contenu"
             >
-
-              {iaEnCours ? "L'IA rédige…" : "Proposer un résumé (IA)"}
+              <Sparkles className="size-4" aria-hidden />
+              {tacheEnCours === "extrait" ? "L'IA rédige…" : "Proposer un résumé (IA)"}
             </Bouton>
           </div>
           {iaErreur && (
@@ -260,6 +480,46 @@ export function FormulaireArticle({
             aria-invalid={Boolean(etat?.erreurs?.extrait)}
           />
           {etat?.erreurs?.extrait && <p className={styleErreur}>{etat.erreurs.extrait}</p>}
+        </Carte>
+
+        {/* ── Mots-clés SEO (Lot 88) ───────────────────────────────── */}
+        <Carte className="grid gap-3 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="font-titre text-[16px] leading-6 font-semibold">Mots-clés SEO</h3>
+              <p className="mt-0.5 text-[12px] leading-4 text-encre">
+                Optionnel — requêtes secondaires séparées par des virgules.
+              </p>
+            </div>
+            <Bouton
+              type="button"
+              variante="indigoDoux"
+              onClick={proposerMotsClesIA}
+              disabled={tacheEnCours !== null || !matiereSuffisante}
+              title="Générer 15 à 20 mots-clés SEO secondaires avec l'IA"
+            >
+              <Sparkles className="size-4" aria-hidden />
+              {tacheEnCours === "motsCles" ? "L'IA analyse…" : "Générer (IA)"}
+            </Bouton>
+          </div>
+          {iaErreurMotsCles && (
+            <p role="alert" className="rounded-champ border border-adm-erreur/40 bg-adm-erreur-doux px-3 py-2 text-[13px] font-semibold text-[#c94f35]">
+              {iaErreurMotsCles}
+            </p>
+          )}
+          <ZoneTexte
+            id="motsCles"
+            name="motsCles"
+            rows={3}
+            value={motsCles}
+            onChange={(e) => setMotsCles(e.target.value)}
+            placeholder="ex : outil ia gratuit, alternative chatgpt, ia pour rédiger…"
+            aria-invalid={Boolean(etat?.erreurs?.motsCles)}
+          />
+          {etat?.erreurs?.motsCles && <p className={styleErreur}>{etat.erreurs.motsCles}</p>}
+          <p className="text-[12px] leading-4 text-encre">
+            Enregistrés avec l'article et exposés aux moteurs de recherche (meta keywords).
+          </p>
         </Carte>
 
         {/* ── Adresse (slug) ───────────────────────────────────────── */}

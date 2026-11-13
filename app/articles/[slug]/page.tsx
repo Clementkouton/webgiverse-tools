@@ -19,7 +19,17 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const article = await lireArticle(slug);
   if (!article || article.statut !== "PUBLIE") return { title: "Article introuvable" };
-  return { title: article.titre, description: article.extrait };
+
+  // Lot 88 — les mots-clés SEO secondaires sont exposés aux moteurs
+  // de recherche quand le champ existe côté modèle. Le schéma Prisma
+  // courant n'inclut pas encore `motsCles`, donc on le traite comme
+  // propriété optionnelle pour éviter un break de compilation.
+  const articleAvecMotsCles = article as typeof article & { motsCles?: string | null };
+  const motsCles = articleAvecMotsCles.motsCles
+    ? articleAvecMotsCles.motsCles.split(",").map((m) => m.trim()).filter(Boolean)
+    : undefined;
+
+  return { title: article.titre, description: article.extrait, keywords: motsCles };
 }
 
 export default async function PageArticle({ params }: { params: Promise<{ slug: string }> }) {

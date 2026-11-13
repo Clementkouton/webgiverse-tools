@@ -48,6 +48,7 @@ export default async function PageModifierArticle({ params }: { params: Promise<
             extrait: article.extrait,
             image: article.image,
             auteur: article.auteur,
+            motsCles: article.motsCles ?? "",
             contenu: article.contenu,
           }}
         />

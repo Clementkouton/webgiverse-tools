@@ -217,7 +217,7 @@ model Article {
   vues     Int           @default(0) // Lot 25 — compteur d'affichages de l'article
   creeLe   DateTime      @default(now())
   majLe    DateTime      @updatedAt
-
+  motsCles String? // Lot 88 — mots-clés SEO secondaires, à virgules
   @@index([type, statut, publieLe])
 }
 

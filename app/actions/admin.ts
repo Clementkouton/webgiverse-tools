@@ -251,6 +251,7 @@ function validerChampsArticle(donnees: FormData) {
     type: String(donnees.get("type") ?? ""),
     statut: String(donnees.get("statut") ?? ""),
     extrait: String(donnees.get("extrait") ?? ""),
+    motsCles: String(donnees.get("motsCles") ?? ""), // Lot 88 — SEO
     image: String(donnees.get("image") ?? ""),
     auteur: String(donnees.get("auteur") ?? ""),
     contenu: String(donnees.get("contenu") ?? ""),
@@ -276,6 +277,8 @@ function construireDonneesArticle(champs: ChampsArticle) {
     type: champs.type as "ACTUALITE" | "BLOG",
     statut: champs.statut as "BROUILLON" | "PUBLIE",
     extrait: champs.extrait,
+    // Lot 88 — mots-clés SEO secondaires (champ optionnel en base).
+    motsCles: champs.motsCles && champs.motsCles.length > 0 ? champs.motsCles : null,
     image: champs.image && champs.image.length > 0 ? champs.image : null,
     auteur: champs.auteur && champs.auteur.length > 0 ? champs.auteur : "L'équipe Webgiverse",
     // par :
