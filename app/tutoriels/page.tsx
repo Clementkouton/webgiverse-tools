@@ -5,6 +5,10 @@
 // vidéo 16:9, bandeau d'accès Premium (la lecture est réservée aux
 // abonnés Pro / Entreprise) et section d'introduction SEO.
 // Lot 13 — grille paginée (16 tutos par page, filtres conservés).
+// LOT 77 — le champ de recherche annonce le FILTRE PAR MOTS
+// INDÉPENDANTS (le filtrage lui-même est fait en base par listerTutos :
+// chaque mot doit être présent, dans n'importe quel ordre). Texte
+// seul : aucune classe ni mise en page changée.
 // Charte Webgiverse : accents violets, dégradé de marque sur le mot-clé
 // du titre. Polices inchangées (Space Grotesk titres, Inter texte).
 import type { Metadata } from "next";
@@ -146,7 +150,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
               name="q"
               type="search"
               defaultValue={q}
-              placeholder="Rechercher un tuto (ChatGPT, Midjourney, n8n…)"
+              placeholder="Rechercher un tuto — un ou plusieurs mots, dans n'importe quel ordre (ex. : chatgpt montage)"
               aria-label="Rechercher un tutoriel"
               className="min-h-11 w-full rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-sky-500 focus:outline-none"
             />

@@ -13,6 +13,10 @@
 //     #a203fc) pour rester cohérentes avec la nouvelle variante
 //     primaire des boutons.
 // ─────────────────────────────────────────────────────────────────
+// LOT 77 — le champ de recherche annonce le FILTRE PAR MOTS
+// INDÉPENDANTS (le filtrage lui-même est fait en base par
+// listerPrompts : chaque mot doit être présent, dans n'importe quel
+// ordre). Texte seul : aucune classe ni mise en page changée.
 // Lot 17 — Bibliothèque de prompts IA : héros avec chiffres réels,
 // bandeau d'accès Premium (lecture + copie réservées aux abonnés
 // Pro / Entreprise), barre de filtres (recherche, catégorie, type,
@@ -163,7 +167,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
               name="q"
               type="search"
               defaultValue={q}
-              placeholder="Rechercher un prompt (email de vente, plan de cours, image produit…)"
+              placeholder="Rechercher un prompt — un ou plusieurs mots, dans n'importe quel ordre (ex. : email vente)"
               aria-label="Rechercher un prompt"
               className="min-h-11 w-full rounded-[7px] -skew-x-[18deg] not-italic border border-bordure bg-white pr-4 pl-11 text-[15px] leading-5 text-bleu placeholder:text-encre/60 focus:border-violet focus:outline-none"
             />
