@@ -164,7 +164,7 @@ export function Header() {
           <Link href="/skills" aria-current={skillsActif ? "page" : undefined}
             className={
               skillsActif
-                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 hover:bg-violet/10 hover:text-sky-500"
+                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap  hover:bg-violet/10 hover:text-sky-500"
                 : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500/80 transition hover:bg-violet/10 hover:text-sky-500"
             }>
             <Sparkles className="size-4" aria-hidden /> Skills
@@ -172,7 +172,7 @@ export function Header() {
           <Link href="/tarifs" aria-current={premiumActif ? "page" : undefined}
             className={
               premiumActif
-                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 shadow-[0_2px_12px_rgba(106,59,255,0.28)] hover:bg-violet/90 hover:text-sky-500"
+                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap  shadow-[0_2px_12px_rgba(106,59,255,0.28)] hover:bg-violet/90 hover:text-sky-500"
                 : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 transition hover:bg-violet hover:text-sky-500"
             }>
             <Sparkles className="size-4" aria-hidden /> Premium
