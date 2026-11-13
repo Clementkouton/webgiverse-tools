@@ -1,0 +1,38 @@
+titre;slug;categorie;tags;auteur;popularite;featured;image;image_alt;lien_source;depot_url;demarrage;article_titre;sections;ordre
+Vibe coding avec Claude Code;vibe-coding-claude-code;Développement;Code IA|Agents IA|Productivité;Webgiverse;18400;oui;https://picsum.photos/seed/skill-claude-code/1200/675;Couverture de la review Claude Code;;;;Test complet : vibe coding avec Claude Code, ce que ça change vraiment;"## Introduction
+Claude Code installe une vraie boucle de développement dans le terminal. On décrit le résultat attendu, l'agent lit le dépôt, propose un plan puis enchaîne les modifications.
+Ce test a été mené sur un projet réel de taille moyenne pour mesurer le gain de temps et les limites de la méthode.
+
+## Ce que ça fait bien
+La compréhension du contexte de dépôt est impressionnante dès la première passe.
+Les propositions arrivent en petites étapes révisables, pas en gros patchs indigestes.
+• Le mode plan évite les modifications sauvages sur les fichiers sensibles.
+![Vue du plan proposé dans le terminal](https://picsum.photos/seed/skill-cc-plan/1200/675)
+
+## Les limites à connaître
+Sans garde-fous, l'agent peut multiplier les fichiers créés. Fixe une règle simple : pas de nouveau fichier sans demande explicite.
+Les tests restent indispensables. La relecture ligne par ligne a attrapé deux régressions subtiles pendant ce test.
+
+## En pratique dans ton flux
+Décris le besoin en une phrase mesurable, valide le plan, puis laisse tourner sur une branche dédiée.
+Relis le diff, garde ce qui aide, jette le reste. C'est le vibe coding sain.
+
+## Verdict
+Pour les tâches de mise en route et de refactoring guidé, le gain est réel.
+Pour les décisions d'architecture, le jugement humain reste la colonne vertébrale du projet.
+![Bilan du test en une image](https://picsum.photos/seed/skill-cc-verdict/1200/675)";1
+Automatiser ta veille IA du matin;automatiser-veille-ia-matin;Productivité;Automatisation|Veille|Agents IA;;9600;non;https://picsum.photos/seed/skill-veille/1200/675;;;;;Une routine de veille IA qui te fait gagner 30 minutes par jour;"## Le principe
+Chaque matin, un agent rassemble les nouveautés de tes sources favorites et les résume en dix points.
+Tu lis un résumé unique au lieu de naviguer entre dix onglets.
+
+## Montage en trois étapes
+Choisis tes sources, fixe l'heure d'exécution, demande un format de synthèse stable.
+Le format stable est la clé : même structure, même longueur, classement par impact.
+![Exemple de synthèse matinale](https://picsum.photos/seed/skill-veille-synthese/1200/675)
+
+## Pièges évités
+Trop de sources tuent la veille. Commence avec cinq, ajoute seulement si un résumé t'a vraiment servi.
+Prévois un lien vers la source originale pour vérifier avant de partager.
+
+## Verdict
+Une fois la routine en place, la peur de manquer l'info disparaît et la veille descend sous les cinq minutes par jour.";2
