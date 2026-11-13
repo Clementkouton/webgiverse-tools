@@ -1,12 +1,17 @@
-import { randomBytes, scryptSync } from "node:crypto";
+import bcrypt from "bcryptjs";
 import { PrismaClient, ToolType } from "@prisma/client";
 
 const prisma = new PrismaClient();
 const ilYA = (jours: number) => new Date(Date.now() - jours * 86_400_000);
 
+/**
+ * Lot 84 — hash BCRYPT (et non plus scrypt) : le fournisseur Credentials
+ * d'auth.ts valide les mots de passe avec bcrypt.compare(). L'ancien
+ * format scrypt « sel:hash » n'était JAMAIS vérifiable → un compte créé
+ * par le seed restait impossible à connecter par formulaire.
+ */
 function hacher(motDePasse: string) {
-  const sel = randomBytes(16).toString("hex");
-  return `${sel}:${scryptSync(motDePasse, sel, 64).toString("hex")}`;
+  return bcrypt.hashSync(motDePasse, 12);
 }
 
 type OutilSeed = {
@@ -51,13 +56,13 @@ const OUTILS: OutilSeed[] = [
   { nom: "Le Chat (Mistral)", slug: "le-chat", url: "https://chat.mistral.ai",
     description: "L'assistant français de Mistral : rapide, souverain (hébergé en Europe) et généreux en version gratuite.",
     tarif: "Freemium — Pro à 14,99 €/mois", gratuit: true, misEnAvant: true, jours: 25, verifie: 14,
-    objectifs: ["Créer du contenu", "Apprendre", "Communiquer"], categories: ["assistants"],
+    objectifs: ["Apprendre", "Apprendre", "Communiquer"], categories: ["assistants"],
     fonctions: ["Chat et recherche web", "Canvas collaboratif", "API ouverte"],
     casUsage: ["Rédiger en français sans anglicismes", "Veille rapide avec sources"] },
   { nom: "Gemini", slug: "gemini", url: "https://gemini.google.com",
     description: "L'assistant de Google intégré à Gmail, Docs et Search, avec un très long contexte et une bonne version gratuite.",
     tarif: "Freemium — Advanced à 21,99 €/mois", gratuit: true, jours: 180, verifie: 20,
-    objectifs: ["Créer du contenu", "Apprendre", "Gérer"], categories: ["assistants"],
+    objectifs: ["Apprendre", "Gérer"], categories: ["assistants"],
     fonctions: ["Intégration Google Workspace", "Contexte très long", "Analyse d'images et de fichiers"] },
   { nom: "Perplexity", slug: "perplexity", url: "https://perplexity.ai",
     description: "Moteur de réponses avec sources citées : idéal pour la veille et la recherche rapide et vérifiable.",
@@ -129,7 +134,7 @@ const OUTILS: OutilSeed[] = [
   { nom: "ComfyUI", slug: "comfyui", url: "https://www.comfy.org",
     description: "Interface nodale open source pour Stable Diffusion : le standard des pipelines d'images avancés.",
     tarif: "Gratuit — open source", gratuit: true, openSource: true, niveau: "Avancé", jours: 90, verifie: 30,
-    objectifs: ["Créer du contenu", "Coder"], categories: ["image-design"],
+    objectifs: ["Coder", "Créer du contenu"], categories: ["image-design"],
     fonctions: ["Pipelines nodaux", "Modèles personnalisés", "Exécution locale"] },
 
   // ── Vidéo ────────────────────────────────────────────────────
@@ -149,14 +154,14 @@ const OUTILS: OutilSeed[] = [
     objectifs: ["Créer du contenu"], categories: ["video"],
     fonctions: ["Text-to-video", "Image-to-video", "Mouvements de caméra prédéfinis"] },
   { nom: "HeyGen", slug: "heygen", url: "https://heygen.com",
-    description: "Avatars vidéo parlants en 175 langues : présentations, formations et vidéos marketing sans tournage.",
+    description: "Avatars vidéo parlant en 175 langues : présentations, formations et vidéos marketing sans tournage.",
     tarif: "Freemium — dès 24 $/mois", tarifMin: 24, jours: 190, verifie: 26,
     objectifs: ["Vendre", "Créer du contenu"], categories: ["video", "marketing"],
     fonctions: ["Avatars réalistes", "Traduction vidéo avec synchro labiale", "Templates personnalisés"] },
   { nom: "CapCut", slug: "capcut", url: "https://capcut.com",
     description: "Montage vidéo complet avec sous-titrage automatique et suppression de fond, très utilisé par les créateurs.",
     tarif: "Freemium — Pro à 8 €/mois", tarifMin: 8, gratuit: true, jours: 200, verifie: 13,
-    objectifs: ["Créer du contenu", "Vendre"], categories: ["video"],
+    objectifs: ["Vendre", "Créer du contenu"], categories: ["video"],
     fonctions: ["Sous-titres automatiques", "Suppression de fond", "Templates tendances"] },
   { nom: "Descript", slug: "descript", url: "https://descript.com",
     description: "Montage de vidéos et podcasts en éditant simplement le texte de la transcription.",
@@ -173,7 +178,7 @@ const OUTILS: OutilSeed[] = [
   { nom: "ElevenLabs", slug: "elevenlabs", url: "https://elevenlabs.io",
     description: "Voix de synthèse ultra réalistes et clonage vocal en français, avec doublage automatique.",
     tarif: "Freemium — dès 5 $/mois", tarifMin: 5, gratuit: true, jours: 180, verifie: 10,
-    objectifs: ["Créer du contenu", "Communiquer"], categories: ["voix-audio"],
+    objectifs: ["Communiquer", "Créer du contenu"], categories: ["voix-audio"],
     fonctions: ["Voix françaises naturelles", "Clonage vocal", "Doublage de vidéos"] },
   { nom: "Suno", slug: "suno", url: "https://suno.com",
     description: "Création de chansons complètes — voix, paroles, musique — à partir d'une simple description.",
@@ -228,11 +233,11 @@ const OUTILS: OutilSeed[] = [
     description: "Transcription en direct de tes réunions (Meet, Zoom, Teams) avec résumés IA et exports.",
     tarif: "Freemium", gratuit: true, jours: 110, verifie: 23,
     objectifs: ["Gérer", "Communiquer"], categories: ["productivite"],
-    fonctions: ["Transcription en direct", "Résumés automatiques", "Export vers Notion/Docs"] },
+    fonctions: ["Transcription en direct", "Résumé automatique", "Export vers Notion/Docs"] },
   { nom: "Make", slug: "make", url: "https://make.com",
     description: "Automatisation visuelle connectée à l'IA : scénarios sans code entre plus de 1 500 services.",
     tarif: "Freemium — dès 9 $/mois", tarifMin: 9, gratuit: true, jours: 240, verifie: 17,
-    objectifs: ["Automatiser", "Gérer"], categories: ["automatisation"],
+    objectifs: ["Automatiser"], categories: ["automatisation"],
     fonctions: ["Scénarios visuels", "Nœuds IA (texte, image)", "Planification"] },
   { nom: "n8n", slug: "n8n", url: "https://n8n.io",
     description: "Automatisation et agents IA open source : auto-hébergeable, avec nœuds IA et logique complète.",
@@ -243,7 +248,7 @@ const OUTILS: OutilSeed[] = [
   { nom: "Lindy", slug: "lindy", url: "https://lindy.ai",
     description: "Création d'agents IA (e-mails, rendez-vous, veille) qui travaillent en tâche de fond, sans code.",
     tarif: "Freemium", gratuit: true, type: "AGENT", jours: 40, verifie: 13,
-    objectifs: ["Automatiser", "Gérer"], categories: ["agents", "automatisation"],
+    objectifs: ["Automatiser"], categories: ["agents", "automatisation"],
     fonctions: ["Agents e-mail et agenda", "Déclencheurs multiples", "Sans code"] },
   { nom: "Relevance AI", slug: "relevance-ai", url: "https://relevanceai.com",
     description: "Plateforme pour construire et déployer des équipes d'agents IA personnalisées, sans code.",
@@ -303,16 +308,40 @@ async function main() {
     });
   }
 
-  // Compte admin + compte de test E2E (fournisseur Credentials, désactivé par défaut)
-  await prisma.user.upsert({
-    where: { email: process.env.ADMIN_EMAIL ?? "admin@webgiverse.test" },
-    update: { role: "ADMIN" },
-    create: {
-      email: process.env.ADMIN_EMAIL ?? "admin@webgiverse.test",
-      name: "Admin Webgiverse", role: "ADMIN",
-      motDePasse: hacher(process.env.ADMIN_MOT_DE_PASSE ?? "admin-motdepasse-test"),
-    },
-  });
+  // ── Lot 84 — COMPTE ADMIN : plus jamais de compte par défaut connu ──
+  // AVANT : le seed créait TOUJOURS un admin (admin@webgiverse.test) avec
+  // le mot de passe par défaut « admin-motdepasse-test », PUBLIÉ DANS LE
+  // DÉPÔT. Quiconque exécutait le seed contre une base neuve créait un
+  // compte d'administration au mot de passe connu de tous.
+  // MAINTENANT : aucun compte admin n'est créé tant que ADMIN_EMAIL et
+  // ADMIN_MOT_DE_PASSE ne sont pas définis TOUS LES DEUX, et le mot de
+  // passe doit faire au moins 12 caractères. Le hash est bcrypt (cf. hacher).
+  const emailAdmin = process.env.ADMIN_EMAIL?.trim() ?? "";
+  const motDePasseAdmin = process.env.ADMIN_MOT_DE_PASSE ?? "";
+  if (emailAdmin && motDePasseAdmin) {
+    if (motDePasseAdmin.length < 12) {
+      throw new Error(
+        "ADMIN_MOT_DE_PASSE doit contenir au moins 12 caractères (seed interrompu)."
+      );
+    }
+    await prisma.user.upsert({
+      where: { email: emailAdmin.toLowerCase() },
+      // update SANS mot de passe : un re-seed ne réinitialise jamais
+      // le mot de passe d'un compte existant.
+      update: { role: "ADMIN" },
+      create: {
+        email: emailAdmin.toLowerCase(),
+        name: "Admin Webgiverse", role: "ADMIN",
+        motDePasse: hacher(motDePasseAdmin),
+      },
+    });
+    console.log(`Compte admin garanti : ${emailAdmin}`);
+  } else {
+    console.log(
+      "ADMIN_EMAIL / ADMIN_MOT_DE_PASSE absents → AUCUN compte admin créé " +
+        "(comportement attendu en production : l'admin existe déjà)."
+    );
+  }
   if (process.env.AUTH_ALLOW_CREDENTIALS === "true") {
     await prisma.user.upsert({
       where: { email: process.env.E2E_TEST_EMAIL ?? "e2e@webgiverse.test" },
