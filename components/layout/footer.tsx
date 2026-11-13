@@ -17,12 +17,12 @@ const COLONNES = [
   {
     titre: "Ressources",
     liens: [
+      ["FAQ", "/faq"],
+      ["Séries IA", "/series"],
       ["Assistant", "/assistant"],
       ["Tutoriels vidéo", "/tutoriels"],
+      ["Bibliothèque de skills", "/skills"],
       ["Bibliothèque de prompts", "/prompts"],
-      ["Blog", "/blog"],
-      ["Actualités", "/actualites"],
-      ["FAQ", "/faq"],
       ["Proposer un outil", "/proposer"],
     ],
   },
@@ -30,7 +30,7 @@ const COLONNES = [
     titre: "Légal",
     liens: [
       ["Mentions légales", "/mentions-legales"],
-      ["Politique de confidentialité", "/confidentialite"],
+      ["Politique de  confidentialité", "/confidentialite"],
       ["CGU", "/cgu"],
     ],
   },
@@ -71,7 +71,7 @@ export async function Footer() {
             Apprendre · Créer · Réussir
           </p>
         </div>
-
+<br />
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {colonnes.map((c) => (
             <nav key={c.titre} aria-label={c.titre}>
