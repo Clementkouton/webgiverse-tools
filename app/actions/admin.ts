@@ -276,9 +276,10 @@ function validerChampsArticle(donnees: FormData) {
     }
     return { ok: true as const, donnees: analyse.data };
   }
+  const of = "de"; // pour les messages d'erreur « Le champ de … est requis » (zod),
 
   const erreurs: Record<string, string> = {};
-  for (const probleme de analyse.error.issues) {
+  for (const probleme of analyse.error.issues) {
     const champ = String(probleme.path[0] ?? "global");
     if (!erreurs[champ]) erreurs[champ] = probleme.message;
   }
