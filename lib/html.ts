@@ -22,6 +22,7 @@
 // À installer :  npm install sanitize-html  +  npm install -D @types/sanitize-html
 // ─────────────────────────────────────────────────────────────────
 import sanitizeHtml from "sanitize-html";
+import { convertirEnUrlImageDirecte } from "@/lib/images"; // Lot 89 — liens Dropbox/Drive
 
 /** Détecte des balises ÉCHAPPÉES du type &lt;p class="…"&gt;, &lt;div&gt;
  *  — y compris doublement échappées (&amp;lt;p&amp;gt;). */
@@ -136,6 +137,19 @@ const OPTIONS_ASSAINISSEMENT: sanitizeHtml.IOptions = {
       tagName: "a",
       attribs: { ...attribs, rel: "noopener noreferrer nofollow" },
     }),
+    // Lot 89 — une <img> du contenu pointant vers un lien de PARTAGE
+    // Dropbox/Drive (page web, pas une image) est réécrite vers le
+    // lien direct. Si le lien est un DOSSIER ou un document Google
+    // (url = null), le src est laissé tel quel : l'image ne
+    // s'affichera pas, mais la page n'est pas cassée pour autant.
+    img: (_balise, attribs) => {
+      if (!attribs.src) return { tagName: "img", attribs };
+      const conversion = convertirEnUrlImageDirecte(attribs.src);
+      return {
+        tagName: "img",
+        attribs: conversion.url ? { ...attribs, src: conversion.url } : attribs,
+      };
+    },
   },
 };
 

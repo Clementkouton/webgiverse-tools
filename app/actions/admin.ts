@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { slugifier } from "@/lib/utils";
 import { schemaOutilAdmin, schemaArticleAdmin } from "@/lib/schemas";
 import { preparerHtmlPourAffichage } from "@/lib/html";
+import { convertirEnUrlImageDirecte } from "@/lib/images"; // Lot 89 — liens Dropbox/Drive
 import { tracerActionAdmin } from "@/lib/journal-admin"; // Lot 25 — audit
 import { estGerantAdmins } from "@/lib/admins-gerants"; // Lot 81 — gérants des droits admin
 
@@ -256,14 +257,30 @@ function validerChampsArticle(donnees: FormData) {
     auteur: String(donnees.get("auteur") ?? ""),
     contenu: String(donnees.get("contenu") ?? ""),
   };
+
+  // Lot 89 — IMAGE : les liens de partage Dropbox / Google Drive sont
+  // convertis en liens d'image directs AVANT la validation (le client
+  // le fait déjà, mais on rejoue la conversion côté serveur pour les
+  // vieux articles et les cas où le JavaScript n'a pas tourné). Un
+  // lien de DOSSIER ou un document Google est refusé avec le message
+  // d'explication de lib/images.ts.
+  const conversionImage = convertirEnUrlImageDirecte(brut.image);
+  if (conversionImage.url !== null) brut.image = conversionImage.url;
+
   const analyse = schemaArticleAdmin.safeParse(brut);
-  if (analyse.success) return { ok: true as const, donnees: analyse.data };
+  if (analyse.success) {
+    if (conversionImage.erreur) {
+      return { ok: false as const, erreurs: { image: conversionImage.erreur } };
+    }
+    return { ok: true as const, donnees: analyse.data };
+  }
 
   const erreurs: Record<string, string> = {};
   for (const probleme of analyse.error.issues) {
     const champ = String(probleme.path[0] ?? "global");
     if (!erreurs[champ]) erreurs[champ] = probleme.message;
   }
+  if (conversionImage.erreur) erreurs.image = conversionImage.erreur;
   return { ok: false as const, erreurs };
 }
 

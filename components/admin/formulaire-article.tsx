@@ -15,6 +15,12 @@
 //     enregistrés avec l'article (Article.motsCles, Lot 88) et
 //     exposés en meta keywords sur la page publique.
 //
+// Lot 89 — IMAGE PRINCIPALE : les liens de partage Dropbox / Google
+// Drive collés dans le champ sont convertis AU VOL en liens d'image
+// directs (raw=1 / uc?export=view). Un lien de DOSSIER ou un document
+// Google est signalé avec une explication claire. L'aperçu et le site
+// public affichent enfin ces images.
+//
 // Sécurité front : chaque réponse est vérifiée AVANT JSON.parse —
 // si le serveur renvoie autre chose que du JSON (page d'erreur HTML…),
 // un message clair s'affiche au lieu du crash
@@ -28,6 +34,7 @@ import { Bouton } from "@/components/ui/bouton";
 import { Carte } from "@/components/ui/carte";
 import { Champ, Etiquette, ZoneTexte } from "@/components/ui/champ";
 import { EditeurRiche } from "@/components/admin/editeur-riche";
+import { convertirEnUrlImageDirecte } from "@/lib/images"; // Lot 89 — Dropbox/Drive
 import type { EtatArticle } from "@/app/actions/admin";
 
 export type ArticleForme = {
@@ -79,8 +86,39 @@ export function FormulaireArticle({
   const [titre, setTitre] = useState(article?.titre ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");
   const [slugModifie, setSlugModifie] = useState(Boolean(article));
-  const [image, setImage] = useState(article?.image ?? "");
+
+  // ── Lot 89 — IMAGE PRINCIPALE ────────────────────────────────────
+  // Les liens de partage Dropbox / Google Drive sont convertis au vol
+  // en liens d'image directs (raw=1 pour Dropbox, uc?export=view pour
+  // Drive) : sans ça, l'aperçu ET l'image du site public restent
+  // vides — ces liens de partage renvoient une PAGE WEB, pas une
+  // image. Un lien de DOSSIER ou un document Google est signalé avec
+  // une explication claire au lieu d'une image cassée muette.
+  const conversionInitiale = convertirEnUrlImageDirecte(article?.image ?? "");
+  const [image, setImage] = useState(conversionInitiale.url ?? article?.image ?? "");
   const [imageCasse, setImageCasse] = useState(false);
+  const [imageNote, setImageNote] = useState(
+    conversionInitiale.url && conversionInitiale.url !== (article?.image ?? "") && !conversionInitiale.erreur
+      ? (conversionInitiale.message ?? "Lien converti en lien d'image direct.")
+      : "",
+  );
+  const [imageErreur, setImageErreur] = useState(conversionInitiale.erreur ?? "");
+
+  /** Convertit le lien collé et met à jour champ + messages. */
+  function changerImage(valeur: string) {
+    const conversion = convertirEnUrlImageDirecte(valeur);
+    // url non null → champ remplacé par le lien direct (affiché tel
+    // quel pour que la correction soit visible) ; null (dossier, doc…)
+    // → le texte collé reste dans le champ, l'explication s'affiche.
+    setImage(conversion.url ?? valeur);
+    setImageCasse(false);
+    setImageErreur(conversion.erreur ?? "");
+    setImageNote(
+      conversion.url && conversion.url !== valeur && !conversion.erreur
+        ? (conversion.message ?? "Lien converti en lien d'image direct.")
+        : "",
+    );
+  }
 
   // ── Éditeur riche ────────────────────────────────────────────────
   // Lot 88 — `cleEditeur` force le remontage de l'éditeur avec le
@@ -410,13 +448,18 @@ export function FormulaireArticle({
               name="image"
               type="url"
               value={image}
-              onChange={(e) => {
-                setImage(e.target.value);
-                setImageCasse(false);
-              }}
-              placeholder="https://… (image de couverture)"
-              aria-invalid={Boolean(etat?.erreurs?.image)}
+              onChange={(e) => changerImage(e.target.value)}
+              placeholder="https://… (image de couverture, lien Dropbox/Drive accepté)"
+              aria-invalid={Boolean(etat?.erreurs?.image) || Boolean(imageErreur)}
             />
+            {imageErreur && (
+              <p role="alert" className="mt-2 rounded-champ border border-adm-erreur/40 bg-adm-erreur-doux px-3 py-2 text-[13px] leading-5 text-[#c94f35]">
+                {imageErreur}
+              </p>
+            )}
+            {!imageErreur && imageNote && (
+              <p className="mt-2 text-[12px] leading-4 text-encre">{imageNote}</p>
+            )}
             {etat?.erreurs?.image && <p className={styleErreur}>{etat.erreurs.image}</p>}
           </div>
         </Carte>
