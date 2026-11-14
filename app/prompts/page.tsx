@@ -271,7 +271,7 @@ export default async function PagePrompts({ searchParams }: { searchParams: Para
             </Bouton>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
             {prompts.map((prompt: ComponentProps<typeof CartePrompt>["prompt"], index: number) => (
               <CartePrompt key={index} prompt={prompt} />
             ))}

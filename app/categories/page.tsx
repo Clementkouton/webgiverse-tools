@@ -54,7 +54,7 @@ export default async function PageCategories() {
 
       {/* ── Grille des catégories ───────────────────────────────── */}
       <div className="mx-auto max-w-7xl px-4 py-12 lg:py-14">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
           {categories.map((c) => (
             <Link
               key={c.slug}

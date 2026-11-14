@@ -181,7 +181,7 @@ export default async function PageTutoriels({ searchParams }: { searchParams: Pa
             </Bouton>
           </div>
         ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
               {tutos.map((t) => (
                 <CarteTuto key={t.id} tuto={t} />
               ))}

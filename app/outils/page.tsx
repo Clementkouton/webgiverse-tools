@@ -310,7 +310,7 @@ export default async function PageOutils({ searchParams }: { searchParams: Param
           </Link>
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
           {outils.map((outil) => (
             <CarteOutilView key={outil.slug} outil={outil} />          ))}
         </div>

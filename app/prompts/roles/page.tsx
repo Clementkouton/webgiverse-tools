@@ -43,7 +43,7 @@ export default async function PageRoles() {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-10 lg:py-12">
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <ul className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
           {ROLES.map((r) => {
             const n = total.get(r.slug) ?? 0;
             return (

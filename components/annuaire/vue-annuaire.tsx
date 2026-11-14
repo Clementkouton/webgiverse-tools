@@ -33,7 +33,7 @@ export async function VueAnnuaire({ titre, sousTitre, filtres, icone, base }: {
       </div>
       {outils.length ? (
         <>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
             {outils.map((o) => <CarteOutilView key={o.id} outil={o} />)}
           </div>
           {/* ── Pagination (Lot 37) — même composant que /tutoriels ── */}
