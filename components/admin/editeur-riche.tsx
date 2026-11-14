@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { texteVersHtml } from "@/lib/html";
+import { convertirEnUrlImageDirecte } from "@/lib/images"; // Lot 91 — conversion Dropbox/Drive
 
 type EtatActifs = {
   gras: boolean;
@@ -225,7 +226,20 @@ export function EditeurRiche({
   const ajouterImage = () => {
     const url = window.prompt("Adresse de l'image (https://…)");
     if (!url) return;
-    insererHtml(`<img src="${url.replace(/"/g, "&quot;")}" alt="" />`);
+    // Lot 91 — CONVERSION Dropbox/Drive À L'INSERTION : le champ
+    // « URL de l'image » convertit les liens de partage à la saisie,
+    // mais ce bouton insérait le lien BRUT. Une <img> qui reçoit une
+    // PAGE de partage n'affiche RIEN (ligne vide dans l'éditeur, et
+    // une image cassée sur le site). On convertit donc ici aussi, et
+    // on refuse les dossiers / documents Google avec l'explication
+    // française de lib/images.ts.
+    const conversion = convertirEnUrlImageDirecte(url);
+    if (conversion.url === null) {
+      window.alert(conversion.erreur ?? "Ce lien ne peut pas afficher d'image.");
+      return;
+    }
+    if (conversion.url === "") return; // champ laissé vide
+    insererHtml(`<img src="${conversion.url.replace(/"/g, "&quot;")}" alt="" />`);
   };
 
   /** Tableau simple : « lignes x colonnes » (ex. 3x4). */

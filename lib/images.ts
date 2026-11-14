@@ -15,9 +15,20 @@
 //                ⚠️ /scl/fo/… et /sh/… = liens de DOSSIER : jamais une
 //                image, même convertis.
 //   • Drive    : https://drive.google.com/file/d/<ID>/view → page web
-//                https://drive.google.com/uc?export=view&id=<ID> → image
+//                https://lh3.googleusercontent.com/d/<ID>  → image directe
+//                (CDN d'images de Google : pas de redirection ni d'écran
+//                de téléchargement, contrairement au vieux format
+//                « uc?export=view » que certains navigateurs ou bloqueurs
+//                de publicité refusent de charger)
 //                ⚠️ /drive/folders/… = dossier ; docs.google.com =
 //                document (rien de tout ça n'est une image).
+//
+// Lot 91 — RÉPARATION AUTOMATIQUE des anciens articles : les liens
+// « drive.google.com/uc?export=view&id=… » et « drive.usercontent.
+// google.com/download?id=… » déjà enregistrés dans les contenus sont
+// re-converts vers lh3 à CHAQUE affichage (éditeur, enregistrement,
+// site public — via le transformateur img de lib/html.ts). Aucun
+// contenu ancien n'est cassé, aucune migration de base nécessaire.
 //
 // Cette fonction PURE (client + serveur, aucune dépendance) convertit
 // les liens de partage en liens d'image directs, et signale les liens
@@ -88,7 +99,14 @@ export function convertirEnUrlImageDirecte(brut: string): ResultatConversionImag
   }
 
   // ── Google Drive ────────────────────────────────────────────────
-  if (hote === "drive.google.com" || hote.endsWith(".drive.google.com")) {
+  // drive.usercontent.google.com = le format « download » servi après
+  // la redirection du vieux « uc » : on le reconnaît aussi, pour
+  // réparer les articles qui l'ont en stocké.
+  if (
+    hote === "drive.google.com" ||
+    hote.endsWith(".drive.google.com") ||
+    hote === "drive.usercontent.google.com"
+  ) {
     // Dossier Drive → jamais une image.
     if (/^\/drive\/folders\//.test(chemin) || chemin.startsWith("/folderview") || chemin.startsWith("/embeddedfolderview")) {
       return {
@@ -100,7 +118,9 @@ export function convertirEnUrlImageDirecte(brut: string): ResultatConversionImag
     }
     // 1) Fichier ouvert : /file/d/<ID>/view?usp=sharing
     let identifiant = chemin.match(/^\/file\/d\/([A-Za-z0-9_-]+)/)?.[1] ?? "";
-    // 2) Anciens formats : /open?id=<ID>, /uc?id=<ID>, /thumbnail?id=<ID>
+    // 2) Formats à identifiant en paramètre : /open?id=<ID>, /uc?id=<ID>,
+    //    /download?id=<ID>, /thumbnail?id=<ID> — et les anciens liens
+    //    déjà convertis (uc?export=view&id=…), qui sont ainsi réparés.
     if (!identifiant) {
       const parametreId = adresse.searchParams.get("id") ?? "";
       if (/^[A-Za-z0-9_-]{10,}$/.test(parametreId)) identifiant = parametreId;
@@ -113,9 +133,14 @@ export function convertirEnUrlImageDirecte(brut: string): ResultatConversionImag
           "« Copier le lien » (le lien doit ressembler à https://drive.google.com/file/d/…/view).",
       };
     }
-    // URL d'image directe. Le fichier doit être partagé en
+    // URL d'image directe = CDN d'images de Google (lh3). Contrairement
+    // au vieux « drive.google.com/uc?export=view » (qui redirige vers
+    // une page de téléchargement que certains navigateurs et bloqueurs
+    // de publicité refusent), lh3 sert l'IMAGE elle-même : pas de
+    // redirection, pas d'écran « analyser le fichier », affichage
+    // fiable dans une balise <img>. Le fichier doit être partagé en
     // « Tous les utilisateurs avec le lien peuvent consulter ».
-    const converti = `https://drive.google.com/uc?export=view&id=${identifiant}`;
+    const converti = `https://lh3.googleusercontent.com/d/${identifiant}`;
     return {
       url: converti,
       message:
