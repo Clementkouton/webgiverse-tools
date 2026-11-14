@@ -18,7 +18,7 @@ const COLONNES = [
     titre: "Ressources",
     liens: [
       ["FAQ", "/faq"],
-      ["Séries IA", "/series"],
+      ["Blog", "/blog"],
       ["Assistant", "/assistant"],
       ["Tutoriels vidéo", "/tutoriels"],
       ["Bibliothèque de skills", "/skills"],
