@@ -1,13 +1,21 @@
 // lib/series.ts
 // ─────────────────────────────────────────────────────────────────
 // Lot 87 — MOTEUR DE CLASSEMENT DES 4 SÉRIES WEBGIVERSE
+// Lot 90 — SÉRIE CHOISIE À LA MAIN, PRIORITAIRE ET EXCLUSIVE
 //
-// Chaque article publié du blog est attribué AUTOMATIQUEMENT à ses
-// séries grâce aux mots-clés définis dans content/series.ts :
-//   - le titre compte ×3 (c'est lui qui décrit le mieux l'article)
-//   - l'extrait compte ×1
-// Un article peut appartenir à plusieurs séries (un comparatif
-// « ChatGPT vs Claude » peut aussi être une pépite Découverte).
+// Lot 87 : chaque article publié du blog est attribué AUTOMATIQUEMENT
+// à ses séries grâce aux mots-clés définis dans content/series.ts
+// (titre ×3, extrait ×1). Problème constaté : ce classement à l'aveugle
+// envoyait le même article dans PLUSIEURS séries (un titre comme
+// « gratuits ou freemium » matche à la fois Découverte, Comparatif…).
+//
+// Lot 90 : le formulaire d'articles permet désormais de CHOISIR la
+// série (Article.serieSlug). Cette série choisie :
+//   • est PRIORITAIRE (badge des cartes, classement en tête de page) ;
+//   • est EXCLUSIVE : l'article n'apparaît PLUS dans les autres séries,
+//     même si les mots-clés matchent encore.
+// Le classement automatique ne sert que de repli pour les articles
+// sans série choisie (null = « Automatique » dans le formulaire).
 // ─────────────────────────────────────────────────────────────────
 import { prisma } from "@/lib/prisma";
 import { SERIES_WEBGIVERSE, serieParSlug, type SerieWebgiverse } from "@/content/series";
@@ -20,6 +28,8 @@ export type ArticleSerie = {
   extrait: string | null;
   image: string | null;
   publieLe: Date | null;
+  /** Lot 90 — série choisie à la main (null = classement automatique). */
+  serieSlug: string | null;
 };
 
 /**
@@ -59,8 +69,21 @@ export function scorerArticle(article: ArticleSerie, serie: SerieWebgiverse): nu
   return score;
 }
 
-/** Meilleure série d'un article (pour le badge des cartes du blog). */
+/** Retourne la série correspondant à un slug enregistré (ou null si vide / inconnu). */
+function serieManuelle(article: ArticleSerie): SerieWebgiverse | null {
+  if (!article.serieSlug) return null;
+  return serieParSlug(article.serieSlug) ?? null;
+}
+
+/**
+ * Meilleure série d'un article (pour le badge des cartes du blog).
+ * Lot 90 — la série choisie à la main GAGNE toujours : aucun score
+ * automatique ne peut la contourner ni l'ajouter à une autre série.
+ */
 export function meilleureSerie(article: ArticleSerie): SerieWebgiverse | null {
+  const manuelle = serieManuelle(article);
+  if (manuelle) return manuelle;
+
   let gagnante: SerieWebgiverse | null = null;
   let meilleurScore = 0;
   for (const serie of SERIES_WEBGIVERSE) {
@@ -82,20 +105,25 @@ export type SerieAvecCompteur = {
 /**
  * Les 4 séries avec leur compteur d'articles publiés.
  * (ordre du tableau content/series.ts conservé)
+ * Lot 90 — un article avec série choisie compte UNIQUEMENT dans cette
+ * série ; les articles sans série choisie sont classés par mots-clés.
  */
 export async function listerSeriesAvecCompteur(): Promise<SerieAvecCompteur[]> {
   const articles: ArticleSerie[] = await prisma.article.findMany({
     where: { type: "BLOG", statut: "PUBLIE" },
-    select: { id: true, slug: true, titre: true, extrait: true, image: true, publieLe: true },
+    select: {
+      id: true, slug: true, titre: true, extrait: true,
+      image: true, publieLe: true, serieSlug: true,
+    },
   });
 
   return SERIES_WEBGIVERSE.map((serie) => {
-    const membres = articles
-      .map((a) => ({ a, score: scorerArticle(a, serie) }))
-      .filter((m) => m.score > 0);
+    const membres = articles.filter((a) =>
+      a.serieSlug ? a.serieSlug === serie.slug : scorerArticle(a, serie) > 0,
+    );
     const dernierArticleLe =
       membres
-        .map((m) => m.a.publieLe)
+        .map((m) => m.publieLe)
         .filter((d): d is Date => d instanceof Date)
         .sort((x, y) => y.getTime() - x.getTime())[0] ?? null;
     return { serie, nbArticles: membres.length, dernierArticleLe };
@@ -103,8 +131,13 @@ export async function listerSeriesAvecCompteur(): Promise<SerieAvecCompteur[]> {
 }
 
 /**
- * Les articles d'une série, du mieux classé au moins bien, puis du
- * plus récent au plus ancien. Retourne null si le slug est inconnu.
+ * Les articles d'une série. Lot 90 :
+ *   1. les articles DONT LA SÉRIE A ÉTÉ CHOISIE À LA MAIN passent en
+ *      tête (du plus récent au plus ancien) ;
+ *   2. suivent les articles classés automatiquement (score, puis date) ;
+ *   3. un article attaché à une AUTRE série par son formulaire est
+ *      EXCLU de celle-ci, même si les mots-clés matchent.
+ * Retourne null si le slug est inconnu.
  */
 export async function listerArticlesDeSerie(slug: string): Promise<{
   serie: SerieWebgiverse;
@@ -115,16 +148,41 @@ export async function listerArticlesDeSerie(slug: string): Promise<{
 
   const articles: ArticleSerie[] = await prisma.article.findMany({
     where: { type: "BLOG", statut: "PUBLIE" },
-    select: { id: true, slug: true, titre: true, extrait: true, image: true, publieLe: true },
+    select: {
+      id: true, slug: true, titre: true, extrait: true,
+      image: true, publieLe: true, serieSlug: true,
+    },
   });
 
   const membres = articles
-    .map((a) => ({ ...a, score: scorerArticle(a, serie) }))
-    .filter((a) => a.score > 0)
+    .map((a) => ({
+      ...a,
+      score: scorerArticle(a, serie),
+      manuel: a.serieSlug === serie.slug,
+    }))
+    .filter((a) => a.manuel || (!a.serieSlug && a.score > 0))
     .sort((x, y) => {
+      if (x.manuel !== y.manuel) return x.manuel ? -1 : 1; // choisis à la main d'abord
       if (y.score !== x.score) return y.score - x.score;
       return (y.publieLe?.getTime() ?? 0) - (x.publieLe?.getTime() ?? 0);
     });
 
   return { serie, articles: membres };
+}
+
+/**
+ * Lot 90 — les derniers articles publiés (pour la section
+ * « Derniers articles du blog » de la page d'accueil). Remplace les
+ * 3 articles de démonstration écrits en dur dans content/accueil.ts.
+ */
+export async function listerDerniersArticles(limite = 3): Promise<ArticleSerie[]> {
+  return prisma.article.findMany({
+    where: { type: "BLOG", statut: "PUBLIE" },
+    orderBy: { publieLe: "desc" },
+    take: limite,
+    select: {
+      id: true, slug: true, titre: true, extrait: true,
+      image: true, publieLe: true, serieSlug: true,
+    },
+  });
 }

@@ -218,6 +218,12 @@ model Article {
   creeLe   DateTime      @default(now())
   majLe    DateTime      @updatedAt
   motsCles String? // Lot 88 — mots-clés SEO secondaires, à virgules
+  // Lot 90 — série Webgiverse choisie à la main dans le formulaire
+  // (webgiverse-decouverte, webgiverse-academy, webgiverse-comparatif
+  // ou webgiverse-automation). null = classement automatique par
+  // mots-clés (lib/series.ts). Une série choisie est EXCLUSIVE :
+  // l'article n'apparaît plus dans les autres séries.
+  serieSlug String?
   @@index([type, statut, publieLe])
 }
 

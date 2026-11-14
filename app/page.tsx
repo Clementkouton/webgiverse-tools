@@ -31,7 +31,8 @@ import { SectionPlans } from "@/components/tarifs/section-plans";
 import { BandeauSponsor } from "@/components/public/bandeau-sponsor";
 import { CartePrompt } from "@/components/prompts/carte-prompt";
 import { CarteSkill } from "@/components/skills/carte-skill";
-import { ACTU, ARTICLES, FAQ } from "@/content/accueil";
+import { CarteArticle } from "@/components/commun/carte-article";
+import { ACTU, FAQ } from "@/content/accueil";
 import { TEMOIGNAGES } from "@/content/temoignages";
 import {
   compterStats,
@@ -44,8 +45,8 @@ import {
   compterPromptStats,
 } from "@/lib/queries";
 import { listerSkills, compterSkillsStats } from "@/lib/queries-skills";
+import { listerDerniersArticles, meilleureSerie } from "@/lib/series"; // Lot 90 — vrais articles
 import VuRecemment from "@/components/visites/vu-recemment";
-
 // La section Premium lit la session elle-même (dans SectionPlans) pour
 // afficher « connexion d'abord » aux visiteurs non connectés → rendu
 // dynamique (lecture du cookie, sans base de données).
@@ -94,7 +95,7 @@ export default async function Accueil() {
   // Lot 74 — deux sections supplémentaires alimentées par la base :
   // promptsVedettes (les 4 prompts les plus consultés) et la vitrine
   // des skills (les 4 premières de /skills, « À la une » d'abord).
-  const [stats, enAvant, nouveautes, categories, tutoStats, resultatTutos, statsPrompts, promptsVedettes, statsSkills, resultatSkills] = await Promise.all([
+  const [stats, enAvant, nouveautes, categories, tutoStats, resultatTutos, statsPrompts, promptsVedettes, statsSkills, resultatSkills, articlesAccueil] = await Promise.all([
     avecRepli(compterStats(), STATS_ACCUEIL_VIDE),
     avecRepli(outilsMisEnAvant(), []),
     avecRepli(listerOutils({ tri: "recente", page: 1 }), RESULTAT_OUTILS_VIDE),
@@ -107,6 +108,9 @@ export default async function Accueil() {
     avecRepli(promptsPopulaires(4), []),
     avecRepli(compterSkillsStats(), STATS_SKILLS_VIDE),
     avecRepli(listerSkills({ page: 1 }), RESULTAT_SKILLS_VIDE),
+    // Lot 90 — les 3 derniers VRAIS articles publiés (remplace les
+    // articles de démonstration écrits en dur dans content/accueil.ts).
+    avecRepli(listerDerniersArticles(3), []),
   ]);
   const tutoriels = resultatTutos.tutos;
   const heuresTutos = Math.round(tutoStats.minutes / 60);
@@ -441,16 +445,26 @@ export default async function Accueil() {
       {/* ── Derniers articles du blog ────────────────────────── */}
       <section className="py-14 lg:py-18">
         <div className="mx-auto max-w-7xl px-4">
-          <TitreSection>Derniers articles du blog</TitreSection>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {ARTICLES.map((a) => (
-              <Link key={a.titre} href="/blog" className="group flex flex-col rounded-carte border border-bordure bg-white p-5 shadow-carte transition hover:border-violet">
-                <h3 className="font-titre text-[17px] leading-6 font-semibold group-hover:text-sky-500">{a.titre}</h3>
-                <p className="mesure mt-2 text-[14px] leading-5 text-encre">{a.extrait}</p>
-                <span className="mt-auto pt-4 text-[14px] leading-5 font-semibold text-sky-500">Bientôt disponible</span>
-              </Link>
-            ))}
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <TitreSection>Derniers articles du blog</TitreSection>
+            <Link href="/blog" className="inline-flex min-h-11 items-center gap-1 text-[15px] leading-5 font-semibold text-sky-500 hover:underline">
+              Tous les articles <ChevronRight className="size-4" aria-hidden />
+            </Link>
           </div>
+          {articlesAccueil.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {articlesAccueil.map((a) => (
+                <CarteArticle key={a.id} article={a} serie={meilleureSerie(a)} />
+              ))}
+            </div>
+          ) : (
+            <Carte className="mx-auto max-w-xl p-6 text-center">
+              <p className="text-[16px] font-semibold text-bleu">Les premiers articles arrivent bientôt</p>
+              <p className="mt-2 text-[14px] leading-6 text-encre">
+                Guides, comparatifs et conseils IA — en attendant, découvre l&apos;annuaire et ses outils testés.
+              </p>
+            </Carte>
+          )}
         </div>
       </section>
 

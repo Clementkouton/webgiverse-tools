@@ -1,4 +1,8 @@
-// content/accueil.ts — FAQ, prompts, actu, blog
+// content/accueil.ts — FAQ, prompts, actu
+// Lot 90 — le tableau ARTICLES (articles de démonstration du blog)
+// a été supprimé : la section « Derniers articles du blog » de
+// l'accueil est branchée sur la base (lib/series.ts →
+// listerDerniersArticles).
 export const FAQ = [
   { question: "Comment choisir un outil IA ?",
     reponse: "Commence par ta tâche la plus chronophage, pas par l'outil à la mode. Définis ton objectif (vendre, créer, automatiser), ton budget réel et ton niveau technique. Lance ensuite l'assistant Webgiverse : il te propose jusqu'à trois outils adaptés, gratuits d'abord. Teste chaque outil deux semaines sur un cas réel avant de payer." },
@@ -27,10 +31,4 @@ export const ACTU = [
   { titre: "Les derniers modèles Claude arrivent sur Claude.ai", source: "Blog Anthropic", url: "https://www.anthropic.com/news" },
   { titre: "Mistral publie les nouveautés du Chat", source: "Mistral AI", url: "https://mistral.ai/news" },
   { titre: "Google fait évoluer Gemini et NotebookLM", source: "Google Blog", url: "https://blog.google/technology/ai/" },
-];
-
-export const ARTICLES = [
-  { titre: "7 outils IA gratuits pour lancer ton activité", extrait: "Le combo gratuit pour démarrer sans budget : rédaction, design, vidéo et automatisation." },
-  { titre: "Agent ou outil : que choisir pour automatiser ?", extrait: "Un agent décide et enchaîne, un outil exécute une tâche. Voici comment trancher." },
-  { titre: "IA et Afrique francophone : par où commencer", extrait: "Connexions, paiements, langues : le guide réaliste pour tirer parti de l'IA." },
 ];

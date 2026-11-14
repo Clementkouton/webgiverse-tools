@@ -21,6 +21,11 @@
 // Google est signalé avec une explication claire. L'aperçu et le site
 // public affichent enfin ces images.
 //
+// Lot 90 — SÉRIE DU BLOG : nouveau sélecteur visuel dans la colonne
+// latérale. La série choisie est PRIORITAIRE et EXCLUSIVE sur le site
+// (l'article n'apparaît QUE dans cette série). « Automatique » laisse
+// le classement par mots-clés décider (ancien comportement, en repli).
+//
 // Sécurité front : chaque réponse est vérifiée AVANT JSON.parse —
 // si le serveur renvoie autre chose que du JSON (page d'erreur HTML…),
 // un message clair s'affiche au lieu du crash
@@ -35,6 +40,7 @@ import { Carte } from "@/components/ui/carte";
 import { Champ, Etiquette, ZoneTexte } from "@/components/ui/champ";
 import { EditeurRiche } from "@/components/admin/editeur-riche";
 import { convertirEnUrlImageDirecte } from "@/lib/images"; // Lot 89 — Dropbox/Drive
+import { SERIES_WEBGIVERSE } from "@/content/series"; // Lot 90 — séries du blog
 import type { EtatArticle } from "@/app/actions/admin";
 
 export type ArticleForme = {
@@ -48,6 +54,7 @@ export type ArticleForme = {
   auteur: string;
   contenu: string;
   motsCles: string;
+  serieSlug: string; // Lot 90 — "" = classement automatique
 };
 
 type ActionArticle = (etat: EtatArticle, donnees: FormData) => Promise<EtatArticle>;
@@ -131,6 +138,11 @@ export function FormulaireArticle({
   // ── Assistant IA ─────────────────────────────────────────────────
   const [extrait, setExtrait] = useState(article?.extrait ?? "");
   const [motsCles, setMotsCles] = useState(article?.motsCles ?? "");
+  // ── Lot 90 — SÉRIE DU BLOG ─────────────────────────────────────
+  // La série choisie est prioritaire et exclusive sur le site :
+  // l'article n'apparaît QUE dans cette série. "" = classement
+  // automatique par mots-clés (ancien comportement, en repli).
+  const [serieSlug, setSerieSlug] = useState(article?.serieSlug ?? "");
   const [ton, setTon] = useState<(typeof TONS)[number]["valeur"]>("persuasif");
   const [tacheEnCours, setTacheEnCours] = useState<TacheIa | null>(null);
   const [iaErreur, setIaErreur] = useState(""); // carte Résumé
@@ -486,6 +498,59 @@ export function FormulaireArticle({
             <Champ id="auteur" name="auteur" defaultValue={article?.auteur ?? ""} placeholder="L'équipe Webgiverse" aria-invalid={Boolean(etat?.erreurs?.auteur)} />
             {etat?.erreurs?.auteur && <p className={styleErreur}>{etat.erreurs.auteur}</p>}
           </div>
+        </Carte>
+
+        {/* ── Série du blog (Lot 90) ─────────────────────────────── */}
+        <Carte className="grid gap-3 p-6">
+          <h3 className="font-titre text-[16px] leading-6 font-semibold">Série du blog</h3>
+          <p className="text-[12px] leading-4 text-encre">
+            La série choisie a la priorité : l&apos;article n&apos;apparaît QUE dans celle-ci.
+            Utilisée pour les articles de blog (ignorée pour les actualités).
+          </p>
+          <fieldset className="grid gap-2">
+            <legend className="sr-only">Série du blog</legend>
+            <label
+              className={`flex cursor-pointer items-start gap-2.5 rounded-carte border p-3 transition ${
+                serieSlug === "" ? "border-primaire bg-primaire/5" : "border-bordure bg-white hover:border-violet"
+              }`}
+            >
+              <input
+                type="radio"
+                name="serieSlug"
+                value=""
+                checked={serieSlug === ""}
+                onChange={() => setSerieSlug("")}
+                className="mt-0.5 size-4 shrink-0 accent-sky-500"
+              />
+              <span className="text-[13px] leading-5">
+                <span className="font-semibold text-bleu">Automatique</span>
+                <span className="text-encre"> — le site classe l&apos;article d&apos;après son titre et son résumé (peut l&apos;afficher dans plusieurs séries).</span>
+              </span>
+            </label>
+            {SERIES_WEBGIVERSE.map((s) => (
+              <label
+                key={s.slug}
+                className={`flex cursor-pointer items-start gap-2.5 rounded-carte border p-3 transition ${
+                  serieSlug === s.slug ? "border-primaire bg-primaire/5" : "border-bordure bg-white hover:border-violet"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="serieSlug"
+                  value={s.slug}
+                  checked={serieSlug === s.slug}
+                  onChange={() => setSerieSlug(s.slug)}
+                  className="mt-0.5 size-4 shrink-0 accent-sky-500"
+                />
+                <span
+                  className={`inline-flex shrink-0 items-center rounded-[7px] px-2 py-0.5 text-[12px] leading-4 font-semibold ${s.couleur.badge}`}
+                >
+                  {s.court}
+                </span>
+                <span className="text-[13px] leading-5 text-encre">{s.accroche}</span>
+              </label>
+            ))}
+          </fieldset>
         </Carte>
 
         {/* ── Résumé ───────────────────────────────────────────────── */}

@@ -111,8 +111,12 @@ export const SERIES_WEBGIVERSE: SerieWebgiverse[] = [
     icone: "Scale",
     motsCles: [
       "vs", "comparatif", "comparatifs", "comparaison", "comparer",
+      // Lot 90 — « ou » retiré : ce simple mot de liaison faisait
+      // matcher QUASIMENT TOUT titre (« gratuits ou freemium »…) avec
+      // la série Comparatif. La comparaison se reconnaît à « vs »,
+      // « contre », « face a face », « le quel choisir »…
       "compare", "comparé", "face a face", "face à face", "duel",
-      "contre", "ou", "lequel", "laquelle", "meilleur que", "mieux que",
+      "contre", "lequel", "laquelle", "meilleur que", "mieux que",
       "difference", "différence", "differences", "différences", "choisir",
       "choix", "gratuit vs payant", "payant", "payants", "prix", "tarif",
       "tarifs", "abonnement", "abonnements", "verdict", "gagnant",

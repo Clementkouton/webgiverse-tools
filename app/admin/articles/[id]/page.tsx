@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { FormulaireArticle } from "@/components/admin/formulaire-article";
+import { FormulaireArticle, type ArticleForme } from "@/components/admin/formulaire-article";
 import { majArticleAction } from "@/app/actions/admin";
 
 export const metadata: Metadata = { title: "Modifier l'article — Administration" };
@@ -48,7 +48,8 @@ export default async function PageModifierArticle({ params }: { params: Promise<
             extrait: article.extrait,
             image: article.image,
             auteur: article.auteur,
-            motsCles: "",
+            motsCles: article.motsCles ?? "", // Lot 90 — recharge les vrais mots-clés (avant : "" en dur)
+            serieSlug: article.serieSlug ?? "", // Lot 90 — recharge la série choisie
             contenu: article.contenu,
           }}
         />

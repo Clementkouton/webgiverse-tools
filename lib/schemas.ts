@@ -50,5 +50,8 @@ export const schemaArticleAdmin = z.object({
   motsCles: z.string().trim().max(400, "400 caractères maximum").optional().or(z.literal("")),
   image: z.string().trim().url("URL de l'image invalide").max(400).optional().or(z.literal("")),
   auteur: z.string().trim().min(2, "Nom d'auteur trop court").max(80).optional().or(z.literal("")),
+  // Lot 90 — série choisie à la main ("" ou absent = classement
+  // automatique). Un slug inconnu est ignoré côté action (→ null).
+  serieSlug: z.string().trim().max(60).optional().or(z.literal("")),
   contenu: z.string().trim().min(50, "L'article doit contenir au moins 50 caractères").max(50000, "Article trop long"),
 });

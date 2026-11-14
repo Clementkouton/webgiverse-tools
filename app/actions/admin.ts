@@ -9,6 +9,7 @@ import { slugifier } from "@/lib/utils";
 import { schemaOutilAdmin, schemaArticleAdmin } from "@/lib/schemas";
 import { preparerHtmlPourAffichage } from "@/lib/html";
 import { convertirEnUrlImageDirecte } from "@/lib/images"; // Lot 89 — liens Dropbox/Drive
+import { SERIES_WEBGIVERSE } from "@/content/series"; // Lot 90 — séries du blog
 import { tracerActionAdmin } from "@/lib/journal-admin"; // Lot 25 — audit
 import { estGerantAdmins } from "@/lib/admins-gerants"; // Lot 81 — gérants des droits admin
 
@@ -253,6 +254,7 @@ function validerChampsArticle(donnees: FormData) {
     statut: String(donnees.get("statut") ?? ""),
     extrait: String(donnees.get("extrait") ?? ""),
     motsCles: String(donnees.get("motsCles") ?? ""), // Lot 88 — SEO
+    serieSlug: String(donnees.get("serieSlug") ?? ""), // Lot 90 — série du blog
     image: String(donnees.get("image") ?? ""),
     auteur: String(donnees.get("auteur") ?? ""),
     contenu: String(donnees.get("contenu") ?? ""),
@@ -276,7 +278,7 @@ function validerChampsArticle(donnees: FormData) {
   }
 
   const erreurs: Record<string, string> = {};
-  for (const probleme of analyse.error.issues) {
+  for (const probleme de analyse.error.issues) {
     const champ = String(probleme.path[0] ?? "global");
     if (!erreurs[champ]) erreurs[champ] = probleme.message;
   }
@@ -298,6 +300,9 @@ function construireDonneesArticle(champs: ChampsArticle) {
     motsCles: champs.motsCles && champs.motsCles.length > 0 ? champs.motsCles : null,
     image: champs.image && champs.image.length > 0 ? champs.image : null,
     auteur: champs.auteur && champs.auteur.length > 0 ? champs.auteur : "L'équipe Webgiverse",
+    // Lot 90 — série choisie à la main dans le formulaire ; un slug
+    // inconnu (ou vide) repasse en classement automatique (null).
+    serieSlug: SERIES_WEBGIVERSE.some((s) => s.slug === champs.serieSlug) ? champs.serieSlug : null,
     // par :
     // Lot 23 — le contenu arrive de l'éditeur riche : on retire tout ce
     // qui ne doit jamais être affiché (scripts, attributs onclick…).
