@@ -129,7 +129,7 @@ const SECTIONS: { titre: string; liens: LienMenu[] }[] = [
 
 /** Titre + sous-titre de la barre supérieure, selon la page courante. */
 const TITRES: Record<string, { titre: string; sousTitre: string }> = {
-  apercu: { titre: "Tableau de bord", sousTitre: "Vue d'ensemble de ton espace Webgiverse" },
+  apercu: { titre: "Tableau de bord", sousTitre: "Vue d'ensemble de ton espace Webgiverse Tools" },
   favoris: { titre: "Mes favoris", sousTitre: "Outils suivis, statuts et notes" },
   listes: { titre: "Mes listes", sousTitre: "Organise tes outils par projet ou par client" },
   avis: { titre: "Mes avis", sousTitre: "Tes retours d'expérience sur les outils testés" },
@@ -169,7 +169,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
     ? (TITRES[ongletActif] ?? TITRES.apercu)
     : segment && TITRES[segment]
       ? TITRES[segment]
-      : { titre: "Mon espace", sousTitre: "Espace personnel Webgiverse" };
+      : { titre: "Mon espace", sousTitre: "Espace personnel Webgiverse Tools" };
 
   // Ferme le tiroir à chaque navigation
   useEffect(() => {
@@ -276,7 +276,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
         <Crown className="size-4 text-ciel" aria-hidden /> Premium actif
       </p>
       <p className="relative mt-1 text-[12px] leading-4 text-white/75">
-        Merci de soutenir Webgiverse ! Gère ton plan quand tu veux.
+        Merci de soutenir Webgiverse Tools! Gère ton plan quand tu veux.
       </p>
       <Link
         href="/dashboard/abonnement"
@@ -458,10 +458,7 @@ export default function MenuDashboard({ prenom, image, premium, pied, children }
       >
         <div className="flex items-center justify-between border-b border-bordure px-4 py-3.5">
           <div className="flex items-center gap-2">
-            <span className="grid size-9 place-items-center rounded-champ bg-[linear-gradient(120deg,#6a3bff,#00d1ff)] font-titre text-[15px] font-bold text-white">
-              W
-            </span>
-            <p className="font-titre text-[15px] font-bold">Webgiverse</p>
+            <LienLogo />
           </div>
           <button
             type="button"
