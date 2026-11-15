@@ -108,9 +108,11 @@ export function Header() {
   const classeLien = (actif: boolean) =>
     `rounded-[7px]  not-italic px-4 py-2.5 text-[15px] leading-5 font-medium whitespace-nowrap transition hover:bg-gris hover:text-sky-500 ${
       actif
-        ? "bg-violet/10 text-sky-500"
-        : "text-bleu hover:bg-violet/10 hover:text-sky-500"
+        ? "bg-violet/10 text-sky-500/80 hover:bg-violet/20 hover:text-sky-500"
+        : "text-bleu hover:bg-violet/10 hover:text-sky-500 "
     }`;
+
+    
 
   return (
     <header className="verre sticky top-0 z-50 border-b border-bordure">
@@ -124,7 +126,7 @@ export function Header() {
           aria-label="Navigation principale"
         >
           {/* Lot 40 · menu Annuaire piloté par état (fini le <details>) */}
-          <div className="relative" ref={blocAnnuaireRef}>
+          <div className="relative text-bleu" ref={blocAnnuaireRef}>
             <button
               type="button"
               onClick={() => setAnnuaireOuvert((v) => !v)}
@@ -132,7 +134,7 @@ export function Header() {
               aria-haspopup="true"
               className={`flex min-h-11 cursor-pointer items-center gap-1 rounded-[7px]  not-italic px-4 text-[15px] leading-5 font-medium whitespace-nowrap transition hover:bg-gris hover:text-sky-500 ${
                 annuaireActif
-                ? "bg-violet/10 text-sky-500"
+                ? "bg-violet/10 text-bleu hover:bg-violet/10 hover:text-sky-500"
                 : "text-bleu hover:bg-violet/10 hover:text-sky-500"
               }`}
             >
@@ -143,11 +145,11 @@ export function Header() {
               />
             </button>
             {annuaireOuvert && (
-              <div className="absolute top-full left-0 z-30 mt-1 grid w-56 gap-0.5 rounded-carte border border-bordure bg-white p-2 shadow-carte">
+              <div className="absolute top-full left-0 z-30 mt-1 grid w-56 gap-0.5 rounded-carte border border-bordure bg-white p-2 shadow-carte ">
                 {LIENS_ANNUAIRE.map((l) => (
                   <Link key={l.href} href={l.href}
                     onClick={() => setAnnuaireOuvert(false)}
-                    className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-sky-500">
+                    className="rounded-champ px-3 py-2 text-[15px] leading-5 text-bleu hover:bg-gris hover:text-sky-500 hover:bg-violet/10">
                     {l.label}
                   </Link>
                 ))}
@@ -164,16 +166,15 @@ export function Header() {
           <Link href="/skills" aria-current={skillsActif ? "page" : undefined}
             className={
               skillsActif
-                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap  hover:bg-violet/10 hover:text-sky-500"
-                : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500/80 transition hover:bg-violet/10 hover:text-sky-500"
-            }>
-            <Sparkles className="size-4" aria-hidden /> Skills
+                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic  px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-bleu  hover:bg-violet/10 hover:text-sky-500"
+                : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-blue transition hover:bg-violet/10 hover:text-sky-500"
+            }> Skills
           </Link>
           <Link href="/tarifs" aria-current={premiumActif ? "page" : undefined}
             className={
               premiumActif
-                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap  shadow-[0_2px_12px_rgba(106,59,255,0.28)] hover:bg-violet/90 hover:text-sky-500"
-                : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 transition hover:bg-violet hover:text-sky-500"
+                ? "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap  hover:bg-violet/90 hover:text-sky-500 hover:shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                : "inline-flex items-center gap-1.5 rounded-[7px]  not-italic bg-violet/10 px-4 py-2.5 text-[15px] leading-5 font-semibold whitespace-nowrap text-sky-500 transition hover:bg-violet/10 hover:text-sky-500 hover:shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
             }>
             <Sparkles className="size-4" aria-hidden /> Premium
           </Link>
@@ -196,39 +197,39 @@ export function Header() {
           Tutoriels, Skills) et Premium. */}
       {menuOuvert && (
         <nav className="border-t border-bordure bg-white px-4 py-4 lg:hidden" aria-label="Navigation mobile">
-          <p className="px-3 pb-1 text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase">
+          <p className="px-3 pb-1 text-[12px] leading-4 font-semibold tracking-wide text-encre uppercase hover:bg-violet/10" >
             Annuaire
           </p>
           <ul className="grid gap-1">
             {LIENS_ANNUAIRE.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} onClick={() => setMenuOuvert(false)}
-                  className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-sky-500">{l.label}</Link>
+                  className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-sky-500 hover:bg-violet/10">{l.label}</Link>
               </li>
             ))}
-            <li aria-hidden className="my-2 border-t border-bordure hover:bg-gris hover:text-sky-500" />
+            <li aria-hidden className="my-2 border-t border-bordure hover:bg-gris " />
             <li>
               <Link href="/prompts" onClick={() => setMenuOuvert(false)}
-                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris hover:text-sky-500">
+                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-bleu hover:bg-gris hover:text-sky-500 hover:bg-violet/10 ">
                 Prompts IA
               </Link>
             </li>
             <li>
               <Link href="/tutoriels" onClick={() => setMenuOuvert(false)}
-                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-sky-500">
+                className="block rounded-champ px-3 py-2.5 text-[16px] leading-6 font-medium text-bleu hover:bg-gris hover:text-sky-500 hover:bg-violet/10">
                 Tutoriels
               </Link>
             </li>
             <li>
               <Link href="/skills" onClick={() => setMenuOuvert(false)}
-                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris hover:text-sky-500">
+                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-bleu hover:bg-gris hover:text-sky-500 hover:bg-violet/10 ">
                 <Sparkles className="size-4" aria-hidden /> Skills
-                <span className="rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[11px] leading-4 font-bold text-sky-500">Premium</span>
+                <span className="rounded-[7px]  not-italic bg-violet/10 px-2 py-0.5 text-[11px] leading-4 font-bold ">Premium</span>
               </Link>
             </li>
             <li>
               <Link href="/tarifs" onClick={() => setMenuOuvert(false)}
-                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-sky-500 hover:bg-gris hover:text-sky-500">
+                className="flex items-center gap-2 rounded-champ px-3 py-2.5 text-[16px] leading-6 font-semibold text-bleu hover:bg-gris hover:text-sky-500 hover:bg-violet/10">
                 <Sparkles className="size-4" aria-hidden /> Passer Premium
               </Link>
             </li>

@@ -257,13 +257,68 @@ export async function obtenirTuto(slug: string) {
   return tutoDb.findUnique({ where: { slug } });
 }
 
-/** Autres tutoriels autour du même outil, pour la colonne « À suivre ensuite ». */
+/**
+ * Tutoriels « À suivre ensuite » — priorité à la MÊME THÉMATIQUE que le
+ * tutoriel regardé (Lot 92). Chaque outil/tag commun est noté en fonction
+ * de sa RARETÉ dans la collection (poids = 1 / nombre de tutoriels qui le
+ * portent) : un tag spécifique comme « Veo » ou « NotebookLM » compte
+ * beaucoup, un tag générique comme « Video » ou « IA » — présent sur des
+ * dizaines de tutoriels — compte très peu. Les tags sont comparés sans
+ * accents ni casse (« Vidéo » et « Video » se retrouvent). La popularité
+ * (vues) ne sert qu'à départager les ex æquo — avant ce correctif, les 3
+ * tutoriels les plus vus de toute la collection écrasaient toujours les
+ * suggestions, même sans aucun rapport avec le tuto regardé.
+ * Si la collection contient moins de 3 tutoriels liés, on complète avec
+ * les plus vus : la section n'affiche jamais une grille quasi vide.
+ */
 export async function tutosSuivants(tutoId: string, outils: string[]) {
-  return tutoDb.findMany({
-    where: { id: { not: tutoId }, ...(outils.length ? { outils: { hasSome: outils } } : {}) },
+  const tous = await tutoDb.findMany({
+    where: { id: { not: tutoId } },
     orderBy: [{ vues: "desc" }],
-    take: 3,
+    take: 100, // collection bornée : le scoring reste léger
   });
+
+  const normaliser = (valeur: string) =>
+    valeur.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const cibles = new Set(outils.map(normaliser).filter(Boolean));
+
+  // Fréquence de chaque tag cible parmi les AUTRES tutoriels, puis poids
+  // = 1 / fréquence (plus un tag est rare, plus il caractérise le thème).
+  const frequence = new Map<string, number>();
+  if (cibles.size) {
+    for (const t of tous) {
+      for (const o of t.outils) {
+        const cle = normaliser(o);
+        if (cibles.has(cle)) frequence.set(cle, (frequence.get(cle) ?? 0) + 1);
+      }
+    }
+  }
+
+  const lies = cibles.size
+    ? tous
+        .map((t) => {
+          const dejaComptes = new Set<string>();
+          let score = 0;
+          for (const o of t.outils) {
+            const cle = normaliser(o);
+            if (!cibles.has(cle) || dejaComptes.has(cle)) continue;
+            dejaComptes.add(cle);
+            const nb = frequence.get(cle) ?? 0;
+            if (nb > 0) score += 1 / nb; // tag jamais repris ailleurs → poids nul
+          }
+          return { tuto: t, score };
+        })
+        .filter((x) => x.score > 0)
+        .sort((a, b) => b.score - a.score || b.tuto.vues - a.tuto.vues)
+        .map((x) => x.tuto)
+    : [];
+
+  if (lies.length >= 3) return lies.slice(0, 3);
+  const idsLies = new Set(lies.map((t) => t.id));
+  const complements = tous
+    .filter((t) => !idsLies.has(t.id))
+    .slice(0, 3 - lies.length);
+  return [...lies, ...complements];
 }
 /* ============================================================
    BIBLIOTHÈQUE DE PROMPTS IA (/prompts)

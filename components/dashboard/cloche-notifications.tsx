@@ -156,11 +156,12 @@ export default function ClocheNotifications() {
       </button>
 
       {/* Menu déroulant des notifications */}
+            {/* Menu déroulant des notifications */}
       {ouvert && (
         <div
           role="dialog"
           aria-label="Mes notifications"
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-[min(360px,calc(100vw-32px))] overflow-hidden rounded-carte border border-bordure bg-white shadow-carte"
+          className="fixed inset-x-4 top-[72px] z-50 overflow-hidden rounded-carte border border-bordure bg-white shadow-carte sm:absolute sm:inset-x-auto sm:right-0 sm:top-[calc(100%+10px)] sm:w-[min(360px,calc(100vw-32px))]"
         >
           <div className="flex items-center justify-between border-b border-bordure px-4 py-3">
             <p className="font-titre text-[14px] leading-5 font-bold text-bleu">

@@ -509,7 +509,7 @@ export default async function PageTuto({ params }: { params: Params }) {
               À suivre ensuite
             </h2>
             <p className="mt-1 text-[14px] leading-6 text-encre">
-              D&apos;autres tutoriels autour du même outil, choisis par popularité.
+              D&apos;autres tutoriels de la même thématique, choisis par popularité.
             </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {suivants.map((t: (typeof suivants)[number]) => (
