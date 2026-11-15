@@ -173,7 +173,7 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
             aria-current={!categorie ? "true" : undefined}
             className={
               !categorie
-                ? "rounded-[7px]  not-italic bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                ? "rounded-[7px]  not-italic bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-sky-500 shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
                 : "rounded-[7px]  not-italic border border-bordure bg-white px-4 py-2 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-sky-500"
             }
           >
@@ -186,7 +186,7 @@ export default async function PageSkills({ searchParams }: { searchParams: Param
               aria-current={categorie === c.nom ? "true" : undefined}
               className={
                 categorie === c.nom
-                  ? "rounded-[7px]  not-italic bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-white shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
+                  ? "rounded-[7px]  not-italic bg-violet px-4 py-2 text-[13px] leading-4 font-semibold text-sky-500 shadow-[0_2px_12px_rgba(106,59,255,0.28)]"
                   : "rounded-[7px]  not-italic border border-bordure bg-white px-4 py-2 text-[13px] leading-4 font-medium text-bleu transition hover:border-violet hover:text-sky-500"
               }
             >
